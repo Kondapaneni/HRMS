@@ -16,7 +16,6 @@ import {
   Building2,
   ChevronDown
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { getBranchLoanApplications } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
@@ -163,32 +162,32 @@ const BranchOperationsMobileLoansApplicationsList = () => {
       </section>
 
       {/* 2. Content Layer */}
-      <div className="relative z-20 space-y-3">
+      <div className="relative z-20 space-y-3.5">
 
         {/* Search & Loan Type Filter Controls */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {/* Search Box */}
-          <div className="bg-[var(--surface-alt)] rounded-[12px] border border-[var(--line)] px-3.5 py-2 shadow-xs flex items-center gap-2.5">
-            <Search className="w-4 h-4 text-[var(--muted)] shrink-0" />
+          <div className="bg-[var(--surface)] rounded-[12px] border border-[var(--line)] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
+            <Search className="w-4 h-4 text-[var(--icon-muted)] shrink-0" />
             <input
               type="text"
               placeholder="Search by name, phone, App ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full text-xs font-medium bg-transparent border-none outline-none text-[var(--text)] placeholder:text-[var(--muted)] pr-1"
+              className="w-full text-xs font-normal bg-transparent border-none outline-none text-[var(--text)] placeholder:text-[var(--muted)] pr-1"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="p-1 rounded-[6px] text-[var(--muted)] hover:bg-[var(--line)] hover:text-[var(--text)] shrink-0 cursor-pointer transition-colors"
+                className="p-1 rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)] shrink-0 cursor-pointer transition-colors"
               >
                 <X size={14} />
               </button>
             )}
           </div>
 
-          {/* Loan Type Pill Select */}
+          {/* Loan Type Select */}
           <div className="bg-[var(--surface)] rounded-[12px] border border-[var(--line)] px-3.5 py-2 shadow-xs flex items-center gap-2.5 relative">
             <div className="text-[var(--branch-deep)] shrink-0">
               <Briefcase size={15} />
@@ -197,7 +196,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
               <select
                 value={loanTypeFilter}
                 onChange={(e) => setLoanTypeFilter(e.target.value)}
-                className="w-full bg-transparent text-xs font-medium text-[var(--text)] appearance-none cursor-pointer outline-none pr-6"
+                className="w-full bg-transparent text-xs font-semibold text-[var(--text)] appearance-none cursor-pointer outline-none pr-6"
               >
                 <option value="All">All Loan Types ({applications.length})</option>
                 <option value="Personal Loan">Personal Loans</option>
@@ -209,22 +208,22 @@ const BranchOperationsMobileLoansApplicationsList = () => {
         </div>
 
         {/* Horizontal Scrollable Status Filter Chips */}
-        <div className="flex overflow-x-auto gap-1.5 py-0.5 hide-scrollbar">
+        <div className="flex overflow-x-auto gap-2 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {filterTabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setStatusFilter(tab.key)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 statusFilter === tab.key
-                  ? 'bg-[var(--ink)] text-white border-transparent shadow-xs font-semibold'
-                  : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:text-[var(--text)]'
+                  ? 'bg-[var(--ink)] text-white border-transparent shadow-xs'
+                  : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
               }`}
             >
               <span>{tab.label}</span>
-              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[10.5px] font-bold leading-none tabular-nums ${
+              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[10px] font-bold leading-none tabular-nums ${
                 statusFilter === tab.key
                   ? 'bg-white/20 text-white'
-                  : 'bg-[var(--surface-alt)] text-[var(--text-2)]'
+                  : 'bg-[var(--surface-alt)] text-[var(--muted)]'
               }`}>
                 {tab.count}
               </span>
@@ -235,8 +234,8 @@ const BranchOperationsMobileLoansApplicationsList = () => {
         {/* Applications Card List */}
         <div className="space-y-3">
           {error ? (
-            <div className="bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] p-4 rounded-[16px] text-center border border-[var(--badge-danger-text)]/20 text-xs">
-              Failed to load branch loan applications. Please try again.
+            <div className="bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] p-4 rounded-[16px] text-center text-xs">
+              Failed to load loan applications. Please try again.
             </div>
           ) : isLoading ? (
             <div className="flex justify-center items-center py-16">
@@ -244,7 +243,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
             </div>
           ) : filteredApps.length === 0 ? (
             <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center space-y-2 shadow-xs">
-              <div className="w-12 h-12 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center mx-auto text-[var(--muted)]">
+              <div className="w-12 h-12 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center mx-auto text-[var(--icon-muted)]">
                 <FileText size={20} />
               </div>
               <p className="text-sm font-semibold text-[var(--text)]">No applications found</p>
@@ -254,7 +253,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="mt-2 inline-flex items-center text-xs font-medium text-[var(--branch-deep)] hover:underline cursor-pointer"
+                  className="mt-2 inline-flex items-center text-xs font-semibold text-[var(--branch-deep)] hover:underline cursor-pointer"
                 >
                   Clear search query
                 </button>
@@ -273,12 +272,12 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                 <div 
                   key={app.id || app.application_id} 
                   onClick={() => handleViewDetails(app)}
-                  className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] hover:border-[var(--branch)]/40 p-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer space-y-2.5 group"
+                  className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] hover:border-[var(--branch)]/30 p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[var(--surface-alt)] cursor-pointer space-y-2.5 group"
                 >
                   {/* Top Row: Avatar, Name, Phone & Status */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold text-xs flex items-center justify-center shrink-0 border border-[var(--branch)]/20 shadow-xs">
+                      <div className="w-10 h-10 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold text-xs flex items-center justify-center shrink-0">
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1 space-y-0.5">
@@ -286,7 +285,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                           {name}
                         </h3>
                         <div className="flex items-center gap-1 font-medium text-[11px] text-[var(--muted)]">
-                          <Phone size={10} className="text-[var(--muted)] shrink-0" />
+                          <Phone size={10} className="text-[var(--icon-muted)] shrink-0" />
                           <span className="truncate">{phone ? maskPhoneNumber(phone) : '—'}</span>
                         </div>
                       </div>
@@ -297,14 +296,14 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                     </div>
                   </div>
 
-                  {/* Middle Row: Loan Type & Creation Date */}
+                  {/* Middle Row: Prominent Loan Type & Creation Date */}
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)] text-[11px] text-[var(--muted)]">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <Briefcase size={12} className="text-[var(--branch-deep)] shrink-0" />
                       <span className="font-semibold text-[var(--branch-deep)] text-xs truncate">{loanType}</span>
                     </div>
                     <div className="flex items-center justify-end gap-1.5 text-right min-w-0 text-[var(--muted)]">
-                      <Calendar size={11} className="text-[var(--muted)] shrink-0" />
+                      <Calendar size={11} className="text-[var(--icon-muted)] shrink-0" />
                       <span>{formatDateSafe(app.created_at || app.updated_at)}</span>
                     </div>
                   </div>
@@ -312,7 +311,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                   {/* Bottom Row: App ID, Requested Amount & Arrow */}
                   <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2 py-0.5 rounded-[6px] text-[10.5px] shrink-0">
+                      <span className="font-mono font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-[6px] text-[10.5px] shrink-0">
                         {appId}
                       </span>
                       {loanAmount && (
@@ -322,7 +321,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                       )}
                     </div>
 
-                    <div className="w-6 h-6 rounded-[8px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--branch-tint)] group-hover:text-[var(--branch-deep)] transition-colors shrink-0">
+                    <div className="w-6 h-6 rounded-[8px] bg-[var(--surface-alt)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--branch-tint)] group-hover:text-[var(--branch-deep)] transition-colors shrink-0">
                       <ChevronRight size={13} />
                     </div>
                   </div>

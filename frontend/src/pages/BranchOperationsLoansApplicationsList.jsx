@@ -42,19 +42,15 @@ const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
   }
 };
 
-// KPI Stat Card
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) => {
+// Premium Stat Card
+const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'teal' }) => {
   const themeClasses = {
-    purple: {
-      bg: 'bg-[var(--brand-tint)]',
-      text: 'text-[var(--branch-deep)]',
-    },
     teal: {
       bg: 'bg-[var(--branch-tint)]',
       text: 'text-[var(--branch-deep)]',
     },
     blue: {
-      bg: 'bg-[var(--brand-tint)]',
+      bg: 'bg-[var(--branch-tint)]',
       text: 'text-[var(--branch-deep)]',
     },
     green: {
@@ -65,23 +61,31 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) =
       bg: 'bg-[var(--badge-warning-bg)]',
       text: 'text-[var(--badge-warning-text)]',
     },
+    cyan: {
+      bg: 'bg-[var(--branch-tint)]',
+      text: 'text-[var(--branch-deep)]',
+    },
+    purple: {
+      bg: 'bg-[var(--branch-tint)]',
+      text: 'text-[var(--branch-deep)]',
+    },
     red: {
       bg: 'bg-[var(--badge-danger-bg)]',
       text: 'text-[var(--badge-danger-text)]',
     }
   }[colorTheme] || {
-    bg: 'bg-[var(--brand-tint)]',
+    bg: 'bg-[var(--branch-tint)]',
     text: 'text-[var(--branch-deep)]',
   };
 
   return (
-    <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs flex flex-col justify-between">
+    <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
       <div className="flex items-start justify-between">
         <div>
-          <span className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider block mb-1">
+          <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-1">
             {title}
           </span>
-          <h3 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+          <h3 className="text-2xl font-semibold text-[var(--text)] tracking-tight">
             {value}
           </h3>
         </div>
@@ -229,13 +233,17 @@ const BranchOperationsLoansApplicationsList = () => {
     });
   };
 
-  // Direct Application Editor
+  // Direct Application Editor (for drafts or modifications)
   const handleEditApplication = (app) => {
     navigate('/employee/branch-operations/loans-edit-application', {
       state: {
         application: app,
         form_data: app.form_data,
         loan_type: app.loan_type || app.form_data?.loan_type || 'Personal Loan',
+        id: app.id,
+        lead_id: app.lead_id,
+        mode: 'edit',
+        isEdit: true,
         from: '/employee/branch-operations/loans-applications',
       },
     });
@@ -324,7 +332,7 @@ const BranchOperationsLoansApplicationsList = () => {
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-[var(--muted)] mt-0.5">
-              Review and manage branch loan proposals for {branch.name}, inspect applicant KYC &amp; supporting documents, and track approval lifecycle.
+              Review and manage loan proposals, inspect applicant KYC & supporting documents, and track approval lifecycle.
             </p>
           </div>
         </div>
@@ -447,19 +455,19 @@ const BranchOperationsLoansApplicationsList = () => {
         <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs overflow-hidden">
           {error ? (
             <div className="p-8 text-center text-xs text-[var(--badge-danger-text)] bg-[var(--badge-danger-bg)]">
-              Failed to load branch loan applications. Please verify server connection.
+              Failed to load loan applications. Please verify server connection.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
                   <tr>
-                    <th className="py-3 px-4 whitespace-nowrap">Application ID</th>
-                    <th className="py-3 px-4 whitespace-nowrap">Applicant</th>
-                    <th className="py-3 px-4 whitespace-nowrap text-center">Loan Product</th>
-                    <th className="py-3 px-4 whitespace-nowrap text-center">Status</th>
-                    <th className="py-3 px-4 whitespace-nowrap">Submitted On</th>
-                    <th className="py-3 px-4 whitespace-nowrap text-right">Actions</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap">Application ID</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap">Applicant</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap text-center">Loan Product</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap text-center">Status</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap">Submitted On</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--line)]">
@@ -468,7 +476,7 @@ const BranchOperationsLoansApplicationsList = () => {
                       <td colSpan="6" className="p-14 text-center">
                         <div className="flex flex-col items-center justify-center">
                           <RefreshCw className="animate-spin h-6 w-6 text-[var(--branch-deep)] mb-2" />
-                          <p className="text-xs text-[var(--muted)]">Loading branch loan applications directory...</p>
+                          <p className="text-xs text-[var(--muted)]">Loading loan applications directory...</p>
                         </div>
                       </td>
                     </tr>
@@ -476,7 +484,7 @@ const BranchOperationsLoansApplicationsList = () => {
                     <tr>
                       <td colSpan="6" className="py-14 text-center text-xs text-[var(--muted)]">
                         <div className="flex flex-col items-center justify-center">
-                          <Briefcase className="w-8 h-8 text-[var(--muted)] mb-2" />
+                          <Briefcase className="w-8 h-8 text-[var(--icon-muted)] mb-2" />
                           <p className="text-xs font-semibold text-[var(--text)]">No applications match your criteria</p>
                           <p className="text-[11px] text-[var(--muted)] mt-0.5">Try clearing search filters or check another status</p>
                         </div>
@@ -497,14 +505,14 @@ const BranchOperationsLoansApplicationsList = () => {
                           className="hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                         >
                           {/* Application ID */}
-                          <td className="py-3 px-4 whitespace-nowrap">
+                          <td className="py-3.5 px-4 whitespace-nowrap">
                             <span className="font-mono text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-1 rounded-[6px]">
                               {appId}
                             </span>
                           </td>
 
                           {/* Applicant */}
-                          <td className="py-3 px-4 whitespace-nowrap">
+                          <td className="py-3.5 px-4 whitespace-nowrap">
                             <div className="flex items-center gap-2.5">
                               <div className="w-8 h-8 rounded-[10px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold flex items-center justify-center text-xs shrink-0">
                                 {name.charAt(0).toUpperCase()}
@@ -520,17 +528,17 @@ const BranchOperationsLoansApplicationsList = () => {
                           </td>
 
                           {/* Loan Product */}
-                          <td className="py-3 px-4 whitespace-nowrap text-center">
+                          <td className="py-3.5 px-4 whitespace-nowrap text-center">
                             {getLoanTypeBadge(loanType)}
                           </td>
 
                           {/* Status */}
-                          <td className="py-3 px-4 whitespace-nowrap text-center">
+                          <td className="py-3.5 px-4 whitespace-nowrap text-center">
                             {getStatusBadge(app.status)}
                           </td>
 
                           {/* Submitted Date */}
-                          <td className="py-3 px-4 whitespace-nowrap text-[var(--muted)]">
+                          <td className="py-3.5 px-4 whitespace-nowrap text-[var(--muted)]">
                             <span className="flex items-center gap-1.5">
                               <Calendar className="w-3 h-3 text-[var(--icon-muted)]" />
                               {formatDateSafe(createdAt, 'MMM d, yyyy')}
@@ -538,37 +546,53 @@ const BranchOperationsLoansApplicationsList = () => {
                           </td>
 
                           {/* Actions */}
-                          <td className="py-3 px-4 whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>
+                          <td className="py-3.5 px-4 whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedApp(app)}
-                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--text)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--line)] rounded-[8px] transition-colors cursor-pointer"
-                                title="Quick Overview"
-                              >
-                                <Eye className="w-3.5 h-3.5 text-[var(--muted)]" />
-                                <span>Preview</span>
-                              </button>
+                              {app.status === 'Draft' ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditApplication(app)}
+                                    className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:bg-[var(--branch-tint)]/80 rounded-[8px] transition-colors cursor-pointer"
+                                    title="Continue Filling Draft Application"
+                                  >
+                                    <FileEdit className="w-3.5 h-3.5" />
+                                    <span>Edit Draft</span>
+                                  </button>
 
-                              <button
-                                type="button"
-                                onClick={() => handleOpenStudio(app)}
-                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:bg-[var(--branch-tint)]/80 rounded-[8px] transition-colors cursor-pointer"
-                                title="Open Full Loan Application Studio"
-                              >
-                                <span>Studio</span>
-                                <ArrowUpRight className="w-3.5 h-3.5" />
-                              </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedApp(app)}
+                                    className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--text)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--line)] rounded-[8px] transition-colors cursor-pointer"
+                                    title="Quick Overview"
+                                  >
+                                    <Eye className="w-3.5 h-3.5 text-[var(--icon-muted)]" />
+                                    <span>Preview</span>
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedApp(app)}
+                                    className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--text)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--line)] rounded-[8px] transition-colors cursor-pointer"
+                                    title="Quick Overview"
+                                  >
+                                    <Eye className="w-3.5 h-3.5 text-[var(--icon-muted)]" />
+                                    <span>Preview</span>
+                                  </button>
 
-                              <button
-                                type="button"
-                                onClick={() => handleEditApplication(app)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] hover:bg-[var(--line)] border border-[var(--line)] rounded-[8px] transition-colors cursor-pointer"
-                                title="Edit Application"
-                              >
-                                <FileEdit className="w-3.5 h-3.5" />
-                                <span>Edit</span>
-                              </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenStudio(app)}
+                                    className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:bg-[var(--branch-tint)]/80 rounded-[8px] transition-colors cursor-pointer"
+                                    title="Open Full Loan Application Studio"
+                                  >
+                                    <span>Studio</span>
+                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -590,7 +614,7 @@ const BranchOperationsLoansApplicationsList = () => {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="p-1.5 rounded-[8px] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[var(--line)] cursor-pointer"
+                  className="p-1.5 rounded-[8px] text-[var(--muted)] hover:bg-[var(--line)] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[var(--line)] cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -600,7 +624,7 @@ const BranchOperationsLoansApplicationsList = () => {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="p-1.5 rounded-[8px] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[var(--line)] cursor-pointer"
+                  className="p-1.5 rounded-[8px] text-[var(--muted)] hover:bg-[var(--line)] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[var(--line)] cursor-pointer"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -621,33 +645,33 @@ const BranchOperationsLoansApplicationsList = () => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-            className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)] rounded-l-[24px]"
+            className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
           >
             {/* Drawer Header */}
             <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
               <div>
-                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-0.5">Branch Operations Hub</span>
-                <h2 className="text-base font-semibold text-[var(--text)] flex items-center gap-2">
-                  <span>Application Details</span>
-                  <span className="text-xs font-mono font-medium text-[var(--branch-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px]">
+                <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-0.5">Branch Operations</p>
+                <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+                  Application Details
+                  <span className="text-xs font-mono font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2 py-0.5 rounded-[6px]">
                     {selectedApp.application_id || 'LA-DRAFT'}
                   </span>
                 </h2>
               </div>
               <button
                 onClick={() => setSelectedApp(null)}
-                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-1.5 rounded-[8px] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--line)] p-1.5 rounded-[8px] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
               {/* Applicant Overview Card */}
               <div className="bg-[var(--surface-alt)] p-4 rounded-[16px] border border-[var(--line)] space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-[10px] bg-[var(--brand-tint)] text-[var(--branch-deep)] font-semibold flex items-center justify-center text-sm border border-[var(--brand)]/20 shrink-0">
+                  <div className="w-10 h-10 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold flex items-center justify-center text-sm shrink-0">
                     {(selectedApp.applicant_name || selectedApp.form_data?.applicant_name || 'A').charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -667,25 +691,25 @@ const BranchOperationsLoansApplicationsList = () => {
                 <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[var(--line)] text-xs">
                   <div>
                     <span className="text-[var(--muted)] block">Gender & Age</span>
-                    <span className="font-medium text-[var(--text)] block mt-0.5">
+                    <span className="font-semibold text-[var(--text)] block">
                       {selectedApp.form_data?.gender || '—'} {selectedApp.form_data?.age ? `(${selectedApp.form_data.age} yrs)` : ''}
                     </span>
                   </div>
                   <div>
                     <span className="text-[var(--muted)] block">Marital Status</span>
-                    <span className="font-medium text-[var(--text)] block mt-0.5">
+                    <span className="font-semibold text-[var(--text)] block">
                       {selectedApp.form_data?.marital_status ? (selectedApp.form_data.marital_status === 'Yes' ? 'Married' : 'Single') : '—'}
                     </span>
                   </div>
                   <div>
                     <span className="text-[var(--muted)] block">Branch</span>
-                    <span className="font-medium text-[var(--text)] block mt-0.5">
+                    <span className="font-semibold text-[var(--text)] block">
                       {branch.name}
                     </span>
                   </div>
                   <div>
                     <span className="text-[var(--muted)] block">Co-Applicant</span>
-                    <span className="font-medium text-[var(--text)] block mt-0.5">
+                    <span className="font-semibold text-[var(--text)] block">
                       {selectedApp.form_data?.has_co_applicant === 'Yes' ? 'Yes (Added)' : 'No'}
                     </span>
                   </div>
@@ -693,16 +717,16 @@ const BranchOperationsLoansApplicationsList = () => {
               </div>
 
               {/* Product Category & Submission Highlights */}
-              <div className="bg-[var(--surface-alt)] border border-[var(--line)] rounded-[16px] p-4 space-y-2.5">
+              <div className="bg-[var(--branch-tint)]/60 border border-[var(--line)] rounded-[16px] p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-semibold text-[var(--branch-deep)] uppercase tracking-wider block">Product Category</span>
-                    <span className="text-sm font-semibold text-[var(--text)] mt-0.5 block">
+                    <span className="text-base font-semibold text-[var(--text)] mt-0.5 block">
                       {selectedApp.loan_type || selectedApp.form_data?.loan_type || 'Personal Loan'}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block">Status</span>
+                    <span className="text-[10px] font-semibold text-[var(--branch-deep)] uppercase tracking-wider block">Application Status</span>
                     <div className="mt-1">
                       {getStatusBadge(selectedApp.status)}
                     </div>
@@ -712,13 +736,13 @@ const BranchOperationsLoansApplicationsList = () => {
                 <div className="pt-2.5 border-t border-[var(--line)] grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block">Application ID</span>
-                    <p className="font-mono font-medium text-[var(--branch-deep)] mt-0.5">
+                    <p className="font-mono font-semibold text-[var(--text)] mt-0.5">
                       {selectedApp.application_id || 'LA-DRAFT'}
                     </p>
                   </div>
                   <div>
                     <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block">Employment Mode</span>
-                    <p className="font-medium text-[var(--text)] mt-0.5">
+                    <p className="font-semibold text-[var(--text)] mt-0.5">
                       {selectedApp.form_data?.employment || (selectedApp.loan_type === 'Business Loan' ? 'Business' : 'Salaried / Job')}
                     </p>
                   </div>
@@ -734,13 +758,13 @@ const BranchOperationsLoansApplicationsList = () => {
                   <div className="grid grid-cols-2 gap-3 text-xs pt-1">
                     <div>
                       <span className="text-[var(--muted)] block">Enterprise Name</span>
-                      <span className="font-medium text-[var(--text)] block mt-0.5">
+                      <span className="font-semibold text-[var(--text)] block">
                         {selectedApp.form_data?.business_name || '—'}
                       </span>
                     </div>
                     <div>
                       <span className="text-[var(--muted)] block">Monthly Income</span>
-                      <span className="font-medium text-[var(--text)] block mt-0.5">
+                      <span className="font-semibold text-[var(--text)] block">
                         {selectedApp.form_data?.business_income_per_month ? `₹${selectedApp.form_data?.business_income_per_month}` : '—'}
                       </span>
                     </div>
@@ -792,42 +816,59 @@ const BranchOperationsLoansApplicationsList = () => {
               <div className="bg-[var(--surface-alt)] p-4 rounded-[16px] border border-[var(--line)] space-y-2 text-xs">
                 <div className="flex justify-between items-center py-0.5">
                   <span className="text-[var(--muted)]">Created At</span>
-                  <span className="font-medium text-[var(--text)]">{formatDateSafe(selectedApp.created_at, 'MMM d, yyyy h:mm a')}</span>
+                  <span className="font-semibold text-[var(--text)]">{formatDateSafe(selectedApp.created_at, 'MMM d, yyyy h:mm a')}</span>
                 </div>
                 <div className="flex justify-between items-center py-0.5">
                   <span className="text-[var(--muted)]">Last Modified</span>
-                  <span className="font-medium text-[var(--text)]">{formatDateSafe(selectedApp.updated_at, 'MMM d, yyyy h:mm a')}</span>
+                  <span className="font-semibold text-[var(--text)]">{formatDateSafe(selectedApp.updated_at, 'MMM d, yyyy h:mm a')}</span>
                 </div>
               </div>
             </div>
 
             {/* Drawer Footer Actions */}
             <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center gap-2.5 shrink-0 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  const target = selectedApp;
-                  setSelectedApp(null);
-                  handleOpenStudio(target);
-                }}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white shadow-xs transition-all cursor-pointer"
-              >
-                <span>Open in Studio</span>
-                <ArrowUpRight className="w-4 h-4" />
-              </button>
+              {selectedApp.status === 'Draft' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = selectedApp;
+                      setSelectedApp(null);
+                      handleEditApplication(target);
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white shadow-xs transition-all cursor-pointer"
+                  >
+                    <FileEdit className="w-4 h-4" />
+                    <span>Continue / Edit Draft</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  const target = selectedApp;
-                  setSelectedApp(null);
-                  handleEditApplication(target);
-                }}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[12px] text-xs font-semibold border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] transition-all cursor-pointer"
-              >
-                <FileEdit className="w-3.5 h-3.5" />
-                <span>Edit Application</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = selectedApp;
+                      setSelectedApp(null);
+                      handleOpenStudio(target);
+                    }}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[12px] text-xs font-semibold border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] transition-all cursor-pointer"
+                  >
+                    <span>Studio</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = selectedApp;
+                    setSelectedApp(null);
+                    handleOpenStudio(target);
+                  }}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white shadow-xs transition-all cursor-pointer"
+                >
+                  <span>Open in Loan Application Studio</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </button>
+              )}
 
               <button
                 type="button"
