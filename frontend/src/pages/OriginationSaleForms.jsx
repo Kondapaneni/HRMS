@@ -56,7 +56,7 @@ export default function OriginationSaleForms() {
         {/* Card Content */}
         <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-12 text-center shadow-xs space-y-6 max-w-2xl mx-auto">
           {/* Icon Badge */}
-          <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-[20px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
+          <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-[20px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]">
             <Construction size={36} />
           </div>
 

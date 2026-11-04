@@ -28,6 +28,11 @@ const StatCard = ({ title, value, subtitle, icon: Icon, theme = 'blue' }) => {
       text: 'text-[var(--brand-deep)]',
       border: 'border-[var(--brand)]/20',
     },
+    pink: {
+      bg: 'bg-[var(--accent-pink-tint)]',
+      text: 'text-[var(--accent-pink-deep)]',
+      border: 'border-[var(--accent-pink)]/20',
+    },
     green: {
       bg: 'bg-[#E6F6EC]',
       text: 'text-[#1F9D55]',
@@ -448,8 +453,12 @@ const OriginationActivities = () => {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
-              <span>Activities &amp; <span className="text-[var(--brand-deep)]">Follow-Ups</span></span>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-[var(--brand-deep)] bg-[var(--brand-tint)] border border-[var(--brand)]/20">
+              <span>Activities &amp; <span className={isSales ? 'text-[var(--accent-pink-deep)]' : 'text-[var(--brand-deep)]'}>Follow-Ups</span></span>
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                isSales 
+                  ? 'text-[var(--accent-pink-deep)] bg-[var(--accent-pink-tint)] border-[var(--accent-pink)]/20' 
+                  : 'text-[var(--brand-deep)] bg-[var(--brand-tint)] border-[var(--brand)]/20'
+              }`}>
                 {stats.total} Total Tasks
               </span>
             </h1>
@@ -480,7 +489,7 @@ const OriginationActivities = () => {
             value={stats.todayCount}
             subtitle="Scheduled for today"
             icon={Clock}
-            theme="blue"
+            theme={isSales ? 'pink' : 'blue'}
           />
           <StatCard
             title="Upcoming Schedule"
