@@ -15,7 +15,7 @@ export const SwitchField = React.memo(({
   className = '',
   id,
   colSpan,
-  switchLabel
+  switchLabel,
 }) => {
   const fieldId = id || `field-${name}`;
 
@@ -45,8 +45,8 @@ export const SwitchField = React.memo(({
           aria-checked={!!value}
           onClick={toggle}
           disabled={disabled || readOnly}
-          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-100 ${
-            value ? 'bg-blue-600' : 'bg-slate-200'
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] focus:ring-offset-2 ${
+            value ? 'bg-[#8AADDB]' : 'bg-[#D9D9DE] dark:bg-[#3A3A40]'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <span
@@ -59,12 +59,12 @@ export const SwitchField = React.memo(({
         {(switchLabel || label) && (
           <span
             onClick={toggle}
-            className={`text-xs font-medium text-slate-600 cursor-pointer select-none ${
+            className={`text-[13px] font-normal text-[var(--text-2)] cursor-pointer select-none ${
               disabled ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {switchLabel || label}
-            {required && <span className="text-red-500 font-bold ml-1">*</span>}
+            {required && <span className="text-[var(--danger-text)] font-semibold ml-1">*</span>}
           </span>
         )}
       </div>
@@ -73,3 +73,4 @@ export const SwitchField = React.memo(({
 });
 
 SwitchField.displayName = 'SwitchField';
+export default SwitchField;

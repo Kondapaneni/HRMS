@@ -2,7 +2,10 @@ import React from 'react';
 
 /**
  * Standardized wrapper for field label, required indicator, help text, error message, and layout column span.
- * Matches exact design tokens from AddEmployeeModal.
+ * Spec:
+ *  - Label above in 13px --muted
+ *  - Error in 12px #D64550 (--danger-text)
+ *  - Help text in 12px --muted
  */
 export const FieldContainer = React.memo(({
   id,
@@ -14,7 +17,7 @@ export const FieldContainer = React.memo(({
   className = '',
   colSpan,
   disabled = false,
-  readOnly = false
+  readOnly = false,
 }) => {
   // Compute column span utility if specified (1 to 12)
   const getColSpanClass = (span) => {
@@ -27,21 +30,25 @@ export const FieldContainer = React.memo(({
       6: 'col-span-12 sm:col-span-6',
       8: 'col-span-12 sm:col-span-8',
       9: 'col-span-12 sm:col-span-9',
-      12: 'col-span-12'
+      12: 'col-span-12',
     };
     return spanMap[span] || `col-span-12 sm:col-span-${span}`;
   };
 
   return (
-    <div className={`flex flex-col space-y-1 ${getColSpanClass(colSpan)} ${className}`}>
+    <div className={`flex flex-col ${getColSpanClass(colSpan)} ${className}`}>
       {label && (
         <label 
           htmlFor={id} 
-          className={`block text-xs font-medium text-slate-600 mb-1 flex items-center gap-1 select-none ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+          className={`block text-[13px] font-normal text-[var(--muted)] mb-1.5 flex items-center gap-1 select-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <span>{label}</span>
-          {required && <span className="text-red-500 font-bold" title="Required field">*</span>}
-          {readOnly && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-normal ml-auto">Read-only</span>}
+          {required && <span className="text-[var(--danger-text)] font-semibold" title="Required field">*</span>}
+          {readOnly && (
+            <span className="text-[10px] bg-[var(--surface-alt)] text-[var(--muted)] px-1.5 py-0.5 rounded-[6px] font-normal ml-auto border border-[var(--line)]">
+              Read-only
+            </span>
+          )}
         </label>
       )}
 
@@ -50,11 +57,11 @@ export const FieldContainer = React.memo(({
       </div>
 
       {helpText && !error && (
-        <p className="text-[11px] text-slate-500 leading-tight">{helpText}</p>
+        <p className="text-[12px] text-[var(--muted)] mt-1 leading-tight">{helpText}</p>
       )}
 
       {error && (
-        <p className="text-[11px] font-medium text-red-600 flex items-center gap-1 mt-0.5 animate-fadeIn">
+        <p className="text-[12px] font-medium text-[var(--danger-text)] flex items-center gap-1 mt-1">
           <span>{typeof error === 'string' ? error : 'Invalid value.'}</span>
         </p>
       )}
@@ -63,3 +70,4 @@ export const FieldContainer = React.memo(({
 });
 
 FieldContainer.displayName = 'FieldContainer';
+export default FieldContainer;

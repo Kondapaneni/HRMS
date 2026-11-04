@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Download, Sparkles, ArrowUpCircle } from 'lucide-react';
+import { RefreshCw, Download, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import api, { REMOTE_ORIGIN, isNativeApp } from '../api/axios';
+import Button from './ui/Button';
 
 export default function UpdateOverlay() {
   const location = useLocation();
@@ -29,7 +30,7 @@ export default function UpdateOverlay() {
         return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
       }
     },
-    refetchInterval: 15000, // Poll every 15 seconds for near-instant maintenance mode detection
+    refetchInterval: 15000,
     staleTime: 10000,
     refetchOnWindowFocus: false,
     retry: false,
@@ -40,13 +41,11 @@ export default function UpdateOverlay() {
 
   useEffect(() => {
     const checkVersion = async () => {
-      // In local development (Vite dev server), do not poll for remote production updates
       if (import.meta.env.DEV) {
         setUpdateAvailable(false);
         return;
       }
 
-      // If assessment is active, suppress version update notifications completely
       if (isAssessmentActive) {
         setUpdateAvailable(false);
         return;
@@ -56,26 +55,22 @@ export default function UpdateOverlay() {
       const rawMode = newsData?.maintenance_mode;
       const isMaint = rawMode === true || rawMode === 'true' || rawMode === 1 || rawMode === '1';
 
-      // If maintenance mode is active AND dev bypass is NOT active, don't show update modal
       if (isMaint && !isDevBypassed) {
         setUpdateAvailable(false);
         return;
       }
 
       try {
-        // Only use REMOTE_ORIGIN when running as native mobile app (Capacitor) where origin is local device
         const versionUrl = (isNativeApp && REMOTE_ORIGIN)
           ? `${REMOTE_ORIGIN}/version.json?t=${Date.now()}`
           : `/version.json?t=${Date.now()}`;
 
-        // Cache buster parameter to avoid getting a cached version.json
         const res = await fetch(versionUrl, {
           cache: 'no-store',
         });
 
         if (res.ok) {
           const data = await res.json();
-          // VITE_APP_VERSION is injected by Vite at build time
           const currentVersion = Number(import.meta.env.VITE_APP_VERSION);
 
           if (data.version && currentVersion && Number(data.version) > currentVersion) {
@@ -87,15 +82,11 @@ export default function UpdateOverlay() {
       }
     };
 
-    // Check version immediately on mount or data change
     checkVersion();
 
-    // Check when window regains focus or storage updates
     const handleCheck = () => checkVersion();
     window.addEventListener('focus', handleCheck);
     window.addEventListener('storage', handleCheck);
-
-    // Periodically check version every 15 seconds
     const interval = setInterval(checkVersion, 15 * 1000);
 
     return () => {
@@ -107,13 +98,11 @@ export default function UpdateOverlay() {
 
   const handleUpdate = () => {
     setIsUpdating(true);
-    // Attempt to clear caches if any exist (PWA/ServiceWorker caches)
     if ('caches' in window) {
       caches.keys().then((names) => {
         names.forEach(name => caches.delete(name));
       });
     }
-    // Delay reload slightly to let the updating animation play
     setTimeout(() => {
       if (isNativeApp && REMOTE_ORIGIN) {
         window.location.href = REMOTE_ORIGIN;
@@ -129,62 +118,43 @@ export default function UpdateOverlay() {
   return (
     <AnimatePresence>
       {shouldShowUpdate && (
-        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] bg-[#131315]/45 backdrop-blur-[2px] flex items-center justify-center p-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ duration: 0.2 }}
-            className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center border border-[#e0e3e7] relative overflow-hidden"
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            role="dialog"
+            aria-modal="true"
+            className="bg-[var(--surface)] text-[var(--text)] rounded-[24px] p-6 sm:p-7 max-w-sm w-full shadow-[var(--shadow-modal)] flex flex-col items-center text-center border border-[var(--line)]/50 relative overflow-hidden"
           >
-            {/* Top 4-Color Gradient Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
             {/* Icon Container */}
-            <div className="w-16 h-16 bg-[#e8f0fe] border border-[#d2e3fc] rounded-2xl flex items-center justify-center text-[#1a73e8] mb-4 shadow-2xs relative mt-1">
-              <RefreshCw size={28} className={isUpdating ? "animate-spin" : ""} />
-              <div className="absolute -bottom-1.5 -right-1.5 bg-[#34A853] text-white rounded-full p-1 shadow-2xs border-2 border-white">
-                <Sparkles size={12} />
+            <div className="w-14 h-14 bg-[var(--brand-tint)] text-[var(--brand-deep)] rounded-[14px] flex items-center justify-center mb-4 relative">
+              <RefreshCw size={24} className={isUpdating ? 'animate-spin' : ''} strokeWidth={1.7} />
+              <div className="absolute -bottom-1 -right-1 bg-[var(--brand)] text-[var(--ink)] rounded-full p-1 shadow-sm border-2 border-[var(--surface)]">
+                <Sparkles size={11} strokeWidth={2} />
               </div>
             </div>
 
-            {/* 4 Google Colors Accent */}
-            <div className="flex items-center justify-center gap-1 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-1">
-                Workspace Update
-              </span>
-            </div>
-
-            <h2 className="text-xl font-bold text-[#1f1f1f] mb-1.5 tracking-tight">
-              New Update Available
+            <h2 className="text-[18px] font-medium text-[var(--text)] mb-1 leading-snug">
+              Update available
             </h2>
 
-            <p className="text-[#5f6368] text-xs mb-6 leading-relaxed px-1">
-              A newer version of Acme HRMS is ready. Please update now to receive the latest features, security enhancements, and UI updates.
+            <p className="text-[13px] text-[var(--muted)] mb-6 leading-relaxed">
+              A newer version of Acme HRMS is ready. Please update now to receive the latest features, security fixes, and design updates.
             </p>
 
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="md"
               onClick={handleUpdate}
               disabled={isUpdating}
-              className="w-full py-3.5 px-6 rounded-full text-white text-sm font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0] disabled:opacity-70 flex items-center justify-center gap-2"
+              isLoading={isUpdating}
+              leftIcon={!isUpdating ? Download : undefined}
+              className="w-full"
             >
-              {isUpdating ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                  <span>Updating Workspace...</span>
-                </>
-              ) : (
-                <>
-                  <Download size={16} />
-                  <span>Update &amp; Reload</span>
-                </>
-              )}
-            </button>
+              {isUpdating ? 'Updating workspace...' : 'Update & reload'}
+            </Button>
           </motion.div>
         </div>
       )}

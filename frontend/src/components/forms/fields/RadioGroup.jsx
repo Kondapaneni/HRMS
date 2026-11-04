@@ -16,7 +16,7 @@ export const RadioGroup = React.memo(({
   className = '',
   id,
   colSpan,
-  direction = 'horizontal' // 'horizontal' | 'vertical'
+  direction = 'horizontal', // 'horizontal' | 'vertical'
 }) => {
   const groupName = name || id;
 
@@ -32,7 +32,7 @@ export const RadioGroup = React.memo(({
       return {
         label: opt.label ?? String(opt.value),
         value: opt.value,
-        disabled: Boolean(opt.disabled)
+        disabled: Boolean(opt.disabled),
       };
     }
     return { label: String(opt), value: opt, disabled: false };
@@ -60,10 +60,10 @@ export const RadioGroup = React.memo(({
             <label
               key={`${opt.value}-${idx}`}
               htmlFor={radioId}
-              className={`flex items-center gap-2 text-xs font-medium select-none ${
+              className={`flex items-center gap-2 text-[13px] font-normal select-none ${
                 isOptDisabled
-                  ? 'opacity-40 cursor-not-allowed text-slate-400'
-                  : 'text-slate-600 hover:text-slate-900 cursor-pointer'
+                  ? 'opacity-40 cursor-not-allowed text-[var(--muted)]'
+                  : 'text-[var(--text-2)] hover:text-[var(--text)] cursor-pointer'
               }`}
             >
               <input
@@ -79,7 +79,7 @@ export const RadioGroup = React.memo(({
                 }}
                 onBlur={onBlur}
                 disabled={isOptDisabled || readOnly}
-                className={`w-4 h-4 text-blue-600 border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all ${
+                className={`w-4 h-4 border-[var(--line)] accent-[var(--brand)] transition-all ${
                   isOptDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
               />
@@ -93,3 +93,4 @@ export const RadioGroup = React.memo(({
 });
 
 RadioGroup.displayName = 'RadioGroup';
+export default RadioGroup;

@@ -18,7 +18,7 @@ export const DateField = React.memo(({
   id,
   colSpan,
   minDate,
-  maxDate
+  maxDate,
 }) => {
   const fieldId = id || `field-${name}`;
 
@@ -53,20 +53,21 @@ export const DateField = React.memo(({
           min={minDate}
           max={maxDate}
           placeholder={placeholder}
-          className={`w-full pl-4 pr-10 py-2.5 md:pl-3 md:pr-9 md:py-2 border rounded-full md:rounded-md text-sm outline-none focus:outline-none transition-all cursor-pointer ${
+          className={`w-full h-[40px] pl-3.5 pr-9 border rounded-[12px] text-[14px] outline-none transition-all cursor-pointer ${
             error 
-              ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
-              : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
+              ? 'border-[var(--danger-text)] focus:border-[var(--danger-text)] focus:ring-3 focus:ring-[var(--danger-bg)]' 
+              : 'border-[var(--line)] focus:border-[var(--brand)] focus:ring-3 focus:ring-[var(--brand-tint)]'
           } ${
-            disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : ''
-          } ${
-            readOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : 'bg-white text-slate-800'
+            disabled || readOnly
+              ? 'bg-[var(--line)]/60 text-[var(--muted)] cursor-not-allowed border-[var(--line)]'
+              : 'bg-[var(--surface-alt)] text-[var(--text)]'
           }`}
         />
-        <Calendar size={16} className="absolute right-3.5 md:right-3 text-slate-400 pointer-events-none" />
+        <Calendar size={16} strokeWidth={1.7} className="absolute right-3 text-[var(--icon-muted)] pointer-events-none" />
       </div>
     </FieldContainer>
   );
 });
 
 DateField.displayName = 'DateField';
+export default DateField;

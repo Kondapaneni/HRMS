@@ -18,7 +18,7 @@ export const TextareaField = React.memo(({
   colSpan,
   rows = 3,
   maxLength,
-  showCount = false
+  showCount = false,
 }) => {
   const fieldId = id || `field-${name}`;
   const currentLength = (value || '').length;
@@ -53,19 +53,19 @@ export const TextareaField = React.memo(({
           readOnly={readOnly}
           placeholder={placeholder}
           maxLength={maxLength}
-          className={`w-full px-4 py-3 md:px-3 md:py-2 border rounded-2xl md:rounded-md text-sm outline-none focus:outline-none transition-all resize-y ${
+          className={`w-full p-3 border rounded-[12px] text-[14px] outline-none transition-all resize-y placeholder:text-[var(--muted)]/50 ${
             error 
-              ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
-              : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
+              ? 'border-[var(--danger-text)] focus:border-[var(--danger-text)] focus:ring-3 focus:ring-[var(--danger-bg)]' 
+              : 'border-[var(--line)] focus:border-[var(--brand)] focus:ring-3 focus:ring-[var(--brand-tint)]'
           } ${
-            disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : ''
-          } ${
-            readOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : 'bg-white text-slate-800'
+            disabled || readOnly
+              ? 'bg-[var(--line)]/60 text-[var(--muted)] cursor-not-allowed border-[var(--line)]'
+              : 'bg-[var(--surface-alt)] text-[var(--text)]'
           }`}
         />
 
         {showCount && maxLength && (
-          <div className="text-[10px] text-slate-400 text-right mt-1">
+          <div className="text-[11px] text-[var(--muted)] text-right mt-1">
             {currentLength} / {maxLength}
           </div>
         )}
@@ -75,3 +75,4 @@ export const TextareaField = React.memo(({
 });
 
 TextareaField.displayName = 'TextareaField';
+export default TextareaField;

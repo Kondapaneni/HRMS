@@ -1,24 +1,189 @@
 @import "tailwindcss";
 
+/* ============================================================
+   ACME HRMS — Design Tokens & Global Styles
+   ============================================================ */
+
+/* ---------- Light theme (default) ---------- */
+:root {
+  color-scheme: light;
+
+  /* Core palette */
+  --ink: #131315;
+  --ink-2: #1F1F23;
+  --brand: #8AADDB;
+  --brand-deep: #5B86C2;
+  --brand-tint: #EAF0FA;
+  --accent-pink: #E3B9DF;
+  --accent-pink-deep: #A25C9B;
+  --accent-pink-tint: #F8ECF7;
+
+  /* Neutrals */
+  --bg: #ECECEE;
+  --surface: #FFFFFF;
+  --surface-alt: #F8F8F8;
+  --line: #EFEFF1;
+  --text: #131315;
+  --text-2: #4A4A52;
+  --muted: #6B6B75;
+  --icon-muted: #7A7A84;
+  --sidebar-text: #FFFFFF;
+  --sidebar-muted: #8B8B95;
+
+  /* Status colours */
+  --success-text: #1F9D55;
+  --success-bg: #E6F6EC;
+  --warning-text: #B7791F;
+  --warning-bg: #FDF3DC;
+  --danger-text: #D64550;
+  --danger-bg: #FDE8EA;
+  --info-text: #3B6FB6;
+  --info-bg: #E8F0FB;
+  --neutral-text: #4A4A52;
+  --neutral-bg: #EFEFF1;
+
+  /* Scrollbar */
+  --scrollbar-thumb: #D9D9DE;
+  --scrollbar-thumb-hover: #B9B9C1;
+
+  /* Chart */
+  --chart-selected: #131315;
+  --chart-track: #EAF0FA;
+  --chart-grid: #EFEFF1;
+
+  /* Shadows */
+  --shadow-modal: 0 24px 60px rgba(19, 19, 21, 0.18);
+
+  /* Focus */
+  --focus-ring: #8AADDB;
+  --focus-ring-bg: #EAF0FA;
+}
+
+/* ---------- Dark theme ---------- */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0B0B0D;
+  --surface: #18181B;
+  --surface-alt: #1F1F23;
+  --line: #26262B;
+  --text: #F4F4F6;
+  --text-2: #C9C9D1;
+  --muted: #9A9AA5;
+  --icon-muted: #7A7A84;
+  --ink: #131315;
+  --ink-2: #232328;
+
+  --success-text: #4CC784;
+  --success-bg: #12301F;
+  --warning-text: #E6B350;
+  --warning-bg: #3A2D10;
+  --danger-text: #F0707A;
+  --danger-bg: #3A1519;
+  --info-text: #8AADDB;
+  --info-bg: #17263B;
+  --neutral-text: #9A9AA5;
+  --neutral-bg: #26262B;
+
+  --brand-tint: #23262E;
+  --accent-pink-tint: #2A1F29;
+
+  --scrollbar-thumb: #3A3A40;
+  --scrollbar-thumb-hover: #52525A;
+
+  --chart-selected: #F4F4F6;
+  --chart-track: #23262E;
+  --chart-grid: #26262B;
+
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --focus-ring-bg: #23262E;
+}
+
+/* System preference fallback (no explicit data-theme) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #0B0B0D;
+    --surface: #18181B;
+    --surface-alt: #1F1F23;
+    --line: #26262B;
+    --text: #F4F4F6;
+    --text-2: #C9C9D1;
+    --muted: #9A9AA5;
+    --icon-muted: #7A7A84;
+    --ink: #131315;
+    --ink-2: #232328;
+
+    --success-text: #4CC784;
+    --success-bg: #12301F;
+    --warning-text: #E6B350;
+    --warning-bg: #3A2D10;
+    --danger-text: #F0707A;
+    --danger-bg: #3A1519;
+    --info-text: #8AADDB;
+    --info-bg: #17263B;
+    --neutral-text: #9A9AA5;
+    --neutral-bg: #26262B;
+
+    --brand-tint: #23262E;
+    --accent-pink-tint: #2A1F29;
+
+    --scrollbar-thumb: #3A3A40;
+    --scrollbar-thumb-hover: #52525A;
+
+    --chart-selected: #F4F4F6;
+    --chart-track: #23262E;
+    --chart-grid: #26262B;
+
+    --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.5);
+    --focus-ring-bg: #23262E;
+  }
+}
+
+/* ---------- Tailwind v4 @theme ---------- */
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-editorial: "Newsreader", Georgia, serif;
+
+  /* Expose tokens as Tailwind colours */
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-tint: var(--brand-tint);
+  --color-accent-pink: var(--accent-pink);
+  --color-accent-pink-deep: var(--accent-pink-deep);
+  --color-accent-pink-tint: var(--accent-pink-tint);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-line: var(--line);
+  --color-text-primary: var(--text);
+  --color-text-secondary: var(--text-2);
+  --color-muted: var(--muted);
+  --color-icon-muted: var(--icon-muted);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-success-text: var(--success-text);
+  --color-success-bg: var(--success-bg);
+  --color-warning-text: var(--warning-text);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger-text: var(--danger-text);
+  --color-danger-bg: var(--danger-bg);
+  --color-info-text: var(--info-text);
+  --color-info-bg: var(--info-bg);
+  --color-neutral-text: var(--neutral-text);
+  --color-neutral-bg: var(--neutral-bg);
+}
+
+/* ---------- Shimmer animation ---------- */
 @keyframes shimmer {
   0% { transform: translateX(-150%) skewX(-15deg); }
   100% { transform: translateX(150%) skewX(-15deg); }
 }
 
-@theme {
-  --font-sans: "Inter", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-editorial: "Newsreader", Georgia, serif;
-}
-
-@utility font-editorial {
-  font-family: 'Newsreader', Georgia, serif;
-}
-
-.font-editorial {
-  font-family: 'Newsreader', Georgia, serif !important;
-}
-
-/* Chrome autofill detection & floating label support */
+/* ---------- Chrome autofill detection & floating label support ---------- */
 @keyframes onAutoFillStart {
   from {/**/}
   to {/**/}
@@ -37,22 +202,29 @@ input:-webkit-autofill {
   line-height: 1rem !important;
 }
 
-:root {
-  --bg-color: #f8f9fa;
+/* Keep font-editorial utility for PDFs and email templates only */
+@utility font-editorial {
+  font-family: 'Newsreader', Georgia, serif;
 }
 
+.font-editorial {
+  font-family: 'Newsreader', Georgia, serif !important;
+}
+
+/* ---------- Root and body ---------- */
 html, body {
   margin: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* Prevent native scrolling at the root level */
-  position: fixed; /* Lock body in place for iOS PWA bounce prevention */
-  overscroll-behavior: none; /* Disable bounce */
+  overflow: hidden;
+  position: fixed;
+  overscroll-behavior: none;
   -webkit-overflow-scrolling: auto;
-  font-family: "Inter", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-color);
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 #root {
@@ -63,10 +235,10 @@ html, body {
   flex-direction: column;
 }
 
-/* Global Modern Slim Scrollbars */
+/* ---------- Global scrollbars ---------- */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #dadce0 transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -79,12 +251,12 @@ html, body {
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: #dadce0;
+  background-color: var(--scrollbar-thumb);
   border-radius: 9999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background-color: #bdc1c6;
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 *::-webkit-scrollbar-button {
@@ -93,11 +265,11 @@ html, body {
   height: 0;
 }
 
-/* Custom Scrollbar Classes */
+/* Named scrollbar utilities */
 .custom-scrollbar,
 .slim-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #dadce0 transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 .custom-scrollbar::-webkit-scrollbar,
 .slim-scrollbar::-webkit-scrollbar {
@@ -110,12 +282,12 @@ html, body {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb,
 .slim-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #dadce0;
+  background-color: var(--scrollbar-thumb);
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .slim-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #bdc1c6;
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .hide-scrollbar,
@@ -133,13 +305,25 @@ html, body {
   background: transparent !important;
 }
 
-/* Hide mobile navigation when photo lightbox/preview is active */
+/* ---------- Mobile nav visibility ---------- */
 body.hide-mobile-nav .mobile-bottom-nav,
 body.hide-mobile-nav [data-mobile-nav] {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+/* ---------- Focus ring utility ---------- */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- Selection colour ---------- */
+::selection {
+  background: var(--brand-tint);
+  color: var(--text);
 }
 
 /* ==========================================================================
@@ -226,7 +410,7 @@ body.hide-mobile-nav [data-mobile-nav] {
     display: none !important;
   }
 
-  /* Full Page Diagonal Application ID Watermark (Centered cross on every printed page with light color fadeout) */
+  /* Full Page Diagonal Application ID Watermark */
   .print-watermark {
     position: fixed !important;
     top: 50% !important;
@@ -253,13 +437,13 @@ body.hide-mobile-nav [data-mobile-nav] {
     user-select: none !important;
   }
 
-  /* 3. Suppress native browser print headers & footers while providing clean standard page margins */
+  /* 3. Suppress native browser print headers & footers */
   @page {
     size: A4 portrait;
     margin: 5mm 1mm 5mm 1mm;
   }
 
-  /* 4. Strict Passport Photo sizing in print mode (Prevents giant full-page images) */
+  /* 4. Strict Passport Photo sizing */
   .passport-photo-box,
   .passport-photo-box > div {
     width: 110px !important;
@@ -306,7 +490,7 @@ body.hide-mobile-nav [data-mobile-nav] {
     border-radius: 0 !important;
   }
 
-  /* 6. Page break controls (exact break-before with uniform top spacing) */
+  /* 6. Page break controls */
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid !important;
     break-after: avoid !important;
@@ -345,4 +529,3 @@ video::-webkit-media-controls-overlay-play-button {
   opacity: 0 !important;
   pointer-events: none !important;
 }
-

@@ -8,7 +8,10 @@ const MAX_PULL = 110;       // max visual pull distance
 
 /**
  * Mobile PullToRefresh Component
- * Clean top indicator without layout shifting or tick icons.
+ * Spec from Section 4.4:
+ *  - Floating pill dock with #131315 background and white text
+ *  - Brand accent #8AADDB spinner
+ *  - Smooth haptic vibration on reach
  */
 const PullToRefresh = ({ children, onRefresh }) => {
   const queryClient = useQueryClient();
@@ -22,7 +25,6 @@ const PullToRefresh = ({ children, onRefresh }) => {
   const isAtTopRef = useRef(false);
   const hasVibratedRef = useRef(false);
 
-  // Helper to check if any scrollable parent is scrolled down
   const checkIfAtTop = (target) => {
     let el = target;
     while (el && el !== document.body && el !== document.documentElement) {
@@ -51,13 +53,11 @@ const PullToRefresh = ({ children, onRefresh }) => {
     const deltaY = touch.clientY - startYRef.current;
     const deltaX = touch.clientX - startXRef.current;
 
-    // Only activate if dragging downward and mostly vertical
     if (deltaY > 5 && Math.abs(deltaY) > Math.abs(deltaX) * 1.1) {
       const damp = Math.min(MAX_PULL, Math.pow(deltaY, 0.83));
       currentPullRef.current = damp;
       setPullDistance(damp);
 
-      // Light tactile vibration on reaching refresh point
       if (damp >= PULL_THRESHOLD && !hasVibratedRef.current) {
         if (navigator.vibrate) {
           navigator.vibrate(30);
@@ -67,7 +67,6 @@ const PullToRefresh = ({ children, onRefresh }) => {
         hasVibratedRef.current = false;
       }
 
-      // Prevent native browser scroll rubberbanding
       if (e.cancelable && deltaY > 10) {
         e.preventDefault();
       }
@@ -79,7 +78,7 @@ const PullToRefresh = ({ children, onRefresh }) => {
 
     if (currentPullRef.current >= PULL_THRESHOLD) {
       setIsRefreshing(true);
-      setPullDistance(50); // Lock position during refresh animation
+      setPullDistance(50);
 
       try {
         if (onRefresh) {
@@ -123,7 +122,6 @@ const PullToRefresh = ({ children, onRefresh }) => {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
-      {/* Top Floating Glass Pull Badge (Text-based, No Tick Icon) */}
       <AnimatePresence>
         {(pullDistance > 0 || isRefreshing || isSuccess) && (
           <motion.div
@@ -137,23 +135,22 @@ const PullToRefresh = ({ children, onRefresh }) => {
             transition={{ type: 'spring', stiffness: 350, damping: 28 }}
             className="fixed top-2 left-1/2 -translate-x-1/2 z-[99999] pointer-events-none"
           >
-            <div className={`px-4 py-2 rounded-full shadow-lg border backdrop-blur-xl flex items-center gap-2 transition-all duration-200 ${
+            <div className={`px-4 py-2 rounded-full shadow-[var(--shadow-modal)] border flex items-center gap-2 transition-all duration-200 ${
               isSuccess 
-                ? 'bg-emerald-600/95 text-white border-emerald-400/50 shadow-emerald-600/25'
-                : pullDistance >= PULL_THRESHOLD || isRefreshing
-                ? 'bg-blue-600/95 text-white border-blue-400/50 shadow-blue-500/25'
-                : 'bg-white/95 text-slate-700 border-slate-200/90 shadow-slate-900/10'
+                ? 'bg-[var(--success-bg)] text-[var(--success-text)] border-[var(--success-text)]/30'
+                : 'bg-[var(--ink)] text-white border-white/10 dark:bg-[var(--surface)] dark:text-[var(--text)] dark:border-[var(--line)]'
             }`}>
               <RefreshCw 
-                className={`w-4 h-4 ${
-                  isRefreshing ? 'animate-spin text-white' : isSuccess ? 'text-white' : ''
+                size={14}
+                className={`${
+                  isRefreshing ? 'animate-spin text-[var(--brand)]' : isSuccess ? 'text-[var(--success-text)]' : 'text-[var(--brand)]'
                 }`}
                 style={{
-                  transform: !isRefreshing && !isSuccess ? `rotate(${pullRatio * 360}deg)` : undefined
+                  transform: !isRefreshing && !isSuccess ? `rotate(${pullRatio * 360}deg)` : undefined,
                 }}
               />
 
-              <span className="text-xs font-semibold tracking-wide select-none">
+              <span className="text-[12px] font-medium tracking-wide select-none">
                 {isSuccess
                   ? 'Updated'
                   : isRefreshing
@@ -167,7 +164,6 @@ const PullToRefresh = ({ children, onRefresh }) => {
         )}
       </AnimatePresence>
 
-      {/* Main Content (No CSS transform wrapper so fixed bottom nav stays rock solid) */}
       <div className="w-full h-full min-h-screen">
         {children}
       </div>

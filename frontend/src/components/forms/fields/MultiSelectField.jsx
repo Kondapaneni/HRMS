@@ -17,7 +17,7 @@ export const MultiSelectField = React.memo(({
   error,
   className = '',
   id,
-  colSpan
+  colSpan,
 }) => {
   const fieldId = id || `field-${name}`;
   const [isOpen, setIsOpen] = useState(false);
@@ -87,33 +87,31 @@ export const MultiSelectField = React.memo(({
         <div
           tabIndex={disabled || readOnly ? -1 : 0}
           onClick={() => !disabled && !readOnly && setIsOpen(!isOpen)}
-          className={`w-full min-h-[38px] px-3 py-1.5 text-sm bg-white border rounded-md transition-all flex items-center justify-between gap-2 cursor-pointer outline-none focus:outline-none ${
+          className={`w-full min-h-[40px] px-3 py-1.5 text-[14px] bg-[var(--surface-alt)] border rounded-[12px] transition-all flex items-center justify-between gap-2 cursor-pointer outline-none ${
             error
-              ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400'
-              : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
+              ? 'border-[var(--danger-text)] focus:border-[var(--danger-text)] focus:ring-3 focus:ring-[var(--danger-bg)]'
+              : 'border-[var(--line)] focus:border-[var(--brand)] focus:ring-3 focus:ring-[var(--brand-tint)]'
           } ${
-            disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : ''
-          } ${
-            readOnly ? 'bg-slate-100 text-slate-500 pointer-events-none border-slate-200' : ''
+            disabled || readOnly ? 'bg-[var(--line)]/60 text-[var(--muted)] cursor-not-allowed border-[var(--line)]' : 'text-[var(--text)]'
           }`}
         >
-          <div className="flex flex-wrap items-center gap-1 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5 flex-1">
             {selectedValues.length === 0 ? (
-              <span className="text-slate-400 select-none">{placeholder}</span>
+              <span className="text-[var(--muted)]/50 select-none">{placeholder}</span>
             ) : (
               selectedValues.map((val) => {
                 const opt = normalizedOptions.find((o) => o.value === val);
                 return (
                   <span
                     key={val}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-md"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[12px] font-medium bg-[var(--brand-tint)] text-[var(--brand-deep)] rounded-[9px]"
                   >
                     <span>{opt ? opt.label : val}</span>
                     {!disabled && !readOnly && (
                       <button
                         type="button"
                         onClick={(e) => removeValue(e, val)}
-                        className="hover:text-blue-900 cursor-pointer"
+                        className="hover:text-[var(--text)] cursor-pointer"
                       >
                         <X size={12} />
                       </button>
@@ -124,38 +122,38 @@ export const MultiSelectField = React.memo(({
             )}
           </div>
 
-          <div className="flex items-center gap-1 text-slate-400">
+          <div className="flex items-center gap-1 text-[var(--icon-muted)]">
             {selectedValues.length > 0 && !disabled && !readOnly && (
               <button
                 type="button"
                 onClick={clearAll}
-                className="hover:text-slate-600 p-0.5 cursor-pointer"
+                className="hover:text-[var(--text)] p-0.5 cursor-pointer"
                 title="Clear all"
               >
                 <X size={14} />
               </button>
             )}
-            <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown size={16} strokeWidth={1.7} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
           </div>
         </div>
 
         {isOpen && (
-          <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden animate-fadeIn">
-            <div className="p-2 border-b border-slate-100 flex items-center gap-2 bg-slate-50">
-              <Search size={14} className="text-slate-400" />
+          <div className="absolute z-50 left-0 right-0 mt-1 bg-[var(--surface)] border border-[var(--line)] rounded-[14px] shadow-[var(--shadow-modal)] overflow-hidden">
+            <div className="p-2 border-b border-[var(--line)] flex items-center gap-2 bg-[var(--surface-alt)]">
+              <Search size={14} className="text-[var(--icon-muted)]" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full text-xs bg-transparent outline-none text-slate-700"
+                className="w-full text-[13px] bg-transparent outline-none text-[var(--text)] placeholder:text-[var(--muted)]/50"
                 autoFocus
               />
             </div>
 
             <div className="max-h-48 overflow-y-auto p-1">
               {filteredOptions.length === 0 ? (
-                <div className="p-3 text-xs text-slate-400 text-center">No matching options</div>
+                <div className="p-3 text-[12px] text-[var(--muted)] text-center">No matching options</div>
               ) : (
                 filteredOptions.map((opt) => {
                   const isSelected = selectedValues.includes(opt.value);
@@ -163,12 +161,14 @@ export const MultiSelectField = React.memo(({
                     <div
                       key={opt.value}
                       onClick={() => toggleOption(opt.value)}
-                      className={`flex items-center justify-between px-3 py-2 text-xs rounded-md cursor-pointer transition-colors ${
-                        isSelected ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                      className={`flex items-center justify-between px-3 py-2 text-[13px] rounded-[10px] cursor-pointer transition-colors ${
+                        isSelected
+                          ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] font-medium'
+                          : 'text-[var(--text)] hover:bg-[var(--surface-alt)]'
                       }`}
                     >
                       <span>{opt.label}</span>
-                      {isSelected && <Check size={14} className="text-blue-600" />}
+                      {isSelected && <Check size={14} className="text-[var(--brand-deep)]" />}
                     </div>
                   );
                 })
@@ -182,3 +182,4 @@ export const MultiSelectField = React.memo(({
 });
 
 MultiSelectField.displayName = 'MultiSelectField';
+export default MultiSelectField;

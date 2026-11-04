@@ -16,7 +16,7 @@ export const ImageUploadField = React.memo(({
   error,
   className = '',
   id,
-  colSpan
+  colSpan,
 }) => {
   const fieldId = id || `field-${name}`;
   const inputRef = useRef(null);
@@ -69,8 +69,8 @@ export const ImageUploadField = React.memo(({
       <div className="flex items-center gap-4 pt-1">
         <div
           onClick={() => !disabled && !readOnly && inputRef.current?.click()}
-          className={`relative w-24 h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden bg-slate-50 transition-all cursor-pointer group ${
-            error ? 'border-red-300' : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/20'
+          className={`relative w-24 h-24 rounded-[14px] border-2 border-dashed flex flex-col items-center justify-center overflow-hidden bg-[var(--surface-alt)] transition-all cursor-pointer group ${
+            error ? 'border-[var(--danger-text)]' : 'border-[#D9D9DE] dark:border-[#3A3A40] hover:border-[var(--brand)] hover:bg-[var(--brand-tint)]'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <input
@@ -88,15 +88,15 @@ export const ImageUploadField = React.memo(({
             <>
               <img src={preview} alt="Preview" className="w-full h-full object-cover" />
               {!disabled && !readOnly && (
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
+                <div className="absolute inset-0 bg-[#131315]/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[12px] font-medium">
                   Change
                 </div>
               )}
             </>
           ) : (
-            <div className="flex flex-col items-center text-slate-400 gap-1">
-              <Camera size={22} />
-              <span className="text-[10px] font-medium">Upload</span>
+            <div className="flex flex-col items-center text-[var(--icon-muted)] gap-1">
+              <Camera size={20} strokeWidth={1.7} />
+              <span className="text-[11px] font-medium">Upload</span>
             </div>
           )}
         </div>
@@ -105,7 +105,7 @@ export const ImageUploadField = React.memo(({
           <button
             type="button"
             onClick={clearImage}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-[var(--danger-text)] bg-[var(--danger-bg)] rounded-[9px] hover:brightness-95 transition-all cursor-pointer"
           >
             <X size={14} /> Remove Image
           </button>
@@ -116,3 +116,4 @@ export const ImageUploadField = React.memo(({
 });
 
 ImageUploadField.displayName = 'ImageUploadField';
+export default ImageUploadField;

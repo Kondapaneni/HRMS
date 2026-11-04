@@ -15,7 +15,7 @@ export const CheckboxField = React.memo(({
   className = '',
   id,
   colSpan,
-  checkboxLabel
+  checkboxLabel,
 }) => {
   const fieldId = id || `field-${name}`;
 
@@ -47,13 +47,13 @@ export const CheckboxField = React.memo(({
           onChange={handleChange}
           onBlur={onBlur}
           disabled={disabled || readOnly}
-          className={`mt-0.5 w-4 h-4 text-blue-600 border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-400 cursor-pointer transition-all ${
-            error ? 'border-red-400' : ''
+          className={`mt-0.5 w-4 h-4 rounded-[4px] border-[var(--line)] accent-[var(--brand)] cursor-pointer transition-all ${
+            error ? 'border-[var(--danger-text)]' : ''
           }`}
         />
-        <span className="text-xs font-medium text-slate-600 leading-tight">
+        <span className="text-[13px] font-normal text-[var(--text-2)] leading-tight">
           {checkboxLabel || label}
-          {required && <span className="text-red-500 font-bold ml-1">*</span>}
+          {required && <span className="text-[var(--danger-text)] font-semibold ml-1">*</span>}
         </span>
       </label>
     </FieldContainer>
@@ -61,3 +61,4 @@ export const CheckboxField = React.memo(({
 });
 
 CheckboxField.displayName = 'CheckboxField';
+export default CheckboxField;

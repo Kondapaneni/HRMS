@@ -5,26 +5,43 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#f8fafd" />
+  <meta name="theme-color" content="#ECECEE" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500;1,6..72,600&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500;1,6..72,600&display=swap"
     rel="stylesheet">
   <title>Acme HRMS</title>
   <style>
     html, body, #root {
-      background-color: #f8fafd;
+      background-color: #ECECEE;
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       -webkit-tap-highlight-color: transparent;
     }
+    @media (prefers-color-scheme: dark) {
+      html:not([data-theme="light"]), html:not([data-theme="light"]) body, html:not([data-theme="light"]) #root {
+        background-color: #0B0B0D;
+      }
+    }
+    [data-theme="dark"], [data-theme="dark"] body, [data-theme="dark"] #root {
+      background-color: #0B0B0D;
+    }
   </style>
+  <script>
+    // Apply saved theme or system preference immediately to prevent flash
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'dark' || saved === 'light') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    })();
+  </script>
 </head>
 
 <body>

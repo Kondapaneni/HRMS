@@ -31,10 +31,10 @@ const versionPlugin = () => {
       this.emitFile({
         type: 'asset',
         fileName: 'version.json',
-        source: JSON.stringify({ 
-          version: appVersion, 
-          semver: appSemVer, 
-          commit: gitCommitShort 
+        source: JSON.stringify({
+          version: appVersion,
+          semver: appSemVer,
+          commit: gitCommitShort
         })
       });
     },
@@ -42,10 +42,10 @@ const versionPlugin = () => {
       server.middlewares.use((req, res, next) => {
         if (req.url.startsWith('/version.json')) {
           res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ 
-            version: appVersion, 
-            semver: appSemVer, 
-            commit: gitCommitShort 
+          res.end(JSON.stringify({
+            version: appVersion,
+            semver: appSemVer,
+            commit: gitCommitShort
           }));
         } else {
           next();
@@ -63,7 +63,7 @@ export default defineConfig({
     'import.meta.env.VITE_APP_GIT_COMMIT': JSON.stringify(gitCommitShort),
   },
   plugins: [
-    react(), 
+    react(),
     tailwindcss(),
     versionPlugin()
   ],
@@ -86,7 +86,7 @@ export default defineConfig({
       ].map(path => [
         path,
         {
-          target: 'http://127.0.0.1:8081',
+          target: 'http://127.0.0.1:8080',
           changeOrigin: true,
           configure: (proxy) => {
             proxy.on('error', (err, _req, res) => {
@@ -94,7 +94,7 @@ export default defineConfig({
                 try {
                   res.writeHead(502, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ error: 'Bad Gateway / Proxy Error', message: err?.message }));
-                } catch (_) {}
+                } catch (_) { }
               }
             });
           }

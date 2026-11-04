@@ -3,6 +3,9 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 /**
  * FormSection layout component for grouping related form fields.
+ * Spec:
+ *  - FormSection titles are 15px / 500 with a 1px #EFEFF1 divider
+ *  - Card background surface, radius 24px, padding 18px
  */
 export const FormSection = React.memo(({
   title,
@@ -12,36 +15,36 @@ export const FormSection = React.memo(({
   collapsible = false,
   defaultOpen = true,
   children,
-  className = ''
+  className = '',
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className={`bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden transition-all duration-200 mb-6 ${className}`}>
+    <div className={`bg-[var(--surface)] text-[var(--text)] rounded-[24px] p-[18px] border border-[var(--line)]/50 transition-colors mb-4 ${className}`}>
       {(title || description) && (
         <div 
           onClick={() => collapsible && setIsOpen(!isOpen)}
-          className={`px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between ${
-            collapsible ? 'cursor-pointer hover:bg-slate-100/50 transition-colors' : ''
+          className={`pb-3.5 mb-4 border-b border-[var(--line)] flex items-center justify-between ${
+            collapsible ? 'cursor-pointer select-none' : ''
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {Icon && (
-              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                <Icon size={18} />
+              <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
+                <Icon size={16} strokeWidth={1.7} />
               </div>
             )}
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+                <h3 className="text-[15px] font-medium text-[var(--text)] leading-snug">{title}</h3>
                 {badge && (
-                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                  <span className="px-2 py-0.5 text-[11px] font-medium bg-[var(--brand-tint)] text-[var(--brand-deep)] rounded-[7px]">
                     {badge}
                   </span>
                 )}
               </div>
               {description && (
-                <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+                <p className="text-[12px] text-[var(--muted)] mt-0.5">{description}</p>
               )}
             </div>
           </div>
@@ -49,17 +52,17 @@ export const FormSection = React.memo(({
           {collapsible && (
             <button 
               type="button" 
-              className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+              className="text-[var(--icon-muted)] hover:text-[var(--text)] transition-colors p-1 rounded-full cursor-pointer"
               aria-label={isOpen ? "Collapse section" : "Expand section"}
             >
-              {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              {isOpen ? <ChevronUp size={18} strokeWidth={1.7} /> : <ChevronDown size={18} strokeWidth={1.7} />}
             </button>
           )}
         </div>
       )}
 
       {(!collapsible || isOpen) && (
-        <div className="p-6 space-y-4">
+        <div className="space-y-4">
           {children}
         </div>
       )}
@@ -68,3 +71,4 @@ export const FormSection = React.memo(({
 });
 
 FormSection.displayName = 'FormSection';
+export default FormSection;

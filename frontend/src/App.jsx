@@ -100,7 +100,6 @@ import CandidateProfile from './pages/CandidateProfile'
 import CandidateDocuments from './pages/CandidateDocuments'
 import NotFound from './pages/NotFound'
 import { Toaster } from 'react-hot-toast'
-import SnowflakeCursor from './components/CustomCursor'
 import Offline from './pages/Offline'
 import UpdateOverlay from './components/UpdateOverlay'
 import LandscapeOverlay from './components/LandscapeOverlay'
@@ -146,8 +145,26 @@ function App() {
           <UpdateOverlay />
           <LandscapeOverlay />
           <Offline />
-          <SnowflakeCursor />
-          <Toaster position="top-right" containerStyle={{ zIndex: 9999999 }} />
+          <Toaster
+            position="top-right"
+            containerStyle={{ zIndex: 9999999 }}
+            toastOptions={{
+              className: 'bg-[var(--surface)] text-[var(--text)] border border-[var(--line)] shadow-[var(--shadow-modal)] rounded-[14px] text-[13px] font-medium',
+              duration: 4000,
+              success: {
+                iconTheme: {
+                  primary: '#1F9D55',
+                  secondary: '#FFFFFF',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#D64550',
+                  secondary: '#FFFFFF',
+                },
+              },
+            }}
+          />
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />

@@ -9,7 +9,7 @@ export const ReadonlyField = React.memo(({
   className = '',
   id,
   colSpan,
-  copyable = false
+  copyable = false,
 }) => {
   const fieldId = id || `field-${name}`;
   const displayVal = value !== null && value !== undefined && value !== '' ? String(value) : '—';
@@ -23,13 +23,13 @@ export const ReadonlyField = React.memo(({
       readOnly={true}
       className={className}
     >
-      <div className="w-full px-3 py-2 text-sm font-medium text-slate-800 bg-slate-100/70 border border-slate-200/80 rounded-lg flex items-center justify-between">
+      <div className="w-full h-[40px] px-3.5 text-[14px] font-medium text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] flex items-center justify-between">
         <span className="truncate">{displayVal}</span>
         {copyable && value && (
           <button
             type="button"
             onClick={() => navigator.clipboard.writeText(String(value))}
-            className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 transition-colors px-1.5 py-0.5 rounded bg-white border border-slate-200 cursor-pointer"
+            className="text-[11px] font-medium text-[var(--brand-deep)] hover:underline transition-colors px-2 py-0.5 rounded-[6px] bg-[var(--surface)] border border-[var(--line)] cursor-pointer"
           >
             Copy
           </button>
@@ -40,3 +40,4 @@ export const ReadonlyField = React.memo(({
 });
 
 ReadonlyField.displayName = 'ReadonlyField';
+export default ReadonlyField;

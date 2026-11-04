@@ -21,7 +21,7 @@ export const TextField = React.memo(({
   minLength,
   autoComplete = 'off',
   prefix,
-  suffix
+  suffix,
 }) => {
   const fieldId = id || `field-${name}`;
 
@@ -45,7 +45,7 @@ export const TextField = React.memo(({
     >
       <div className="relative flex items-center w-full">
         {prefix && (
-          <div className="absolute left-3 text-slate-400 text-sm flex items-center pointer-events-none">
+          <div className="absolute left-3 text-[var(--muted)] text-[13px] flex items-center pointer-events-none">
             {prefix}
           </div>
         )}
@@ -63,23 +63,23 @@ export const TextField = React.memo(({
           maxLength={maxLength}
           minLength={minLength}
           autoComplete={autoComplete}
-          className={`w-full px-4 py-2.5 md:px-3 md:py-2 border rounded-full md:rounded-md text-sm outline-none focus:outline-none transition-all ${
-            prefix ? 'pl-10 md:pl-9' : ''
+          className={`w-full h-[40px] px-3.5 border rounded-[12px] text-[14px] outline-none transition-all placeholder:text-[var(--muted)]/50 ${
+            prefix ? 'pl-9' : ''
           } ${
-            suffix ? 'pr-10 md:pr-9' : ''
+            suffix ? 'pr-9' : ''
           } ${
             error 
-              ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
-              : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
+              ? 'border-[var(--danger-text)] focus:border-[var(--danger-text)] focus:ring-3 focus:ring-[var(--danger-bg)]' 
+              : 'border-[var(--line)] focus:border-[var(--brand)] focus:ring-3 focus:ring-[var(--brand-tint)]'
           } ${
-            disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : ''
-          } ${
-            readOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : 'bg-white text-slate-800'
+            disabled || readOnly
+              ? 'bg-[var(--line)]/60 text-[var(--muted)] cursor-not-allowed border-[var(--line)]'
+              : 'bg-[var(--surface-alt)] text-[var(--text)]'
           }`}
         />
 
         {suffix && (
-          <div className="absolute right-3 text-slate-400 text-sm flex items-center pointer-events-none">
+          <div className="absolute right-3 text-[var(--muted)] text-[13px] flex items-center pointer-events-none">
             {suffix}
           </div>
         )}
@@ -89,3 +89,4 @@ export const TextField = React.memo(({
 });
 
 TextField.displayName = 'TextField';
+export default TextField;

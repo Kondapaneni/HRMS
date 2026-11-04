@@ -17,7 +17,7 @@ export const FileUploadField = React.memo(({
   error,
   className = '',
   id,
-  colSpan
+  colSpan,
 }) => {
   const fieldId = id || `field-${name}`;
   const inputRef = useRef(null);
@@ -78,9 +78,9 @@ export const FileUploadField = React.memo(({
         {!readOnly && (
           <div
             onClick={() => !disabled && inputRef.current?.click()}
-            className={`w-full p-4 border-2 border-dashed rounded-xl transition-all flex flex-col items-center justify-center gap-2 cursor-pointer text-center bg-slate-50/50 hover:bg-blue-50/30 hover:border-blue-300 ${
-              error ? 'border-red-300 bg-red-50/30' : 'border-slate-200'
-            } ${disabled ? 'opacity-50 cursor-not-allowed bg-slate-100 hover:bg-slate-100 hover:border-slate-200' : ''}`}
+            className={`w-full p-4 border-2 border-dashed rounded-[16px] transition-all flex flex-col items-center justify-center gap-2 cursor-pointer text-center bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] hover:border-[var(--brand)] ${
+              error ? 'border-[var(--danger-text)] bg-[var(--danger-bg)]' : 'border-[#D9D9DE] dark:border-[#3A3A40]'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <input
               ref={inputRef}
@@ -94,15 +94,15 @@ export const FileUploadField = React.memo(({
               className="hidden"
             />
             
-            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-              <UploadCloud size={20} />
+            <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
+              <UploadCloud size={20} strokeWidth={1.7} />
             </div>
             
             <div>
-              <p className="text-xs font-semibold text-slate-700">
+              <p className="text-[13px] font-medium text-[var(--text)]">
                 Click to upload or drag & drop file
               </p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-[var(--muted)] mt-0.5">
                 {multiple ? 'Select one or more files' : 'Select a file'}
               </p>
             </div>
@@ -118,25 +118,27 @@ export const FileUploadField = React.memo(({
               return (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-lg shadow-2xs text-xs"
+                  className="flex items-center justify-between p-2.5 bg-[var(--surface)] border border-[var(--line)] rounded-[12px] text-[13px]"
                 >
                   <div className="flex items-center gap-2.5 overflow-hidden">
-                    <FileText size={18} className="text-blue-500 flex-shrink-0" />
+                    <div className="w-8 h-8 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
+                      <FileText size={16} strokeWidth={1.7} />
+                    </div>
                     <div className="truncate">
-                      <p className="font-medium text-slate-700 truncate">{fileName}</p>
-                      {fileSize && <p className="text-[10px] text-slate-400">{fileSize}</p>}
+                      <p className="font-medium text-[var(--text)] truncate">{fileName}</p>
+                      {fileSize && <p className="text-[11px] text-[var(--muted)]">{fileSize}</p>}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--success-text)] bg-[var(--success-bg)] px-2 py-0.5 rounded-[7px]">
                       <CheckCircle2 size={12} /> Ready
                     </span>
                     {!disabled && !readOnly && (
                       <button
                         type="button"
                         onClick={() => removeFile(idx)}
-                        className="text-slate-400 hover:text-red-600 transition-colors p-1 cursor-pointer"
+                        className="text-[var(--icon-muted)] hover:text-[var(--danger-text)] transition-colors p-1 cursor-pointer"
                         title="Remove file"
                       >
                         <X size={14} />
@@ -154,3 +156,4 @@ export const FileUploadField = React.memo(({
 });
 
 FileUploadField.displayName = 'FileUploadField';
+export default FileUploadField;
