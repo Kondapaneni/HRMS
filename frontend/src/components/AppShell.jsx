@@ -120,7 +120,7 @@ export const AppShell = ({
           DESKTOP SIDEBAR SHELL (768px+)
           Spec: background #131315, radius 32px, padding 14px, full height - 32px, 16px margin
           ============================================================ */}
-      <aside className="hidden md:flex my-4 ml-4 h-[calc(100dvh-32px)] bg-[#131315] text-white rounded-[32px] overflow-hidden z-20 shrink-0 shadow-xl border border-white/5 transition-all duration-300">
+      <aside className="hidden md:flex my-4 ml-4 h-[calc(100dvh-32px)] bg-[#131315] text-white rounded-[38px] overflow-hidden z-20 shrink-0 shadow-xl border border-white/5 transition-all duration-300">
         {/* RAIL (Icon column, 76px width: 14px padding each side + 48px inner area) */}
         <div className="w-[76px] h-full p-3.5 pb-4 flex flex-col items-center justify-between shrink-0 overflow-hidden">
           {/* Top: Fixed Logo & Scrollable Nav items */}
@@ -128,12 +128,12 @@ export const AppShell = ({
             {/* Logo */}
             <Link
               to={railGroups[0]?.path || '/'}
-              className="w-[42px] h-[42px] rounded-[14px] bg-[#1F1F23] hover:bg-white/10 text-white flex items-center justify-center transition-all cursor-pointer group shrink-0"
+              className="w-[42px] h-[42px] rounded-full bg-[#1F1F23] hover:bg-white/10 text-white flex items-center justify-center transition-all cursor-pointer group shrink-0"
               title={portalName}
               aria-label={portalName}
             >
               <div
-                className="w-5 h-5 rounded-[6px] flex items-center justify-center font-bold text-xs"
+                className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs"
                 style={{ backgroundColor: accentColor, color: '#131315' }}
               >
                 A
@@ -150,7 +150,7 @@ export const AppShell = ({
                   <Link
                     key={group.id}
                     to={group.chips?.[0]?.path || group.path}
-                    className="relative w-[42px] h-[42px] rounded-[14px] flex items-center justify-center transition-all duration-200 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] shrink-0"
+                    className="relative w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] shrink-0"
                     style={{
                       backgroundColor: isGroupActive ? accentColor : 'transparent',
                       color: isGroupActive ? '#131315' : '#8B8B95',
@@ -180,7 +180,7 @@ export const AppShell = ({
                 <Link
                   key={group.id}
                   to={group.path}
-                  className="w-[42px] h-[42px] rounded-[14px] flex items-center justify-center transition-all duration-200 cursor-pointer group hover:bg-[#1F1F23] hover:text-white shrink-0"
+                  className="w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer group hover:bg-[#1F1F23] hover:text-white shrink-0"
                   style={{
                     backgroundColor: isGroupActive ? accentColor : 'transparent',
                     color: isGroupActive ? '#131315' : '#8B8B95',
@@ -196,7 +196,7 @@ export const AppShell = ({
             <button
               type="button"
               onClick={() => setShowLogoutModal(true)}
-              className="w-[42px] h-[42px] rounded-[14px] text-[#8B8B95] hover:text-[#D64550] hover:bg-[#1F1F23] flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              className="w-[42px] h-[42px] rounded-full text-[#8B8B95] hover:text-[#D64550] hover:bg-[#1F1F23] flex items-center justify-center transition-colors cursor-pointer shrink-0"
               title="Sign Out"
               aria-label="Sign Out"
             >
@@ -410,7 +410,7 @@ export const AppShell = ({
                         key={group.id}
                         to={group.chips?.[0]?.path || group.path}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[14px] text-[13px] font-medium transition-all ${
+                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-[13px] font-medium transition-all ${
                           isGroupActive
                             ? 'text-[#131315] shadow-xs'
                             : 'text-[#8B8B95] hover:text-white hover:bg-[#1F1F23]'
@@ -435,7 +435,7 @@ export const AppShell = ({
                     setIsMobileMenuOpen(false);
                     setShowLogoutModal(true);
                   }}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[14px] text-[13px] font-medium text-[#D64550] hover:bg-[#1F1F23] transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-[13px] font-medium text-[#D64550] hover:bg-[#1F1F23] transition-colors cursor-pointer"
                 >
                   <LogOut size={18} strokeWidth={1.7} />
                   <span>Sign out</span>
