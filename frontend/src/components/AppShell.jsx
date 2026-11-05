@@ -32,6 +32,7 @@ export const AppShell = ({
   notificationsCount = 0,
   onNotificationClick,
   hideMobileNavRoutes = [],
+  disableMobileDrawer = false,
   children,
 }) => {
   const { profile, signOut } = useAuth();
@@ -222,14 +223,16 @@ export const AppShell = ({
           {/* Left: Greeting / Title */}
           <div className="flex items-center gap-3 min-w-0">
             {/* Mobile menu toggle button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none cursor-pointer active:scale-95 transition-transform"
-              aria-label="Toggle navigation menu"
-            >
-              {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
+            {!disableMobileDrawer && (
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none cursor-pointer active:scale-95 transition-transform"
+                aria-label="Toggle navigation menu"
+              >
+                {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
+            )}
 
             <div className="truncate">
               <h1 className="text-[20px] sm:text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] leading-tight truncate">
@@ -346,7 +349,7 @@ export const AppShell = ({
           MOBILE DRAWER / OFF-CANVAS MENU (<768px)
           ============================================================ */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {!disableMobileDrawer && isMobileMenuOpen && (
           <motion.div
             key="mobile-drawer-portal"
             initial={{ opacity: 0 }}

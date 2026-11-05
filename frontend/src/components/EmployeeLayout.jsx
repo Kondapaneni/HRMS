@@ -4,6 +4,7 @@ import {
   Home,
   Clock,
   Calendar,
+  CalendarCheck,
   CalendarDays,
   IndianRupee,
   Wallet,
@@ -215,11 +216,10 @@ const EmployeeLayout = () => {
     return groups;
   }, [profile, hasAssessmentToday, hasTrainingVideos]);
 
-  // Mobile Bottom Nav items (5 tabs max)
+  // Mobile Bottom Nav items
   const bottomNavItems = [
     { to: '/employee', label: 'Home', icon: Home, end: true },
-    { to: '/employee/attendance', label: 'Time', icon: Clock },
-    { to: '/employee/leaves', label: 'Leaves', icon: CalendarDays },
+    { to: '/employee/attendance', label: 'Attendance', icon: CalendarCheck },
     { to: '/employee/payroll', label: 'Pay', icon: IndianRupee },
     { to: '/employee/profile', label: 'Profile', icon: User },
   ];
@@ -262,6 +262,7 @@ const EmployeeLayout = () => {
           '/employee/attendance/camera',
           '/employee/attendance/map',
         ]}
+        disableMobileDrawer={true}
       >
         {/* News Headline Ticker */}
         {newsHeadlines.length > 0 && (
