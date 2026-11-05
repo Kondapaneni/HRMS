@@ -70,11 +70,11 @@ const BranchOperationsLayout = () => {
       headerAction={
         <Link
           to="/employee"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--line)] text-[12px] font-medium transition-colors"
+          className="w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none transition-colors cursor-pointer active:scale-95 shrink-0"
           title="Return to Employee Workspace"
+          aria-label="Return to Employee Workspace"
         >
-          <ArrowLeft size={14} />
-          <span className="hidden sm:inline">Workspace</span>
+          <ArrowLeft size={18} strokeWidth={1.7} />
         </Link>
       }
       hideMobileNavRoutes={[
