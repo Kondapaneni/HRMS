@@ -1,16 +1,17 @@
 // src/components/ui/BottomNav.jsx
 // Floating pill bottom navigation: the active tab expands into a pill
 // (coloured icon circle + label), the others stay as round dark buttons.
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 const spring = { type: 'spring', stiffness: 520, damping: 40, mass: 0.8 };
 
 /**
- * items: [{ to: '/employee', label: 'Home', icon: Home, end: true }]
+ * items: [{ to: '/employee', label: 'Home', icon: Home, end: true, activeMatch: (pathname) => boolean }]
  * Use 3 to 5 items and keep labels short (about 8 characters or fewer).
  */
 export default function BottomNav({ items }) {
+  const location = useLocation();
   const reduce = useReducedMotion();
   const t = reduce ? { duration: 0 } : spring;
 
@@ -22,7 +23,7 @@ export default function BottomNav({ items }) {
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}
     >
       <ul className="pointer-events-auto m-0 flex w-full max-w-md list-none items-center justify-between gap-1.5 rounded-full bg-[var(--nav-bg)] p-2 shadow-[0_12px_32px_rgba(0,0,0,0.35)] ring-1 ring-[var(--nav-ring)]">
-        {items.map(({ to, label, icon: Icon, end }) => (
+        {items.map(({ to, label, icon: Icon, end, activeMatch }) => (
           <li key={to} className="flex-none">
             <NavLink
               to={to}
@@ -30,7 +31,9 @@ export default function BottomNav({ items }) {
               aria-label={label}
               className="block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--nav-active)]"
             >
-              {({ isActive }) => (
+              {({ isActive: navActive }) => {
+                const isActive = activeMatch ? activeMatch(location.pathname) : navActive;
+                return (
                 <motion.span
                   layout
                   transition={t}
@@ -67,7 +70,8 @@ export default function BottomNav({ items }) {
                     )}
                   </AnimatePresence>
                 </motion.span>
-              )}
+              );
+            }}
             </NavLink>
           </li>
         ))}

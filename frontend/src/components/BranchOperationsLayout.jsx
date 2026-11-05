@@ -17,8 +17,8 @@ const BranchOperationsLayout = () => {
       id: 'dashboard',
       icon: LayoutDashboard,
       label: 'Dashboard',
-      path: '/employee/branch-operations/dashboard',
-      chips: [{ label: 'Dashboard', path: '/employee/branch-operations/dashboard', exact: true }],
+      path: '/employee/branch-operations',
+      chips: [{ label: 'Dashboard', path: '/employee/branch-operations', exact: true }],
       activeMatch: (pathname) =>
         pathname === '/employee/branch-operations' ||
         pathname === '/employee/branch-operations/dashboard',
@@ -32,14 +32,6 @@ const BranchOperationsLayout = () => {
       activeMatch: (pathname) => pathname.startsWith('/employee/branch-operations/leads'),
     },
     {
-      id: 'activities',
-      icon: Activity,
-      label: 'Activities',
-      path: '/employee/branch-operations/activities',
-      chips: [{ label: 'Activities', path: '/employee/branch-operations/activities' }],
-      activeMatch: (pathname) => pathname.startsWith('/employee/branch-operations/activities'),
-    },
-    {
       id: 'applications',
       icon: FileText,
       label: 'Loan Applications',
@@ -50,13 +42,34 @@ const BranchOperationsLayout = () => {
         pathname.startsWith('/employee/branch-operations/loans-view-applications') ||
         pathname.startsWith('/employee/branch-operations/loans-edit-application'),
     },
+    {
+      id: 'activities',
+      icon: Activity,
+      label: 'Activities',
+      path: '/employee/branch-operations/activities',
+      chips: [{ label: 'Activities', path: '/employee/branch-operations/activities' }],
+      activeMatch: (pathname) => pathname.startsWith('/employee/branch-operations/activities'),
+    },
   ];
 
   const bottomNavItems = [
-    { to: '/employee/branch-operations/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
+    {
+      to: '/employee/branch-operations',
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      end: true,
+      activeMatch: (pathname) =>
+        pathname === '/employee/branch-operations' ||
+        pathname === '/employee/branch-operations/dashboard',
+    },
     { to: '/employee/branch-operations/leads', label: 'Leads', icon: Users },
+    {
+      to: '/employee/branch-operations/loans-applications',
+      label: 'Loans',
+      icon: FileText,
+      activeMatch: (pathname) => pathname.startsWith('/employee/branch-operations/loans'),
+    },
     { to: '/employee/branch-operations/activities', label: 'Activity', icon: Activity },
-    { to: '/employee/branch-operations/loans-applications', label: 'Loans', icon: FileText },
   ];
 
   return (
