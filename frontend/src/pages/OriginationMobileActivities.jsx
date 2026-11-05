@@ -14,9 +14,31 @@ import {
   Check,
   CalendarDays,
   Loader2,
-  Calendar
+  Calendar,
+  AlertCircle,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  List,
+  Grid
 } from 'lucide-react';
-import { format, parseISO, isToday, isTomorrow, startOfDay } from 'date-fns';
+import { 
+  format, 
+  parseISO, 
+  isToday, 
+  isTomorrow, 
+  startOfDay, 
+  startOfMonth, 
+  endOfMonth, 
+  startOfWeek, 
+  endOfWeek, 
+  eachDayOfInterval, 
+  isSameMonth, 
+  isSameDay, 
+  addMonths, 
+  subMonths 
+} from 'date-fns';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { MobileActivityCreatePage, MobileActivityDetailsModal } from '../components/calendar/MobileActivityModals';
@@ -33,11 +55,16 @@ const OriginationMobileActivities = () => {
 
   // View state: 'list' | 'create'
   const [viewMode, setViewMode] = useState('list');
+  const [mobileTab, setMobileTab] = useState('calendar'); // 'calendar' | 'all'
   const [selectedEvent, setSelectedEvent] = useState(null);
+
+  // Calendar dates
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Search & Filter
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   // Lock body scroll and hide bottom navigation dock when modal or create page is active
   useEffect(() => {
@@ -71,62 +98,38 @@ const OriginationMobileActivities = () => {
   const branchInfo = data.branch || null;
   const assignableEmployees = data.assignableEmployees || [];
 
-  // Module Dynamic Theme
+  // Theme styling (preserving existing color palette)
   const theme = useMemo(() => {
     if (isSales) {
       return {
         moduleName: 'Sales',
-        tagText: 'ORIGINATION • SALES ACTIVITIES',
+        tagText: 'SALES ORIGINATION',
         titleAccent: 'text-[var(--accent-pink-deep)]',
-        activeChip: 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-2xs font-semibold',
-        activeBadgeText: 'bg-[var(--surface)] text-[var(--ink)]',
-        todayDotColor: '#A25C9B',
-        todayBadgeStyle: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border-[var(--accent-pink)]/20',
-        titleHover: 'group-hover:text-[var(--accent-pink-deep)]',
-        clockColor: 'text-[var(--accent-pink-deep)]',
-        scheduleBtnHover: 'hover:bg-[var(--ink-2)]',
-        scheduleBtnBg: 'bg-[var(--ink)]',
-        primaryBtn: 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white',
-        borderHighlight: 'hover:border-[var(--accent-pink)]',
-        ringHighlight: 'focus:ring-[var(--accent-pink)] focus:border-[var(--accent-pink)]'
+        accentColor: '#E3B9DF',
+        brandDeep: 'var(--accent-pink-deep)',
+        brandTint: 'var(--accent-pink-tint)',
+        activeChip: 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B]',
       };
     }
-
     if (isBranchOperations) {
       return {
         moduleName: 'Branch',
         tagText: branchInfo?.name ? `${branchInfo.name.toUpperCase()} BRANCH` : 'BRANCH ACTIVITIES',
         titleAccent: 'text-[var(--branch-deep)]',
-        activeChip: 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-2xs font-semibold',
-        activeBadgeText: 'bg-[var(--surface)] text-[var(--ink)]',
-        todayDotColor: '#14B8A6',
-        todayBadgeStyle: 'bg-[var(--branch-tint)] text-[var(--branch-deep)] border-[var(--branch)]/20',
-        titleHover: 'group-hover:text-[var(--branch-deep)]',
-        clockColor: 'text-[var(--branch-deep)]',
-        scheduleBtnHover: 'hover:bg-[var(--ink-2)]',
-        scheduleBtnBg: 'bg-[var(--ink)]',
-        primaryBtn: 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white',
-        borderHighlight: 'hover:border-[var(--branch)]',
-        ringHighlight: 'focus:ring-[var(--branch)] focus:border-[var(--branch)]'
+        accentColor: '#2DD4BF',
+        brandDeep: 'var(--branch-deep)',
+        brandTint: 'var(--branch-tint)',
+        activeChip: 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B]',
       };
     }
-
-    // Default Loans Theme
     return {
       moduleName: 'Loans',
-      tagText: 'ORIGINATION • LOAN ACTIVITIES',
+      tagText: 'LOAN ORIGINATION',
       titleAccent: 'text-[var(--brand-deep)]',
-      activeChip: 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-2xs font-semibold',
-      activeBadgeText: 'bg-[var(--surface)] text-[var(--ink)]',
-      todayDotColor: '#5B86C2',
-      todayBadgeStyle: 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20',
-      titleHover: 'group-hover:text-[var(--brand-deep)]',
-      clockColor: 'text-[var(--brand-deep)]',
-      scheduleBtnHover: 'hover:bg-[var(--ink-2)]',
-      scheduleBtnBg: 'bg-[var(--ink)]',
-      primaryBtn: 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white',
-      borderHighlight: 'hover:border-[var(--brand)]',
-      ringHighlight: 'focus:ring-[var(--brand)] focus:border-[var(--brand)]'
+      accentColor: '#8AADDB',
+      brandDeep: 'var(--brand-deep)',
+      brandTint: 'var(--brand-tint)',
+      activeChip: 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B]',
     };
   }, [isSales, isBranchOperations, branchInfo]);
 
@@ -171,207 +174,104 @@ const OriginationMobileActivities = () => {
     }
   });
 
-  // Status Counts for Chips
-  const statusCounts = useMemo(() => {
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const counts = {
-      All: rawEvents.length,
-      Today: 0,
-      Pending: 0,
-      Completed: 0,
-      Urgent: 0
-    };
+  // Calendar calculations
+  const calendarDays = useMemo(() => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
+    return eachDayOfInterval({ start: startDate, end: endDate });
+  }, [currentDate]);
 
+  // Map events by date
+  const eventsByDate = useMemo(() => {
+    const map = new Map();
     rawEvents.forEach(e => {
-      if (e.startDate === todayStr) counts.Today++;
-      if (e.status === 'Completed') {
-        counts.Completed++;
-      } else {
-        counts.Pending++;
-      }
-      if (e.priority === 'Urgent' || e.priority === 'High') {
-        counts.Urgent++;
-      }
+      if (!e.startDate) return;
+      const key = typeof e.startDate === 'string' ? e.startDate.split('T')[0] : '';
+      if (!key) return;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(e);
     });
-
-    return counts;
+    return map;
   }, [rawEvents]);
 
-  // Filter Tabs
-  const filterTabs = [
-    { key: 'All', label: 'All', count: statusCounts.All },
-    { key: 'Today', label: 'Today', count: statusCounts.Today },
-    { key: 'Pending', label: 'Pending', count: statusCounts.Pending },
-    { key: 'Completed', label: 'Done', count: statusCounts.Completed },
-    { key: 'Urgent', label: 'Urgent', count: statusCounts.Urgent },
-  ];
+  // Selected date events
+  const selectedDateEvents = useMemo(() => {
+    const key = format(selectedDate, 'yyyy-MM-dd');
+    return eventsByDate.get(key) || [];
+  }, [selectedDate, eventsByDate]);
 
-  // Filtered Activities
-  const filteredEvents = useMemo(() => {
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
+  // Filtered all events
+  const filteredAllEvents = useMemo(() => {
     let result = rawEvents;
-
-    // Status filter
-    if (selectedStatusFilter !== 'All') {
-      result = result.filter(e => {
-        if (selectedStatusFilter === 'Today') return e.startDate === todayStr;
-        if (selectedStatusFilter === 'Pending') return e.status !== 'Completed';
-        if (selectedStatusFilter === 'Completed') return e.status === 'Completed';
-        if (selectedStatusFilter === 'Urgent') return e.priority === 'Urgent' || e.priority === 'High';
-        return true;
-      });
+    if (statusFilter === 'Today') {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      result = result.filter(e => e.startDate === todayStr);
+    } else if (statusFilter === 'Pending') {
+      result = result.filter(e => e.status !== 'Completed');
+    } else if (statusFilter === 'Completed') {
+      result = result.filter(e => e.status === 'Completed');
+    } else if (statusFilter === 'Urgent') {
+      result = result.filter(e => e.priority === 'Urgent' || e.priority === 'High');
     }
 
-    // Search query filter
-    if (searchTerm && searchTerm.trim()) {
-      const term = searchTerm.trim().toLowerCase();
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
       result = result.filter(e => 
-        e.title?.toLowerCase().includes(term) ||
-        e.notes?.toLowerCase().includes(term) ||
-        e.address?.toLowerCase().includes(term) ||
-        e.assignedToName?.toLowerCase().includes(term)
+        e.title?.toLowerCase().includes(q) ||
+        e.notes?.toLowerCase().includes(q) ||
+        e.address?.toLowerCase().includes(q)
       );
     }
 
-    return result;
-  }, [rawEvents, selectedStatusFilter, searchTerm]);
+    // Sort by Date ascending, then Time ascending
+    return [...result].sort((a, b) => {
+      const dateA = typeof a.startDate === 'string' ? a.startDate.split('T')[0] : '';
+      const dateB = typeof b.startDate === 'string' ? b.startDate.split('T')[0] : '';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      const timeA = a.startTime || '00:00';
+      const timeB = b.startTime || '00:00';
+      return timeA.localeCompare(timeB);
+    });
+  }, [rawEvents, statusFilter, searchTerm]);
 
-  // Format Helpers
   const formatEventTime = (evt) => {
-    if (evt.startTime && evt.endTime) {
+    if (evt.allDay) return 'All Day';
+    if (!evt.startTime) return 'All Day';
+    if (evt.endTime && evt.endTime !== evt.startTime) {
       return `${evt.startTime} – ${evt.endTime}`;
     }
-    return evt.startTime || 'All Day';
-  };
-
-  const formatEventDate = (evt) => {
-    try {
-      const parsed = parseISO(evt.startDate);
-      if (isToday(parsed)) return 'Today';
-      if (isTomorrow(parsed)) return 'Tomorrow';
-      return format(parsed, 'MMM d, yyyy');
-    } catch {
-      return evt.startDate;
-    }
-  };
-
-  // Section Grouping with Line Separators
-  const sections = useMemo(() => {
-    const todayStart = startOfDay(new Date());
-
-    const todayItems = [];
-    const upcomingItems = [];
-    const completedItems = [];
-
-    filteredEvents.forEach((evt) => {
-      if (evt.status === 'Completed') {
-        completedItems.push(evt);
-        return;
-      }
-
-      try {
-        const itemDate = parseISO(evt.startDate);
-        if (isToday(itemDate)) {
-          todayItems.push(evt);
-        } else if (itemDate > todayStart) {
-          upcomingItems.push(evt);
-        } else {
-          todayItems.push(evt);
-        }
-      } catch {
-        todayItems.push(evt);
-      }
-    });
-
-    const result = [];
-
-    if (todayItems.length > 0) {
-      result.push({
-        id: 'today',
-        title: "Today's Schedule",
-        dotColor: theme.todayDotColor,
-        badge: `${todayItems.length} Today`,
-        badgeStyle: theme.todayBadgeStyle,
-        items: todayItems,
-      });
-    }
-
-    if (upcomingItems.length > 0) {
-      result.push({
-        id: 'upcoming',
-        title: 'Upcoming Activities',
-        dotColor: '#B7791F',
-        badge: `${upcomingItems.length} Upcoming`,
-        badgeStyle: 'bg-[#FDF3DC] text-[#B7791F] border-[#FCE6B8]',
-        items: upcomingItems,
-      });
-    }
-
-    if (completedItems.length > 0) {
-      result.push({
-        id: 'completed',
-        title: 'Completed Activities',
-        dotColor: '#1F9D55',
-        badge: `${completedItems.length} Done`,
-        badgeStyle: 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6]',
-        items: completedItems,
-      });
-    }
-
-    return result;
-  }, [filteredEvents, theme]);
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'Completed':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold bg-[#E6F6EC] text-[#1F9D55] border border-[#CEEAD6] shrink-0">
-            <CheckCircle2 size={13} /> Completed
-          </span>
-        );
-      case 'Scheduled':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20">
-            <Clock size={13} /> Scheduled
-          </span>
-        );
-    }
+    return evt.startTime;
   };
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'Urgent':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FDE8EA] text-[#D64550] border border-[#FCD0D4] shrink-0">
-            Urgent
-          </span>
-        );
+        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#FDE8EA] text-[#D64550] border border-[#FCD0D4]">Urgent</span>;
       case 'High':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FDF3DC] text-[#B7791F] border border-[#FCE6B8] shrink-0">
-            High
-          </span>
-        );
+        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#FDF3DC] text-[#B7791F] border border-[#FCE6B8]">High</span>;
       case 'Low':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#EFEFF1] text-[#4A4A52] border border-[#E3E3E7] shrink-0">
-            Low
-          </span>
-        );
+        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-[#EFEFF1] text-[#4A4A52] border border-[#E3E3E7]">Low</span>;
       default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20">
-            Medium
-          </span>
-        );
+        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#E8F0FB] text-[#3B6FB6] border border-[#D2E3FC]">Medium</span>;
     }
   };
 
-  const handleToggleStatus = (e, act) => {
-    e.stopPropagation();
-    if (act.status === 'Completed') return;
-    toggleMutation.mutate({ id: act.id, status: act.status });
+  const getEventPillStyle = (evt) => {
+    if (evt.status === 'Completed') {
+      return 'border-l-4 border-l-[#1F9D55] bg-[#E6F6EC]/30';
+    }
+    switch (evt.priority) {
+      case 'Urgent':
+        return 'border-l-4 border-l-[#D64550] bg-[#FDE8EA]/30';
+      case 'High':
+        return 'border-l-4 border-l-[#B7791F] bg-[#FDF3DC]/30';
+      case 'Low':
+        return 'border-l-4 border-l-[#9CA3AF] bg-[var(--surface)]';
+      default:
+        return 'border-l-4 border-l-[#3B6FB6] bg-[#E8F0FB]/30';
+    }
   };
 
   if (viewMode === 'create') {
@@ -391,209 +291,322 @@ const OriginationMobileActivities = () => {
 
   return (
     <div className="space-y-4 pb-14 select-none font-sans antialiased">
-
-      {/* Header */}
+      
+      {/* Header Bar */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
           <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             {theme.tagText}
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Activities &amp; <span className={theme.titleAccent}>Follow-Ups</span>
+            <h2 className="text-2xl font-bold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Activities &amp; <span className={theme.titleAccent}>Calendar</span>
             </h2>
 
             <button
+              type="button"
               onClick={() => setViewMode('create')}
-              className="shrink-0 h-9.5 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
-              <Plus size={14} />
+              <Plus size={14} strokeWidth={2.2} />
               <span>Schedule</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[var(--muted)] mt-1">
-            {rawEvents.length} Total Scheduled Tasks
-          </p>
         </div>
       </section>
 
-      {/* Content Layer */}
-      <div className="relative z-20 mx-0.5 space-y-3.5">
-
-        {/* Search Box */}
-        <SearchBar
-          placeholder="Search activities by title, notes, location..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onClear={() => setSearchTerm('')}
-        />
-
-        {/* Horizontal Scrollable Status Filter Chips */}
-        <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">
-          {filterTabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setSelectedStatusFilter(tab.key)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
-                selectedStatusFilter === tab.key
-                  ? theme.activeChip
-                  : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
-                selectedStatusFilter === tab.key ? theme.activeBadgeText : 'bg-[var(--surface-alt)] text-[var(--muted)]'
-              }`}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
+      {/* Segmented View Switcher: Calendar vs All Tasks */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center p-1 rounded-full bg-[var(--surface-alt)] border border-[var(--line)] text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setMobileTab('calendar')}
+            className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
+              mobileTab === 'calendar'
+                ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-bold'
+                : 'text-[var(--muted)]'
+            }`}
+          >
+            Calendar View
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab('all')}
+            className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
+              mobileTab === 'all'
+                ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-bold'
+                : 'text-[var(--muted)]'
+            }`}
+          >
+            All Tasks ({rawEvents.length})
+          </button>
         </div>
 
-        {/* Sectional Groups with Line Separators & Cards */}
-        <div className="space-y-6 pt-1">
-          {error ? (
-            <div className="bg-[#FDE8EA] text-[#D64550] p-4 rounded-[16px] text-center border border-[#FCD0D4] text-xs">
-              Failed to load activities. Please refresh or try again.
-            </div>
-          ) : isLoading ? (
-            <div className="flex justify-center items-center py-16">
-              <Loader2 className="animate-spin h-7 w-7 text-[var(--brand-deep)]" />
-            </div>
-          ) : sections.length === 0 ? (
-            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center space-y-2 shadow-xs">
-              <div className="w-12 h-12 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center mx-auto">
-                <CalendarDays size={20} />
+        {mobileTab === 'calendar' && (
+          <button
+            type="button"
+            onClick={() => {
+              const now = new Date();
+              setCurrentDate(now);
+              setSelectedDate(now);
+            }}
+            className="px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] text-xs font-semibold text-[var(--text)] shadow-2xs"
+          >
+            Today
+          </button>
+        )}
+      </div>
+
+      {/* TAB 1: Calendar Experience (Matching User Design) */}
+      {mobileTab === 'calendar' && (
+        <div className="space-y-4">
+          
+          {/* Calendar Month Navigation Box */}
+          <div className="bg-[var(--surface)] rounded-[22px] border border-[var(--line)] p-4 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[var(--text)] tracking-tight">
+                {format(currentDate, 'MMMM yyyy')}
+              </h3>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCurrentDate(prev => subMonths(prev, 1))}
+                  className="w-8 h-8 rounded-full border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentDate(prev => addMonths(prev, 1))}
+                  className="w-8 h-8 rounded-full border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
-              <p className="text-sm font-semibold text-[var(--text)]">No activities found</p>
-              <p className="text-xs text-[var(--muted)]">
-                {searchTerm ? 'No results matched your search query.' : 'No scheduled tasks in this category.'}
-              </p>
-              {searchTerm ? (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="mt-2 inline-flex items-center text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer"
-                >
-                  Clear search query
-                </button>
-              ) : (
-                <button
-                  onClick={() => setViewMode('create')}
-                  className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] transition-colors cursor-pointer"
-                >
-                  <Plus size={14} />
-                  <span>Schedule Activity</span>
-                </button>
-              )}
             </div>
-          ) : (
-            sections.map((section) => (
-              <div key={section.id} className="space-y-3">
-                
-                {/* Line Separator Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: section.dotColor }} />
-                    <h3 className="text-sm font-semibold text-[var(--text)]">
-                      {section.title}
-                    </h3>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${section.badgeStyle}`}>
-                    {section.badge}
-                  </span>
-                </div>
 
-                {/* Cards List in this Section */}
-                <div className="space-y-3">
-                  {section.items.map((act) => {
-                    const isCompleted = act.status === 'Completed';
+            {/* Weekday headers S M T W T F S */}
+            <div className="grid grid-cols-7 text-center text-[11px] font-semibold text-[var(--muted)] py-1">
+              <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
 
-                    return (
-                      <div 
-                        key={act.id} 
-                        onClick={() => setSelectedEvent(act)}
-                        className="bg-[var(--surface)] rounded-[16px] border border-[var(--line)] hover:border-[var(--brand)]/40 p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[var(--surface-alt)] cursor-pointer space-y-2.5 group"
-                      >
-                        {/* Top Row: Left Round Tickmark Box + Title & Subtitle, Right: Status Badge */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
-                            {/* Action / Tickmark Box */}
-                            <button
-                              type="button"
-                              disabled={isCompleted}
-                              onClick={(e) => handleToggleStatus(e, act)}
-                              className={`w-9 h-9 rounded-full font-semibold text-xs flex items-center justify-center shrink-0 border transition-all ${
-                                isCompleted
-                                  ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6] cursor-default'
-                                  : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)] hover:border-[var(--brand)] hover:text-[var(--brand-deep)] cursor-pointer active:scale-95'
-                              }`}
-                              title={isCompleted ? 'Completed' : 'Click to complete'}
-                            >
-                              {isCompleted ? (
-                                <Check size={16} strokeWidth={2.5} />
-                              ) : (
-                                <Clock size={15} />
-                              )}
-                            </button>
+            {/* Month Day Grid */}
+            <div className="grid grid-cols-7 text-center gap-y-1">
+              {calendarDays.map((day, idx) => {
+                const isCurrMonth = isSameMonth(day, currentDate);
+                const isSelected = isSameDay(day, selectedDate);
+                const isTodayDate = isToday(day);
+                const dayKey = format(day, 'yyyy-MM-dd');
+                const hasEvents = (eventsByDate.get(dayKey) || []).length > 0;
 
-                            {/* Title & Time Subtitle */}
-                            <div className="min-w-0 space-y-0.5 flex-1">
-                              <h3 className={`font-semibold text-[var(--text)] text-sm truncate transition-colors ${
-                                isCompleted 
-                                  ? 'line-through text-[var(--muted)]' 
-                                  : 'group-hover:text-[var(--brand-deep)]'
-                              }`}>
-                                {act.title}
-                              </h3>
-                              <div className="flex items-center gap-2 text-[10.5px] text-[var(--muted)]">
-                                <span className="inline-flex items-center gap-1 font-medium text-[var(--muted)]">
-                                  <Clock size={10} className="text-[var(--muted)]" />
-                                  {formatEventTime(act)}
-                                </span>
-                                {isBranchOperations && act.assignedToName && (
-                                  <>
-                                    <span>&bull;</span>
-                                    <span className="truncate text-[var(--brand-deep)] font-semibold">{act.assignedToName}</span>
-                                  </>
-                                )}
-                              </div>
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedDate(day)}
+                    className={`relative w-8.5 h-8.5 mx-auto rounded-full flex flex-col items-center justify-center text-xs transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[var(--brand)] text-white font-bold shadow-2xs'
+                        : isTodayDate
+                        ? 'border border-[var(--brand)] text-[var(--brand-deep)] font-semibold'
+                        : isCurrMonth
+                        ? 'text-[var(--text)] hover:bg-[var(--surface-alt)] font-medium'
+                        : 'text-[var(--muted)]/40 hover:bg-[var(--surface-alt)]/30'
+                    }`}
+                  >
+                    <span>{format(day, 'd')}</span>
+                    {hasEvents && !isSelected && (
+                      <span className="w-1 h-1 rounded-full bg-[var(--brand)] mt-0.5" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-                              {/* Notes */}
-                              {act.notes && (
-                                <p className="text-[11px] text-[var(--muted)] line-clamp-1 italic pt-0.5">
-                                  "{act.notes}"
-                                </p>
+          {/* Agenda of Selected Day */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <div>
+                <h4 className="text-sm font-bold text-[var(--text)]">
+                  {format(selectedDate, 'EEEE, MMM d')}
+                </h4>
+                <p className="text-[11px] text-[var(--muted)]">
+                  {selectedDateEvents.length} Tasks Scheduled
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('create')}
+                className="text-xs font-semibold text-[var(--brand-deep)] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Plus size={13} /> Add task
+              </button>
+            </div>
+
+            {selectedDateEvents.length === 0 ? (
+              <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-6 text-center space-y-2">
+                <p className="text-xs font-semibold text-[var(--muted)]">No tasks scheduled for this day</p>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('create')}
+                  className="px-4 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] text-white shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Plus size={13} /> Schedule for this day
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {selectedDateEvents.map(evt => {
+                  const isCompleted = evt.status === 'Completed';
+
+                  return (
+                    <div
+                      key={evt.id}
+                      onClick={() => setSelectedEvent(evt)}
+                      className={`bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer space-y-2.5 ${getEventPillStyle(evt)}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          {/* Complete tick button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleMutation.mutate({ id: evt.id, status: evt.status });
+                            }}
+                            className={`w-8 h-8 rounded-full font-semibold text-xs flex items-center justify-center shrink-0 border transition-all mt-0.5 ${
+                              isCompleted
+                                ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6]'
+                                : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)] hover:border-[var(--brand)]'
+                            }`}
+                          >
+                            {isCompleted ? <Check size={14} strokeWidth={2.5} /> : <Circle size={14} />}
+                          </button>
+
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <h4 className={`text-sm font-semibold truncate ${isCompleted ? 'line-through text-[var(--muted)]' : 'text-[var(--text)]'}`}>
+                              {evt.title}
+                            </h4>
+                            <div className="flex items-center gap-2 text-[11px] text-[var(--muted)]">
+                              <span className="flex items-center gap-1 font-medium text-[var(--text)]">
+                                <Clock size={11} className="text-[var(--brand-deep)]" />
+                                {formatEventTime(evt)}
+                              </span>
+                              {evt.address && (
+                                <>
+                                  <span>&bull;</span>
+                                  <span className="truncate">{evt.address}</span>
+                                </>
                               )}
                             </div>
                           </div>
-
-                          {/* Top Right Status Badge */}
-                          <div className="shrink-0 flex items-center gap-1.5 pt-0.5">
-                            {getStatusBadge(act.status)}
-                          </div>
                         </div>
 
-                        {/* Bottom Row: Location & Date Details */}
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)] text-[11px] text-[var(--muted)]">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <MapPin size={11} className="text-[var(--muted)] shrink-0" />
-                            <span className="truncate">{act.address || 'Location Not Specified'}</span>
-                          </div>
-                          <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
-                            <Calendar size={11} className="text-[var(--muted)] shrink-0" />
-                            <span>{formatEventDate(act)}</span>
+                        <div className="shrink-0">
+                          {getPriorityBadge(evt.priority)}
+                        </div>
+                      </div>
+
+                      {evt.notes && (
+                        <div className="text-[11px] text-[var(--muted)] line-clamp-1 italic bg-[var(--surface-alt)] px-2.5 py-1 rounded-[8px]">
+                          "{evt.notes}"
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: All Tasks List with Search & Filters */}
+      {mobileTab === 'all' && (
+        <div className="space-y-3.5">
+          <SearchBar
+            placeholder="Search activities by title, notes, location..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onClear={() => setSearchTerm('')}
+          />
+
+          {/* Filter Pills */}
+          <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">
+            {['All', 'Today', 'Pending', 'Completed', 'Urgent'].map(f => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setStatusFilter(f)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${
+                  statusFilter === f
+                    ? theme.activeChip
+                    : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)]'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+
+          {filteredAllEvents.length === 0 ? (
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center space-y-2">
+              <p className="text-sm font-semibold text-[var(--text)]">No activities found</p>
+              <p className="text-xs text-[var(--muted)]">Try adjusting your search or filters.</p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {filteredAllEvents.map(evt => {
+                const isCompleted = evt.status === 'Completed';
+
+                return (
+                  <div
+                    key={evt.id}
+                    onClick={() => setSelectedEvent(evt)}
+                    className={`bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer space-y-2.5 ${getEventPillStyle(evt)}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleMutation.mutate({ id: evt.id, status: evt.status });
+                          }}
+                          className={`w-8 h-8 rounded-full font-semibold text-xs flex items-center justify-center shrink-0 border transition-all mt-0.5 ${
+                            isCompleted
+                              ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6]'
+                              : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)]'
+                          }`}
+                        >
+                          {isCompleted ? <Check size={14} strokeWidth={2.5} /> : <Circle size={14} />}
+                        </button>
+
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <h4 className={`text-sm font-semibold truncate ${isCompleted ? 'line-through text-[var(--muted)]' : 'text-[var(--text)]'}`}>
+                            {evt.title}
+                          </h4>
+                          <div className="flex items-center gap-2 text-[11px] text-[var(--muted)]">
+                            <span>{evt.startDate}</span>
+                            <span>&bull;</span>
+                            <span>{formatEventTime(evt)}</span>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))
+
+                      <div className="shrink-0">
+                        {getPriorityBadge(evt.priority)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
-
-      </div>
+      )}
 
       {/* Mobile Activity Details Popup Modal */}
       <MobileActivityDetailsModal
