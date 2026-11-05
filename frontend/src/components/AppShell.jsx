@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Search, LogOut, Sliders, Settings, Menu, X, ArrowLeft } from 'lucide-react';
+import { Search, LogOut, Sliders, Settings, Menu, X, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from './ui/Avatar';
 import ThemeToggle from './ui/ThemeToggle';
@@ -278,23 +278,9 @@ export const AppShell = ({
             </div>
           </div>
 
-          {/* Right Action Icons: Search, Notifications, Theme, Profile */}
+          {/* Right Action Icons: Search, Theme, Profile */}
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {searchComponent}
-
-            {/* Notification Bell */}
-            <button
-              type="button"
-              onClick={onNotificationClick}
-              className="relative w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-              title="Notifications"
-              aria-label="Notifications"
-            >
-              <Bell size={18} strokeWidth={1.7} />
-              {notificationsCount > 0 && (
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#2FBF71] ring-2 ring-[var(--surface)]" />
-              )}
-            </button>
 
             {/* Theme Toggle */}
             <ThemeToggle />
