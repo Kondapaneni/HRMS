@@ -101,6 +101,10 @@
   --nav-icon: #8B8B95;                   /* inactive icon */
   --nav-active: #6FE35A;                 /* active icon circle (matching reference screenshot) */
   --nav-on-active: #131315;              /* icon colour on the active circle */
+
+  /* Chatbot Positioning: Exactly 5px gap above floating mobile bottom nav */
+  --chatbot-bottom: calc(69px + max(env(safe-area-inset-bottom, 0px), 12px));
+  --chatbot-modal-bottom: calc(133px + max(env(safe-area-inset-bottom, 0px), 12px));
 }
 
 /* ---------- Dark theme ---------- */
@@ -228,6 +232,15 @@
 
     --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.5);
     --focus-ring-bg: #23262E;
+  }
+}
+
+
+/* Chatbot desktop positioning */
+@media (min-width: 768px) {
+  :root {
+    --chatbot-bottom: 24px;
+    --chatbot-modal-bottom: 96px;
   }
 }
 

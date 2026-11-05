@@ -220,7 +220,7 @@ const EmployeeChatbot = () => {
   return (
     <>
       {/* 1. Floating Circular Action Button (FAB) */}
-      <div className="fixed bottom-[calc(112px+env(safe-area-inset-bottom))] md:bottom-6 right-5 md:right-6 z-40 select-none">
+      <div className="fixed bottom-[var(--chatbot-bottom)] right-5 md:right-6 z-40 select-none">
         <motion.button
           onClick={() => setIsOpen(prev => !prev)}
           whileHover={{ scale: 1.06 }}
@@ -268,7 +268,7 @@ const EmployeeChatbot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-            className="fixed bottom-[calc(180px+env(safe-area-inset-bottom))] md:bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[410px] h-[580px] max-h-[70vh] flex flex-col bg-[var(--surface)] border border-[var(--line)] rounded-[24px] shadow-2xl overflow-hidden antialiased font-sans"
+            className="fixed bottom-[var(--chatbot-modal-bottom)] right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[410px] h-[580px] max-h-[75vh] flex flex-col bg-[var(--surface)] border border-[var(--line)] rounded-[24px] shadow-2xl overflow-hidden antialiased font-sans"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)] bg-[var(--surface)]">
