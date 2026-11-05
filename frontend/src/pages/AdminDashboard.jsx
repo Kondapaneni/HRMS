@@ -94,11 +94,6 @@ const AdminDashboard = () => {
             Real-time analytics and workforce management overview
           </p>
         </div>
-
-        <div className="flex items-center gap-2 bg-[var(--surface)] px-3.5 py-1.5 rounded-full text-xs font-medium text-[var(--text-2)] shadow-xs">
-          <span className="w-2 h-2 rounded-full bg-[#1F9D55]" />
-          <span>System active</span>
-        </div>
       </div>
 
       {/* 4 KPI Stat Cards */}
