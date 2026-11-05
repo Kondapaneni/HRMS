@@ -7,7 +7,6 @@ import {
   Calendar, 
   Shield, 
   ChevronRight, 
-  Receipt, 
   Briefcase, 
   Play, 
   Building2, 
@@ -110,7 +109,6 @@ const EmployeeMobileDashboard = () => {
   const birthdays = dashboardData?.birthdays || [];
   const latestPayslip = dashboardData?.latestPayslip || null;
 
-  const upcomingExpenses = expenses.slice(0, 3);
   const upcomingBirthdays = birthdays.slice(0, 3);
 
   useEffect(() => {
@@ -153,8 +151,6 @@ const EmployeeMobileDashboard = () => {
   };
 
   const todayStr = new Date().toLocaleDateString('en-CA');
-  const currentYear = new Date().getFullYear();
-  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr && new Date(h.holidayDate).getFullYear() === currentYear).slice(0, 3);
   const todayRecord = attendance.find(r => r.date?.split('T')[0] === todayStr) || attendance.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
@@ -202,14 +198,6 @@ const EmployeeMobileDashboard = () => {
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} hrs`;
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount);
   };
 
   const getAttendanceBadge = (status) => {
@@ -430,96 +418,6 @@ const EmployeeMobileDashboard = () => {
           </div>
         </section>
       )}
-
-      {/* Expenses Overview */}
-      <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden">
-        <Link to="/employee/expenses" className="px-6 pt-5 pb-4 border-b border-[var(--line)] flex justify-between items-center active:bg-[var(--surface-alt)] transition-colors">
-          <div className="flex items-center gap-3">
-            <div className="bg-[var(--accent-pink-tint)] p-2.5 rounded-[12px]">
-              <Receipt className="w-5 h-5 text-[var(--accent-pink-deep)]" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-[var(--text)] tracking-tight leading-tight">
-                My <span className="text-[var(--brand-deep)]">Expenses</span>
-              </h2>
-              <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Track your claims</p>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[var(--muted)]" />
-        </Link>
-        <div className="p-4 space-y-2.5">
-          {upcomingExpenses.length > 0 ? (
-            upcomingExpenses.map(expense => (
-              <div key={expense.id} className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)]">
-                <div>
-                  <h3 className="font-semibold text-[var(--text)] text-sm">{expense.title}</h3>
-                  <p className="text-xs text-[var(--muted)]">{new Date(expense.created_at || expense.date).toLocaleDateString()}</p>
-                </div>
-                <div className="text-right">
-                  <div className="font-semibold text-[var(--text)] text-sm">{formatCurrency(expense.amount)}</div>
-                  <div className={`text-[10px] font-semibold uppercase tracking-wider ${
-                    expense.status === 'Approved' ? 'text-[var(--status-success-text)]' :
-                    expense.status === 'Rejected' ? 'text-[var(--status-danger-text)]' : 'text-[var(--status-warning-text)]'
-                  }`}>
-                    {expense.status}
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center text-[var(--muted)] text-sm py-4 font-medium">
-              No recent expenses to show.
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Upcoming Holidays */}
-      <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden">
-        <Link to="/employee/holidays" className="px-6 pt-5 pb-4 border-b border-[var(--line)] flex justify-between items-center active:bg-[var(--surface-alt)] transition-colors">
-          <div className="flex items-center gap-3">
-            <div className="bg-[var(--brand-tint)] p-2.5 rounded-[12px]">
-              <Calendar className="w-5 h-5 text-[var(--brand-deep)]" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-[var(--text)] tracking-tight leading-tight">
-                Upcoming <span className="text-[var(--brand-deep)]">Holidays</span>
-              </h2>
-              <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Company calendar</p>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[var(--muted)]" />
-        </Link>
-        <div className="p-4 space-y-2.5">
-          {upcomingHolidays.length > 0 ? (
-            upcomingHolidays.map(holiday => (
-              <div key={holiday.id} className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)]">
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20 shadow-2xs">
-                    <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-1">
-                      {new Date(holiday.holidayDate).toLocaleDateString(undefined, { month: 'short' })}
-                    </span>
-                    <span className="text-base font-bold leading-none">
-                      {new Date(holiday.holidayDate).getDate()}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[var(--text)] text-sm">{holiday.holidayName}</h3>
-                    <p className="text-xs text-[var(--muted)]">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { weekday: 'long' })}</p>
-                  </div>
-                </div>
-                {holiday.holidayImage && (
-                  <img src={holiday.holidayImage} alt={holiday.holidayName} className="w-10 h-10 rounded-[10px] object-cover" />
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="text-center text-[var(--muted)] text-sm py-4 font-medium">
-              No upcoming holidays.
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Upcoming Birthdays */}
       <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden">
