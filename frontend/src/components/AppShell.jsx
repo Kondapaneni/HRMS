@@ -261,7 +261,7 @@ export const AppShell = ({
 
             {/* Profile Avatar Pill / Tile */}
             <div
-              className="flex items-center gap-2 pl-1 pr-1 sm:pr-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--line)] select-none"
+              className="h-10 flex items-center gap-2 pl-1 pr-1 sm:pr-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--line)] select-none"
               title={`Signed in as ${displayName}`}
             >
               <Avatar
