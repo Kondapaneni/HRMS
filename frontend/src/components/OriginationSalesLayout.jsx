@@ -48,10 +48,10 @@ const OriginationSalesLayout = () => {
   ];
 
   const bottomNavItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/employee/sales/origination' },
-    { label: 'Leads', icon: Users, path: '/employee/sales/origination/leads' },
-    { label: 'Members', icon: UserCheck, path: '/employee/sales/origination/members' },
-    { label: 'Activities', icon: Activity, path: '/employee/sales/origination/activities' },
+    { to: '/employee/sales/origination', label: 'Dashboard', icon: LayoutDashboard, end: true },
+    { to: '/employee/sales/origination/leads', label: 'Leads', icon: Users },
+    { to: '/employee/sales/origination/members', label: 'Members', icon: UserCheck },
+    { to: '/employee/sales/origination/activities', label: 'Activity', icon: Activity },
   ];
 
   return (

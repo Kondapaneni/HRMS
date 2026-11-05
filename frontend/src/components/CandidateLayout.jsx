@@ -99,10 +99,10 @@ const CandidateLayout = () => {
   ];
 
   const mobileNavItems = [
-    { label: 'Home', icon: Home, path: '/candidate/dashboard' },
-    { label: 'Jobs', icon: Briefcase, path: '/candidate/jobs' },
-    { label: 'Applications', icon: FileText, path: '/candidate/applications' },
-    { label: 'Profile', icon: User, path: '/candidate/profile' },
+    { to: '/candidate/dashboard', label: 'Home', icon: Home, end: true },
+    { to: '/candidate/jobs', label: 'Jobs', icon: Briefcase },
+    { to: '/candidate/applications', label: 'Apps', icon: FileText },
+    { to: '/candidate/profile', label: 'Profile', icon: User },
   ];
 
   return (

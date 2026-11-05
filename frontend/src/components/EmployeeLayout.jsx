@@ -4,6 +4,8 @@ import {
   Home,
   Clock,
   Calendar,
+  CalendarDays,
+  IndianRupee,
   Wallet,
   DollarSign,
   BarChart2,
@@ -24,6 +26,7 @@ import MaintenanceOverlay from './MaintenanceOverlay';
 import GlobalSearch from './GlobalSearch';
 import EmployeeChatbot from './EmployeeChatbot';
 import AppShell from './AppShell';
+import BottomNav from './ui/BottomNav';
 import api from '../api/axios';
 
 const EmployeeLayout = () => {
@@ -214,11 +217,11 @@ const EmployeeLayout = () => {
 
   // Mobile Bottom Nav items (5 tabs max)
   const bottomNavItems = [
-    { label: 'Home', icon: Home, path: '/employee' },
-    { label: 'Attendance', icon: Clock, path: '/employee/attendance' },
-    { label: 'Leaves', icon: Calendar, path: '/employee/leaves' },
-    { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
-    { label: 'Profile', icon: User, path: '/employee/profile' },
+    { to: '/employee', label: 'Home', icon: Home, end: true },
+    { to: '/employee/attendance', label: 'Time', icon: Clock },
+    { to: '/employee/leaves', label: 'Leaves', icon: CalendarDays },
+    { to: '/employee/payroll', label: 'Pay', icon: IndianRupee },
+    { to: '/employee/profile', label: 'Profile', icon: User },
   ];
 
   return (

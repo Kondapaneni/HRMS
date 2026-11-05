@@ -58,11 +58,11 @@ const OriginationLoansLayout = () => {
   ];
 
   const bottomNavItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/employee/loans/origination' },
-    { label: 'Leads', icon: Users, path: '/employee/loans/origination/leads' },
-    { label: 'Members', icon: UserCheck, path: '/employee/loans/origination/members' },
-    { label: 'Apps', icon: FileText, path: '/employee/loans/origination/applications' },
-    { label: 'Activities', icon: Activity, path: '/employee/loans/origination/activities' },
+    { to: '/employee/loans/origination', label: 'Dashboard', icon: LayoutDashboard, end: true },
+    { to: '/employee/loans/origination/leads', label: 'Leads', icon: Users },
+    { to: '/employee/loans/origination/members', label: 'Members', icon: UserCheck },
+    { to: '/employee/loans/origination/applications', label: 'Apps', icon: FileText },
+    { to: '/employee/loans/origination/activities', label: 'Activity', icon: Activity },
   ];
 
   return (

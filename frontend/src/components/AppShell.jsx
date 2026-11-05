@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Avatar from './ui/Avatar';
 import ThemeToggle from './ui/ThemeToggle';
 import LogoutModal from './LogoutModal';
+import BottomNav from './ui/BottomNav';
 
 /**
  * AppShell - The single source of truth for all layout components.
@@ -322,50 +323,22 @@ export const AppShell = ({
         </div>
 
         {/* ============================================================
-            MOBILE FLOATING BOTTOM TAB BAR (<768px)
-            Spec: background #131315, radius 28px, 12px from edges, max 5 tabs,
-            active tab icon #8AADDB with 6px dot below, inactive #8B8B95
+            MOBILE FLOATING PILL BOTTOM NAVIGATION (<768px)
             ============================================================ */}
         {!shouldHideBottomNav && bottomNavItems.length > 0 && (
-          <div className="mobile-bottom-nav md:hidden fixed bottom-3 left-3 right-3 z-50 select-none pointer-events-none">
-            <div className="bg-[#131315] text-white rounded-[28px] p-2 flex justify-around items-center shadow-2xl border border-white/10 pointer-events-auto">
-              {bottomNavItems.slice(0, 5).map((item) => {
-                const isActive =
-                  location.pathname === item.path ||
-                  (item.path !== '/' &&
-                    item.path !== '/employee' &&
-                    item.path !== '/admin' &&
-                    location.pathname.startsWith(item.path));
-                const Icon = item.icon;
-
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className="flex flex-col items-center justify-center flex-1 h-[48px] cursor-pointer group active:scale-95 transition-transform"
-                    aria-label={item.label}
-                  >
-                    <Icon
-                      size={20}
-                      strokeWidth={1.7}
-                      style={{ color: isActive ? accentColor : '#8B8B95' }}
-                      className="transition-colors"
-                    />
-                    {isActive ? (
-                      <span
-                        className="w-1.5 h-1.5 rounded-full mt-1 shrink-0"
-                        style={{ backgroundColor: accentColor }}
-                      />
-                    ) : (
-                      <span className="text-[10px] text-[#8B8B95] mt-0.5 tracking-tight font-medium">
-                        {item.label}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+          <BottomNav
+            items={bottomNavItems.map((item) => ({
+              to: item.to || item.path,
+              label: item.label,
+              icon: item.icon,
+              end: item.end ?? (
+                item.to === '/employee' ||
+                item.path === '/employee' ||
+                item.to === '/candidate/dashboard' ||
+                item.path === '/candidate/dashboard'
+              ),
+            }))}
+          />
         )}
       </main>
 

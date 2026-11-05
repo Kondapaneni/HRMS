@@ -72,7 +72,15 @@
 
   /* Focus */
   --focus-ring: #8AADDB;
-  --focus-ring-bg: #EAF0FA;
+    --focus-ring-bg: #EAF0FA;
+
+  /* Mobile Pill Bottom Navigation */
+  --nav-bg: #0E0E10;                     /* outer pill bar */
+  --nav-ring: rgba(255, 255, 255, 0.06); /* 1px outline of the bar */
+  --nav-item: #1A1A1D;                   /* each round button / active pill */
+  --nav-icon: #8B8B95;                   /* inactive icon */
+  --nav-active: #6FE35A;                 /* active icon circle (matching reference screenshot) */
+  --nav-on-active: #131315;              /* icon colour on the active circle */
 }
 
 /* ---------- Dark theme ---------- */

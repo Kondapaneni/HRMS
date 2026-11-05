@@ -53,10 +53,10 @@ const BranchOperationsLayout = () => {
   ];
 
   const bottomNavItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/employee/branch-operations/dashboard' },
-    { label: 'Leads', icon: Users, path: '/employee/branch-operations/leads' },
-    { label: 'Activities', icon: Activity, path: '/employee/branch-operations/activities' },
-    { label: 'Loans', icon: FileText, path: '/employee/branch-operations/loans-applications' },
+    { to: '/employee/branch-operations/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
+    { to: '/employee/branch-operations/leads', label: 'Leads', icon: Users },
+    { to: '/employee/branch-operations/activities', label: 'Activity', icon: Activity },
+    { to: '/employee/branch-operations/loans-applications', label: 'Loans', icon: FileText },
   ];
 
   return (
