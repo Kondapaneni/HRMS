@@ -219,7 +219,7 @@ const AssessmentManagement = () => {
               placeholder="Search assessment title or dept..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
+              className="w-full h-10 pl-10 pr-4 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-full text-[13px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
             />
           </div>
         </div>

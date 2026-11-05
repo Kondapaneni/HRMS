@@ -103,7 +103,7 @@ const OriginationSaleMembersList = () => {
             )}
             <input
               type="search"
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
               placeholder="Search members by name, phone, address..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

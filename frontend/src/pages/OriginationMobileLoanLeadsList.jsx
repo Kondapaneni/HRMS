@@ -158,7 +158,7 @@ const OriginationMobileLoanLeadsList = () => {
       <div className="relative z-20 space-y-3.5">
 
         {/* Search Box */}
-        <div className="bg-[var(--surface)] rounded-[12px] border border-[var(--line)] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
+        <div className="bg-[var(--surface)] rounded-full border border-[var(--line)] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
           <Search className="w-4 h-4 text-[var(--icon-muted)] shrink-0" />
           <input
             type="text"

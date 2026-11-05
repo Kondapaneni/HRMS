@@ -341,7 +341,7 @@ const AdminAssets = () => {
                 placeholder="Search asset, S/N, employee..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
+                className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
               />
             </div>
           </div>
@@ -543,7 +543,7 @@ const AdminAssets = () => {
                       placeholder="Search employee by name, ID, or email..."
                       value={modalSearch}
                       onChange={(e) => setModalSearch(e.target.value)}
-                      className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
+                      className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
                     />
                   </div>
 

@@ -354,7 +354,7 @@ const AssessmentCreate = () => {
                   placeholder="Search question text..."
                   value={questionSearch}
                   onChange={e => setQuestionSearch(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 text-[12px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-[10px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
+                  className="w-full h-9 pl-9 pr-3 text-[12px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
                 />
               </div>
 
@@ -509,7 +509,7 @@ const AssessmentCreate = () => {
                 placeholder="Search employees by name, email or code..."
                 value={searchEmployee}
                 onChange={e => setSearchEmployee(e.target.value)}
-                className="w-full h-9 pl-9 pr-3.5 text-[12px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-[10px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
+                className="w-full h-9 pl-9 pr-3.5 text-[12px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
               />
             </div>
 

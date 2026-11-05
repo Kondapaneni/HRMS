@@ -229,7 +229,7 @@ const BranchOperationsLeads = () => {
             )}
             <input
               type="search"
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--branch)] focus:ring-2 focus:ring-[var(--branch)]/20 rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--branch)] focus:ring-2 focus:ring-[var(--branch)]/20 rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
               placeholder="Search by name, phone, loan/product..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

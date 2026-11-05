@@ -354,7 +354,7 @@ const EmployeeMobileTrainingVideos = () => {
                 placeholder="Search training modules..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-10 pr-9 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:bg-[var(--surface)] rounded-[14px] text-xs font-medium text-[var(--text)] placeholder:[var(--muted)] outline-none transition-all shadow-2xs"
+                className="w-full h-10 pl-10 pr-9 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:bg-[var(--surface)] rounded-full text-xs font-medium text-[var(--text)] placeholder:[var(--muted)] outline-none transition-all shadow-2xs"
               />
               {searchQuery && (
                 <button

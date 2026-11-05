@@ -374,7 +374,7 @@ const EmployeeTrainingVideos = () => {
                     placeholder="Search video modules..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all"
+                    className="w-full pl-9 pr-4 py-2 bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all"
                   />
                   {searchQuery && (
                     <button
@@ -513,7 +513,7 @@ const EmployeeTrainingVideos = () => {
                   placeholder="Search training modules..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all"
+                  className="w-full pl-9 pr-4 py-2 bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all"
                 />
               </div>
 

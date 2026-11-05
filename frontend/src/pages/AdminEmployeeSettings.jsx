@@ -136,7 +136,7 @@ const AdminEmployeeSettings = () => {
   const isExit = ['Exited', 'Terminated', 'Absconded'].includes(settings.employmentStatus);
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto pb-12 antialiased">
+    <div className="space-y-5 w-full pb-12 antialiased">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>

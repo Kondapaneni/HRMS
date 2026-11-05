@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { ArrowLeft, Search, Calendar, MapPin, AlertCircle, X, CalendarCheck } from 'lucide-react';
+import { ArrowLeft, Search, Calendar, MapPin, AlertCircle, X, CalendarCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
+import { format, addMonths, subMonths } from 'date-fns';
 import EmployeeSelect from '../components/EmployeeSelect';
 import { Button } from '../components/ui';
 
@@ -33,6 +34,20 @@ const AdminAttendanceRegularize = () => {
     if (month) newParams.set('month', month);
     else newParams.delete('month');
     setSearchParams(newParams, { replace: true });
+  };
+
+  const handlePrevMonth = () => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+    const prev = subMonths(date, 1);
+    setSelectedMonth(format(prev, 'yyyy-MM'));
+  };
+
+  const handleNextMonth = () => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+    const next = addMonths(date, 1);
+    setSelectedMonth(format(next, 'yyyy-MM'));
   };
 
   // Modal State
@@ -516,14 +531,32 @@ const AdminAttendanceRegularize = () => {
           </div>
           <div>
             <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Select Month</label>
-            <div className="relative">
-              <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="w-full h-10 rounded-[12px] border border-[var(--line)] bg-[var(--surface-alt)] pl-10 pr-4 text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all cursor-pointer"
-              />
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text-2)] transition-colors cursor-pointer"
+                title="Previous Month"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <div className="relative flex items-center">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--icon-muted)] pointer-events-none" />
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="h-8 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] px-3 py-1 text-xs pl-8 outline-none focus:ring-2 focus:ring-[var(--brand)] text-[var(--text)] cursor-pointer"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text-2)] transition-colors cursor-pointer"
+                title="Next Month"
+              >
+                <ChevronRight size={14} />
+              </button>
             </div>
           </div>
         </div>

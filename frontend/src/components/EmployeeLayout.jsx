@@ -267,7 +267,7 @@ const EmployeeLayout = () => {
         {newsHeadlines.length > 0 && (
           <div
             className="mb-4 bg-[var(--surface)] text-[var(--text)] rounded-full h-9 px-4 border border-[var(--line)] flex items-center overflow-hidden"
-            style={{ marginTop: '-6px' }}
+            style={{ marginTop: '5px' }}
           >
             <Megaphone size={14} className="text-[var(--brand-deep)] mr-2.5 shrink-0" />
             <div className="flex-1 overflow-hidden relative h-full flex items-center text-[12px] font-medium text-[var(--muted)]">

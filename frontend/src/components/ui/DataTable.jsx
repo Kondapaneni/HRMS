@@ -152,7 +152,7 @@ export const DataTable = ({
                   value={searchTerm}
                   onChange={handleSearchChange}
                   placeholder={searchPlaceholder}
-                  className="w-full h-[36px] pl-9 pr-3 text-[13px] bg-[var(--surface-alt)] text-[var(--text)] rounded-[12px] border border-[var(--line)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-tint)] transition-all"
+                  className="w-full h-[36px] pl-9 pr-3 text-[13px] bg-[var(--surface-alt)] text-[var(--text)] rounded-full border border-[var(--line)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-tint)] transition-all"
                 />
               </div>
             )}
