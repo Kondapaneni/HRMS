@@ -117,7 +117,7 @@ const EmployeeLayout = () => {
         label: 'Home',
         path: '/employee',
         chips: [{ label: 'Dashboard', path: '/employee', exact: true }],
-        activeMatch: (pathname) => pathname === '/employee',
+        activeMatch: (pathname) => pathname === '/employee' || pathname.startsWith('/employee/birthdays'),
       },
       {
         id: 'time',
@@ -218,11 +218,50 @@ const EmployeeLayout = () => {
 
   // Mobile Bottom Nav items
   const bottomNavItems = [
-    { to: '/employee', label: 'Home', icon: Home, end: true },
-    { to: '/employee/attendance', label: 'Attendance', icon: CalendarCheck },
-    { to: '/employee/payroll', label: 'Pay', icon: IndianRupee },
-    { to: '/employee/performance', label: 'Performance', icon: BarChart2 },
-    { to: '/employee/profile', label: 'Profile', icon: User },
+    {
+      id: 'home',
+      to: '/employee',
+      label: 'Home',
+      icon: Home,
+      end: true,
+      activeMatch: (pathname) => pathname === '/employee' || pathname.startsWith('/employee/birthdays'),
+    },
+    {
+      id: 'time',
+      to: '/employee/attendance',
+      label: 'Attendance',
+      icon: CalendarCheck,
+      activeMatch: (pathname) =>
+        pathname.startsWith('/employee/attendance') ||
+        pathname.startsWith('/employee/leaves') ||
+        pathname.startsWith('/employee/holidays'),
+    },
+    {
+      id: 'money',
+      to: '/employee/payroll',
+      label: 'Pay',
+      icon: IndianRupee,
+      activeMatch: (pathname) =>
+        pathname.startsWith('/employee/payroll') ||
+        pathname.startsWith('/employee/expenses'),
+    },
+    {
+      id: 'growth',
+      to: '/employee/performance',
+      label: 'Performance',
+      icon: BarChart2,
+      activeMatch: (pathname) =>
+        pathname.startsWith('/employee/performance') ||
+        pathname.startsWith('/employee/assessments') ||
+        pathname.startsWith('/employee/training'),
+    },
+    {
+      id: 'profile',
+      to: '/employee/profile',
+      label: 'Profile',
+      icon: User,
+      activeMatch: (pathname) => pathname.startsWith('/employee/profile'),
+    },
   ];
 
   return (

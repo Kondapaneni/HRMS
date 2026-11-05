@@ -369,17 +369,50 @@ export const AppShell = ({
             ============================================================ */}
         {!shouldHideBottomNav && bottomNavItems.length > 0 && (
           <BottomNav
-            items={bottomNavItems.map((item) => ({
-              to: item.to || item.path,
-              label: item.label,
-              icon: item.icon,
-              end: item.end ?? (
-                item.to === '/employee' ||
-                item.path === '/employee' ||
-                item.to === '/candidate/dashboard' ||
-                item.path === '/candidate/dashboard'
-              ),
-            }))}
+            items={bottomNavItems.map((item) => {
+              const itemPath = item.to || item.path;
+
+              // Correlate with railGroups if activeMatch is not explicitly passed
+              const matchingGroup = railGroups.find((group) => {
+                if (item.id && group.id === item.id) return true;
+                if (group.path === itemPath) return true;
+                if (group.chips?.some((c) => c.path === itemPath)) return true;
+                return false;
+              });
+
+              const resolvedActiveMatch =
+                item.activeMatch ||
+                (matchingGroup
+                  ? (pathname) => {
+                      if (matchingGroup.activeMatch) {
+                        return matchingGroup.activeMatch(pathname);
+                      }
+                      if (matchingGroup.chips?.some((c) => pathname === c.path || pathname.startsWith(`${c.path}/`))) {
+                        return true;
+                      }
+                      return (
+                        pathname === matchingGroup.path ||
+                        (matchingGroup.path !== '/' &&
+                          matchingGroup.path !== '/admin' &&
+                          matchingGroup.path !== '/employee' &&
+                          pathname.startsWith(matchingGroup.path))
+                      );
+                    }
+                  : undefined);
+
+              return {
+                to: itemPath,
+                label: item.label,
+                icon: item.icon,
+                end: item.end ?? (
+                  !resolvedActiveMatch && (
+                    itemPath === '/employee' ||
+                    itemPath === '/candidate/dashboard'
+                  )
+                ),
+                activeMatch: resolvedActiveMatch,
+              };
+            })}
           />
         )}
       </main>
