@@ -54,7 +54,7 @@ import EventDetailsSidebar from '../components/calendar/EventDetailsSidebar';
 import OriginationMobileActivities from './OriginationMobileActivities';
 
 // =========================================================================
-// Quick Create Event Popover Modal (Matching the design in uploaded screenshot)
+// Quick Create Event Popover Modal (Monochrome Black & White Theme)
 // =========================================================================
 const QuickCreateModal = ({
   isOpen,
@@ -123,102 +123,15 @@ const QuickCreateModal = ({
     }
   };
 
-  // List View: Filtered to selected month only and grouped/ordered by date & time
-  const monthListSections = useMemo(() => {
-    const monthKey = format(currentDate, 'yyyy-MM');
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-
-    // 1. Filter events to the selected month only
-    const monthEvents = filteredEvents.filter(evt => {
-      if (!evt.startDate) return false;
-      const dKey = typeof evt.startDate === 'string' ? evt.startDate.split('T')[0] : '';
-      return dKey.startsWith(monthKey);
-    });
-
-    // 2. Sort function: Date ascending, then Time ascending
-    const sortByDateTime = (a, b) => {
-      const dateA = typeof a.startDate === 'string' ? a.startDate.split('T')[0] : '';
-      const dateB = typeof b.startDate === 'string' ? b.startDate.split('T')[0] : '';
-      if (dateA !== dateB) {
-        return dateA.localeCompare(dateB);
-      }
-      const timeA = a.startTime || '00:00';
-      const timeB = b.startTime || '00:00';
-      return timeA.localeCompare(timeB);
-    };
-
-    const pending = [];
-    const upcoming = [];
-    const completed = [];
-
-    monthEvents.forEach(evt => {
-      if (evt.status === 'Completed') {
-        completed.push(evt);
-        return;
-      }
-
-      const dKey = typeof evt.startDate === 'string' ? evt.startDate.split('T')[0] : '';
-      if (dKey <= todayStr) {
-        pending.push(evt);
-      } else {
-        upcoming.push(evt);
-      }
-    });
-
-    pending.sort(sortByDateTime);
-    upcoming.sort(sortByDateTime);
-    completed.sort(sortByDateTime);
-
-    const sections = [];
-
-    if (pending.length > 0) {
-      sections.push({
-        id: 'pending',
-        title: 'Pending & Due Tasks',
-        badge: `${pending.length} Pending`,
-        badgeStyle: 'bg-[#FDE8EA] text-[#D64550] border-[#FCD0D4]',
-        dotColor: '#D64550',
-        items: pending,
-      });
-    }
-
-    if (upcoming.length > 0) {
-      sections.push({
-        id: 'upcoming',
-        title: 'Upcoming Schedule',
-        badge: `${upcoming.length} Upcoming`,
-        badgeStyle: 'bg-[#E8F0FB] text-[#3B6FB6] border-[#D2E3FC]',
-        dotColor: '#3B6FB6',
-        items: upcoming,
-      });
-    }
-
-    if (completed.length > 0) {
-      sections.push({
-        id: 'completed',
-        title: 'Completed Activities',
-        badge: `${completed.length} Completed`,
-        badgeStyle: 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6]',
-        dotColor: '#1F9D55',
-        items: completed,
-      });
-    }
-
-    return {
-      totalInMonth: monthEvents.length,
-      sections,
-    };
-  }, [filteredEvents, currentDate]);
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px] p-4 animate-in fade-in duration-150">
       <div 
         onClick={(e) => e.stopPropagation()} 
         className="w-full max-w-[420px] bg-[var(--surface)] text-[var(--text)] rounded-[24px] border border-[var(--line)] shadow-xl overflow-hidden p-6 space-y-4"
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-[var(--text)]">New event</h3>
+          <h3 className="text-base font-bold text-[var(--text)]">New Event</h3>
           <button 
             type="button" 
             onClick={onClose}
@@ -237,13 +150,13 @@ const QuickCreateModal = ({
               placeholder="Event name"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full h-11 px-3.5 rounded-xl border border-[var(--line)] bg-[var(--surface-alt)] text-sm font-medium text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-colors"
+              className="w-full h-11 px-3.5 rounded-xl border border-[var(--line)] bg-[var(--surface-alt)] text-sm font-medium text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[#131315] dark:focus:border-white transition-colors"
             />
           </div>
 
           {/* Date Picker Row */}
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] text-xs font-medium text-[var(--text)]">
-            <CalendarIcon size={15} className="text-[var(--brand-deep)] shrink-0" />
+            <CalendarIcon size={15} className="text-[var(--muted)] shrink-0" />
             <input
               type="date"
               value={startDate}
@@ -255,7 +168,7 @@ const QuickCreateModal = ({
           {/* Time Row */}
           {!allDay && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] text-xs font-medium text-[var(--text)]">
-              <Clock size={15} className="text-[var(--brand-deep)] shrink-0" />
+              <Clock size={15} className="text-[var(--muted)] shrink-0" />
               <input
                 type="time"
                 value={startTime}
@@ -280,7 +193,7 @@ const QuickCreateModal = ({
                 type="checkbox"
                 checked={allDay}
                 onChange={(e) => setAllDay(e.target.checked)}
-                className="w-4 h-4 rounded text-[var(--brand)] focus:ring-[var(--brand)] cursor-pointer"
+                className="w-4 h-4 rounded text-[#131315] dark:text-white focus:ring-[#131315] cursor-pointer"
               />
               <span>All day</span>
             </label>
@@ -303,7 +216,7 @@ const QuickCreateModal = ({
           {/* Assignee / Guests Row (Branch Operations) */}
           {isBranchOperations && assignableEmployees.length > 0 && (
             <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] text-xs font-medium text-[var(--text)]">
-              <User size={15} className="text-[var(--brand-deep)] shrink-0" />
+              <User size={15} className="text-[var(--muted)] shrink-0" />
               <select
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
@@ -321,7 +234,7 @@ const QuickCreateModal = ({
 
           {/* Location / Address Row */}
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] text-xs font-medium text-[var(--text)]">
-            <MapPin size={15} className="text-[#D64550] shrink-0" />
+            <MapPin size={15} className="text-[var(--muted)] shrink-0" />
             <input
               type="text"
               placeholder="Add location or address"
@@ -338,7 +251,7 @@ const QuickCreateModal = ({
               placeholder="Add description..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[var(--line)] bg-[var(--surface-alt)]/60 text-xs font-medium text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] resize-none"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--line)] bg-[var(--surface-alt)]/60 text-xs font-medium text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[#131315] dark:focus:border-white resize-none"
             />
           </div>
 
@@ -355,7 +268,7 @@ const QuickCreateModal = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              className="px-5 py-2 rounded-full text-xs font-semibold bg-[#131315] hover:bg-[#27272A] text-white dark:bg-[#F4F4F6] dark:hover:bg-white dark:text-[#18181B] shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? 'Saving...' : 'Save'}
             </button>
@@ -393,38 +306,18 @@ const OriginationActivities = () => {
   const branchInfo = data.branch || null;
   const assignableEmployees = data.assignableEmployees || [];
 
-  // Theme definition (retaining all existing brand colors)
+  // Theme definition (Clean Black & White / Monochromatic Editorial)
   const theme = useMemo(() => {
-    if (isSales) {
-      return {
-        moduleName: 'Sales',
-        tagText: 'Sales Origination • Activities',
-        accentColor: '#E3B9DF',
-        accentDeep: 'var(--accent-pink-deep)',
-        accentTint: 'var(--accent-pink-tint)',
-        pillClass: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border-[var(--accent-pink)]/20',
-        activeCircle: 'bg-[var(--accent-pink-deep)] text-white',
-      };
-    }
-    if (isBranchOperations) {
-      return {
-        moduleName: 'Branch',
-        tagText: branchInfo?.name ? `${branchInfo.name} Branch • Activities` : 'Branch Activities',
-        accentColor: '#2DD4BF',
-        accentDeep: 'var(--branch-deep)',
-        accentTint: 'var(--branch-tint)',
-        pillClass: 'bg-[var(--branch-tint)] text-[var(--branch-deep)] border-[var(--branch)]/20',
-        activeCircle: 'bg-[var(--branch-deep)] text-white',
-      };
-    }
     return {
-      moduleName: 'Loans',
-      tagText: 'Loan Origination • Activities',
-      accentColor: '#8AADDB',
-      accentDeep: 'var(--brand-deep)',
-      accentTint: 'var(--brand-tint)',
-      pillClass: 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20',
-      activeCircle: 'bg-[var(--brand-deep)] text-white',
+      moduleName: isSales ? 'Sales' : isBranchOperations ? 'Branch' : 'Loans',
+      tagText: isSales
+        ? 'Sales Origination • Activities'
+        : isBranchOperations
+        ? (branchInfo?.name ? `${branchInfo.name} Branch • Activities` : 'Branch Activities')
+        : 'Loan Origination • Activities',
+      activeTabClass: 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B] font-semibold shadow-2xs',
+      inactiveTabClass: 'text-[var(--muted)] hover:text-[var(--text)]',
+      primaryBtnClass: 'bg-[#131315] hover:bg-[#27272A] text-white dark:bg-[#F4F4F6] dark:hover:bg-white dark:text-[#18181B]',
     };
   }, [isSales, isBranchOperations, branchInfo]);
 
@@ -507,7 +400,7 @@ const OriginationActivities = () => {
 
   // Navigation handlers
   const handlePrev = () => {
-    if (viewMode === 'month') {
+    if (viewMode === 'month' || viewMode === 'list') {
       setCurrentDate(prev => subMonths(prev, 1));
       setMiniCalendarDate(prev => subMonths(prev, 1));
     } else if (viewMode === 'week') {
@@ -519,7 +412,7 @@ const OriginationActivities = () => {
   };
 
   const handleNext = () => {
-    if (viewMode === 'month') {
+    if (viewMode === 'month' || viewMode === 'list') {
       setCurrentDate(prev => addMonths(prev, 1));
       setMiniCalendarDate(prev => addMonths(prev, 1));
     } else if (viewMode === 'week') {
@@ -611,6 +504,93 @@ const OriginationActivities = () => {
     return map;
   }, [filteredEvents]);
 
+  // List View: Filtered to selected month only and grouped/ordered by date & time
+  const monthListSections = useMemo(() => {
+    const monthKey = format(currentDate, 'yyyy-MM');
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+    // 1. Filter events to the selected month only
+    const monthEvents = filteredEvents.filter(evt => {
+      if (!evt.startDate) return false;
+      const dKey = typeof evt.startDate === 'string' ? evt.startDate.split('T')[0] : '';
+      return dKey.startsWith(monthKey);
+    });
+
+    // 2. Sort function: Date ascending, then Time ascending
+    const sortByDateTime = (a, b) => {
+      const dateA = typeof a.startDate === 'string' ? a.startDate.split('T')[0] : '';
+      const dateB = typeof b.startDate === 'string' ? b.startDate.split('T')[0] : '';
+      if (dateA !== dateB) {
+        return dateA.localeCompare(dateB);
+      }
+      const timeA = a.startTime || '00:00';
+      const timeB = b.startTime || '00:00';
+      return timeA.localeCompare(timeB);
+    };
+
+    const pending = [];
+    const upcoming = [];
+    const completed = [];
+
+    monthEvents.forEach(evt => {
+      if (evt.status === 'Completed') {
+        completed.push(evt);
+        return;
+      }
+
+      const dKey = typeof evt.startDate === 'string' ? evt.startDate.split('T')[0] : '';
+      if (dKey <= todayStr) {
+        pending.push(evt);
+      } else {
+        upcoming.push(evt);
+      }
+    });
+
+    pending.sort(sortByDateTime);
+    upcoming.sort(sortByDateTime);
+    completed.sort(sortByDateTime);
+
+    const sections = [];
+
+    if (pending.length > 0) {
+      sections.push({
+        id: 'pending',
+        title: 'Pending & Due Tasks',
+        badge: `${pending.length} Pending`,
+        badgeStyle: 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B]',
+        dotColor: '#131315',
+        items: pending,
+      });
+    }
+
+    if (upcoming.length > 0) {
+      sections.push({
+        id: 'upcoming',
+        title: 'Upcoming Schedule',
+        badge: `${upcoming.length} Upcoming`,
+        badgeStyle: 'bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)]',
+        dotColor: '#71717A',
+        items: upcoming,
+      });
+    }
+
+    if (completed.length > 0) {
+      sections.push({
+        id: 'completed',
+        title: 'Completed Activities',
+        badge: `${completed.length} Completed`,
+        badgeStyle: 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)]',
+        dotColor: '#A1A1AA',
+        items: completed,
+      });
+    }
+
+    return {
+      totalInMonth: monthEvents.length,
+      sections,
+    };
+  }, [filteredEvents, currentDate]);
+
   // Format Helpers
   const formatEventTime = (evt) => {
     if (evt.allDay) return 'All Day';
@@ -618,19 +598,49 @@ const OriginationActivities = () => {
     return evt.startTime;
   };
 
+  // Monochromatic pill styles (Editorial Black & White)
   const getEventPillStyle = (evt) => {
     if (evt.status === 'Completed') {
-      return 'bg-[#E6F6EC] text-[#1F9D55] border-l-[#1F9D55]';
+      return 'bg-[var(--surface-alt)]/60 text-[var(--muted)] border border-[var(--line)] line-through';
     }
-    switch (evt.priority) {
+    if (evt.priority === 'Urgent') {
+      return 'bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)] border-l-2 border-l-[#131315] dark:border-l-white';
+    }
+    if (evt.priority === 'High') {
+      return 'bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)] border-l-2 border-l-[var(--text-2)]';
+    }
+    return 'bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)] border-l-2 border-l-[#131315] dark:border-l-white';
+  };
+
+  // Priority Badge (Monochromatic / Editorial)
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
       case 'Urgent':
-        return 'bg-[#FDE8EA] text-[#D64550] border-l-[#D64550]';
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B]">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+            Urgent
+          </span>
+        );
       case 'High':
-        return 'bg-[#FDF3DC] text-[#B7791F] border-l-[#B7791F]';
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            High
+          </span>
+        );
       case 'Low':
-        return 'bg-[#EFEFF1] text-[#4A4A52] border-l-[#9CA3AF]';
+        return (
+          <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)]">
+            Low
+          </span>
+        );
       default:
-        return 'bg-[#E8F0FB] text-[#3B6FB6] border-l-[#3B6FB6]';
+        return (
+          <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)]">
+            Medium
+          </span>
+        );
     }
   };
 
@@ -681,7 +691,7 @@ const OriginationActivities = () => {
         <OriginationMobileActivities />
       </div>
 
-      {/* Web Desktop Calendar View (Matching user's design) */}
+      {/* Web Desktop Calendar View (Black & White Monochromatic Theme) */}
       <div className="hidden md:flex flex-col h-[calc(100dvh-108px)] select-none antialiased space-y-3">
         
         {/* Content Below Heading: Subtitle & Quick Metric Summary Pills */}
@@ -703,7 +713,7 @@ const OriginationActivities = () => {
                 setShowUrgentOnly(false);
                 setSearchQuery('');
               }}
-              className={`text-[12px] font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer ${theme.pillClass}`}
+              className="text-[12px] font-semibold px-3 py-1 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] transition-all cursor-pointer"
               title="Click to reset filters and view all tasks"
             >
               {events.length} Total Tasks
@@ -723,8 +733,8 @@ const OriginationActivities = () => {
               onClick={() => setShowUrgentOnly(prev => !prev)}
               className={`text-[12px] font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer ${
                 showUrgentOnly
-                  ? 'border-[#D64550] bg-[#D64550] text-white shadow-2xs'
-                  : 'border-[#FCD0D4] bg-[#FDE8EA] text-[#D64550] hover:bg-[#FCD0D4]/50'
+                  ? 'border-[#131315] bg-[#131315] text-white dark:border-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18181B] shadow-2xs'
+                  : 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)]'
               }`}
               title="Toggle High & Urgent priority filter"
             >
@@ -736,7 +746,7 @@ const OriginationActivities = () => {
               onClick={() => setShowCompleted(prev => !prev)}
               className={`text-[12px] font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer ${
                 showCompleted
-                  ? 'border-[#CEEAD6] bg-[#E6F6EC] text-[#1F9D55]'
+                  ? 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)]'
                   : 'border-[var(--line)] bg-[var(--surface-alt)] text-[var(--muted)] line-through'
               }`}
               title="Toggle Completed tasks visibility"
@@ -759,7 +769,7 @@ const OriginationActivities = () => {
               
               {/* Sidebar Header: Title + Collapse Button */}
               <div className="flex items-center justify-between pb-1">
-                <h2 className="text-[17px] font-semibold text-[var(--text)]">Calendar</h2>
+                <h2 className="text-[17px] font-bold text-[var(--text)]">Calendar</h2>
                 <button
                   type="button"
                   onClick={() => setIsSidebarCollapsed(true)}
@@ -778,7 +788,7 @@ const OriginationActivities = () => {
                   placeholder="Search event..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-9 pl-9 pr-7 rounded-xl bg-[var(--surface-alt)] border border-[var(--line)] text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-colors"
+                  className="w-full h-9 pl-9 pr-7 rounded-xl bg-[var(--surface-alt)] border border-[var(--line)] text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[#131315] dark:focus:border-white transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -794,7 +804,7 @@ const OriginationActivities = () => {
               {/* Mini Month Calendar */}
               <div className="space-y-2 select-none pt-1">
                 <div className="flex items-center justify-between px-1">
-                  <span className="text-xs font-semibold text-[var(--text)]">
+                  <span className="text-xs font-bold text-[var(--text)]">
                     {format(miniCalendarDate, 'MMMM yyyy')}
                   </span>
                   <div className="flex items-center gap-1">
@@ -837,9 +847,9 @@ const OriginationActivities = () => {
                         }}
                         className={`w-6.5 h-6.5 mx-auto rounded-full flex items-center justify-center text-[11px] transition-colors cursor-pointer ${
                           isSelected
-                            ? 'bg-[var(--brand)] text-white font-bold'
+                            ? 'bg-[#131315] text-white font-bold dark:bg-[#F4F4F6] dark:text-[#18181B]'
                             : isTodayDate
-                            ? 'border border-[var(--brand)] text-[var(--brand-deep)] font-semibold'
+                            ? 'border border-[#131315] text-[#131315] dark:border-white dark:text-white font-bold'
                             : isCurrMonth
                             ? 'text-[var(--text)] hover:bg-[var(--surface-alt)] font-medium'
                             : 'text-[var(--muted)]/40 hover:bg-[var(--surface-alt)]/40'
@@ -854,7 +864,7 @@ const OriginationActivities = () => {
 
               {/* Filters / My calendars */}
               <div className="space-y-2.5 pt-3 border-t border-[var(--line)]">
-                <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                <span className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider block">
                   My Calendars
                 </span>
                 
@@ -864,10 +874,10 @@ const OriginationActivities = () => {
                       type="checkbox"
                       checked={showScheduled}
                       onChange={(e) => setShowScheduled(e.target.checked)}
-                      className="w-4 h-4 rounded text-[var(--brand)] focus:ring-[var(--brand)] cursor-pointer"
+                      className="w-4 h-4 rounded text-[#131315] dark:text-white focus:ring-[#131315] cursor-pointer"
                     />
                     <span className="flex-1 font-medium">Scheduled Activities</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--brand)]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#131315] dark:bg-white" />
                   </label>
 
                   <label className="flex items-center gap-2.5 cursor-pointer select-none py-1 px-1 rounded-lg hover:bg-[var(--surface-alt)] transition-colors">
@@ -875,10 +885,10 @@ const OriginationActivities = () => {
                       type="checkbox"
                       checked={showCompleted}
                       onChange={(e) => setShowCompleted(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#1F9D55] focus:ring-[#1F9D55] cursor-pointer"
+                      className="w-4 h-4 rounded text-[#131315] dark:text-white focus:ring-[#131315] cursor-pointer"
                     />
                     <span className="flex-1 font-medium">Completed</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#1F9D55]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--muted)]" />
                   </label>
 
                   <label className="flex items-center gap-2.5 cursor-pointer select-none py-1 px-1 rounded-lg hover:bg-[var(--surface-alt)] transition-colors">
@@ -886,16 +896,16 @@ const OriginationActivities = () => {
                       type="checkbox"
                       checked={showUrgentOnly}
                       onChange={(e) => setShowUrgentOnly(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#D64550] focus:ring-[#D64550] cursor-pointer"
+                      className="w-4 h-4 rounded text-[#131315] dark:text-white focus:ring-[#131315] cursor-pointer"
                     />
                     <span className="flex-1 font-medium">Urgent / High Priority</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#D64550]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#131315] dark:bg-white" />
                   </label>
 
                   {/* Branch Operations Staff Filter */}
                   {isBranchOperations && assignableEmployees.length > 0 && (
                     <div className="pt-2">
-                      <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-1">
+                      <span className="text-[10.5px] font-bold text-[var(--muted)] uppercase tracking-wider block mb-1">
                         Team Member
                       </span>
                       <select
@@ -926,7 +936,7 @@ const OriginationActivities = () => {
                   setQuickCreateDate(format(selectedDate, 'yyyy-MM-dd'));
                   setIsQuickCreateOpen(true);
                 }}
-                className="w-full py-2.5 px-4 rounded-xl bg-[var(--brand)] hover:opacity-90 text-white text-xs font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98]"
+                className={`w-full py-2.5 px-4 rounded-xl ${theme.primaryBtnClass} text-xs font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98]`}
               >
                 <Plus size={15} strokeWidth={2.2} />
                 <span>Schedule Activity</span>
@@ -994,9 +1004,7 @@ const OriginationActivities = () => {
                     type="button"
                     onClick={() => setViewMode('day')}
                     className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                      viewMode === 'day'
-                        ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-2xs'
-                        : 'text-[var(--muted)] hover:text-[var(--text)]'
+                      viewMode === 'day' ? theme.activeTabClass : theme.inactiveTabClass
                     }`}
                   >
                     Day
@@ -1005,9 +1013,7 @@ const OriginationActivities = () => {
                     type="button"
                     onClick={() => setViewMode('week')}
                     className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                      viewMode === 'week'
-                        ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-2xs'
-                        : 'text-[var(--muted)] hover:text-[var(--text)]'
+                      viewMode === 'week' ? theme.activeTabClass : theme.inactiveTabClass
                     }`}
                   >
                     Week
@@ -1016,9 +1022,7 @@ const OriginationActivities = () => {
                     type="button"
                     onClick={() => setViewMode('month')}
                     className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                      viewMode === 'month'
-                        ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-2xs'
-                        : 'text-[var(--muted)] hover:text-[var(--text)]'
+                      viewMode === 'month' ? theme.activeTabClass : theme.inactiveTabClass
                     }`}
                   >
                     Month
@@ -1027,9 +1031,7 @@ const OriginationActivities = () => {
                     type="button"
                     onClick={() => setViewMode('list')}
                     className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                      viewMode === 'list'
-                        ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-2xs'
-                        : 'text-[var(--muted)] hover:text-[var(--text)]'
+                      viewMode === 'list' ? theme.activeTabClass : theme.inactiveTabClass
                     }`}
                   >
                     List
@@ -1043,7 +1045,7 @@ const OriginationActivities = () => {
             {viewMode === 'month' && (
               <div className="flex-1 flex flex-col min-h-0 select-none overflow-y-auto">
                 {/* Weekday Column Headers: Sun, Mon, Tue, Wed, Thu, Fri, Sat */}
-                <div className="grid grid-cols-7 border-b border-[var(--line)] text-center text-xs font-semibold text-[var(--muted)] py-2 bg-[var(--surface)] shrink-0">
+                <div className="grid grid-cols-7 border-b border-[var(--line)] text-center text-xs font-bold text-[var(--muted)] py-2 bg-[var(--surface)] shrink-0">
                   <span>Sun</span>
                   <span>Mon</span>
                   <span>Tue</span>
@@ -1081,7 +1083,7 @@ const OriginationActivities = () => {
                         <div className="flex items-center justify-between mb-1">
                           <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                             isTodayDate
-                              ? 'bg-[var(--brand)] text-white font-bold'
+                              ? 'bg-[#131315] text-white font-bold dark:bg-[#F4F4F6] dark:text-[#18181B]'
                               : isCurrMonth
                               ? 'text-[var(--text)] font-semibold'
                               : 'text-[var(--muted)]/40'
@@ -1117,9 +1119,7 @@ const OriginationActivities = () => {
                                   setSelectedEvent(evt);
                                   setIsDetailsSidebarOpen(true);
                                 }}
-                                className={`px-2 py-0.5 rounded-[5px] text-[10.5px] font-medium truncate flex items-center gap-1 cursor-pointer transition-transform hover:scale-[1.02] border-l-2 shadow-2xs ${pillStyle} ${
-                                  isCompleted ? 'line-through opacity-75' : ''
-                                }`}
+                                className={`px-2 py-0.5 rounded-[5px] text-[10.5px] font-medium truncate flex items-center gap-1 cursor-pointer transition-transform hover:scale-[1.02] shadow-2xs ${pillStyle}`}
                                 title={`${evt.title} (${formatEventTime(evt)})`}
                               >
                                 <span className="truncate">{evt.title}</span>
@@ -1134,7 +1134,7 @@ const OriginationActivities = () => {
                                 setSelectedDate(day);
                                 setViewMode('day');
                               }}
-                              className="text-[10px] font-semibold text-[var(--brand-deep)] hover:underline pl-1 cursor-pointer"
+                              className="text-[10px] font-bold text-[var(--text)] hover:underline pl-1 cursor-pointer"
                             >
                               +{dayEvents.length - 3} more
                             </div>
@@ -1157,7 +1157,7 @@ const OriginationActivities = () => {
                       <div key={i} className="space-y-0.5">
                         <span className="text-[11px] font-medium text-[var(--muted)] uppercase">{format(d, 'EEE')}</span>
                         <div className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs font-bold ${
-                          isTodayDate ? 'bg-[var(--brand)] text-white' : 'text-[var(--text)]'
+                          isTodayDate ? 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B]' : 'text-[var(--text)]'
                         }`}>
                           {format(d, 'd')}
                         </div>
@@ -1180,7 +1180,7 @@ const OriginationActivities = () => {
                               setSelectedEvent(evt);
                               setIsDetailsSidebarOpen(true);
                             }}
-                            className={`p-2 rounded-xl border-l-3 text-xs cursor-pointer shadow-2xs hover:shadow-xs transition-all ${getEventPillStyle(evt)}`}
+                            className={`p-2 rounded-xl text-xs cursor-pointer shadow-2xs hover:shadow-xs transition-all ${getEventPillStyle(evt)}`}
                           >
                             <p className="font-semibold truncate">{evt.title}</p>
                             <span className="text-[10.5px] opacity-80 flex items-center gap-1 mt-0.5">
@@ -1213,7 +1213,7 @@ const OriginationActivities = () => {
                       setQuickCreateDate(format(selectedDate, 'yyyy-MM-dd'));
                       setIsQuickCreateOpen(true);
                     }}
-                    className="px-4 py-2 rounded-full bg-[var(--brand)] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    className={`px-4 py-2 rounded-full ${theme.primaryBtnClass} text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer`}
                   >
                     <Plus size={14} /> Schedule Activity
                   </button>
@@ -1232,16 +1232,16 @@ const OriginationActivities = () => {
                           setSelectedEvent(evt);
                           setIsDetailsSidebarOpen(true);
                         }}
-                        className={`p-4 rounded-2xl border flex items-center justify-between gap-4 cursor-pointer hover:shadow-xs transition-all ${getEventPillStyle(evt)}`}
+                        className="p-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] text-[var(--text)] flex items-center justify-between gap-4 cursor-pointer hover:shadow-xs transition-all"
                       >
                         <div className="space-y-1">
                           <h4 className="font-semibold text-sm">{evt.title}</h4>
-                          <div className="flex items-center gap-3 text-xs opacity-80">
+                          <div className="flex items-center gap-3 text-xs opacity-80 text-[var(--muted)]">
                             <span className="flex items-center gap-1"><Clock size={12} /> {formatEventTime(evt)}</span>
                             {evt.address && <span className="flex items-center gap-1"><MapPin size={12} /> {evt.address}</span>}
                           </div>
                         </div>
-                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border border-current">
+                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] text-[var(--text)]">
                           {evt.status || 'Scheduled'}
                         </span>
                       </div>
@@ -1251,14 +1251,14 @@ const OriginationActivities = () => {
               </div>
             )}
 
-            {/* View Mode 4: List View (Month-based, Date & Time Order: Pending, Upcoming, Completed) */}
+            {/* View Mode 4: List View (Month-based, Black & White Editorial Theme) */}
             {viewMode === 'list' && (
               <div className="flex-1 flex flex-col min-h-0 p-5 sm:p-6 overflow-y-auto space-y-6">
                 
                 {/* Month Summary Bar */}
                 <div className="flex items-center justify-between pb-3 border-b border-[var(--line)] shrink-0">
                   <div className="flex items-center gap-2.5">
-                    <Calendar className="w-4 h-4 text-[var(--brand-deep)]" />
+                    <Calendar className="w-4 h-4 text-[var(--text)]" />
                     <h2 className="text-sm font-bold text-[var(--text)]">
                       {format(currentDate, 'MMMM yyyy')} Schedule
                     </h2>
@@ -1273,7 +1273,7 @@ const OriginationActivities = () => {
                     <div className="w-12 h-12 rounded-2xl bg-[var(--surface-alt)] text-[var(--muted)] flex items-center justify-center">
                       <CalendarDays size={22} />
                     </div>
-                    <p className="text-sm font-semibold text-[var(--text)]">
+                    <p className="text-sm font-bold text-[var(--text)]">
                       No activities scheduled for {format(currentDate, 'MMMM yyyy')}
                     </p>
                     <p className="text-xs text-[var(--muted)] max-w-sm">
@@ -1285,7 +1285,7 @@ const OriginationActivities = () => {
                         setQuickCreateDate(format(currentDate, 'yyyy-MM-01'));
                         setIsQuickCreateOpen(true);
                       }}
-                      className="px-4 py-2 rounded-full text-xs font-semibold bg-[var(--brand)] text-white shadow-xs cursor-pointer hover:opacity-90 transition-all"
+                      className={`px-4 py-2 rounded-full text-xs font-semibold ${theme.primaryBtnClass} shadow-xs cursor-pointer transition-all`}
                     >
                       + Schedule in {format(currentDate, 'MMMM')}
                     </button>
@@ -1298,16 +1298,16 @@ const OriginationActivities = () => {
                       <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
                         <div className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: section.dotColor }} />
-                          <h3 className="text-sm font-semibold text-[var(--text)]">
+                          <h3 className="text-sm font-bold text-[var(--text)]">
                             {section.title}
                           </h3>
                         </div>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${section.badgeStyle}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${section.badgeStyle}`}>
                           {section.badge}
                         </span>
                       </div>
 
-                      {/* Cards List in this Section (Sorted date & time wise) */}
+                      {/* Cards List in this Section (Sorted date & time wise - Monochromatic B&W Cards) */}
                       <div className="space-y-2.5">
                         {section.items.map((evt) => {
                           const isCompleted = evt.status === 'Completed';
@@ -1320,14 +1320,8 @@ const OriginationActivities = () => {
                                 setSelectedEvent(evt);
                                 setIsDetailsSidebarOpen(true);
                               }}
-                              className={`p-4 rounded-[18px] border transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 cursor-pointer hover:shadow-xs group ${
-                                isCompleted
-                                  ? 'bg-[var(--surface-alt)]/35 border-[var(--line)] border-l-4 border-l-[#1F9D55] opacity-80'
-                                  : evt.priority === 'Urgent'
-                                  ? 'bg-[var(--surface)] border-[var(--line)] border-l-4 border-l-[#D64550] hover:border-[var(--brand)]/40'
-                                  : evt.priority === 'High'
-                                  ? 'bg-[var(--surface)] border-[var(--line)] border-l-4 border-l-[#B7791F] hover:border-[var(--brand)]/40'
-                                  : 'bg-[var(--surface)] border-[var(--line)] border-l-4 border-l-[var(--brand)] hover:border-[var(--brand)]/40'
+                              className={`p-4 rounded-[18px] border border-[var(--line)] bg-[var(--surface)] transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 cursor-pointer hover:bg-[var(--surface-alt)]/40 hover:shadow-xs group ${
+                                isCompleted ? 'opacity-85' : ''
                               }`}
                             >
                               {/* Left: Checkmark + Title + Details */}
@@ -1339,19 +1333,19 @@ const OriginationActivities = () => {
                                     const target = events.find((item) => item.id === evt.id);
                                     if (target) toggleMutation.mutate({ id: evt.id, status: target.status });
                                   }}
-                                  className="mt-0.5 text-[var(--muted)] hover:text-[#1F9D55] transition-transform active:scale-90 shrink-0 cursor-pointer"
+                                  className="mt-0.5 text-[var(--muted)] hover:text-[var(--text)] transition-transform active:scale-90 shrink-0 cursor-pointer"
                                   title={isCompleted ? 'Mark as Scheduled' : 'Mark as Completed'}
                                 >
                                   {isCompleted ? (
-                                    <CheckCircle2 size={20} className="text-[#1F9D55] fill-[#E6F6EC]" />
+                                    <CheckCircle2 size={20} className="text-[#131315] dark:text-white" />
                                   ) : (
-                                    <Circle size={20} className="hover:text-[var(--brand-deep)] transition-colors" />
+                                    <Circle size={20} className="hover:text-[var(--text)] transition-colors" />
                                   )}
                                 </button>
 
                                 <div className="space-y-1.5 flex-1 min-w-0">
                                   <div className="flex flex-wrap items-center gap-2">
-                                    <h4 className={`text-sm font-semibold text-[var(--text)] group-hover:text-[var(--brand-deep)] transition-colors truncate ${
+                                    <h4 className={`text-sm font-semibold text-[var(--text)] group-hover:underline transition-colors truncate ${
                                       isCompleted ? 'line-through text-[var(--muted)]' : ''
                                     }`}>
                                       {evt.title}
@@ -1360,7 +1354,7 @@ const OriginationActivities = () => {
 
                                     {isBranchOperations && displayName && (
                                       <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] text-[var(--text)]">
-                                        <User size={10} className="text-[var(--brand-deep)]" />
+                                        <User size={10} className="text-[var(--muted)]" />
                                         <span>{displayName}</span>
                                       </span>
                                     )}
@@ -1369,19 +1363,19 @@ const OriginationActivities = () => {
                                   {/* Date & Time & Location Meta */}
                                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
                                     <span className="inline-flex items-center gap-1 font-medium text-[var(--text)]">
-                                      <Calendar size={12} className="text-[var(--brand-deep)]" />
+                                      <Calendar size={12} className="text-[var(--muted)]" />
                                       <span>{evt.startDate}</span>
                                     </span>
                                     <span>&bull;</span>
                                     <span className="inline-flex items-center gap-1 font-medium text-[var(--text)]">
-                                      <Clock size={12} className="text-[var(--brand-deep)]" />
+                                      <Clock size={12} className="text-[var(--muted)]" />
                                       <span>{formatEventTime(evt)}</span>
                                     </span>
                                     {evt.address && (
                                       <>
                                         <span>&bull;</span>
-                                        <span className="inline-flex items-center gap-1 truncate max-w-sm">
-                                          <MapPin size={12} className="text-[#D64550] shrink-0" />
+                                        <span className="inline-flex items-center gap-1 truncate max-w-sm text-[var(--muted)]">
+                                          <MapPin size={12} className="shrink-0" />
                                           <span className="truncate">{evt.address}</span>
                                         </span>
                                       </>
@@ -1400,8 +1394,8 @@ const OriginationActivities = () => {
                               <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--line)]">
                                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                                   isCompleted
-                                    ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6]'
-                                    : 'bg-[var(--surface-alt)] text-[var(--text)] border-[var(--line)]'
+                                    ? 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)]'
+                                    : 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B] border-transparent'
                                 }`}>
                                   {isCompleted ? <CheckCircle2 size={11} /> : <Clock size={11} />}
                                   <span>{evt.status || 'Scheduled'}</span>
