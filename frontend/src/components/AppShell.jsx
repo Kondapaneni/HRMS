@@ -224,7 +224,7 @@ export const AppShell = ({
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none cursor-pointer"
+              className="md:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none cursor-pointer active:scale-95 transition-transform"
               aria-label="Toggle navigation menu"
             >
               {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -374,29 +374,40 @@ export const AppShell = ({
           ============================================================ */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-[9999] md:hidden flex">
+          <motion.div
+            key="mobile-drawer-portal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[9999] md:hidden pointer-events-auto"
+          >
             {/* Scrim */}
             <motion.div
+              key="mobile-drawer-scrim"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.28, ease: 'easeInOut' }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-[#131315]/50 backdrop-blur-xs"
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs cursor-pointer"
             />
 
             {/* Menu Panel */}
-            <motion.div
+            <motion.aside
+              key="mobile-drawer-panel"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="relative w-72 h-full bg-[#131315] text-white p-5 flex flex-col justify-between z-10 rounded-r-[28px] border-r border-white/10"
+              transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.38 }}
+              style={{ willChange: 'transform' }}
+              className="fixed inset-y-0 left-0 w-72 max-w-[85vw] h-full bg-[#131315] text-white p-5 flex flex-col justify-between z-10 rounded-r-[28px] border-r border-white/10 shadow-2xl overflow-hidden"
             >
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#1F1F23]">
                   <div className="flex items-center gap-2.5">
                     <div
-                      className="w-8 h-8 rounded-[10px] flex items-center justify-center font-bold text-xs"
+                      className="w-8 h-8 rounded-[10px] flex items-center justify-center font-bold text-xs shadow-xs"
                       style={{ backgroundColor: accentColor, color: '#131315' }}
                     >
                       A
@@ -409,13 +420,14 @@ export const AppShell = ({
                   <button
                     type="button"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-8 h-8 rounded-full bg-[#1F1F23] text-[#8B8B95] flex items-center justify-center"
+                    className="w-8 h-8 rounded-full bg-[#1F1F23] hover:bg-white/10 text-[#8B8B95] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    aria-label="Close menu"
                   >
                     <X size={16} />
                   </button>
                 </div>
 
-                <nav className="space-y-1 overflow-y-auto max-h-[calc(100dvh-180px)]">
+                <nav className="space-y-1 overflow-y-auto max-h-[calc(100dvh-180px)] pr-1">
                   {railGroups.map((group) => {
                     const isGroupActive = activeGroup?.id === group.id;
                     const Icon = group.icon;
@@ -425,9 +437,9 @@ export const AppShell = ({
                         key={group.id}
                         to={group.chips?.[0]?.path || group.path}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[14px] text-[13px] font-medium transition-colors ${
+                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[14px] text-[13px] font-medium transition-all ${
                           isGroupActive
-                            ? 'text-[#131315]'
+                            ? 'text-[#131315] shadow-xs'
                             : 'text-[#8B8B95] hover:text-white hover:bg-[#1F1F23]'
                         }`}
                         style={{
@@ -456,8 +468,8 @@ export const AppShell = ({
                   <span>Sign out</span>
                 </button>
               </div>
-            </motion.div>
-          </div>
+            </motion.aside>
+          </motion.div>
         )}
       </AnimatePresence>
 
