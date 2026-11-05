@@ -15,7 +15,7 @@ import {
   Phone,
   Tag
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isBefore, startOfDay } from 'date-fns';
 import toast from 'react-hot-toast';
 import { Check, Users } from 'lucide-react';
 
@@ -48,11 +48,23 @@ const ActivitySidebar = ({
 
   useEffect(() => {
     if (isOpen) {
-      const baseDate = selectedDate || new Date();
+      const now = new Date();
+      const todayStr = format(now, 'yyyy-MM-dd');
+      let baseDate = selectedDate || now;
+      if (isBefore(baseDate, startOfDay(now))) {
+        baseDate = now;
+      }
       const baseDateStr = format(baseDate, 'yyyy-MM-dd');
-      const nowHour = baseDate.getHours();
-      const startHourStr = String(nowHour).padStart(2, '0') + ':00';
-      const endHourStr = String(Math.min(23, nowHour + 1)).padStart(2, '0') + ':00';
+
+      // Compute smart start & end hours
+      let startHourStr = '10:00';
+      let endHourStr = '11:00';
+      if (baseDateStr === todayStr) {
+        const nextH = new Date(now.getTime() + 60 * 60 * 1000);
+        startHourStr = format(nextH, 'HH:00');
+        const endH = new Date(nextH.getTime() + 60 * 60 * 1000);
+        endHourStr = format(endH, 'HH:00');
+      }
 
       setFormData({
         title: '',
@@ -140,6 +152,26 @@ const ActivitySidebar = ({
     if (!formData.notes.trim()) {
       toast.error('Please enter remarks or internal notes');
       return;
+    }
+
+    const now = new Date();
+    const currentTodayStr = format(now, 'yyyy-MM-dd');
+    const currentTimeStr = format(now, 'HH:mm');
+
+    if (formData.startDate < currentTodayStr) {
+      toast.error('Cannot schedule activities for past dates');
+      return;
+    }
+
+    if (formData.startDate === currentTodayStr && !formData.allDay) {
+      if (!formData.startTime) {
+        toast.error('Please select a start time');
+        return;
+      }
+      if (formData.startTime < currentTimeStr) {
+        toast.error('Cannot schedule activities for past time today');
+        return;
+      }
     }
 
     if (formData.endDate && formData.endDate < formData.startDate) {
@@ -340,6 +372,7 @@ const ActivitySidebar = ({
                   <input
                     type="date"
                     required
+                    min={format(new Date(), 'yyyy-MM-dd')}
                     value={formData.startDate}
                     onChange={(e) => setFormData({
                       ...formData,
@@ -392,6 +425,7 @@ const ActivitySidebar = ({
                     <input
                       type="time"
                       required={!formData.allDay}
+                      min={formData.startDate === format(new Date(), 'yyyy-MM-dd') ? format(new Date(), 'HH:mm') : undefined}
                       value={formData.startTime}
                       onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                       className="w-full px-3.5 py-2 rounded-[14px] border border-[var(--line)] bg-[var(--surface-alt)] focus:bg-[var(--surface)] focus:border-[var(--brand-deep)] focus:ring-2 focus:ring-[var(--brand)]/20 outline-none text-xs text-[var(--text)] font-medium"

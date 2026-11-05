@@ -253,6 +253,20 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
 
+        $today = date('Y-m-d');
+        if ($startDate < $today) {
+            $response->getBody()->write(json_encode(['error' => 'Cannot schedule activities for past dates. Only present and future dates are allowed.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        if ($startDate === $today && !$allDay) {
+            $currentTime = date('H:i');
+            if ($startTime < $currentTime) {
+                $response->getBody()->write(json_encode(['error' => 'Cannot schedule activities for past time today. Only present and future times are allowed.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+        }
+
         try {
             $db = new Database();
             $conn = $db->getConnection();

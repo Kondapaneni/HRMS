@@ -35,7 +35,8 @@ import {
   endOfWeek, 
   eachDayOfInterval, 
   isSameMonth, 
-  isSameDay, 
+  isSameDay,
+  isBefore, 
   addMonths, 
   subMonths 
 } from 'date-fns';
@@ -361,9 +362,6 @@ const OriginationMobileActivities = () => {
           {/* Calendar Month Navigation Box */}
           <div className="bg-[var(--surface)] rounded-[22px] border border-[var(--line)] p-4 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-[var(--text)] tracking-tight">
-                {format(currentDate, 'MMMM yyyy')}
-              </h3>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -380,6 +378,9 @@ const OriginationMobileActivities = () => {
                   <ChevronRight size={16} />
                 </button>
               </div>
+              <h3 className="text-base font-bold text-[var(--text)] tracking-tight">
+                {format(currentDate, 'MMMM yyyy')}
+              </h3>
             </div>
 
             {/* Weekday headers S M T W T F S */}
@@ -433,25 +434,31 @@ const OriginationMobileActivities = () => {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setViewMode('create')}
-                className="text-xs font-semibold text-[var(--text)] hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <Plus size={13} /> Add task
-              </button>
+              {!isBefore(selectedDate, startOfDay(new Date())) && (
+                <button
+                  type="button"
+                  onClick={() => setViewMode('create')}
+                  className="text-xs font-semibold text-[var(--text)] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus size={13} /> Add task
+                </button>
+              )}
             </div>
 
             {selectedDateEvents.length === 0 ? (
               <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-6 text-center space-y-2">
-                <p className="text-xs font-semibold text-[var(--muted)]">No tasks scheduled for this day</p>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('create')}
-                  className="px-4 py-2 rounded-full text-xs font-semibold bg-[#131315] hover:bg-[#27272A] text-white dark:bg-[#F4F4F6] dark:text-[#18181B] shadow-xs cursor-pointer inline-flex items-center gap-1.5"
-                >
-                  <Plus size={13} /> Schedule for this day
-                </button>
+                <p className="text-xs font-semibold text-[var(--muted)]">
+                  {isBefore(selectedDate, startOfDay(new Date())) ? 'No tasks on this past day' : 'No tasks scheduled for this day'}
+                </p>
+                {!isBefore(selectedDate, startOfDay(new Date())) && (
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('create')}
+                    className="px-4 py-2 rounded-full text-xs font-semibold bg-[#131315] hover:bg-[#27272A] text-white dark:bg-[#F4F4F6] dark:text-[#18181B] shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <Plus size={13} /> Schedule for this day
+                  </button>
+                )}
               </div>
             ) : (
               <div className="space-y-2.5">

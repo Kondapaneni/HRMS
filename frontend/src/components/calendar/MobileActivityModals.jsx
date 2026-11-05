@@ -64,9 +64,10 @@ export const MobileActivityCreatePage = ({
     if (isOpen) {
       const now = new Date();
       const dateStr = format(now, 'yyyy-MM-dd');
-      const nowHour = now.getHours();
-      const startHourStr = String(nowHour).padStart(2, '0') + ':00';
-      const endHourStr = String(Math.min(23, nowHour + 1)).padStart(2, '0') + ':00';
+      const nextH = new Date(now.getTime() + 60 * 60 * 1000);
+      const startHourStr = format(nextH, 'HH:00');
+      const endH = new Date(nextH.getTime() + 60 * 60 * 1000);
+      const endHourStr = format(endH, 'HH:00');
 
       setFormData({
         title: '',
@@ -94,8 +95,16 @@ export const MobileActivityCreatePage = ({
     if (!formData.title.trim()) {
       errors.title = 'Activity title is required';
     }
+    const now = new Date();
+    const currentTodayStr = format(now, 'yyyy-MM-dd');
+    const currentTimeStr = format(now, 'HH:mm');
+
     if (!formData.startDate) {
       errors.startDate = 'Start date is required';
+    } else if (formData.startDate < currentTodayStr) {
+      errors.startDate = 'Cannot schedule activities for past dates';
+    } else if (formData.startDate === currentTodayStr && !formData.allDay && formData.startTime && formData.startTime < currentTimeStr) {
+      errors.startTime = 'Cannot schedule activities for past time today';
     }
     if (formData.endDate && formData.endDate < formData.startDate) {
       errors.endDate = 'End date cannot be before start date';
@@ -260,6 +269,7 @@ export const MobileActivityCreatePage = ({
                   </label>
                   <input
                     type="date"
+                    min={format(new Date(), 'yyyy-MM-dd')}
                     value={formData.startDate}
                     onChange={(e) => {
                       const newStart = e.target.value;
@@ -283,6 +293,7 @@ export const MobileActivityCreatePage = ({
                     </label>
                     <input
                       type="time"
+                      min={formData.startDate === format(new Date(), 'yyyy-MM-dd') ? format(new Date(), 'HH:mm') : undefined}
                       value={formData.startTime}
                       onChange={(e) => {
                         const newStartTime = e.target.value;

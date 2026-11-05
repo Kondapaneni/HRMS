@@ -41,6 +41,7 @@ import {
   eachDayOfInterval, 
   isSameMonth, 
   isSameDay, 
+  isBefore,
   addMonths, 
   subMonths, 
   addWeeks, 
@@ -54,7 +55,7 @@ import EventDetailsSidebar from '../components/calendar/EventDetailsSidebar';
 import OriginationMobileActivities from './OriginationMobileActivities';
 
 // =========================================================================
-// Quick Create Event Popover Modal (Monochrome Black & White Theme)
+// Quick Create Event Popover Modal (Strict Past Date & Past Time Prevention)
 // =========================================================================
 const QuickCreateModal = ({
   isOpen,
@@ -66,8 +67,31 @@ const QuickCreateModal = ({
   isSales = false,
   theme
 }) => {
+  const getSmartInitialTimes = (dateStr) => {
+    const now = new Date();
+    const todayStr = format(now, 'yyyy-MM-dd');
+    if (!dateStr || dateStr <= todayStr) {
+      const minutes = now.getMinutes();
+      const remainder = minutes % 15;
+      const addMins = remainder === 0 ? 15 : (15 - remainder);
+      const startObj = new Date(now.getTime() + addMins * 60 * 1000);
+      const endObj = new Date(startObj.getTime() + 60 * 60 * 1000);
+      return {
+        startDate: todayStr,
+        startTime: format(startObj, 'HH:mm'),
+        endTime: format(endObj, 'HH:mm'),
+      };
+    }
+    return {
+      startDate: dateStr,
+      startTime: '10:00',
+      endTime: '11:00',
+    };
+  };
+
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
   const [title, setTitle] = useState('');
-  const [startDate, setStartDate] = useState(initialDate || format(new Date(), 'yyyy-MM-dd'));
+  const [startDate, setStartDate] = useState(todayStr);
   const [startTime, setStartTime] = useState('10:00');
   const [endTime, setEndTime] = useState('11:00');
   const [allDay, setAllDay] = useState(false);
@@ -79,10 +103,18 @@ const QuickCreateModal = ({
 
   React.useEffect(() => {
     if (isOpen) {
+      const now = new Date();
+      const currentTodayStr = format(now, 'yyyy-MM-dd');
+      let effectiveDate = initialDate || currentTodayStr;
+      if (effectiveDate < currentTodayStr) {
+        effectiveDate = currentTodayStr;
+      }
+      const times = getSmartInitialTimes(effectiveDate);
+
       setTitle('');
-      setStartDate(initialDate || format(new Date(), 'yyyy-MM-dd'));
-      setStartTime('10:00');
-      setEndTime('11:00');
+      setStartDate(effectiveDate);
+      setStartTime(times.startTime);
+      setEndTime(times.endTime);
       setAllDay(false);
       setPriority('Medium');
       setAssignedTo('');
@@ -100,6 +132,28 @@ const QuickCreateModal = ({
       toast.error('Please enter an event name');
       return;
     }
+
+    const now = new Date();
+    const currentTodayStr = format(now, 'yyyy-MM-dd');
+    const currentTimeStr = format(now, 'HH:mm');
+
+    // Strict validation: No past dates or today's past times
+    if (startDate < currentTodayStr) {
+      toast.error('Cannot schedule activities for past dates');
+      return;
+    }
+
+    if (startDate === currentTodayStr && !allDay) {
+      if (!startTime) {
+        toast.error('Please select a start time');
+        return;
+      }
+      if (startTime < currentTimeStr) {
+        toast.error('Cannot schedule activities for past time today');
+        return;
+      }
+    }
+
     try {
       setIsSubmitting(true);
       await onSave({
@@ -154,23 +208,33 @@ const QuickCreateModal = ({
             />
           </div>
 
-          {/* Date Picker Row */}
+          {/* Date Picker Row (Restricted to present and future dates) */}
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] text-xs font-medium text-[var(--text)]">
             <CalendarIcon size={15} className="text-[var(--muted)] shrink-0" />
             <input
               type="date"
+              min={todayStr}
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val < todayStr) {
+                  toast.error('Cannot select past dates');
+                  setStartDate(todayStr);
+                  return;
+                }
+                setStartDate(val);
+              }}
               className="bg-transparent text-xs font-medium text-[var(--text)] focus:outline-none cursor-pointer flex-1"
             />
           </div>
 
-          {/* Time Row */}
+          {/* Time Row (Restricted to present and future times on today) */}
           {!allDay && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--line)] text-xs font-medium text-[var(--text)]">
               <Clock size={15} className="text-[var(--muted)] shrink-0" />
               <input
                 type="time"
+                min={startDate === todayStr ? format(new Date(), 'HH:mm') : undefined}
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 className="bg-transparent text-xs font-medium text-[var(--text)] focus:outline-none cursor-pointer"
@@ -928,12 +992,14 @@ const OriginationActivities = () => {
 
             </div>
 
-            {/* Bottom Add Action Button */}
+            {/* Bottom Add Action Button (Always opens with present/future date) */}
             <div className="pt-3 border-t border-[var(--line)]">
               <button
                 type="button"
                 onClick={() => {
-                  setQuickCreateDate(format(selectedDate, 'yyyy-MM-dd'));
+                  const now = new Date();
+                  const targetDate = isBefore(selectedDate, startOfDay(now)) ? now : selectedDate;
+                  setQuickCreateDate(format(targetDate, 'yyyy-MM-dd'));
                   setIsQuickCreateOpen(true);
                 }}
                 className={`w-full py-2.5 px-4 rounded-xl ${theme.primaryBtnClass} text-xs font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98]`}
@@ -949,11 +1015,11 @@ const OriginationActivities = () => {
              ========================================================= */}
           <main className="flex-1 flex flex-col min-w-0 bg-[var(--surface)] overflow-hidden">
             
-            {/* Calendar Top Header Bar */}
+            {/* Calendar Top Header Bar: View mode on Left, Month at Right Edge */}
             <div className="px-5 py-3 border-b border-[var(--line)] flex items-center justify-between gap-4 bg-[var(--surface)] shrink-0">
               
-              {/* Left: Open sidebar icon + Month title + Today + Prev/Next buttons */}
-              <div className="flex items-center gap-3">
+              {/* Left Side: Sidebar toggle button + View Mode Toggle Pill (Day | Week | Month | List) */}
+              <div className="flex items-center gap-2.5">
                 {isSidebarCollapsed && (
                   <button
                     type="button"
@@ -965,40 +1031,6 @@ const OriginationActivities = () => {
                   </button>
                 )}
 
-                <h1 className="text-xl sm:text-2xl font-bold text-[var(--text)] tracking-tight">
-                  {format(currentDate, 'MMMM yyyy')}
-                </h1>
-
-                <button
-                  type="button"
-                  onClick={handleToday}
-                  className="px-3.5 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] shadow-2xs transition-colors cursor-pointer ml-1"
-                >
-                  Today
-                </button>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={handlePrev}
-                    className="w-7 h-7 rounded-full border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
-                    title="Previous"
-                  >
-                    <ChevronLeft size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="w-7 h-7 rounded-full border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
-                    title="Next"
-                  >
-                    <ChevronRight size={15} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Right: View Mode Toggle Pill: Day | Week | Month | List */}
-              <div className="flex items-center gap-2">
                 <div className="flex items-center p-1 rounded-full bg-[var(--surface-alt)] border border-[var(--line)] text-xs font-medium">
                   <button
                     type="button"
@@ -1039,6 +1071,40 @@ const OriginationActivities = () => {
                 </div>
               </div>
 
+              {/* Right Side (Right Edge): Today button + Prev/Next buttons + Month Title */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleToday}
+                  className="px-3.5 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] shadow-2xs transition-colors cursor-pointer"
+                >
+                  Today
+                </button>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    className="w-7 h-7 rounded-full border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                    title="Previous"
+                  >
+                    <ChevronLeft size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="w-7 h-7 rounded-full border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                    title="Next"
+                  >
+                    <ChevronRight size={15} />
+                  </button>
+                </div>
+
+                <h1 className="text-xl sm:text-2xl font-bold text-[var(--text)] tracking-tight">
+                  {format(currentDate, 'MMMM yyyy')}
+                </h1>
+              </div>
+
             </div>
 
             {/* View Mode 1: Month View Grid */}
@@ -1061,6 +1127,7 @@ const OriginationActivities = () => {
                     const isCurrMonth = isSameMonth(day, currentDate);
                     const isTodayDate = isToday(day);
                     const isSelected = isSameDay(day, selectedDate);
+                    const isPastDate = isBefore(day, startOfDay(new Date()));
                     const dayStr = format(day, 'yyyy-MM-dd');
                     const dayEvents = eventsByDate.get(dayStr) || [];
 
@@ -1069,17 +1136,23 @@ const OriginationActivities = () => {
                         key={idx}
                         onClick={() => {
                           setSelectedDate(day);
-                          setQuickCreateDate(dayStr);
+                          if (!isPastDate) {
+                            setQuickCreateDate(dayStr);
+                          }
                         }}
                         onDoubleClick={() => {
+                          if (isPastDate) {
+                            toast.error('Cannot schedule activities for past dates');
+                            return;
+                          }
                           setQuickCreateDate(dayStr);
                           setIsQuickCreateOpen(true);
                         }}
                         className={`border-b border-r border-[var(--line)] p-1.5 sm:p-2 flex flex-col justify-start min-h-[85px] transition-colors cursor-pointer group hover:bg-[var(--surface-alt)]/35 ${
                           isCurrMonth ? 'bg-[var(--surface)]' : 'bg-[var(--surface-alt)]/25'
-                        }`}
+                        } ${isPastDate ? 'opacity-70' : ''}`}
                       >
-                        {/* Day Cell Top: Date Number & Hover + Button */}
+                        {/* Day Cell Top: Date Number & Hover + Button (Only for present & future) */}
                         <div className="flex items-center justify-between mb-1">
                           <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                             isTodayDate
@@ -1091,18 +1164,20 @@ const OriginationActivities = () => {
                             {format(day, 'd')}
                           </span>
 
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setQuickCreateDate(dayStr);
-                              setIsQuickCreateOpen(true);
-                            }}
-                            className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-full hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
-                            title="Add event"
-                          >
-                            <Plus size={12} />
-                          </button>
+                          {!isPastDate && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setQuickCreateDate(dayStr);
+                                setIsQuickCreateOpen(true);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-full hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
+                              title="Add event"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          )}
                         </div>
 
                         {/* Event Chips List */}
@@ -1207,22 +1282,26 @@ const OriginationActivities = () => {
                       {(eventsByDate.get(format(selectedDate, 'yyyy-MM-dd')) || []).length} Scheduled activities
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuickCreateDate(format(selectedDate, 'yyyy-MM-dd'));
-                      setIsQuickCreateOpen(true);
-                    }}
-                    className={`px-4 py-2 rounded-full ${theme.primaryBtnClass} text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer`}
-                  >
-                    <Plus size={14} /> Schedule Activity
-                  </button>
+                  {!isBefore(selectedDate, startOfDay(new Date())) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickCreateDate(format(selectedDate, 'yyyy-MM-dd'));
+                        setIsQuickCreateOpen(true);
+                      }}
+                      className={`px-4 py-2 rounded-full ${theme.primaryBtnClass} text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer`}
+                    >
+                      <Plus size={14} /> Schedule Activity
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-3">
                   {(eventsByDate.get(format(selectedDate, 'yyyy-MM-dd')) || []).length === 0 ? (
                     <div className="text-center py-12 text-[var(--muted)] text-xs">
-                      No activities scheduled for this day. Click "+ Schedule Activity" to add one.
+                      {isBefore(selectedDate, startOfDay(new Date()))
+                        ? 'No activities for this past day.'
+                        : 'No activities scheduled for this day. Click "+ Schedule Activity" to add one.'}
                     </div>
                   ) : (
                     (eventsByDate.get(format(selectedDate, 'yyyy-MM-dd')) || []).map(evt => (
@@ -1279,16 +1358,20 @@ const OriginationActivities = () => {
                     <p className="text-xs text-[var(--muted)] max-w-sm">
                       Use the navigation arrows to check other months, or schedule a new task.
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuickCreateDate(format(currentDate, 'yyyy-MM-01'));
-                        setIsQuickCreateOpen(true);
-                      }}
-                      className={`px-4 py-2 rounded-full text-xs font-semibold ${theme.primaryBtnClass} shadow-xs cursor-pointer transition-all`}
-                    >
-                      + Schedule in {format(currentDate, 'MMMM')}
-                    </button>
+                    {!isBefore(endOfMonth(currentDate), startOfDay(new Date())) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const targetDate = isBefore(currentDate, now) ? now : startOfMonth(currentDate);
+                          setQuickCreateDate(format(targetDate, 'yyyy-MM-dd'));
+                          setIsQuickCreateOpen(true);
+                        }}
+                        className={`px-4 py-2 rounded-full text-xs font-semibold ${theme.primaryBtnClass} shadow-xs cursor-pointer transition-all`}
+                      >
+                        + Schedule in {format(currentDate, 'MMMM')}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   monthListSections.sections.map((section) => (
