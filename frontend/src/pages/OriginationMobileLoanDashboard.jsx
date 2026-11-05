@@ -132,7 +132,7 @@ const OriginationMobileLoanDashboard = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Hello, {profile?.firstName || 'Loan Officer'}
+              Hello, <span className="font-semibold text-[var(--brand-deep)]">{profile?.firstName || 'Loan Officer'}</span>
             </h2>
 
             <button
@@ -355,7 +355,7 @@ const OriginationMobileLoanDashboard = () => {
               <TrendingUp size={14} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">Recent Pipeline Leads</h3>
+              <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">Recent Pipeline <span className="text-[var(--brand-deep)]">Leads</span></h3>
               <p className="text-[11px] text-[var(--muted)]">Latest loan applicants registered</p>
             </div>
           </div>

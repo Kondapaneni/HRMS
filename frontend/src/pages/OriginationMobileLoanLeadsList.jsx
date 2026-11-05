@@ -138,7 +138,7 @@ const OriginationMobileLoanLeadsList = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Loan Leads
+              Loan <span className="text-[var(--brand-deep)]">Leads</span>
             </h2>
 
             <button

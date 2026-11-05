@@ -79,7 +79,7 @@ const OriginationMobileSaleAddLead = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Add New Lead
+              Add New <span className="text-[var(--accent-pink-deep)]">Lead</span>
             </h2>
 
             <button

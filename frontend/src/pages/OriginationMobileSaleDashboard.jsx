@@ -129,7 +129,7 @@ const OriginationMobileSaleDashboard = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Hello, {profile?.firstName || profile?.name?.split(' ')[0] || 'Sales'}
+              Hello, <span className="font-semibold text-[var(--accent-pink-deep)]">{profile?.firstName || profile?.name?.split(' ')[0] || 'Sales'}</span>
             </h2>
 
             <button
@@ -350,7 +350,7 @@ const OriginationMobileSaleDashboard = () => {
               <TrendingUp size={14} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">Recent Pipeline Leads</h3>
+              <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">Recent Pipeline <span className="text-[var(--accent-pink-deep)]">Leads</span></h3>
               <p className="text-[11px] text-[var(--muted)]">Latest prospects registered</p>
             </div>
           </div>

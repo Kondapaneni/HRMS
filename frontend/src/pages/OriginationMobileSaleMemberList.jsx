@@ -92,7 +92,7 @@ const OriginationMobileSaleMemberList = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Converted Sales Members
+              Converted Sales <span className="text-[var(--accent-pink-deep)]">Members</span>
             </h2>
           </div>
           <p className="text-xs font-medium text-[var(--muted)] mt-1">

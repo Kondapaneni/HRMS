@@ -400,7 +400,7 @@ const OriginationMobileActivities = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Activities &amp; Follow-Ups
+              Activities &amp; <span className={theme.titleAccent}>Follow-Ups</span>
             </h2>
 
             <button

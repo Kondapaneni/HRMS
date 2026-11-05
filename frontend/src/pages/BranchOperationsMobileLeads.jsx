@@ -146,7 +146,7 @@ const BranchOperationsMobileLeads = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Branch Leads
+              Branch <span className="text-[var(--branch-deep)]">Leads</span>
             </h2>
             <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold bg-[var(--branch-tint)] text-[var(--branch-deep)] shrink-0">
               {counts.All} Leads

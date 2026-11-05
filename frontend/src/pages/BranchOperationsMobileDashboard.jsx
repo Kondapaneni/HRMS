@@ -192,7 +192,7 @@ const BranchOperationsMobileDashboard = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              {profile?.firstName || 'Operations'} <span className="font-semibold text-[var(--branch-deep)]">{profile?.lastName || 'Manager'}</span>
+              Hello, <span className="font-semibold text-[var(--branch-deep)]">{profile?.firstName || 'Manager'}</span>
             </h2>
 
             <button
@@ -468,7 +468,7 @@ const BranchOperationsMobileDashboard = () => {
                 <TrendingUp size={14} />
               </div>
               <div>
-                <h3 className="text-xs font-semibold text-[var(--text)]">Recent Activity</h3>
+                <h3 className="text-xs font-semibold text-[var(--text)]">Recent <span className="text-[var(--branch-deep)]">Activity</span></h3>
                 <p className="text-[10.5px] text-[var(--muted)]">Latest prospects registered</p>
               </div>
             </div>

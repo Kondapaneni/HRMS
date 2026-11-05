@@ -149,7 +149,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Loan Applications
+              Loan <span className="text-[var(--branch-deep)]">Applications</span>
             </h2>
           </div>
           <p className="text-xs font-medium text-[var(--muted)] mt-1 flex items-center gap-1.5 flex-wrap">

@@ -191,7 +191,7 @@ export default function BranchOperationsMobileLoansViewApplication({
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Application Details
+              Application <span className="text-[var(--branch-deep)]">Details</span>
             </h2>
 
             <button
