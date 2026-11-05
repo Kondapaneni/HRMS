@@ -115,6 +115,10 @@ export const AppShell = ({
     ? `${profile.firstName} ${profile.lastName || ''}`.trim()
     : profile?.email?.split('@')[0] || 'User';
 
+  const profilePath =
+    railGroups.find((g) => g.id === 'profile')?.path ||
+    (profile?.role === 'admin' ? '/admin/profile' : '/employee/profile');
+
   return (
     <div className="h-[100dvh] w-full overflow-hidden bg-[var(--bg)] text-[var(--text)] flex select-none relative z-0">
       {/* ============================================================
@@ -221,18 +225,48 @@ export const AppShell = ({
         {/* HEADER */}
         <header className="h-16 px-4 sm:px-6 flex items-center justify-between shrink-0 z-10 pt-3">
           {/* Left: Greeting / Title */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             {/* Mobile menu toggle button */}
             {!disableMobileDrawer && (
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none cursor-pointer active:scale-95 transition-transform"
+                className="md:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none cursor-pointer active:scale-95 transition-transform shrink-0"
                 aria-label="Toggle navigation menu"
               >
                 {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
             )}
+
+            {/* Mobile Profile Icon (left edge beside title) */}
+            <div className="sm:hidden shrink-0">
+              {profilePath ? (
+                <Link
+                  to={profilePath}
+                  className="block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                  title={`Signed in as ${displayName}`}
+                >
+                  <Avatar
+                    src={profile?.avatar}
+                    name={displayName}
+                    size={36}
+                    shape="circle"
+                  />
+                </Link>
+              ) : (
+                <div
+                  className="block rounded-full"
+                  title={`Signed in as ${displayName}`}
+                >
+                  <Avatar
+                    src={profile?.avatar}
+                    name={displayName}
+                    size={36}
+                    shape="circle"
+                  />
+                </div>
+              )}
+            </div>
 
             <div className="truncate">
               <h1 className="text-[20px] sm:text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] leading-tight truncate">
@@ -262,17 +296,29 @@ export const AppShell = ({
             {/* Theme Toggle */}
             <ThemeToggle />
 
-            {/* Profile Avatar Pill / Tile */}
+            {/* Mobile Logout Button (in place of profile pic on mobile) */}
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="sm:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--muted)] hover:text-[#D64550] flex items-center justify-center border border-[var(--line)] shadow-none transition-colors cursor-pointer active:scale-95"
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              <LogOut size={18} strokeWidth={1.7} />
+            </button>
+
+            {/* Desktop Profile Avatar Pill / Tile */}
             <div
-              className="h-10 flex items-center gap-2 pl-1 pr-1 sm:pr-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--line)] select-none"
+              className="hidden sm:flex h-10 items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--line)] select-none"
               title={`Signed in as ${displayName}`}
             >
               <Avatar
                 src={profile?.avatar}
                 name={displayName}
                 size={32}
+                shape="circle"
               />
-              <span className="hidden sm:inline text-[13px] font-medium text-[var(--text)] truncate max-w-[120px]">
+              <span className="text-[13px] font-medium text-[var(--text)] truncate max-w-[120px]">
                 {displayName}
               </span>
             </div>

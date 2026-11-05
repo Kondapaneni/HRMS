@@ -14,7 +14,7 @@ export const Avatar = ({
   alt = '',
   name = '',
   size = 44,
-  shape = 'square',
+  shape = 'circle',
   radius,
   status, // 'online' | 'offline' | 'busy'
   className = '',
