@@ -21,7 +21,7 @@ export default function BottomNav({ items }) {
       className="mobile-bottom-nav pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 md:hidden"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}
     >
-      <ul className="pointer-events-auto m-0 flex w-full max-w-md list-none items-center justify-between gap-1.5 rounded-full bg-[var(--nav-bg)] p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.35)] ring-1 ring-[var(--nav-ring)]">
+      <ul className="pointer-events-auto m-0 flex w-full max-w-md list-none items-center justify-between gap-1.5 rounded-full bg-[var(--nav-bg)] p-2 shadow-[0_12px_32px_rgba(0,0,0,0.35)] ring-1 ring-[var(--nav-ring)]">
         {items.map(({ to, label, icon: Icon, end }) => (
           <li key={to} className="flex-none">
             <NavLink
@@ -35,8 +35,8 @@ export default function BottomNav({ items }) {
                   layout
                   transition={t}
                   style={{ borderRadius: 9999 }}
-                  className={`flex h-11 items-center bg-[var(--nav-item)] ${
-                    isActive ? 'gap-2 pl-1 pr-4' : 'w-11 justify-center'
+                  className={`flex h-12 items-center bg-[var(--nav-item)] ${
+                    isActive ? 'gap-2 pl-1 pr-4' : 'w-12 justify-center'
                   }`}
                 >
                   <motion.span
@@ -44,11 +44,11 @@ export default function BottomNav({ items }) {
                     transition={t}
                     className={`grid place-items-center rounded-full ${
                       isActive
-                        ? 'h-9 w-9 bg-[var(--nav-active)] text-[var(--nav-on-active)]'
+                        ? 'h-10 w-10 bg-[var(--nav-active)] text-[var(--nav-on-active)]'
                         : 'text-[var(--nav-icon)]'
                     }`}
                   >
-                    <Icon size={isActive ? 18 : 20} strokeWidth={1.9} aria-hidden="true" />
+                    <Icon size={isActive ? 19 : 21} strokeWidth={1.9} aria-hidden="true" />
                   </motion.span>
 
                   <AnimatePresence initial={false}>

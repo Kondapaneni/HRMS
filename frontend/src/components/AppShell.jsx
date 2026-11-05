@@ -315,7 +315,7 @@ export const AppShell = ({
           id="main-scroll-container"
           ref={scrollContainerRef}
           className={`flex-1 overflow-y-auto overscroll-y-contain px-4 sm:px-6 pb-6 ${
-            shouldHideBottomNav ? 'pb-6' : 'pb-[96px]'
+            shouldHideBottomNav ? 'pb-6' : 'pb-[calc(96px+env(safe-area-inset-bottom))]'
           } md:pb-6`}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
