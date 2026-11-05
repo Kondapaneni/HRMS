@@ -72,6 +72,7 @@ const OriginationLoansLayout = () => {
       railGroups={railGroups}
       bottomNavItems={bottomNavItems}
       accentColor="#8AADDB"
+      hideProfileAvatar={true}
       headerAction={
         <Link
           to="/employee"

@@ -66,6 +66,7 @@ const BranchOperationsLayout = () => {
       railGroups={railGroups}
       bottomNavItems={bottomNavItems}
       accentColor="#2DD4BF"
+      hideProfileAvatar={true}
       headerAction={
         <Link
           to="/employee"

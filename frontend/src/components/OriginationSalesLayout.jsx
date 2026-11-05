@@ -61,6 +61,7 @@ const OriginationSalesLayout = () => {
       railGroups={railGroups}
       bottomNavItems={bottomNavItems}
       accentColor="#E3B9DF"
+      hideProfileAvatar={true}
       headerAction={
         <Link
           to="/employee"

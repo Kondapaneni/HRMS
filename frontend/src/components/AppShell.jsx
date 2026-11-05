@@ -33,6 +33,7 @@ export const AppShell = ({
   onNotificationClick,
   hideMobileNavRoutes = [],
   disableMobileDrawer = false,
+  hideProfileAvatar = false,
   children,
 }) => {
   const { profile, signOut } = useAuth();
@@ -239,34 +240,36 @@ export const AppShell = ({
             )}
 
             {/* Mobile Profile Icon (left edge beside title) */}
-            <div className="sm:hidden shrink-0">
-              {profilePath ? (
-                <Link
-                  to={profilePath}
-                  className="block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-                  title={`Signed in as ${displayName}`}
-                >
-                  <Avatar
-                    src={profile?.avatar}
-                    name={displayName}
-                    size={36}
-                    shape="circle"
-                  />
-                </Link>
-              ) : (
-                <div
-                  className="block rounded-full"
-                  title={`Signed in as ${displayName}`}
-                >
-                  <Avatar
-                    src={profile?.avatar}
-                    name={displayName}
-                    size={36}
-                    shape="circle"
-                  />
-                </div>
-              )}
-            </div>
+            {!hideProfileAvatar && (
+              <div className="sm:hidden shrink-0">
+                {profilePath ? (
+                  <Link
+                    to={profilePath}
+                    className="block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                    title={`Signed in as ${displayName}`}
+                  >
+                    <Avatar
+                      src={profile?.avatar}
+                      name={displayName}
+                      size={36}
+                      shape="circle"
+                    />
+                  </Link>
+                ) : (
+                  <div
+                    className="block rounded-full"
+                    title={`Signed in as ${displayName}`}
+                  >
+                    <Avatar
+                      src={profile?.avatar}
+                      name={displayName}
+                      size={36}
+                      shape="circle"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="truncate">
               <h1 className="text-[20px] sm:text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] leading-tight truncate">
@@ -297,31 +300,35 @@ export const AppShell = ({
             <ThemeToggle />
 
             {/* Mobile Logout Button (in place of profile pic on mobile) */}
-            <button
-              type="button"
-              onClick={() => setShowLogoutModal(true)}
-              className="sm:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--muted)] hover:text-[#D64550] flex items-center justify-center border border-[var(--line)] shadow-none transition-colors cursor-pointer active:scale-95"
-              title="Sign out"
-              aria-label="Sign out"
-            >
-              <LogOut size={18} strokeWidth={1.7} />
-            </button>
+            {!hideProfileAvatar && (
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="sm:hidden w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--muted)] hover:text-[#D64550] flex items-center justify-center border border-[var(--line)] shadow-none transition-colors cursor-pointer active:scale-95"
+                title="Sign out"
+                aria-label="Sign out"
+              >
+                <LogOut size={18} strokeWidth={1.7} />
+              </button>
+            )}
 
             {/* Desktop Profile Avatar Pill / Tile */}
-            <div
-              className="hidden sm:flex h-10 items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--line)] select-none"
-              title={`Signed in as ${displayName}`}
-            >
-              <Avatar
-                src={profile?.avatar}
-                name={displayName}
-                size={32}
-                shape="circle"
-              />
-              <span className="text-[13px] font-medium text-[var(--text)] truncate max-w-[120px]">
-                {displayName}
-              </span>
-            </div>
+            {!hideProfileAvatar && (
+              <div
+                className="hidden sm:flex h-10 items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--line)] select-none"
+                title={`Signed in as ${displayName}`}
+              >
+                <Avatar
+                  src={profile?.avatar}
+                  name={displayName}
+                  size={32}
+                  shape="circle"
+                />
+                <span className="text-[13px] font-medium text-[var(--text)] truncate max-w-[120px]">
+                  {displayName}
+                </span>
+              </div>
+            )}
 
             {headerAction}
           </div>
