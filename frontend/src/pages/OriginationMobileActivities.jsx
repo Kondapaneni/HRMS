@@ -185,39 +185,107 @@ const OriginationMobileActivities = () => {
     return eventsByDate.get(key) || [];
   }, [selectedDate, eventsByDate]);
 
-  // Filtered all events
-  const filteredAllEvents = useMemo(() => {
-    let result = rawEvents;
-    if (statusFilter === 'Today') {
-      const todayStr = format(new Date(), 'yyyy-MM-dd');
-      result = result.filter(e => e.startDate === todayStr);
-    } else if (statusFilter === 'Pending') {
-      result = result.filter(e => e.status !== 'Completed');
-    } else if (statusFilter === 'Completed') {
-      result = result.filter(e => e.status === 'Completed');
-    } else if (statusFilter === 'Urgent') {
-      result = result.filter(e => e.priority === 'Urgent' || e.priority === 'High');
-    }
+  // Chronologically ordered sections by Date, Time, and Status for the selected month
+  const monthListSections = useMemo(() => {
+    const monthKey = format(currentDate, 'yyyy-MM');
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
 
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase().trim();
-      result = result.filter(e => 
-        e.title?.toLowerCase().includes(q) ||
-        e.notes?.toLowerCase().includes(q) ||
-        e.address?.toLowerCase().includes(q)
-      );
-    }
+    // 1. Filter events within the selected month (plus search & status filters)
+    const monthEvents = rawEvents.filter(evt => {
+      if (!evt.startDate) return false;
+      const dKey = typeof evt.startDate === 'string' ? evt.startDate.split('T')[0] : '';
+      if (!dKey.startsWith(monthKey)) return false;
 
-    // Sort by Date ascending, then Time ascending
-    return [...result].sort((a, b) => {
+      // Status chip filter
+      if (statusFilter === 'Today' && dKey !== todayStr) return false;
+      if (statusFilter === 'Pending' && evt.status === 'Completed') return false;
+      if (statusFilter === 'Completed' && evt.status !== 'Completed') return false;
+      if (statusFilter === 'Urgent' && evt.priority !== 'Urgent' && evt.priority !== 'High') return false;
+
+      // Search term
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase().trim();
+        const titleMatch = evt.title?.toLowerCase().includes(q);
+        const notesMatch = evt.notes?.toLowerCase().includes(q);
+        const addressMatch = evt.address?.toLowerCase().includes(q);
+        if (!titleMatch && !notesMatch && !addressMatch) return false;
+      }
+
+      return true;
+    });
+
+    // 2. Strict sort function: Date ascending, then Time ascending
+    const sortByDateTime = (a, b) => {
       const dateA = typeof a.startDate === 'string' ? a.startDate.split('T')[0] : '';
       const dateB = typeof b.startDate === 'string' ? b.startDate.split('T')[0] : '';
       if (dateA !== dateB) return dateA.localeCompare(dateB);
       const timeA = a.startTime || '00:00';
       const timeB = b.startTime || '00:00';
       return timeA.localeCompare(timeB);
+    };
+
+    const pending = [];
+    const upcoming = [];
+    const completed = [];
+
+    monthEvents.forEach(evt => {
+      if (evt.status === 'Completed') {
+        completed.push(evt);
+        return;
+      }
+
+      const dKey = typeof evt.startDate === 'string' ? evt.startDate.split('T')[0] : '';
+      if (dKey <= todayStr) {
+        pending.push(evt);
+      } else {
+        upcoming.push(evt);
+      }
     });
-  }, [rawEvents, statusFilter, searchTerm]);
+
+    pending.sort(sortByDateTime);
+    upcoming.sort(sortByDateTime);
+    completed.sort(sortByDateTime);
+
+    const sections = [];
+
+    if (pending.length > 0) {
+      sections.push({
+        id: 'pending',
+        title: 'Pending & Due Tasks',
+        badge: `${pending.length} Pending`,
+        badgeStyle: 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B]',
+        dotColor: '#131315',
+        items: pending,
+      });
+    }
+
+    if (upcoming.length > 0) {
+      sections.push({
+        id: 'upcoming',
+        title: 'Upcoming Schedule',
+        badge: `${upcoming.length} Upcoming`,
+        badgeStyle: 'bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)]',
+        dotColor: '#71717A',
+        items: upcoming,
+      });
+    }
+
+    if (completed.length > 0) {
+      sections.push({
+        id: 'completed',
+        title: 'Completed Activities',
+        badge: `${completed.length} Completed`,
+        badgeStyle: 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)]',
+        dotColor: '#A1A1AA',
+        items: completed,
+      });
+    }
+
+    return {
+      totalInMonth: monthEvents.length,
+      sections,
+    };
+  }, [rawEvents, currentDate, statusFilter, searchTerm]);
 
   const formatEventTime = (evt) => {
     if (evt.allDay) return 'All Day';
@@ -336,23 +404,21 @@ const OriginationMobileActivities = () => {
                 : 'text-[var(--muted)]'
             }`}
           >
-            All Tasks ({rawEvents.length})
+            All Tasks ({monthListSections.totalInMonth})
           </button>
         </div>
 
-        {mobileTab === 'calendar' && (
-          <button
-            type="button"
-            onClick={() => {
-              const now = new Date();
-              setCurrentDate(now);
-              setSelectedDate(now);
-            }}
-            className="px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] text-xs font-semibold text-[var(--text)] shadow-2xs hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
-          >
-            Today
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            const now = new Date();
+            setCurrentDate(now);
+            setSelectedDate(now);
+          }}
+          className="px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] text-xs font-semibold text-[var(--text)] shadow-2xs hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+        >
+          Today
+        </button>
       </div>
 
       {/* TAB 1: Calendar Experience */}
@@ -422,7 +488,7 @@ const OriginationMobileActivities = () => {
             </div>
           </div>
 
-          {/* Agenda of Selected Day */}
+          {/* Agenda of Selected Day (Without duplicate "+ Add task" link) */}
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
               <div>
@@ -433,16 +499,6 @@ const OriginationMobileActivities = () => {
                   {selectedDateEvents.length} Tasks Scheduled
                 </p>
               </div>
-
-              {!isBefore(selectedDate, startOfDay(new Date())) && (
-                <button
-                  type="button"
-                  onClick={() => setViewMode('create')}
-                  className="text-xs font-semibold text-[var(--text)] hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus size={13} /> Add task
-                </button>
-              )}
             </div>
 
             {selectedDateEvents.length === 0 ? (
@@ -527,9 +583,38 @@ const OriginationMobileActivities = () => {
         </div>
       )}
 
-      {/* TAB 2: All Tasks List with Search & Filters */}
+      {/* TAB 2: All Tasks List - Organized Chronologically by Date, Time, and Status */}
       {mobileTab === 'all' && (
         <div className="space-y-3.5">
+          {/* Month Switcher Header in List Tab */}
+          <div className="flex items-center justify-between pb-1 px-1">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentDate(prev => subMonths(prev, 1))}
+                className="w-7 h-7 rounded-full border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                title="Previous Month"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentDate(prev => addMonths(prev, 1))}
+                className="w-7 h-7 rounded-full border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                title="Next Month"
+              >
+                <ChevronRight size={15} />
+              </button>
+              <span className="text-xs font-semibold text-[var(--muted)] ml-1">
+                {monthListSections.totalInMonth} {monthListSections.totalInMonth === 1 ? 'Task' : 'Tasks'}
+              </span>
+            </div>
+
+            <h3 className="text-sm font-bold text-[var(--text)] tracking-tight">
+              {format(currentDate, 'MMMM yyyy')}
+            </h3>
+          </div>
+
           <SearchBar
             placeholder="Search activities by title, notes, location..."
             value={searchTerm}
@@ -555,58 +640,92 @@ const OriginationMobileActivities = () => {
             ))}
           </div>
 
-          {filteredAllEvents.length === 0 ? (
+          {monthListSections.totalInMonth === 0 ? (
             <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center space-y-2">
-              <p className="text-sm font-bold text-[var(--text)]">No activities found</p>
-              <p className="text-xs text-[var(--muted)]">Try adjusting your search or filters.</p>
+              <p className="text-sm font-bold text-[var(--text)]">
+                No activities for {format(currentDate, 'MMMM yyyy')}
+              </p>
+              <p className="text-xs text-[var(--muted)]">Try adjusting your filters or search query.</p>
             </div>
           ) : (
-            <div className="space-y-2.5">
-              {filteredAllEvents.map(evt => {
-                const isCompleted = evt.status === 'Completed';
-
-                return (
-                  <div
-                    key={evt.id}
-                    onClick={() => setSelectedEvent(evt)}
-                    className={`bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer space-y-2.5 ${getEventPillStyle(evt)}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 min-w-0 flex-1">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleMutation.mutate({ id: evt.id, status: evt.status });
-                          }}
-                          className={`w-8 h-8 rounded-full font-semibold text-xs flex items-center justify-center shrink-0 border transition-all mt-0.5 ${
-                            isCompleted
-                              ? 'bg-[#131315] text-white border-[#131315] dark:bg-[#F4F4F6] dark:text-[#18181B]'
-                              : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)]'
-                          }`}
-                        >
-                          {isCompleted ? <Check size={14} strokeWidth={2.5} /> : <Circle size={14} />}
-                        </button>
-
-                        <div className="min-w-0 flex-1 space-y-0.5">
-                          <h4 className={`text-sm font-semibold truncate ${isCompleted ? 'line-through text-[var(--muted)]' : 'text-[var(--text)]'}`}>
-                            {evt.title}
-                          </h4>
-                          <div className="flex items-center gap-2 text-[11px] text-[var(--muted)]">
-                            <span>{evt.startDate}</span>
-                            <span>&bull;</span>
-                            <span>{formatEventTime(evt)}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="shrink-0">
-                        {getPriorityBadge(evt.priority)}
-                      </div>
+            <div className="space-y-4">
+              {monthListSections.sections.map((section) => (
+                <div key={section.id} className="space-y-2.5">
+                  {/* Section Title & Status Badge */}
+                  <div className="flex items-center justify-between pb-1.5 border-b border-[var(--line)]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: section.dotColor }} />
+                      <h4 className="text-xs font-bold text-[var(--text)]">
+                        {section.title}
+                      </h4>
                     </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${section.badgeStyle}`}>
+                      {section.badge}
+                    </span>
                   </div>
-                );
-              })}
+
+                  {/* Section Items List - Ordered date-wise then time-wise */}
+                  <div className="space-y-2.5">
+                    {section.items.map(evt => {
+                      const isCompleted = evt.status === 'Completed';
+
+                      return (
+                        <div
+                          key={evt.id}
+                          onClick={() => setSelectedEvent(evt)}
+                          className={`bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer space-y-2.5 ${getEventPillStyle(evt)}`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMutation.mutate({ id: evt.id, status: evt.status });
+                                }}
+                                className={`w-8 h-8 rounded-full font-semibold text-xs flex items-center justify-center shrink-0 border transition-all mt-0.5 ${
+                                  isCompleted
+                                    ? 'bg-[#131315] text-white border-[#131315] dark:bg-[#F4F4F6] dark:text-[#18181B]'
+                                    : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)]'
+                                }`}
+                              >
+                                {isCompleted ? <Check size={14} strokeWidth={2.5} /> : <Circle size={14} />}
+                              </button>
+
+                              <div className="min-w-0 flex-1 space-y-0.5">
+                                <h4 className={`text-sm font-semibold truncate ${isCompleted ? 'line-through text-[var(--muted)]' : 'text-[var(--text)]'}`}>
+                                  {evt.title}
+                                </h4>
+                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--muted)]">
+                                  <span className="font-medium text-[var(--text)]">{evt.startDate}</span>
+                                  <span>&bull;</span>
+                                  <span>{formatEventTime(evt)}</span>
+                                  {evt.address && (
+                                    <>
+                                      <span>&bull;</span>
+                                      <span className="truncate max-w-[140px]">{evt.address}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="shrink-0">
+                              {getPriorityBadge(evt.priority)}
+                            </div>
+                          </div>
+
+                          {evt.notes && (
+                            <div className="text-[11px] text-[var(--muted)] line-clamp-1 italic bg-[var(--surface-alt)] px-2.5 py-1 rounded-[8px]">
+                              "{evt.notes}"
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
