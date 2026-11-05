@@ -430,8 +430,8 @@ const EmployeeMobileDashboard = () => {
 
             {hasTrainingVideos && (
               <Link to="/employee/training" className="flex flex-col items-center gap-1.5 group">
-                <div className="w-13 h-13 rounded-[14px] bg-[var(--status-danger-bg)] border border-[var(--status-danger-text)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
-                  <Play className="w-5 h-5 text-[var(--status-danger-text)]" />
+                <div className="w-13 h-13 rounded-[14px] bg-[var(--training-tint)] border border-[var(--training)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
+                  <Play className="w-5 h-5 text-[var(--training-deep)]" />
                 </div>
                 <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Training</span>
               </Link>

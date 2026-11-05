@@ -22,6 +22,9 @@
   --branch: #14B8A6;
   --branch-deep: #0D9488;
   --branch-tint: #F0FDFA;
+  --training: #F0707A;
+  --training-deep: #D64550;
+  --training-tint: #FDE8EA;
 
   /* Neutrals */
   --bg: #ECECEE;
@@ -57,6 +60,23 @@
   --badge-info-text: var(--info-text);
   --badge-neutral-bg: var(--neutral-bg);
   --badge-neutral-text: var(--neutral-text);
+
+  /* Status aliases */
+  --status-success: var(--success-text);
+  --status-success-text: var(--success-text);
+  --status-success-bg: var(--success-bg);
+  --status-warning: var(--warning-text);
+  --status-warning-text: var(--warning-text);
+  --status-warning-bg: var(--warning-bg);
+  --status-danger: var(--danger-text);
+  --status-danger-text: var(--danger-text);
+  --status-danger-bg: var(--danger-bg);
+  --status-info: var(--info-text);
+  --status-info-text: var(--info-text);
+  --status-info-bg: var(--info-bg);
+  --status-neutral: var(--neutral-text);
+  --status-neutral-text: var(--neutral-text);
+  --status-neutral-bg: var(--neutral-bg);
 
   /* Scrollbar */
   --scrollbar-thumb: #D9D9DE;
@@ -111,12 +131,29 @@
 
   --brand-tint: #23262E;
   --accent-pink-tint: #2A1F29;
-    --branch: #2DD4BF;
-    --branch-deep: #2DD4BF;
-    --branch-tint: #132D29;
   --branch: #2DD4BF;
   --branch-deep: #2DD4BF;
   --branch-tint: #132D29;
+  --training: #F0707A;
+  --training-deep: #F0707A;
+  --training-tint: #3A1519;
+
+  /* Status aliases */
+  --status-success: var(--success-text);
+  --status-success-text: var(--success-text);
+  --status-success-bg: var(--success-bg);
+  --status-warning: var(--warning-text);
+  --status-warning-text: var(--warning-text);
+  --status-warning-bg: var(--warning-bg);
+  --status-danger: var(--danger-text);
+  --status-danger-text: var(--danger-text);
+  --status-danger-bg: var(--danger-bg);
+  --status-info: var(--info-text);
+  --status-info-text: var(--info-text);
+  --status-info-bg: var(--info-bg);
+  --status-neutral: var(--neutral-text);
+  --status-neutral-text: var(--neutral-text);
+  --status-neutral-bg: var(--neutral-bg);
 
   --scrollbar-thumb: #3A3A40;
   --scrollbar-thumb-hover: #52525A;
@@ -158,6 +195,29 @@
 
     --brand-tint: #23262E;
     --accent-pink-tint: #2A1F29;
+    --branch: #2DD4BF;
+    --branch-deep: #2DD4BF;
+    --branch-tint: #132D29;
+    --training: #F0707A;
+    --training-deep: #F0707A;
+    --training-tint: #3A1519;
+
+    /* Status aliases */
+    --status-success: var(--success-text);
+    --status-success-text: var(--success-text);
+    --status-success-bg: var(--success-bg);
+    --status-warning: var(--warning-text);
+    --status-warning-text: var(--warning-text);
+    --status-warning-bg: var(--warning-bg);
+    --status-danger: var(--danger-text);
+    --status-danger-text: var(--danger-text);
+    --status-danger-bg: var(--danger-bg);
+    --status-info: var(--info-text);
+    --status-info-text: var(--info-text);
+    --status-info-bg: var(--info-bg);
+    --status-neutral: var(--neutral-text);
+    --status-neutral-text: var(--neutral-text);
+    --status-neutral-bg: var(--neutral-bg);
 
     --scrollbar-thumb: #3A3A40;
     --scrollbar-thumb-hover: #52525A;
@@ -188,6 +248,9 @@
   --color-branch: var(--branch);
   --color-branch-deep: var(--branch-deep);
   --color-branch-tint: var(--branch-tint);
+  --color-training: var(--training);
+  --color-training-deep: var(--training-deep);
+  --color-training-tint: var(--training-tint);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);
