@@ -24,7 +24,10 @@ export const SearchBar = React.forwardRef(({
   type = 'search',
   ...props
 }, ref) => {
-  const isLoading = loading || isFetching;
+  // Only show the spinner when there is an active search term driving the fetch.
+  // Background refetches triggered by navigation (refetchOnMount) must not show
+  // the spinner on an otherwise idle, empty search bar.
+  const isLoading = (loading || isFetching) && Boolean(value);
   const wrapperClass = wrapperClassName || containerClassName;
   const hasClear = Boolean(onClear && value);
 
