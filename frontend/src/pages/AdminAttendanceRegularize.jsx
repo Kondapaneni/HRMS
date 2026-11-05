@@ -546,7 +546,7 @@ const AdminAttendanceRegularize = () => {
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="h-8 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] px-3 py-1 text-xs pl-8 outline-none focus:ring-2 focus:ring-[var(--brand)] text-[var(--text)] cursor-pointer"
+                  className="h-8 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 py-1 text-xs pl-8 outline-none focus:ring-2 focus:ring-[var(--brand)] text-[var(--text)] cursor-pointer"
                 />
               </div>
               <button

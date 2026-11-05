@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
+import SearchBar from '../components/ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -342,16 +343,12 @@ const AdminPayroll = () => {
             </div>
           </div>
           
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-            <input 
-              type="search" 
-              placeholder="Search by employee name or code..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
-            />
-          </div>
+          <SearchBar
+            placeholder="Search by employee name or code..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            wrapperClassName="w-full sm:w-80"
+          />
         </div>
 
         {/* Table Content */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Shield, 
   Edit2, 
@@ -330,20 +331,13 @@ const AdminAssets = () => {
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             {/* Search */}
-            <div className="relative w-full sm:w-72">
-              {assetsFetching ? (
-                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-              ) : (
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-              )}
-              <input
-                type="search"
-                placeholder="Search asset, S/N, employee..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
-              />
-            </div>
+            <SearchBar
+              placeholder="Search asset, S/N, employee..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              isFetching={assetsFetching}
+              wrapperClassName="w-full sm:w-72"
+            />
           </div>
         </div>
 
@@ -536,16 +530,12 @@ const AdminAssets = () => {
             <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-xs">
               {modalMode === 'assign' ? (
                 <>
-                  <div className="relative mb-2">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-                    <input
-                      type="search"
-                      placeholder="Search employee by name, ID, or email..."
-                      value={modalSearch}
-                      onChange={(e) => setModalSearch(e.target.value)}
-                      className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
-                    />
-                  </div>
+                  <SearchBar
+                    placeholder="Search employee by name, ID, or email..."
+                    value={modalSearch}
+                    onChange={(e) => setModalSearch(e.target.value)}
+                    wrapperClassName="mb-2"
+                  />
 
                   {/* Unassign Option */}
                   {(selectedAsset?.employee_id || selectedAsset?.assigned_to) && (

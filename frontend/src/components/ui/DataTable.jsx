@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown } from 'lucide-react';
+import SearchBar from './SearchBar';
 import StatusBadge from './StatusBadge';
 import Button from './Button';
 
@@ -141,20 +142,12 @@ export const DataTable = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex flex-wrap items-center gap-2 flex-1">
             {searchable && (
-              <div className="relative w-full sm:w-64">
-                <Search
-                  size={15}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--icon-muted)]"
-                  strokeWidth={1.7}
-                />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  placeholder={searchPlaceholder}
-                  className="w-full h-[36px] pl-9 pr-3 text-[13px] bg-[var(--surface-alt)] text-[var(--text)] rounded-full border border-[var(--line)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-tint)] transition-all"
-                />
-              </div>
+              <SearchBar
+                placeholder={searchPlaceholder}
+                value={searchTerm}
+                onChange={handleSearchChange}
+                wrapperClassName="w-full sm:w-64"
+              />
             )}
             {filterChips?.map((chip) => (
               <button

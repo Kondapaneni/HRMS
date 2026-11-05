@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { Calendar, CheckCircle2, XCircle, Clock, Search, User, Check, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { StatCard, StatusBadge, Button, Avatar } from '../components/ui';
+import { StatCard, StatusBadge, Button, Avatar, SearchBar } from '../components/ui';
 
 const AdminLeaves = () => {
   const { profile } = useAuth();
@@ -142,20 +142,13 @@ const AdminLeaves = () => {
           </div>
           
           {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-            ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-            )}
-            <input 
-              type="search" 
-              placeholder="Search by employee name or code..." 
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
-            />
-          </div>
+          <SearchBar
+            placeholder="Search by employee name or code..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            isFetching={isFetching}
+            wrapperClassName="w-full sm:w-72"
+          />
         </div>
 
         <div className="overflow-x-auto custom-scrollbar min-h-[300px] relative">

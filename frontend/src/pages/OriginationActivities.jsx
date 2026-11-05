@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Calendar as CalendarIcon, 
   Search, 
@@ -525,16 +526,12 @@ const OriginationActivities = () => {
           {/* Search & Priority Filter Toolbar */}
           <div className="p-4 border-b border-[var(--line)] flex flex-col md:flex-row items-center justify-between gap-3 bg-[var(--surface)]">
             {/* Search Box */}
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-              <input
-                type="search"
-                placeholder={isBranchOperations ? "Search task, assignee, remarks..." : "Search tasks, address, remarks..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
-              />
-            </div>
+            <SearchBar
+              placeholder={isBranchOperations ? "Search task, assignee, remarks..." : "Search tasks, address, remarks..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              wrapperClassName="w-full md:w-80"
+            />
 
             {/* Filters Area */}
             <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">

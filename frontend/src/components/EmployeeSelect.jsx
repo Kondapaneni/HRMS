@@ -44,7 +44,7 @@ const EmployeeSelect = ({ employees: initialEmployees, selectedId, onChange, pla
           )}
           <ComboboxInput
             type="search"
-            className="w-full rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] py-2 pl-10 pr-8 text-xs text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
+            className="w-full rounded-full bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] py-2 pl-10 pr-8 text-xs text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
             displayValue={(emp) => emp ? `${emp.firstName} ${emp.lastName} (${emp.employeeId})` : ''}
             onChange={(event) => {
               setQuery(event.target.value);

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Play, 
   CheckCircle2, 
@@ -367,24 +368,12 @@ const EmployeeTrainingVideos = () => {
                 </div>
 
                 {/* Search Bar */}
-                <div className="relative">
-                  <Search className="w-4 h-4 text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search video modules..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)] hover:text-[var(--text)]"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
+                <SearchBar
+                  placeholder="Search video modules..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onClear={() => setSearchQuery('')}
+                />
 
                 {/* Filter Pills */}
                 <div className="flex items-center gap-1.5 pt-0.5">
@@ -506,16 +495,13 @@ const EmployeeTrainingVideos = () => {
           <div className="space-y-4">
             {/* Search & Filter Bar for Grid */}
             <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="relative w-full sm:w-80">
-                <Search className="w-4 h-4 text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search training modules..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all"
-                />
-              </div>
+              <SearchBar
+                placeholder="Search training modules..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClear={() => setSearchQuery('')}
+                wrapperClassName="w-full sm:w-80"
+              />
 
               <div className="flex items-center gap-2">
                 <button

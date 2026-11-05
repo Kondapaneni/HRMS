@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
+import SearchBar from '../components/ui/SearchBar';
 import {
   FileText,
   Search,
@@ -252,20 +253,13 @@ const AdminAuditLogs = () => {
         {/* Toolbar */}
         <div className="p-4 border-b border-[var(--line)] bg-[var(--surface-alt)] flex flex-col lg:flex-row gap-3 items-center justify-between">
           {/* Search Box */}
-          <div className="relative w-full lg:w-80 shrink-0">
-            {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-            ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-            )}
-            <input
-              type="search"
-              placeholder="Search actor or target name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
-            />
-          </div>
+          <SearchBar
+            placeholder="Search actor or target name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            isFetching={isFetching}
+            wrapperClassName="w-full lg:w-80 shrink-0"
+          />
 
           {/* Filters Row */}
           <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">

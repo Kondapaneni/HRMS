@@ -139,7 +139,7 @@ export const MultiSelectField = React.memo(({
 
         {isOpen && (
           <div className="absolute z-50 left-0 right-0 mt-1 bg-[var(--surface)] border border-[var(--line)] rounded-[14px] shadow-[var(--shadow-modal)] overflow-hidden">
-            <div className="p-2 border-b border-[var(--line)] flex items-center gap-2 bg-[var(--surface-alt)]">
+            <div className="p-2 border-b border-[var(--line)] flex items-center gap-2 bg-[var(--surface)]">
               <Search size={14} className="text-[var(--icon-muted)]" />
               <input
                 type="text"

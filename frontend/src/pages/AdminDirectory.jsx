@@ -6,6 +6,7 @@ import { Tree, TreeNode } from 'react-organizational-chart';
 import { Search, Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../components/ui/Avatar';
+import SearchBar from '../components/ui/SearchBar';
 
 const AdminDirectory = () => {
   const [search, setSearch] = useState('');
@@ -230,16 +231,12 @@ const AdminDirectory = () => {
         </div>
 
         {/* Search Pill */}
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-          <input
-            type="search"
-            placeholder="Search by name, role, dept, or ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
-          />
-        </div>
+        <SearchBar
+          placeholder="Search by name, role, dept, or ID..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          wrapperClassName="w-full sm:w-80"
+        />
       </div>
 
       {/* Main Canvas */}

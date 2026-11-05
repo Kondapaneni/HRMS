@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import SearchBar from '../components/ui/SearchBar';
 import {
   Award, 
   Search, 
@@ -222,20 +223,13 @@ const AssessmentResults = () => {
         
         {/* Table Filters Toolbar */}
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
-          <div className="relative w-full md:w-80 shrink-0">
-            {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-            ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-            )}
-            <input
-              type="search"
-              placeholder="Search employee, email, code or test..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-full text-[13px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
-            />
-          </div>
+          <SearchBar
+            placeholder="Search employee, email, code or test..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            isFetching={isFetching}
+            wrapperClassName="w-full md:w-80 shrink-0"
+          />
 
           {/* Filter Dropdowns */}
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">

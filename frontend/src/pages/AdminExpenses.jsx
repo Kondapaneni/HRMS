@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Loader2, 
   CheckCircle2, 
@@ -254,20 +255,13 @@ const AdminExpenses = () => {
             </select>
 
             {/* Search */}
-            <div className="relative w-full sm:w-72">
-              {isFetching ? (
-                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-              ) : (
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-              )}
-              <input
-                type="search"
-                placeholder="Search employee, title, category..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
-              />
-            </div>
+            <SearchBar
+              placeholder="Search employee, title, category..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              isFetching={isFetching}
+              wrapperClassName="w-full sm:w-72"
+            />
           </div>
         </div>
 

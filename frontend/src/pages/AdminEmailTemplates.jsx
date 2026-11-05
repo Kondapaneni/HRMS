@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Mail, 
   ArrowLeft, 
@@ -265,16 +266,11 @@ const AdminEmailTemplates = () => {
           </div>
 
           {/* Search Box */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-            <input
-              type="search"
-              placeholder="Search templates..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
-            />
-          </div>
+          <SearchBar
+            placeholder="Search templates..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
 
           {/* Templates Cards List */}
           <div className="space-y-2 max-h-[620px] overflow-y-auto custom-scrollbar pr-1">

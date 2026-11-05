@@ -13,4 +13,5 @@ export { EmptyState } from './EmptyState';
 export { Skeleton } from './Skeleton';
 export { Timeline } from './Timeline';
 export { ThemeToggle } from './ThemeToggle';
+export { SearchBar } from './SearchBar';
 

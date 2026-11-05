@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import SearchBar from '../components/ui/SearchBar';
 import { getSalesLeads } from '../services/salesServices';
 import { 
   Search, 
@@ -104,25 +105,12 @@ const OriginationMobileSaleMemberList = () => {
       <div className="relative z-20 space-y-3.5">
 
         {/* Search Box */}
-        <div className="bg-[var(--surface)] rounded-full border border-[var(--line)] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
-          <Search className="w-4 h-4 text-[var(--icon-muted)] shrink-0" />
-          <input
-            type="text"
-            placeholder="Search members by name, phone, address..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-xs font-normal bg-transparent border-none outline-none text-[var(--text)] placeholder:text-[var(--muted)] pr-1"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm('')}
-              className="p-1 rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)] shrink-0 cursor-pointer transition-colors"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
+        <SearchBar
+          placeholder="Search members by name, phone, address..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onClear={() => setSearchTerm('')}
+        />
 
         {/* 3. Members Card List */}
         <div className="space-y-3">

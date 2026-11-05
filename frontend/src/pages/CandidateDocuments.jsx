@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import SearchBar from '../components/ui/SearchBar';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -315,25 +316,13 @@ const CandidateDocuments = () => {
             </div>
 
             {/* Search Box */}
-            <div className="relative w-full lg:w-72">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
-              <input
-                type="text"
-                placeholder="Search document name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-8 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full focus:outline-none focus:border-[var(--brand)] focus:bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--muted)] transition-all"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--text)]"
-                >
-                  <X size={13} />
-                </button>
-              )}
-            </div>
+            <SearchBar
+              placeholder="Search document name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={() => setSearchQuery('')}
+              wrapperClassName="w-full lg:w-72"
+            />
           </div>
 
           {/* Checklist Table Container */}

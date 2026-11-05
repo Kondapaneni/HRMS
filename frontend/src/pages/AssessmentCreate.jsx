@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import SearchBar from '../components/ui/SearchBar';
 import {
   ArrowLeft,
   ArrowRight, 
@@ -347,16 +348,12 @@ const AssessmentCreate = () => {
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted)]" />
-                <input
-                  type="search"
-                  placeholder="Search question text..."
-                  value={questionSearch}
-                  onChange={e => setQuestionSearch(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 text-[12px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
-                />
-              </div>
+              <SearchBar
+                placeholder="Search question text..."
+                value={questionSearch}
+                onChange={e => setQuestionSearch(e.target.value)}
+                wrapperClassName="w-full sm:w-64"
+              />
 
               <Button
                 type="button"
@@ -502,16 +499,12 @@ const AssessmentCreate = () => {
 
           {/* Search & Actions Bar */}
           <div className="rounded-[24px] bg-[var(--surface)] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="relative w-full sm:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted)]" />
-              <input
-                type="search"
-                placeholder="Search employees by name, email or code..."
-                value={searchEmployee}
-                onChange={e => setSearchEmployee(e.target.value)}
-                className="w-full h-9 pl-9 pr-3.5 text-[12px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
-              />
-            </div>
+            <SearchBar
+              placeholder="Search employees by name, email or code..."
+              value={searchEmployee}
+              onChange={e => setSearchEmployee(e.target.value)}
+              wrapperClassName="w-full sm:w-80"
+            />
 
             <div className="flex items-center gap-3 text-[12px]">
               <span className="font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-3 py-1 rounded-full">

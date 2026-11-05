@@ -64,7 +64,7 @@ const GlobalSearch = () => {
         onFocus={() => {
           if (query.trim()) setIsOpen(true);
         }}
-        className="pl-10 pr-10 py-2 w-80 lg:w-[420px] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-xs font-normal text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
+        className="pl-10 pr-10 py-2 w-80 lg:w-[420px] bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-xs font-normal text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
       />
       
       {isFetching && (

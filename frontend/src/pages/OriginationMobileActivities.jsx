@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Calendar as CalendarIcon, 
   Search, 
@@ -420,25 +421,12 @@ const OriginationMobileActivities = () => {
       <div className="relative z-20 mx-0.5 space-y-3.5">
 
         {/* Search Box */}
-        <div className="bg-[var(--surface)] rounded-full border border-[var(--line)] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
-          <Search className="w-4.5 h-4.5 text-[var(--muted)] shrink-0" />
-          <input
-            type="text"
-            placeholder="Search activities by title, notes, location..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[var(--text)] placeholder:text-[var(--muted)] placeholder:text-[13px] pr-1"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm('')}
-              className="p-1 rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)] shrink-0 cursor-pointer transition-colors"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
+        <SearchBar
+          placeholder="Search activities by title, notes, location..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onClear={() => setSearchTerm('')}
+        />
 
         {/* Horizontal Scrollable Status Filter Chips */}
         <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">

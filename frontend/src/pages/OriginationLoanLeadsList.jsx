@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import SearchBar from '../components/ui/SearchBar';
 import { getLeads } from '../services/loanServices';
 import { 
   Search, 
@@ -192,20 +193,13 @@ const OriginationLoanLeadsList = () => {
           </div>
 
           {/* Search Box */}
-          <div className="relative w-full lg:w-72 shrink-0">
-            {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-            ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-            )}
-            <input
-              type="search"
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
-              placeholder="Search by name, phone, loan type..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <SearchBar
+            placeholder="Search by name, phone, loan type..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            isFetching={isFetching}
+            wrapperClassName="w-full lg:w-72 shrink-0"
+          />
         </div>
 
         {/* Data Table */}

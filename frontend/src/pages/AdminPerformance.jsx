@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
+import SearchBar from '../components/ui/SearchBar';
 import { useQuery } from '@tanstack/react-query';
 import {
   Search,
@@ -170,20 +171,13 @@ const AdminPerformance = () => {
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full sm:w-80">
-          {isFetchingEmployees ? (
-            <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-          ) : (
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-          )}
-          <input
-            type="search"
-            placeholder="Search employee by name or ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
-          />
-        </div>
+        <SearchBar
+          placeholder="Search employee by name or ID..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          isFetching={isFetchingEmployees}
+          wrapperClassName="w-full sm:w-80"
+        />
       </div>
 
       {/* Employee Quick Roster Chips */}

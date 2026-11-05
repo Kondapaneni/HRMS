@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
+import SearchBar from '../components/ui/SearchBar';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -659,16 +660,12 @@ const AdminRecruitment = () => {
         <div className="space-y-[14px]">
           {/* Search & Filter Toolbar */}
           <div className="rounded-[24px] bg-[var(--surface)] p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="relative w-full lg:w-96">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-              <input 
-                type="search" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search candidates by name, email, or job..."
-                className="w-full h-10 pl-10 pr-4 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-full text-[13px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
-              />
-            </div>
+            <SearchBar
+              placeholder="Search candidates by name, email, or job..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              wrapperClassName="w-full lg:w-96"
+            />
 
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <select 

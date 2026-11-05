@@ -199,7 +199,7 @@ const AdminHolidays = () => {
                 type="month"
                 value={format(currentMonth, 'yyyy-MM')}
                 onChange={handleMonthChange}
-                className="h-8 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] px-3 py-1 text-xs pl-8 outline-none focus:ring-2 focus:ring-[var(--brand)] text-[var(--text)] cursor-pointer"
+                className="h-8 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 py-1 text-xs pl-8 outline-none focus:ring-2 focus:ring-[var(--brand)] text-[var(--text)] cursor-pointer"
               />
               {isFetching && (
                 <Loader2 className="w-3.5 h-3.5 text-[var(--brand-deep)] animate-spin ml-1.5 mr-0.5" />

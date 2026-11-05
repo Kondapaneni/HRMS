@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import SearchBar from '../components/ui/SearchBar';
 import {
   HelpCircle, 
   Plus, 
@@ -286,20 +287,13 @@ const DepartmentQuestionBank = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="relative w-full lg:w-72 shrink-0">
-            {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-            ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-            )}
-            <input
-              type="search"
-              placeholder="Search question text or options..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-full text-[13px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
-            />
-          </div>
+          <SearchBar
+            placeholder="Search question text or options..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            isFetching={isFetching}
+            wrapperClassName="w-full lg:w-72 shrink-0"
+          />
         </div>
 
         {/* Questions Table */}

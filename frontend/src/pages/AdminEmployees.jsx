@@ -9,6 +9,7 @@ import AddEmployeeModal from '../components/AddEmployeeModal';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 import Avatar from '../components/ui/Avatar';
+import SearchBar from '../components/ui/SearchBar';
 
 const AdminEmployees = () => {
   const [search, setSearch] = useState('');
@@ -111,18 +112,12 @@ const AdminEmployees = () => {
           </div>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-72">
-            {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-            ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-            )}
-            <input
-              type="search"
+          <form onSubmit={handleSearchSubmit} className="w-full sm:w-72">
+            <SearchBar
               placeholder="Search by name, role, email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
+              isFetching={isFetching}
             />
           </form>
         </div>

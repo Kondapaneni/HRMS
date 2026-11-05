@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Play, 
   ArrowLeft, 
@@ -347,25 +348,12 @@ const EmployeeMobileTrainingVideos = () => {
 
           {/* Search & Filter Bar */}
           <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-3 mx-0.5">
-            <div className="relative flex items-center">
-              <Search className="w-4 h-4 text-[var(--muted)] absolute left-4 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Search training modules..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-10 pr-9 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:bg-[var(--surface)] rounded-full text-xs font-medium text-[var(--text)] placeholder:[var(--muted)] outline-none transition-all shadow-2xs"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 p-1 text-[var(--muted)] hover:text-[var(--text)] rounded-full transition-colors cursor-pointer"
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
+            <SearchBar
+              placeholder="Search training modules..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={() => setSearchQuery('')}
+            />
 
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">

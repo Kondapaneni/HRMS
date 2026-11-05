@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Search, 
   CheckCircle2, 
@@ -392,20 +393,13 @@ const OriginationLoanApplicationsList = () => {
         {/* Search, Loan Type & Sort Toolbar */}
         <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
           {/* Search Box */}
-          <div className="relative w-full md:w-80">
-            {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-            ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
-            )}
-            <input
-              type="search"
-              placeholder="Search by name, phone, App ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
-            />
-          </div>
+          <SearchBar
+            placeholder="Search by name, phone, App ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            isFetching={isFetching}
+            wrapperClassName="w-full md:w-80"
+          />
 
           {/* Controls */}
           <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">

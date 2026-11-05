@@ -13,6 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
+import SearchBar from '../components/ui/SearchBar';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
@@ -177,20 +178,13 @@ const AdminAttendance = () => {
 
           <div className="flex flex-col sm:flex-row gap-2.5">
             {/* Search */}
-            <div className="relative w-full sm:w-64">
-              {isFetching ? (
-                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
-              ) : (
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
-              )}
-              <input
-                type="search"
-                placeholder="Search employees..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
-              />
-            </div>
+            <SearchBar
+              placeholder="Search employees..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              isFetching={isFetching}
+              wrapperClassName="w-full sm:w-64"
+            />
 
             {/* Date Picker */}
             <div className="flex items-center gap-1">

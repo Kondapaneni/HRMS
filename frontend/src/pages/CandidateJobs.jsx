@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
+import SearchBar from '../components/ui/SearchBar';
 import { 
   Search, 
   FileText, 
@@ -264,17 +265,12 @@ const CandidateJobs = () => {
               <label htmlFor="search" className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                 Search Roles
               </label>
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
-                <input
-                  id="search"
-                  type="search"
-                  placeholder="Job title, department, skill..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full h-10 pl-10 pr-4 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] text-xs text-[var(--text)] placeholder:text-[var(--muted)] focus:bg-[var(--surface)] focus:border-[var(--brand)] transition-all outline-none"
-                />
-              </div>
+              <SearchBar
+                id="search"
+                placeholder="Job title, department, skill..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
             </div>
 
             <div className="space-y-1.5 md:col-span-3">
