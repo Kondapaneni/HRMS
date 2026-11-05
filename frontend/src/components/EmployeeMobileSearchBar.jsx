@@ -15,7 +15,8 @@ import {
   ShoppingBag, 
   Building2, 
   Play,
-  Fingerprint
+  Fingerprint,
+  BarChart2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -93,6 +94,16 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         icon: Wallet,
         color: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]',
         keywords: ['payslip', 'salary', 'salary slip', 'compensation', 'earnings', 'deductions', 'payroll', 'wages']
+      },
+      {
+        id: 'performance',
+        title: 'My Performance & Analytics',
+        subtitle: 'View weekly velocity, attendance ratings & benchmarks',
+        category: 'Performance',
+        path: '/employee/performance',
+        icon: BarChart2,
+        color: 'bg-[var(--brand-tint)] text-[var(--brand-deep)]',
+        keywords: ['performance', 'analytics', 'velocity', 'productivity', 'hours', 'score', 'benchmark', 'peers']
       },
       {
         id: 'expenses-claims',

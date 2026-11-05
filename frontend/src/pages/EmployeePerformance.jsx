@@ -14,6 +14,7 @@ import {
   Line
 } from 'recharts';
 import api from '../api/axios';
+import EmployeeMobilePerformance from './EmployeeMobilePerformance';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   const themes = {
@@ -127,8 +128,15 @@ const EmployeePerformance = () => {
   }
 
   return (
-    <div className="space-y-6 pb-12 antialiased">
-      {/* Header Bar */}
+    <>
+      {/* Mobile Experience Render */}
+      <div className="md:hidden">
+        <EmployeeMobilePerformance />
+      </div>
+
+      {/* Web Desktop Experience */}
+      <div className="hidden md:block space-y-6 pb-12 antialiased">
+        {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -320,7 +328,8 @@ const EmployeePerformance = () => {
         )}
       </div>
 
-    </div>
+      </div>
+    </>
   );
 };
 

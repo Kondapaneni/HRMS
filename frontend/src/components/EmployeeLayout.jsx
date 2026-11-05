@@ -221,6 +221,7 @@ const EmployeeLayout = () => {
     { to: '/employee', label: 'Home', icon: Home, end: true },
     { to: '/employee/attendance', label: 'Attendance', icon: CalendarCheck },
     { to: '/employee/payroll', label: 'Pay', icon: IndianRupee },
+    { to: '/employee/performance', label: 'Performance', icon: BarChart2 },
     { to: '/employee/profile', label: 'Profile', icon: User },
   ];
 

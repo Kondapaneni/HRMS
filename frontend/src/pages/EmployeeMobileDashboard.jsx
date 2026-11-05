@@ -386,7 +386,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Business Apps Entry */}
-      {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canSalesOrigination || profile?.featureAccess?.canBranchOperations || hasTrainingVideos) && (
+      {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canSalesOrigination || profile?.featureAccess?.canBranchOperations) && (
         <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden p-5">
           <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--line)]">
             <div>
@@ -400,7 +400,7 @@ const EmployeeMobileDashboard = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 pt-1">
+          <div className="grid grid-cols-3 gap-2 pt-1">
             {profile?.featureAccess?.canLoanOrigination && (
               <Link to="/employee/loans/origination" className="flex flex-col items-center gap-1.5 group">
                 <div className="w-13 h-13 rounded-[14px] bg-[var(--brand-tint)] border border-[var(--brand)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
@@ -425,15 +425,6 @@ const EmployeeMobileDashboard = () => {
                   <Building2 className="w-5 h-5 text-[var(--branch-deep)]" />
                 </div>
                 <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Branch Ops</span>
-              </Link>
-            )}
-
-            {hasTrainingVideos && (
-              <Link to="/employee/training" className="flex flex-col items-center gap-1.5 group">
-                <div className="w-13 h-13 rounded-[14px] bg-[var(--training-tint)] border border-[var(--training)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
-                  <Play className="w-5 h-5 text-[var(--training-deep)]" />
-                </div>
-                <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Training</span>
               </Link>
             )}
           </div>
