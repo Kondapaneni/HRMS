@@ -87,7 +87,7 @@ export default function OriginationLoanForms() {
                 navigate(fromPath);
               }
             }}
-            className="inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-4 h-4 text-[var(--icon-muted)]" />
             <span>Back to {fromPath.includes('members') ? 'Members' : (isEditMode || fromPath.includes('view-application')) ? 'Application' : 'Applications'}</span>

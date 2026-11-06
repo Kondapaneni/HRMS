@@ -82,17 +82,17 @@ const EmployeeAssessmentCard = React.memo(({ assessment, onStart, todayStr }) =>
 
       <div className="p-4 bg-[var(--surface-alt)] border-t border-[var(--line)]">
         {assessment.attempts_used >= assessment.max_attempts && !inProgressId ? (
-          <button disabled className="w-full py-2.5 rounded-full-[14px] bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--muted)] font-semibold text-xs cursor-not-allowed">
+          <button disabled className="w-full py-2.5 rounded-full bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--muted)] font-semibold text-xs cursor-not-allowed">
             Max Attempts Reached
           </button>
         ) : isBlockedByDate ? (
-          <button disabled className="w-full py-2.5 rounded-full-[14px] bg-[#FDF3DC] text-[#B7791F] font-semibold text-xs cursor-not-allowed flex items-center justify-center gap-2">
+          <button disabled className="w-full py-2.5 rounded-full bg-[#FDF3DC] text-[#B7791F] font-semibold text-xs cursor-not-allowed flex items-center justify-center gap-2">
             <Calendar size={15} /> Scheduled for {assessment.assessment_date}
           </button>
         ) : (
           <button
             onClick={() => onStart(assessment.id, inProgressId)}
-            className={`w-full py-2.5 rounded-full-[14px] font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`w-full py-2.5 rounded-full font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer ${
               inProgressId 
                 ? 'bg-[#B7791F] hover:bg-[#9c6414] text-white'
                 : 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white'
@@ -282,7 +282,7 @@ const EmployeeAssessments = () => {
           <div className="pt-2">
             <button 
               onClick={() => navigate('/employee')}
-              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-xs rounded-full-[14px] transition-all cursor-pointer"
+              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-xs rounded-full transition-all cursor-pointer"
             >
               Return to Dashboard
             </button>

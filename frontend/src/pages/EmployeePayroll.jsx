@@ -268,7 +268,7 @@ const EmployeePayroll = () => {
                             <button 
                               type="button"
                               onClick={() => setSelectedPayslip(ps)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full-[14px] text-xs font-semibold bg-[var(--surface-alt)] border border-[var(--line)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[var(--surface-alt)] border border-[var(--line)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
                             >
                               <Eye className="w-3.5 h-3.5 text-[var(--muted)]" />
                               <span>View</span>
@@ -276,7 +276,7 @@ const EmployeePayroll = () => {
                             <button 
                               type="button"
                               onClick={() => handleDownload(ps)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full-[14px] text-xs font-semibold bg-[var(--brand-tint)] hover:bg-[var(--brand-tint)]/80 text-[var(--brand-deep)] transition-all cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[var(--brand-tint)] hover:bg-[var(--brand-tint)]/80 text-[var(--brand-deep)] transition-all cursor-pointer"
                             >
                               <Download className="w-3.5 h-3.5" />
                               <span>Download PDF</span>
@@ -419,14 +419,14 @@ const EmployeePayroll = () => {
               <button
                 type="button"
                 onClick={() => setSelectedPayslip(null)}
-                className="px-5 py-2 rounded-full-[14px] text-xs font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--line)] transition-all cursor-pointer"
+                className="px-5 py-2 rounded-full text-xs font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--line)] transition-all cursor-pointer"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={() => handleDownload(selectedPayslip)}
-                className="inline-flex items-center gap-2 px-6 py-2 rounded-full-[14px] text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] transition-all cursor-pointer shadow-none"
+                className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] transition-all cursor-pointer shadow-none"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download Official PDF</span>

@@ -527,7 +527,7 @@ const EmployeeAssessmentEngine = () => {
                 <button
                   type="button"
                   onClick={() => setShowSubmitModal(false)}
-                  className="flex-1 py-3 px-4 bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] font-semibold text-xs rounded-full-[14px] transition cursor-pointer"
+                  className="flex-1 py-3 px-4 bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] font-semibold text-xs rounded-full transition cursor-pointer"
                 >
                   Continue Reviewing
                 </button>
@@ -537,7 +537,7 @@ const EmployeeAssessmentEngine = () => {
                     setShowSubmitModal(false);
                     submitExam('manual');
                   }}
-                  className="flex-1 py-3 px-4 bg-[#1F9D55] hover:bg-[#198447] text-white font-semibold text-xs rounded-full-[14px] transition cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-4 bg-[#1F9D55] hover:bg-[#198447] text-white font-semibold text-xs rounded-full transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Send size={16} /> Yes, Submit Now
                 </button>
@@ -573,7 +573,7 @@ const EmployeeAssessmentEngine = () => {
               <button
                 type="button"
                 onClick={() => setShowTabWarning(false)}
-                className="px-8 py-3 bg-[#D64550] hover:bg-[#c03c46] text-white font-semibold text-xs rounded-full-[14px] transition cursor-pointer"
+                className="px-8 py-3 bg-[#D64550] hover:bg-[#c03c46] text-white font-semibold text-xs rounded-full transition cursor-pointer"
               >
                 I Understand, Continue Exam
               </button>
@@ -618,7 +618,7 @@ const EmployeeAssessmentEngine = () => {
                     setShowFullscreenModal(false);
                   }
                 }}
-                className="w-full py-3 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-xs rounded-full-[14px] transition cursor-pointer"
+                className="w-full py-3 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-xs rounded-full transition cursor-pointer"
               >
                 Enter Full Screen Mode
               </button>

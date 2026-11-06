@@ -245,7 +245,7 @@ const ActivitySidebar = ({
           <button
             type="button"
             onClick={onClose}
-            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-full-[10px] transition-colors cursor-pointer"
+            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-full transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>

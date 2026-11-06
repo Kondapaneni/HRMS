@@ -220,7 +220,7 @@ const EmployeeMobilePayroll = ({ profile }) => {
             <button 
               type="button"
               onClick={() => setSelectedPayslip(latestPayslip)}
-              className="px-3.5 py-2 rounded-full-[14px] text-xs font-semibold bg-[var(--brand-tint)] hover:opacity-90 text-[var(--brand-deep)] transition-all cursor-pointer shadow-2xs active:scale-95"
+              className="px-3.5 py-2 rounded-full text-xs font-semibold bg-[var(--brand-tint)] hover:opacity-90 text-[var(--brand-deep)] transition-all cursor-pointer shadow-2xs active:scale-95"
             >
               View Breakdown
             </button>
@@ -274,14 +274,14 @@ const EmployeeMobilePayroll = ({ profile }) => {
                   <button
                     type="button"
                     onClick={() => setSelectedPayslip(ps)}
-                    className="w-full py-2 rounded-full-[14px] bg-[var(--surface-alt)] border border-[var(--line)] hover:bg-[var(--surface)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center active:scale-98"
+                    className="w-full py-2 rounded-full bg-[var(--surface-alt)] border border-[var(--line)] hover:bg-[var(--surface)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center active:scale-98"
                   >
                     View Details
                   </button>
                   <button
                     type="button"
                     onClick={(e) => handleDownload(e, ps)}
-                    className="w-full py-2 rounded-full-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-98"
+                    className="w-full py-2 rounded-full bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-98"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download PDF</span>
@@ -424,14 +424,14 @@ const EmployeeMobilePayroll = ({ profile }) => {
                   <button
                     type="button"
                     onClick={() => setSelectedPayslip(null)}
-                    className="flex-1 py-2.5 rounded-full-[14px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-xs font-semibold text-[var(--text)] transition-all cursor-pointer shadow-xs active:scale-98"
+                    className="flex-1 py-2.5 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-xs font-semibold text-[var(--text)] transition-all cursor-pointer shadow-xs active:scale-98"
                   >
                     Close
                   </button>
                   <button
                     type="button"
                     onClick={(e) => handleDownload(e, selectedPayslip)}
-                    className="flex-1 py-2.5 rounded-full-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
+                    className="flex-1 py-2.5 rounded-full bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download PDF</span>

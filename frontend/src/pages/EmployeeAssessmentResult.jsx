@@ -122,7 +122,7 @@ const EmployeeAssessmentResult = () => {
         <div className="flex items-center gap-3.5">
           <button
             onClick={() => navigate('/employee/assessments', { replace: true })}
-            className="p-2.5 text-[var(--muted)] hover:text-[var(--text)] rounded-full-[14px] hover:bg-[var(--surface-alt)] border border-[var(--line)] transition cursor-pointer bg-[var(--surface)]"
+            className="p-2.5 text-[var(--muted)] hover:text-[var(--text)] rounded-full hover:bg-[var(--surface-alt)] border border-[var(--line)] transition cursor-pointer bg-[var(--surface)]"
             title="Back to Assessments"
           >
             <ArrowLeft size={18} />
@@ -169,7 +169,7 @@ const EmployeeAssessmentResult = () => {
           <div className="mt-8">
             <button
               onClick={() => navigate('/employee/assessments', { replace: true })}
-              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-full-[14px] font-semibold text-xs transition cursor-pointer"
+              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-full font-semibold text-xs transition cursor-pointer"
             >
               Return to Assessments
             </button>
@@ -200,7 +200,7 @@ const EmployeeAssessmentResult = () => {
           <div className="mt-8">
             <button
               onClick={() => navigate('/employee/assessments', { replace: true })}
-              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-full-[14px] font-semibold text-xs transition cursor-pointer"
+              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-full font-semibold text-xs transition cursor-pointer"
             >
               Return to Assessments
             </button>
@@ -275,7 +275,7 @@ const EmployeeAssessmentResult = () => {
             {/* Action Button */}
             <button
               onClick={() => navigate('/employee/assessments', { replace: true })}
-              className="w-full py-3 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-full-[14px] font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-full font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <ArrowLeft size={16} />
               Return to Dashboard

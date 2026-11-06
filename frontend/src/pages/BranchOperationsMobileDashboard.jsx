@@ -197,7 +197,7 @@ const BranchOperationsMobileDashboard = () => {
 
             <button
               onClick={() => navigate('/employee/branch-operations/activities')}
-              className="shrink-0 h-9 px-3.5 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 active:scale-95 text-white rounded-full-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-3.5 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Calendar size={13} />
               <span>Activities</span>
@@ -382,7 +382,7 @@ const BranchOperationsMobileDashboard = () => {
               <button
                 type="button"
                 onClick={() => setChartTab('daily')}
-                className={`whitespace-nowrap px-2.5 py-1 rounded-full-[8px] text-[11px] font-medium transition-all cursor-pointer ${
+                className={`whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
                   chartTab === 'daily'
                     ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
                     : 'text-[var(--muted)] hover:text-[var(--text)]'
@@ -393,7 +393,7 @@ const BranchOperationsMobileDashboard = () => {
               <button
                 type="button"
                 onClick={() => setChartTab('monthly')}
-                className={`whitespace-nowrap px-2.5 py-1 rounded-full-[8px] text-[11px] font-medium transition-all cursor-pointer ${
+                className={`whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
                   chartTab === 'monthly'
                     ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
                     : 'text-[var(--muted)] hover:text-[var(--text)]'
@@ -477,7 +477,7 @@ const BranchOperationsMobileDashboard = () => {
               <button
                 type="button"
                 onClick={() => setActivityTab('leads')}
-                className={`whitespace-nowrap px-2.5 py-1 rounded-full-[8px] text-[11px] font-medium transition-all cursor-pointer ${
+                className={`whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
                   activityTab === 'leads'
                     ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
                     : 'text-[var(--muted)] hover:text-[var(--text)]'
@@ -488,7 +488,7 @@ const BranchOperationsMobileDashboard = () => {
               <button
                 type="button"
                 onClick={() => setActivityTab('applications')}
-                className={`whitespace-nowrap px-2.5 py-1 rounded-full-[8px] text-[11px] font-medium transition-all cursor-pointer ${
+                className={`whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
                   activityTab === 'applications'
                     ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
                     : 'text-[var(--muted)] hover:text-[var(--text)]'
@@ -606,7 +606,7 @@ const BranchOperationsMobileDashboard = () => {
               <button
                 type="button"
                 onClick={() => navigate('/employee/branch-operations/leads')}
-                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium text-[var(--branch-deep)] hover:bg-[var(--branch-tint)]/40 rounded-full-[10px] transition-colors cursor-pointer"
+                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium text-[var(--branch-deep)] hover:bg-[var(--branch-tint)]/40 rounded-full transition-colors cursor-pointer"
               >
                 <span>View All Branch Leads</span>
                 <ChevronRight size={14} />
@@ -615,7 +615,7 @@ const BranchOperationsMobileDashboard = () => {
               <button
                 type="button"
                 onClick={() => navigate('/employee/branch-operations/loans-applications')}
-                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium text-[var(--branch-deep)] hover:bg-[var(--branch-tint)]/40 rounded-full-[10px] transition-colors cursor-pointer"
+                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium text-[var(--branch-deep)] hover:bg-[var(--branch-tint)]/40 rounded-full transition-colors cursor-pointer"
               >
                 <span>View All Loan Applications</span>
                 <ChevronRight size={14} />

@@ -216,7 +216,7 @@ const EmployeeMobileAttendance = () => {
               const prev = new Date(y, m - 2, 1);
               setSelectedMonth(`${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`);
             }}
-            className="w-9 h-9 rounded-full-[12px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--text-2)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+            className="w-9 h-9 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--text-2)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
             title="Previous Month"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -234,7 +234,7 @@ const EmployeeMobileAttendance = () => {
               const next = new Date(y, m, 1);
               setSelectedMonth(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`);
             }}
-            className="w-9 h-9 rounded-full-[12px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--text-2)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+            className="w-9 h-9 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--text-2)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
             title="Next Month"
           >
             <ChevronRight className="w-4 h-4" />

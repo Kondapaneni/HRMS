@@ -88,7 +88,7 @@ export default function BranchOperationsLoansEditApplication() {
           <button
             type="button"
             onClick={handleBack}
-            className="inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)] px-3.5 py-2 transition-all gap-1.5 cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)] px-3.5 py-2 transition-all gap-1.5 cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-4 h-4 text-[var(--muted)]" />
             <span>Back to Application</span>

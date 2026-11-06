@@ -338,7 +338,7 @@ const EmployeeMobileProfile = () => {
             <button
               type="button"
               onClick={handleEditClick}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Edit2 className="w-3.5 h-3.5 text-white" />
               <span>Edit Profile</span>
@@ -536,7 +536,7 @@ const EmployeeMobileProfile = () => {
                   <button
                     type="button"
                     onClick={() => setActiveSection(null)}
-                    className="w-full py-2.5 px-4 rounded-full-[14px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center active:scale-[0.98]"
+                    className="w-full py-2.5 px-4 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center active:scale-[0.98]"
                   >
                     Close
                   </button>

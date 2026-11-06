@@ -92,7 +92,7 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
         <button
           type="button"
           onClick={() => navigate('/employee/sales/origination/members')}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full-[12px] shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs cursor-pointer"
         >
           <ArrowLeft size={14} /> Back to Members
         </button>
@@ -116,7 +116,7 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
             <button
               type="button"
               onClick={() => navigate('/employee/sales/origination/members')}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft size={14} className="text-[var(--icon-muted)]" />
               <span>Back</span>

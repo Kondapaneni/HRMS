@@ -291,7 +291,7 @@ const EmployeeChatbot = () => {
                   type="button"
                   onClick={handleResetChat}
                   title="Start New Conversation"
-                  className="p-1.5 rounded-full-[8px] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-full hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -299,7 +299,7 @@ const EmployeeChatbot = () => {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   title="Close Assistant"
-                  className="p-1.5 rounded-full-[8px] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-full hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -440,7 +440,7 @@ const EmployeeChatbot = () => {
                       <button 
                         type="button"
                         onClick={() => setShowSuggestionsMenu(false)} 
-                        className="text-[var(--muted)] hover:text-[var(--text)] p-0.5 rounded-full-[6px] cursor-pointer"
+                        className="text-[var(--muted)] hover:text-[var(--text)] p-0.5 rounded-full cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -451,7 +451,7 @@ const EmployeeChatbot = () => {
                           key={i}
                           type="button"
                           onClick={() => handleSendMessage(sug.query)}
-                          className="w-full text-left px-3 py-1.5 text-xs font-medium text-[var(--text-2)] hover:text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-full-[10px] transition-colors cursor-pointer flex items-center justify-between group"
+                          className="w-full text-left px-3 py-1.5 text-xs font-medium text-[var(--text-2)] hover:text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-full transition-colors cursor-pointer flex items-center justify-between group"
                         >
                           <span>{sug.label}</span>
                           <span className="text-[10px] text-[var(--brand-deep)] opacity-0 group-hover:opacity-100 transition-opacity">Ask</span>

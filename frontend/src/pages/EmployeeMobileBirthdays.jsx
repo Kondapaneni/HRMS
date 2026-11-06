@@ -192,7 +192,7 @@ const EmployeeMobileBirthdays = () => {
             <button
               type="button"
               onClick={() => handleSendWish(nextBirthday.name)}
-              className="px-3.5 py-2 rounded-full-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
+              className="px-3.5 py-2 rounded-full bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
             >
               <Smile className="w-3.5 h-3.5" />
               <span>Wish</span>
@@ -318,7 +318,7 @@ const EmployeeMobileBirthdays = () => {
                     <button
                       type="button"
                       onClick={() => handleSendWish(bday.name)}
-                      className="p-1.5 rounded-full-[10px] bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--line)] active:scale-95 transition-all cursor-pointer"
+                      className="p-1.5 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--line)] active:scale-95 transition-all cursor-pointer"
                       title="Send Wishes"
                     >
                       <Sparkles className="w-3.5 h-3.5" />

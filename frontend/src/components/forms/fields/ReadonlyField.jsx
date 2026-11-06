@@ -29,7 +29,7 @@ export const ReadonlyField = React.memo(({
           <button
             type="button"
             onClick={() => navigator.clipboard.writeText(String(value))}
-            className="text-[11px] font-medium text-[var(--brand-deep)] hover:underline transition-colors px-2 py-0.5 rounded-full-[6px] bg-[var(--surface)] border border-[var(--line)] cursor-pointer"
+            className="text-[11px] font-medium text-[var(--brand-deep)] hover:underline transition-colors px-2 py-0.5 rounded-full bg-[var(--surface)] border border-[var(--line)] cursor-pointer"
           >
             Copy
           </button>

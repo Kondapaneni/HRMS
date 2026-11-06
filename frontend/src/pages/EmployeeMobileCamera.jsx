@@ -261,7 +261,7 @@ const EmployeeMobileCamera = () => {
         <button
           onClick={handleCancel}
           disabled={isSubmitting}
-          className="p-2 bg-black/40 text-white hover:bg-black/60 rounded-full-[12px] transition-colors cursor-pointer backdrop-blur-md"
+          className="p-2 bg-black/40 text-white hover:bg-black/60 rounded-full transition-colors cursor-pointer backdrop-blur-md"
         >
           <X className="w-5 h-5" />
         </button>
@@ -281,7 +281,7 @@ const EmployeeMobileCamera = () => {
             <p className="text-slate-400 text-sm">{cameraError}</p>
             <button
               onClick={startCamera}
-              className="mt-6 px-6 py-2.5 bg-[var(--brand)] text-[var(--ink)] rounded-full-[14px] font-semibold shadow-xs active:scale-95 transition-transform"
+              className="mt-6 px-6 py-2.5 bg-[var(--brand)] text-[var(--ink)] rounded-full font-semibold shadow-xs active:scale-95 transition-transform"
             >
               Try Again
             </button>
@@ -345,7 +345,7 @@ const EmployeeMobileCamera = () => {
               type="button"
               onClick={retakePhoto}
               disabled={isSubmitting}
-              className="flex-1 py-3 px-4 bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md text-white rounded-full-[14px] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
+              className="flex-1 py-3 px-4 bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md text-white rounded-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
             >
               <RefreshCw className="w-4 h-4 text-white/90" />
               <span>Retake</span>
@@ -354,7 +354,7 @@ const EmployeeMobileCamera = () => {
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 py-3 px-4 bg-[var(--brand)] hover:opacity-90 text-[var(--ink)] rounded-full-[14px] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-75 cursor-pointer shadow-md relative overflow-hidden"
+              className="flex-1 py-3 px-4 bg-[var(--brand)] hover:opacity-90 text-[var(--ink)] rounded-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-75 cursor-pointer shadow-md relative overflow-hidden"
             >
               {isSubmitting ? (
                 <>
@@ -387,7 +387,7 @@ const EmployeeMobileCamera = () => {
               type="button"
               onClick={toggleCamera}
               disabled={!!cameraError || !isReady}
-              className="absolute right-4 w-11 h-11 rounded-full-[14px] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              className="absolute right-4 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
               title="Switch Camera"
             >
               <RefreshCw className="w-5 h-5" />

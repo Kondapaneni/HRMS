@@ -160,7 +160,7 @@ const OriginationMobileSaleLeadDetails = () => {
             <button
               type="button"
               onClick={() => navigate('/employee/sales/origination/leads')}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft size={14} className="text-[var(--icon-muted)]" />
               <span>Back</span>
@@ -284,7 +284,7 @@ const OriginationMobileSaleLeadDetails = () => {
               type="button"
               onClick={() => handleUpdateStatus('Follow Up')}
               disabled={statusMutation.isPending || isConverted}
-              className="w-full flex items-center justify-center gap-2 bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--badge-warning-text)] border border-[var(--line)] px-4 py-2.5 rounded-full-[12px] text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--badge-warning-text)] border border-[var(--line)] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
             >
               {statusMutation.isPending && statusMutation.variables?.status === 'Follow Up' ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -298,7 +298,7 @@ const OriginationMobileSaleLeadDetails = () => {
               type="button"
               onClick={() => handleUpdateStatus('Converted')}
               disabled={statusMutation.isPending || isConverted}
-              className="w-full flex items-center justify-center gap-2 bg-[var(--badge-success-text)] hover:opacity-90 text-white px-4 py-2.5 rounded-full-[12px] text-xs font-semibold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 bg-[var(--badge-success-text)] hover:opacity-90 text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             >
               {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -312,7 +312,7 @@ const OriginationMobileSaleLeadDetails = () => {
               type="button"
               onClick={() => handleUpdateStatus('Not Interested')}
               disabled={statusMutation.isPending || isConverted}
-              className="w-full flex items-center justify-center gap-2 bg-[var(--surface)] hover:bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] border border-[var(--line)] px-4 py-2.5 rounded-full-[12px] text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 bg-[var(--surface)] hover:bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] border border-[var(--line)] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
             >
               {statusMutation.isPending && statusMutation.variables?.status === 'Not Interested' ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -393,7 +393,7 @@ const OriginationMobileSaleLeadDetails = () => {
                 <button
                   type="button"
                   onClick={() => setShowConvertModal(false)}
-                  className="px-4 py-2 rounded-full-[12px] text-xs font-semibold text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-full text-xs font-semibold text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -401,7 +401,7 @@ const OriginationMobileSaleLeadDetails = () => {
                   type="button"
                   onClick={handleConfirmConvert}
                   disabled={statusMutation.isPending}
-                  className="px-5 py-2 rounded-full-[12px] text-xs font-semibold bg-[var(--badge-success-text)] text-white hover:opacity-90 transition-colors flex items-center gap-1.5 disabled:opacity-50 shadow-xs cursor-pointer"
+                  className="px-5 py-2 rounded-full text-xs font-semibold bg-[var(--badge-success-text)] text-white hover:opacity-90 transition-colors flex items-center gap-1.5 disabled:opacity-50 shadow-xs cursor-pointer"
                 >
                   {statusMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : <UserPlus size={13} />}
                   <span>Confirm &amp; Convert</span>

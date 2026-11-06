@@ -137,7 +137,7 @@ const OriginationMobileLoanDashboard = () => {
 
             <button
               onClick={() => navigate('/employee/loans/origination/leads/add')}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus size={14} />
               <span>Add Lead</span>
@@ -266,7 +266,7 @@ const OriginationMobileLoanDashboard = () => {
             <button
               type="button"
               onClick={() => setChartTab('daily')}
-              className={`px-3 py-1 rounded-full-[8px] text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 chartTab === 'daily'
                   ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs'
                   : 'text-[var(--muted)] hover:text-[var(--text)]'
@@ -277,7 +277,7 @@ const OriginationMobileLoanDashboard = () => {
             <button
               type="button"
               onClick={() => setChartTab('monthly')}
-              className={`px-3 py-1 rounded-full-[8px] text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 chartTab === 'monthly'
                   ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs'
                   : 'text-[var(--muted)] hover:text-[var(--text)]'

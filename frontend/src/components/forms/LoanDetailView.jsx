@@ -76,7 +76,7 @@ const AuditLogChangesViewer = ({ event }) => {
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:opacity-85 bg-[var(--surface)] px-3 py-1 rounded-full-[8px] border border-[var(--line)] shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:opacity-85 bg-[var(--surface)] px-3 py-1 rounded-full border border-[var(--line)] shadow-xs transition-all cursor-pointer"
           >
             {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             <span>{isOpen ? 'Hide Diff' : 'View Diff'} ({changes.length})</span>

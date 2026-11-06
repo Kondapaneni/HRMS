@@ -381,7 +381,7 @@ const AssessmentResults = () => {
                           </Button>
                           <button
                             onClick={() => handleResetAttempt(att.id, att.employee_name, att.assessment_title)}
-                            className="w-8 h-8 rounded-full-[10px] bg-[var(--danger-bg)] text-[var(--danger-text)] hover:opacity-80 flex items-center justify-center transition-opacity cursor-pointer"
+                            className="w-8 h-8 rounded-full bg-[var(--danger-bg)] text-[var(--danger-text)] hover:opacity-80 flex items-center justify-center transition-opacity cursor-pointer"
                             title="Reset / delete attempt"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -432,7 +432,7 @@ const AssessmentResults = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedAttempt(null)}
-                  className="w-8 h-8 rounded-full-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>

@@ -251,7 +251,7 @@ const EmployeeMobileLeaves = () => {
                       type="button"
                       onClick={() => cancelLeaveMutation.mutate(record.id)}
                       disabled={cancelLeaveMutation.isPending}
-                      className="w-full flex items-center justify-center gap-2 bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger-text)]/20 hover:bg-[var(--status-danger-text)] hover:text-white rounded-full-[14px] py-2.5 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-[0.98]"
+                      className="w-full flex items-center justify-center gap-2 bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger-text)]/20 hover:bg-[var(--status-danger-text)] hover:text-white rounded-full py-2.5 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-[0.98]"
                     >
                       <span>{cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel Leave'}</span>
                     </button>

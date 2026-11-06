@@ -337,7 +337,7 @@ const EmployeeExpenses = () => {
                                 type="button"
                                 onClick={() => deleteExpenseMutation.mutate(exp.id)} 
                                 disabled={deleteExpenseMutation.isPending}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full-[14px] text-xs font-semibold bg-[var(--surface)] border border-[var(--line)] hover:bg-[#FDE8EA] text-[#D64550] transition-all cursor-pointer disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] border border-[var(--line)] hover:bg-[#FDE8EA] text-[#D64550] transition-all cursor-pointer disabled:opacity-50"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                                 <span>Delete</span>
@@ -476,7 +476,7 @@ const EmployeeExpenses = () => {
               <button 
                 type="button" 
                 onClick={handleCloseModal} 
-                className="px-5 py-2 rounded-full-[14px] text-xs font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--line)] transition-all cursor-pointer"
+                className="px-5 py-2 rounded-full text-xs font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--line)] transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -484,7 +484,7 @@ const EmployeeExpenses = () => {
                 type="submit" 
                 form="expenseForm" 
                 disabled={submitExpenseMutation.isPending} 
-                className="inline-flex items-center justify-center gap-2 px-6 py-2 rounded-full-[14px] text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] transition-all disabled:opacity-50 cursor-pointer min-w-[130px]"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2 rounded-full text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] transition-all disabled:opacity-50 cursor-pointer min-w-[130px]"
               >
                 {submitExpenseMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>{submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Claim'}</span>

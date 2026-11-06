@@ -380,7 +380,7 @@ const BranchOperationsDashboard = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTableTab('leads')}
-                  className={`px-3 py-1.5 rounded-full-[8px] text-xs font-medium transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                     activeTableTab === 'leads'
                       ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
                       : 'text-[var(--muted)] hover:text-[var(--text)]'
@@ -391,7 +391,7 @@ const BranchOperationsDashboard = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTableTab('applications')}
-                  className={`px-3 py-1.5 rounded-full-[8px] text-xs font-medium transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                     activeTableTab === 'applications'
                       ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
                       : 'text-[var(--muted)] hover:text-[var(--text)]'
@@ -405,7 +405,7 @@ const BranchOperationsDashboard = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/employee/branch-operations/leads')}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full-[10px] text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:opacity-90 transition-opacity cursor-pointer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:opacity-90 transition-opacity cursor-pointer"
                 >
                   <span>View All Leads</span>
                   <ArrowUpRight size={13} />
@@ -414,7 +414,7 @@ const BranchOperationsDashboard = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/employee/branch-operations/loans-applications')}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full-[10px] text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:opacity-90 transition-opacity cursor-pointer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:opacity-90 transition-opacity cursor-pointer"
                 >
                   <span>View All Applications</span>
                   <ArrowUpRight size={13} />

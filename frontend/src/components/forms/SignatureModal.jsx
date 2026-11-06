@@ -199,7 +199,7 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
           <button 
             type="button"
             onClick={onClose}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full-[10px] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--line)] flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--line)] flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
             title="Close"
           >
             <X size={18} />

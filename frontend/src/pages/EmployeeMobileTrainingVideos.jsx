@@ -153,7 +153,7 @@ const EmployeeMobileTrainingVideos = () => {
             <button
               type="button"
               onClick={() => navigate('/employee')}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full-[14px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft size={14} className="text-[var(--muted)]" />
               <span>Back</span>
@@ -301,7 +301,7 @@ const EmployeeMobileTrainingVideos = () => {
                     <button
                       type="button"
                       onClick={handlePrevVideo}
-                      className="h-9 px-3.5 inline-flex items-center justify-center gap-1 rounded-full-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold border border-[var(--line)] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
+                      className="h-9 px-3.5 inline-flex items-center justify-center gap-1 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold border border-[var(--line)] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
                     >
                       <ChevronLeft className="w-4 h-4 text-[var(--muted)]" />
                       <span>Prev</span>
@@ -312,7 +312,7 @@ const EmployeeMobileTrainingVideos = () => {
                     type="button"
                     onClick={(e) => triggerToggleComplete(activeVideo, e)}
                     disabled={toggleProgressMutation.isPending}
-                    className={`h-9 px-4 flex-1 inline-flex items-center justify-center gap-1.5 rounded-full-[14px] text-xs font-semibold tracking-wide transition-all active:scale-95 cursor-pointer shadow-xs ${
+                    className={`h-9 px-4 flex-1 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold tracking-wide transition-all active:scale-95 cursor-pointer shadow-xs ${
                       activeVideo.is_completed
                         ? 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20'
                         : 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white'
@@ -335,7 +335,7 @@ const EmployeeMobileTrainingVideos = () => {
                     <button
                       type="button"
                       onClick={handleNextVideo}
-                      className="h-9 px-3.5 inline-flex items-center justify-center gap-1 rounded-full-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold border border-[var(--line)] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
+                      className="h-9 px-3.5 inline-flex items-center justify-center gap-1 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold border border-[var(--line)] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
                     >
                       <span>Next</span>
                       <ChevronRight className="w-4 h-4 text-[var(--muted)]" />
@@ -531,7 +531,7 @@ const EmployeeMobileTrainingVideos = () => {
               <button
                 type="button"
                 onClick={() => setConfirmingVideo(null)}
-                className="w-full h-10 rounded-full-[14px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
+                className="w-full h-10 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
               >
                 Cancel
               </button>
@@ -539,7 +539,7 @@ const EmployeeMobileTrainingVideos = () => {
                 type="button"
                 onClick={handleConfirmToggle}
                 disabled={toggleProgressMutation.isPending}
-                className={`w-full h-10 rounded-full-[14px] text-white text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                className={`w-full h-10 rounded-full text-white text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95 ${
                   confirmingVideo.is_completed
                     ? 'bg-[var(--status-danger-text)] hover:opacity-90'
                     : 'bg-[var(--ink)] hover:bg-[var(--ink-2)]'

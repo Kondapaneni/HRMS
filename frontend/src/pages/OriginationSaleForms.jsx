@@ -46,7 +46,7 @@ export default function OriginationSaleForms() {
           <button
             type="button"
             onClick={() => navigate(fromPath)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-4 py-2 transition-all shadow-2xs cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-4 py-2 transition-all shadow-2xs cursor-pointer self-start sm:self-auto"
           >
             <ArrowLeft size={14} className="text-[var(--icon-muted)]" />
             <span>Back to Members</span>
@@ -103,7 +103,7 @@ export default function OriginationSaleForms() {
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="inline-flex items-center justify-center gap-2 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white py-2.5 px-6 rounded-full-[12px] text-xs font-semibold shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white py-2.5 px-6 rounded-full text-xs font-semibold shadow-xs transition-all active:scale-[0.99] cursor-pointer"
             >
               <ArrowLeft size={14} />
               <span>Return to Members Directory</span>

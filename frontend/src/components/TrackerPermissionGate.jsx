@@ -153,7 +153,7 @@ export default function TrackerPermissionGate() {
         <button
           onClick={() => (signOut ? signOut() : null)}
           title="Sign Out"
-          className="p-1.5 text-[var(--muted)] hover:text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)] rounded-full-[8px] transition-colors active:scale-95 cursor-pointer"
+          className="p-1.5 text-[var(--muted)] hover:text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)] rounded-full transition-colors active:scale-95 cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
         </button>

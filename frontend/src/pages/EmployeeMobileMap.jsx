@@ -294,7 +294,7 @@ const EmployeeMobileMap = () => {
       <div className="flex items-center px-4 py-3.5 bg-[var(--surface)] border-b border-[var(--line)] z-10 relative">
         <button
           onClick={() => navigate('/employee', { replace: true })}
-          className="p-2 -ml-2 text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] rounded-full-[10px] transition-colors cursor-pointer"
+          className="p-2 -ml-2 text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] rounded-full transition-colors cursor-pointer"
           title="Back to Dashboard"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -329,7 +329,7 @@ const EmployeeMobileMap = () => {
               <button 
                 type="button"
                 onClick={() => navigate('/employee', { replace: true })}
-                className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white rounded-full-[12px] text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+                className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white rounded-full text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
               >
                 Back to Dashboard
               </button>
@@ -344,7 +344,7 @@ const EmployeeMobileMap = () => {
               <button 
                 type="button"
                 onClick={() => window.location.reload()}
-                className="px-5 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white rounded-full-[12px] text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+                className="px-5 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white rounded-full text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
               >
                 Try Again
               </button>
@@ -428,7 +428,7 @@ const EmployeeMobileMap = () => {
             type="button"
             onClick={handleProceed}
             disabled={!canProceed || !currentLocation}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full-[12px] bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white text-sm font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white text-sm font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             <Camera className="w-4 h-4" />
             <span>Proceed to Camera</span>

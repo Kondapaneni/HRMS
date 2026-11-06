@@ -139,7 +139,7 @@ const EditProfile = () => {
             <button 
               type="button"
               onClick={() => navigate('/employee/profile')}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-full-[14px] text-xs font-semibold bg-[var(--surface-alt)] border border-[var(--line)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-semibold bg-[var(--surface-alt)] border border-[var(--line)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
             >
               Cancel
             </button>
@@ -147,7 +147,7 @@ const EditProfile = () => {
               form="editProfileForm"
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full-[14px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white disabled:opacity-50 transition-all cursor-pointer min-w-[130px]"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white disabled:opacity-50 transition-all cursor-pointer min-w-[130px]"
             >
               {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               <span>{submitting ? 'Saving...' : 'Save Changes'}</span>
@@ -389,14 +389,14 @@ const EditProfile = () => {
             <button 
               type="button" 
               onClick={() => navigate('/employee/profile')} 
-              className="px-5 py-2.5 rounded-full-[14px] text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
+              className="px-5 py-2.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               disabled={submitting} 
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full-[14px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white disabled:opacity-50 transition-all cursor-pointer min-w-[140px]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white disabled:opacity-50 transition-all cursor-pointer min-w-[140px]"
             >
               {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               <span>{submitting ? 'Saving Changes...' : 'Save Profile'}</span>
