@@ -7,9 +7,29 @@ import {
   ArrowLeft 
 } from 'lucide-react';
 import { Link, Outlet } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import AppShell from './AppShell';
 
 const AssessmentWorkspaceLayout = () => {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
+  const fa = profile?.featureAccess;
+
+  // If user has other HR Admin features (Employees, Attendance, Leave, Payroll, Assets, Recruitment),
+  // return to HR Admin portal. Otherwise, return to Employee Workspace.
+  const hrAdminPath =
+    (fa?.canEmployees && '/admin/employees') ||
+    (fa?.canRecruitment && '/admin/recruitment') ||
+    (fa?.canAttendance && '/admin/attendance') ||
+    (fa?.canLeave && '/admin/leaves') ||
+    (fa?.canPayroll && '/admin/payroll') ||
+    (fa?.canAssets && '/admin/assets');
+
+  const backDestination = isAdmin ? '/admin' : (hrAdminPath || '/employee');
+  const backTitle = isAdmin
+    ? 'Return to Admin Workspace'
+    : (hrAdminPath ? 'Return to HR Admin' : 'Return to Employee Workspace');
+
   const railGroups = [
     {
       id: 'questions',
@@ -67,10 +87,10 @@ const AssessmentWorkspaceLayout = () => {
       accentColor="#8AADDB"
       headerAction={
         <Link
-          to="/admin"
+          to={backDestination}
           className="w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center border border-[var(--line)] shadow-none transition-colors cursor-pointer active:scale-95 shrink-0"
-          title="Return to Admin Workspace"
-          aria-label="Return to Admin Workspace"
+          title={backTitle}
+          aria-label={backTitle}
         >
           <ArrowLeft size={18} strokeWidth={1.7} />
         </Link>

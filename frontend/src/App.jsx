@@ -183,7 +183,7 @@ function App() {
             <Route
               path="/admin"
               element={
-                <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
+                <ProtectedRoute allowedRoles={[...ADMIN_DASHBOARD_ROLES, ...EMPLOYEE_DASHBOARD_ROLES]}>
                   <AdminLayout />
                 </ProtectedRoute>
               }
@@ -219,7 +219,7 @@ function App() {
             <Route
               path="/admin/assessments"
               element={
-                <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
+                <ProtectedRoute allowedRoles={[...ADMIN_DASHBOARD_ROLES, ...EMPLOYEE_DASHBOARD_ROLES]}>
                   <AssessmentWorkspaceLayout />
                 </ProtectedRoute>
               }

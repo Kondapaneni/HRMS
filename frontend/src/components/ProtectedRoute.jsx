@@ -96,6 +96,42 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
       return <Navigate to={getRoleHomePath(profile.role)} replace />;
     }
 
+    // Feature access check for admin-level routes (when accessed by non-admin roles)
+    if (profile.role !== 'admin' && location.pathname.startsWith('/admin')) {
+      const path = location.pathname;
+      const fa = profile.featureAccess;
+
+      if (!fa) {
+        return <Navigate to={getRoleHomePath(profile.role)} replace />;
+      }
+
+      let hasAdminModuleAccess = false;
+      if (path === '/admin' || path === '/admin/') {
+        // Allowed through to HRAdminLayout which redirects to first permitted module
+        hasAdminModuleAccess = true;
+      } else if (path.startsWith('/admin/attendance') && fa.canAttendance) {
+        hasAdminModuleAccess = true;
+      } else if (path.startsWith('/admin/holidays') && fa.canAttendance) {
+        hasAdminModuleAccess = true;
+      } else if (path.startsWith('/admin/leaves') && fa.canLeave) {
+        hasAdminModuleAccess = true;
+      } else if (path.startsWith('/admin/payroll') && fa.canPayroll) {
+        hasAdminModuleAccess = true;
+      } else if ((path.startsWith('/admin/employees') || path.startsWith('/admin/directory')) && fa.canEmployees) {
+        hasAdminModuleAccess = true;
+      } else if (path.startsWith('/admin/recruitment') && fa.canRecruitment) {
+        hasAdminModuleAccess = true;
+      } else if (path.startsWith('/admin/assets') && fa.canAssets) {
+        hasAdminModuleAccess = true;
+      } else if (path.startsWith('/admin/assessments') && fa.canAdminAssessments) {
+        hasAdminModuleAccess = true;
+      }
+
+      if (!hasAdminModuleAccess) {
+        return <Navigate to={getRoleHomePath(profile.role)} replace />;
+      }
+    }
+
     // Feature access check for employee-level routes (all roles that have featureAccess)
     if (profile.featureAccess) {
       const path = location.pathname;

@@ -15,7 +15,7 @@ import { useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
-import EmployeeLayout from './EmployeeLayout';
+import HRAdminLayout from './HRAdminLayout';
 import AdminChatbot from './AdminChatbot';
 import AppShell from './AppShell';
 import Button from './ui/Button';
@@ -25,9 +25,9 @@ const AdminLayout = () => {
   const { profile, signOut } = useAuth();
   const location = useLocation();
 
-  // If the user is an employee (with feature access), swap to the Employee layout entirely
-  if (profile?.role === 'employee') {
-    return <EmployeeLayout />;
+  // Non-admin roles (hr/manager/employee) with feature access use the HR Admin layout
+  if (profile?.role !== 'admin') {
+    return <HRAdminLayout />;
   }
 
   const { data: pendingDocsCount = 0 } = useQuery({

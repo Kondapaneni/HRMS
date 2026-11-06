@@ -19,6 +19,7 @@ import {
   Megaphone,
   Terminal,
   Sparkles,
+  Shield,
 } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -197,6 +198,38 @@ const EmployeeLayout = () => {
         path: '/employee/branch-operations',
         chips: [{ label: 'Branch Operations', path: '/employee/branch-operations' }],
         activeMatch: (pathname) => pathname.startsWith('/employee/branch-operations'),
+      });
+    }
+
+    // HR Admin Portal — shown when any HRMS admin feature flag is granted
+    const fa = profile?.featureAccess;
+    const hasAnyAdminAccess =
+      fa?.canEmployees ||
+      fa?.canAttendance ||
+      fa?.canLeave ||
+      fa?.canPayroll ||
+      fa?.canAssets ||
+      fa?.canRecruitment ||
+      fa?.canAdminAssessments;
+
+    if (hasAnyAdminAccess) {
+      // Resolve the first accessible admin path (mirrors HRAdminLayout group priority)
+      const firstAdminPath =
+        (fa.canEmployees && '/admin/employees') ||
+        (fa.canRecruitment && '/admin/recruitment') ||
+        (fa.canAttendance && '/admin/attendance') ||
+        (fa.canLeave && '/admin/leaves') ||
+        (fa.canPayroll && '/admin/payroll') ||
+        (fa.canAssets && '/admin/assets') ||
+        (fa.canAdminAssessments && '/admin/assessments');
+
+      groups.push({
+        id: 'hr-admin',
+        icon: Shield,
+        label: 'HR Admin',
+        path: firstAdminPath,
+        chips: [{ label: 'HR Admin', path: firstAdminPath }],
+        activeMatch: (pathname) => pathname.startsWith('/admin'),
       });
     }
 
