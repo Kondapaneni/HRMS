@@ -170,7 +170,7 @@ const OriginationLoanMembersList = () => {
                           <button 
                             type="button"
                             onClick={() => setSelectedMember(member)}
-                            className="px-3 py-1 text-xs font-semibold text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-[8px] transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
+                            className="px-3 py-1 text-xs font-semibold text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-full-[8px] transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
                           >
                             <Eye size={13} />
                             <span>Details</span>

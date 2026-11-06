@@ -837,7 +837,7 @@ const OriginationActivities = () => {
                 <button
                   type="button"
                   onClick={() => setIsSidebarCollapsed(true)}
-                  className="w-7 h-7 rounded-lg text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded-full text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] flex items-center justify-center transition-colors cursor-pointer"
                   title="Collapse sidebar"
                 >
                   <PanelLeftClose size={16} />
@@ -875,14 +875,14 @@ const OriginationActivities = () => {
                     <button
                       type="button"
                       onClick={() => setMiniCalendarDate(prev => subMonths(prev, 1))}
-                      className="w-6 h-6 rounded-md hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                      className="w-6 h-6 rounded-full hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <ChevronLeft size={13} />
                     </button>
                     <button
                       type="button"
                       onClick={() => setMiniCalendarDate(prev => addMonths(prev, 1))}
-                      className="w-6 h-6 rounded-md hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                      className="w-6 h-6 rounded-full hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <ChevronRight size={13} />
                     </button>
@@ -1002,7 +1002,7 @@ const OriginationActivities = () => {
                   setQuickCreateDate(format(targetDate, 'yyyy-MM-dd'));
                   setIsQuickCreateOpen(true);
                 }}
-                className={`w-full py-2.5 px-4 rounded-xl ${theme.primaryBtnClass} text-xs font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98]`}
+                className={`w-full py-2.5 px-4 rounded-full ${theme.primaryBtnClass} text-xs font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98]`}
               >
                 <Plus size={15} strokeWidth={2.2} />
                 <span>Schedule Activity</span>
@@ -1024,7 +1024,7 @@ const OriginationActivities = () => {
                   <button
                     type="button"
                     onClick={() => setIsSidebarCollapsed(false)}
-                    className="w-8 h-8 rounded-lg text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] flex items-center justify-center transition-colors cursor-pointer mr-1"
+                    className="w-8 h-8 rounded-full text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] flex items-center justify-center transition-colors cursor-pointer mr-1"
                     title="Open sidebar"
                   >
                     <PanelLeftOpen size={17} />

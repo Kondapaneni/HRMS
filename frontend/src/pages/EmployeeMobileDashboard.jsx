@@ -339,7 +339,7 @@ const EmployeeMobileDashboard = () => {
               <button
                 onClick={() => handlePunch('check-in')}
                 disabled={isLocked}
-                className="w-full flex items-center justify-center gap-2 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.99] text-white rounded-[14px] py-3.5 text-sm font-semibold tracking-wide shadow-xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.99] text-white rounded-full-[14px] py-3.5 text-sm font-semibold tracking-wide shadow-xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogIn className="w-4 h-4" />
                 <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Check In'}</span>
@@ -349,7 +349,7 @@ const EmployeeMobileDashboard = () => {
                 <button
                   onClick={() => handlePunch('punch')}
                   disabled={isLocked}
-                  className="w-full flex items-center justify-center gap-2 bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--text)] rounded-[14px] py-3 text-sm font-semibold transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--text)] rounded-full-[14px] py-3 text-sm font-semibold transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Clock className="w-4 h-4 text-[var(--muted)]" />
                   <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Punch'}</span>
@@ -357,7 +357,7 @@ const EmployeeMobileDashboard = () => {
                 <button
                   onClick={() => handlePunch('check-out')}
                   disabled={isLocked}
-                  className="w-full flex items-center justify-center gap-2 bg-[var(--status-danger-text)] hover:opacity-90 text-white rounded-[14px] py-3 text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--status-danger-text)] hover:opacity-90 text-white rounded-full-[14px] py-3 text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Check Out'}</span>

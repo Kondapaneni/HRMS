@@ -149,7 +149,7 @@ const OriginationLoanLeadsList = () => {
           <button 
             type="button"
             onClick={() => setIsAddLeadOpen(true)}
-            className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white h-9 px-4.5 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
+            className="inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white h-9 px-4.5 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
           >
             <Plus size={15} />
             <span>Add Lead</span>
@@ -173,7 +173,7 @@ const OriginationLoanLeadsList = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setSelectedStatusFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-full-[10px] text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                     isSelected
                       ? 'bg-[var(--ink)] text-white shadow-xs'
                       : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)]'
@@ -282,7 +282,7 @@ const OriginationLoanLeadsList = () => {
                           <button 
                             type="button"
                             onClick={() => setSelectedLead(lead)}
-                            className="px-3 py-1 text-xs font-semibold text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-[8px] transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
+                            className="px-3 py-1 text-xs font-semibold text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-full-[8px] transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
                           >
                             <Eye size={13} />
                             <span>Details</span>

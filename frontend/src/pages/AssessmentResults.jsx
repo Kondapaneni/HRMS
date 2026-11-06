@@ -165,9 +165,6 @@ const AssessmentResults = () => {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[12px] font-medium text-[var(--muted)]">Test center</span>
-          </div>
           <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
             Employee assessment results
             <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
@@ -384,7 +381,7 @@ const AssessmentResults = () => {
                           </Button>
                           <button
                             onClick={() => handleResetAttempt(att.id, att.employee_name, att.assessment_title)}
-                            className="w-8 h-8 rounded-[10px] bg-[var(--danger-bg)] text-[var(--danger-text)] hover:opacity-80 flex items-center justify-center transition-opacity cursor-pointer"
+                            className="w-8 h-8 rounded-full-[10px] bg-[var(--danger-bg)] text-[var(--danger-text)] hover:opacity-80 flex items-center justify-center transition-opacity cursor-pointer"
                             title="Reset / delete attempt"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -435,7 +432,7 @@ const AssessmentResults = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedAttempt(null)}
-                  className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-full-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>

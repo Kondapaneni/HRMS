@@ -201,7 +201,7 @@ const EmployeeMobileExpenses = () => {
                 <button 
                   type="button"
                   onClick={handleCloseForm} 
-                  className="w-9 h-9 rounded-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                  className="w-9 h-9 rounded-full-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
                   aria-label="Back to Claims"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -215,7 +215,7 @@ const EmployeeMobileExpenses = () => {
                 type="button"
                 onClick={handleSubmit} 
                 disabled={isSubmitting} 
-                className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+                className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Save className="w-3.5 h-3.5 text-white" />}
                 <span>{isSubmitting ? 'Saving...' : 'Save Claim'}</span>
@@ -319,7 +319,7 @@ const EmployeeMobileExpenses = () => {
                 <button
                   type="button"
                   onClick={() => setBillFile(null)}
-                  className="p-1.5 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)] rounded-[8px] transition-colors cursor-pointer"
+                  className="p-1.5 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)] rounded-full-[8px] transition-colors cursor-pointer"
                   title="Remove File"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -344,7 +344,7 @@ const EmployeeMobileExpenses = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 rounded-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              className="w-full h-11 rounded-full-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Save className="w-4 h-4 text-white" />}
               <span>{isSubmitting ? 'Saving Claim...' : 'Save & Submit Claim'}</span>
@@ -377,7 +377,7 @@ const EmployeeMobileExpenses = () => {
             <button
               type="button"
               onClick={() => setIsFormOpen(true)}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
               <span>Claim Expense</span>
@@ -672,7 +672,7 @@ const EmployeeMobileExpenses = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedBillUrl(null)}
-                    className="w-full py-2.5 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center"
+                    className="w-full py-2.5 rounded-full-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center"
                   >
                     Close
                   </button>

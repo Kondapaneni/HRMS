@@ -105,7 +105,7 @@ export const ImageUploadField = React.memo(({
           <button
             type="button"
             onClick={clearImage}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-[var(--danger-text)] bg-[var(--danger-bg)] rounded-[9px] hover:brightness-95 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-[var(--danger-text)] bg-[var(--danger-bg)] rounded-full-[9px] hover:brightness-95 transition-all cursor-pointer"
           >
             <X size={14} /> Remove Image
           </button>

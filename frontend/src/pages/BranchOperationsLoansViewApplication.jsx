@@ -191,7 +191,7 @@ export default function BranchOperationsLoansViewApplication() {
         <p className="text-sm font-semibold mb-4 text-[var(--text)]">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-5 py-2.5 bg-[var(--ink)] text-white rounded-[12px] text-xs font-semibold hover:bg-[var(--ink)]/90 transition-colors cursor-pointer shadow-xs"
+          className="px-5 py-2.5 bg-[var(--ink)] text-white rounded-full-[12px] text-xs font-semibold hover:bg-[var(--ink)]/90 transition-colors cursor-pointer shadow-xs"
         >
           Back to Applications List
         </button>
@@ -259,7 +259,7 @@ export default function BranchOperationsLoansViewApplication() {
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
             >
               <ArrowLeft className="w-4 h-4 text-[var(--muted)]" />
               <span>Back to Applications</span>
@@ -276,7 +276,7 @@ export default function BranchOperationsLoansViewApplication() {
                   from: '/employee/branch-operations/loans-view-applications'
                 }
               })}
-              className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--branch-tint)] text-[var(--branch-deep)] hover:opacity-90 border border-[var(--branch)]/20 px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--branch-tint)] text-[var(--branch-deep)] hover:opacity-90 border border-[var(--branch)]/20 px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
             >
               <FileEdit className="w-4 h-4" />
               <span>Edit Application</span>
@@ -287,7 +287,7 @@ export default function BranchOperationsLoansViewApplication() {
               type="button"
               onClick={handlePrint}
               disabled={isPrinting}
-              className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75 whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75 whitespace-nowrap shrink-0"
             >
               {isPrinting ? (
                 <>

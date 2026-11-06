@@ -166,7 +166,7 @@ const EmployeeTrainingVideos = () => {
           <div className="flex items-center gap-1.5 bg-[var(--surface)] border border-[var(--line)] p-1.5 rounded-[14px] self-start sm:self-auto">
             <button
               onClick={() => setViewMode('theater')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full-[10px] text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'theater'
                   ? 'bg-[var(--ink)] text-white shadow-none'
                   : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
@@ -178,7 +178,7 @@ const EmployeeTrainingVideos = () => {
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full-[10px] text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'grid'
                   ? 'bg-[var(--ink)] text-white shadow-none'
                   : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
@@ -295,7 +295,7 @@ const EmployeeTrainingVideos = () => {
                       <button
                         onClick={handlePrevVideo}
                         disabled={activeIndex === 0}
-                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-[14px] text-xs font-semibold transition-all ${
+                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-full-[14px] text-xs font-semibold transition-all ${
                           activeIndex === 0
                             ? 'opacity-40 cursor-not-allowed text-[var(--muted)]'
                             : 'bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] active:scale-95'
@@ -309,7 +309,7 @@ const EmployeeTrainingVideos = () => {
                       <button
                         onClick={(e) => triggerToggleComplete(activeVideo, e)}
                         disabled={toggleProgressMutation.isPending}
-                        className={`flex items-center gap-2 py-2 px-5 rounded-[14px] text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
+                        className={`flex items-center gap-2 py-2 px-5 rounded-full-[14px] text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
                           activeVideo.is_completed
                             ? 'bg-[#E6F6EC] text-[#1F9D55] hover:bg-[#d5eedc]'
                             : 'bg-[var(--ink)] text-white hover:bg-[var(--ink-2)]'
@@ -332,7 +332,7 @@ const EmployeeTrainingVideos = () => {
                       <button
                         onClick={handleNextVideo}
                         disabled={activeIndex === videos.length - 1}
-                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-[14px] text-xs font-semibold transition-all ${
+                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-full-[14px] text-xs font-semibold transition-all ${
                           activeIndex === videos.length - 1
                             ? 'opacity-40 cursor-not-allowed text-[var(--muted)]'
                             : 'bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] active:scale-95'
@@ -469,7 +469,7 @@ const EmployeeTrainingVideos = () => {
                           <button
                             onClick={(e) => triggerToggleComplete(video, e)}
                             disabled={toggleProgressMutation.isPending}
-                            className={`p-1.5 rounded-lg shrink-0 transition-all cursor-pointer ${
+                            className={`p-1.5 rounded-full shrink-0 transition-all cursor-pointer ${
                               video.is_completed
                                 ? 'text-[#1F9D55] hover:bg-[#E6F6EC]'
                                 : 'text-[var(--muted)] hover:text-[var(--brand-deep)] hover:bg-[var(--surface-alt)]'
@@ -580,7 +580,7 @@ const EmployeeTrainingVideos = () => {
                       <div className="flex items-center gap-2 pt-3 border-t border-[var(--line)]">
                         <button
                           onClick={() => handleSelectVideo(video)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs font-semibold transition-all"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-full-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs font-semibold transition-all"
                         >
                           <Tv className="w-3.5 h-3.5" />
                           <span>Open in Player</span>
@@ -588,7 +588,7 @@ const EmployeeTrainingVideos = () => {
                         <button
                           onClick={(e) => triggerToggleComplete(video, e)}
                           disabled={toggleProgressMutation.isPending}
-                          className={`p-2 rounded-[14px] border transition-all cursor-pointer ${
+                          className={`p-2 rounded-full-[14px] border transition-all cursor-pointer ${
                             video.is_completed
                               ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#E6F6EC]'
                               : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--line)]'
@@ -657,7 +657,7 @@ const EmployeeTrainingVideos = () => {
               <button
                 type="button"
                 onClick={() => setConfirmingVideo(null)}
-                className="w-full py-2.5 rounded-[14px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-full-[14px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -665,7 +665,7 @@ const EmployeeTrainingVideos = () => {
                 type="button"
                 onClick={handleConfirmToggle}
                 disabled={toggleProgressMutation.isPending}
-                className={`w-full py-2.5 rounded-[14px] text-white text-xs font-semibold transition-all cursor-pointer ${
+                className={`w-full py-2.5 rounded-full-[14px] text-white text-xs font-semibold transition-all cursor-pointer ${
                   confirmingVideo.is_completed
                     ? 'bg-[#D64550] hover:bg-[#c03c46]'
                     : 'bg-[var(--ink)] hover:bg-[var(--ink-2)]'

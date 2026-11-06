@@ -131,7 +131,7 @@ const EmployeeHolidays = () => {
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1.5 rounded-[10px] hover:bg-[var(--surface-alt)] text-[var(--muted)] transition-colors cursor-pointer"
+              className="p-1.5 rounded-full-[10px] hover:bg-[var(--surface-alt)] text-[var(--muted)] transition-colors cursor-pointer"
               title="Previous Month"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -152,7 +152,7 @@ const EmployeeHolidays = () => {
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1.5 rounded-[10px] hover:bg-[var(--surface-alt)] text-[var(--muted)] transition-colors cursor-pointer"
+              className="p-1.5 rounded-full-[10px] hover:bg-[var(--surface-alt)] text-[var(--muted)] transition-colors cursor-pointer"
               title="Next Month"
             >
               <ChevronRight className="w-4 h-4" />

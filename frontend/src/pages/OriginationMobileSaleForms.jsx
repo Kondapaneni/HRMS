@@ -35,7 +35,7 @@ const OriginationMobileSaleForms = () => {
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft size={14} className="text-[var(--icon-muted)]" />
               <span>Back</span>
@@ -102,7 +102,7 @@ const OriginationMobileSaleForms = () => {
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="w-full inline-flex items-center justify-center gap-2 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white py-2.5 px-6 rounded-[12px] text-xs font-semibold shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white py-2.5 px-6 rounded-full-[12px] text-xs font-semibold shadow-xs transition-all active:scale-[0.99] cursor-pointer"
             >
               <ArrowLeft size={14} />
               <span>Return to Members List</span>

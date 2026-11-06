@@ -123,7 +123,7 @@ const ApplyMobileLeave = () => {
       const isSelectedEnd = endDate === dateStr;
       const isInRange = startDate && endDate && dateStr > startDate && dateStr < endDate;
 
-      let btnClass = "w-full max-w-[38px] aspect-square mx-auto flex items-center justify-center rounded-[10px] text-xs font-semibold transition-all ";
+      let btnClass = "w-full max-w-[38px] aspect-square mx-auto flex items-center justify-center rounded-full text-xs font-semibold transition-all ";
 
       if (isSelectedStart || isSelectedEnd) {
         btnClass += "bg-[var(--ink)] text-white font-bold shadow-xs ";
@@ -183,7 +183,7 @@ const ApplyMobileLeave = () => {
               <button 
                 type="button"
                 onClick={() => navigate('/employee/leaves')} 
-                className="w-9 h-9 rounded-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                className="w-9 h-9 rounded-full bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
                 aria-label="Back to Leaves"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -197,7 +197,7 @@ const ApplyMobileLeave = () => {
               type="button"
               onClick={handleApplyLeave} 
               disabled={submitting || loading} 
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
             >
               {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Send className="w-3.5 h-3.5 text-white" />}
               <span>{submitting ? 'Submitting...' : 'Submit'}</span>
@@ -283,7 +283,7 @@ const ApplyMobileLeave = () => {
                     newDate.setMonth(newDate.getMonth() - 1);
                     setCalendarDate(newDate);
                   }}
-                  className="w-8 h-8 rounded-[10px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--muted)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                  className="w-8 h-8 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--muted)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                   title="Previous Month"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -298,7 +298,7 @@ const ApplyMobileLeave = () => {
                     newDate.setMonth(newDate.getMonth() + 1);
                     setCalendarDate(newDate);
                   }}
-                  className="w-8 h-8 rounded-[10px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--muted)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                  className="w-8 h-8 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--muted)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                   title="Next Month"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -346,7 +346,7 @@ const ApplyMobileLeave = () => {
             <button
               type="submit"
               disabled={submitting || loading}
-              className="w-full h-11 rounded-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full h-11 rounded-full bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {submitting ? (
                 <>

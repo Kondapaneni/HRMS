@@ -213,7 +213,7 @@ const BranchOperationsMobileLeads = () => {
             <button
               key={tab.key}
               onClick={() => setSelectedStatusFilter(tab.key)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 selectedStatusFilter === tab.key
                   ? 'bg-[var(--ink)] text-white border-transparent shadow-xs'
                   : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--surface-alt)]'

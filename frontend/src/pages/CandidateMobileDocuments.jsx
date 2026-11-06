@@ -104,7 +104,7 @@ const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading, 
           <button
             type="button"
             onClick={() => onPreview && onPreview({ ...currentDoc, docType })}
-            className="p-2 rounded-[8px] bg-[var(--surface)] border border-[var(--line)] text-[var(--brand-deep)] hover:bg-[var(--line)]/50 transition-all shrink-0 cursor-pointer"
+            className="p-2 rounded-full-[8px] bg-[var(--surface)] border border-[var(--line)] text-[var(--brand-deep)] hover:bg-[var(--line)]/50 transition-all shrink-0 cursor-pointer"
             title="Preview Document"
           >
             <Eye size={15} />

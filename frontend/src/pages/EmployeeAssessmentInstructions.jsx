@@ -206,7 +206,7 @@ const EmployeeAssessmentInstructions = () => {
         <div className="mt-6 flex items-center justify-between">
           <button
             onClick={() => navigate('/employee/assessments')}
-            className="px-5 py-2.5 bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] font-semibold text-xs rounded-[14px] transition cursor-pointer inline-flex items-center gap-2"
+            className="px-5 py-2.5 bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] font-semibold text-xs rounded-full-[14px] transition cursor-pointer inline-flex items-center gap-2"
           >
             <ArrowLeft size={16} />
             Back to Assessments
@@ -214,7 +214,7 @@ const EmployeeAssessmentInstructions = () => {
           <button
             onClick={handleBeginExam}
             disabled={!agreed}
-            className={`px-8 py-2.5 font-semibold text-xs rounded-[14px] transition inline-flex items-center gap-2 cursor-pointer ${
+            className={`px-8 py-2.5 font-semibold text-xs rounded-full-[14px] transition inline-flex items-center gap-2 cursor-pointer ${
               !agreed
                 ? 'bg-[var(--surface-alt)] text-[var(--muted)] cursor-not-allowed'
                 : 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white'

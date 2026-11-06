@@ -220,9 +220,6 @@ const AssessmentCreate = () => {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[12px] font-medium text-[var(--muted)]">Assessment builder</span>
-          </div>
           <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em]">
             {isEditing ? `Edit: ${form.title || 'Assessment'}` : 'Create new assessment'}
           </h1>

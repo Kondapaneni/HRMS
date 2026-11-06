@@ -377,7 +377,7 @@ const EmployeeProfile = () => {
             <button 
               type="button"
               onClick={() => navigate('/employee/profile/edit')}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white transition-all cursor-pointer shadow-none"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full-[10px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white transition-all cursor-pointer shadow-none"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Edit profile</span>
@@ -450,7 +450,7 @@ const EmployeeProfile = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-[14px] text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full-[14px] text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
                     ? 'bg-[var(--ink)] text-white shadow-none'
                     : 'text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)]'

@@ -126,7 +126,7 @@ const EditMobileProfile = () => {
               <button 
                 type="button"
                 onClick={() => navigate('/employee/profile')} 
-                className="w-9 h-9 rounded-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                className="w-9 h-9 rounded-full-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
                 aria-label="Back to Profile"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -140,7 +140,7 @@ const EditMobileProfile = () => {
               type="button"
               onClick={handleSaveProfile} 
               disabled={isSaving} 
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
             >
               {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Save className="w-3.5 h-3.5 text-white" />}
               <span>{isSaving ? 'Saving...' : 'Save'}</span>
@@ -324,7 +324,7 @@ const EditMobileProfile = () => {
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full h-11 rounded-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+            className="w-full h-11 rounded-full-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Save className="w-4 h-4 text-white" />}
             <span>Save Profile Updates</span>

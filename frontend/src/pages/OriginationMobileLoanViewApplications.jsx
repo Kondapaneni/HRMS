@@ -215,7 +215,7 @@ export default function OriginationMobileLoanViewApplications({
         <p className="text-sm font-medium mb-4 text-[var(--text)]">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-4 py-2 bg-[var(--ink)] text-white rounded-[12px] text-sm font-semibold hover:bg-[var(--ink-2)] transition-colors"
+          className="px-4 py-2 bg-[var(--ink)] text-white rounded-full-[12px] text-sm font-semibold hover:bg-[var(--ink-2)] transition-colors"
         >
           Back to Applications
         </button>
@@ -239,7 +239,7 @@ export default function OriginationMobileLoanViewApplications({
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft size={14} className="text-[var(--icon-muted)]" />
               <span>Back</span>
@@ -265,7 +265,7 @@ export default function OriginationMobileLoanViewApplications({
                   <button
                     type="button"
                     onClick={handleCopyId}
-                    className="p-1 rounded-[6px] text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                    className="p-1 rounded-full-[6px] text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                     title="Copy App ID"
                   >
                     <Copy size={13} />
@@ -314,7 +314,7 @@ export default function OriginationMobileLoanViewApplications({
                     }
                   });
                 }}
-                className="w-full inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink-2)] py-3 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
+                className="w-full inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink-2)] py-3 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
               >
                 <FileEdit size={14} />
                 <span>Continue / Complete Application</span>
@@ -327,7 +327,7 @@ export default function OriginationMobileLoanViewApplications({
               <button
                 type="button"
                 onClick={() => setIsDocsOpen(true)}
-                className="w-full inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--surface-alt)] text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] border border-[var(--line)] py-2.5 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
+                className="w-full inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--surface-alt)] text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] border border-[var(--line)] py-2.5 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
               >
                 <Camera size={15} />
                 <span>Upload Photos ({uploadedCount}/{requiredSlots})</span>
@@ -338,7 +338,7 @@ export default function OriginationMobileLoanViewApplications({
                   type="button"
                   onClick={() => setIsSignatureModalOpen(true)}
                   disabled={isTransferring}
-                  className="w-full inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--badge-success-text)] text-white hover:opacity-90 py-3 px-4 transition-all gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+                  className="w-full inline-flex items-center justify-center rounded-full-[12px] text-xs font-semibold bg-[var(--badge-success-text)] text-white hover:opacity-90 py-3 px-4 transition-all gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer active:scale-[0.98]"
                 >
                   {isTransferring ? (
                     <>

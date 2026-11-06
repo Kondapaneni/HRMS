@@ -415,7 +415,7 @@ const EmployeeLeaves = () => {
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)} 
-                className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -486,7 +486,7 @@ const EmployeeLeaves = () => {
                           newDate.setMonth(newDate.getMonth() - 1);
                           setCalendarDate(newDate);
                         }}
-                        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[var(--line)] text-[var(--muted)] transition-colors cursor-pointer"
+                        className="w-7 h-7 rounded-full-[8px] flex items-center justify-center hover:bg-[var(--line)] text-[var(--muted)] transition-colors cursor-pointer"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
@@ -500,7 +500,7 @@ const EmployeeLeaves = () => {
                           newDate.setMonth(newDate.getMonth() + 1);
                           setCalendarDate(newDate);
                         }}
-                        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[var(--line)] text-[var(--muted)] transition-colors cursor-pointer"
+                        className="w-7 h-7 rounded-full-[8px] flex items-center justify-center hover:bg-[var(--line)] text-[var(--muted)] transition-colors cursor-pointer"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>

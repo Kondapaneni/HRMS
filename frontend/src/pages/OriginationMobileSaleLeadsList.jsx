@@ -143,7 +143,7 @@ const OriginationMobileSaleLeadsList = () => {
 
             <button
               onClick={() => navigate('/employee/sales/origination/leads/add')}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus size={14} />
               <span>Add Lead</span>
@@ -172,7 +172,7 @@ const OriginationMobileSaleLeadsList = () => {
             <button
               key={tab.key}
               onClick={() => setSelectedStatusFilter(tab.key)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 selectedStatusFilter === tab.key
                   ? 'bg-[var(--ink)] text-white border-transparent shadow-xs'
                   : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
