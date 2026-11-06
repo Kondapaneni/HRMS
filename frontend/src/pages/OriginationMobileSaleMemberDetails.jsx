@@ -282,7 +282,7 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
                             product_type: prod.product_type || member.product_type || 'Sales Product',
                             from: '/employee/sales/origination/members/details'
                           }}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 shadow-xs transition-all active:scale-95 cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                         >
                           <FileEdit size={13} />
                           <span>Fill Application</span>
@@ -317,7 +317,7 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
                       product_type: member.product_type || 'Sales Product',
                       from: '/employee/sales/origination/members/details'
                     }}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 shadow-xs transition-all active:scale-95 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                   >
                     <FileEdit size={13} />
                     <span>Fill Application</span>

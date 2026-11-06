@@ -154,7 +154,7 @@ const BranchOperationsDashboard = () => {
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <Link
               to="/employee/branch-operations/activities"
-              className="px-4 py-2 rounded-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] shadow-xs flex items-center gap-2 transition-all cursor-pointer h-9"
+              className="px-4 py-2 rounded-full bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] shadow-xs flex items-center gap-2 transition-all cursor-pointer h-9"
             >
               <Calendar className="w-4 h-4 text-[var(--branch-deep)]" />
               <span>Activities &amp; Tasks</span>

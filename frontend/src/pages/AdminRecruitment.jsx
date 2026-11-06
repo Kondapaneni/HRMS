@@ -641,7 +641,7 @@ const AdminRecruitment = () => {
                         href={job.description_pdf_url} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="w-8 h-8 rounded-[10px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] flex items-center justify-center transition-colors"
+                        className="w-8 h-8 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] flex items-center justify-center transition-colors"
                         title="Download JD document"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -746,7 +746,7 @@ const AdminRecruitment = () => {
                             href={app.resume_url} 
                             target="_blank" 
                             rel="noreferrer" 
-                            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] text-[12px] font-medium bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-colors"
+                            className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[12px] font-medium bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-colors"
                           >
                             <FileText className="w-3.5 h-3.5 text-[var(--muted)]" /> Resume
                           </a>

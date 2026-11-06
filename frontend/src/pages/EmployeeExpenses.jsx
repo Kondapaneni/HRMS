@@ -326,7 +326,7 @@ const EmployeeExpenses = () => {
                                 href={exp.bill_url} 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] text-xs font-semibold bg-[var(--brand-tint)] hover:bg-[var(--brand-tint)]/80 text-[var(--brand-deep)] transition-all cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[var(--brand-tint)] hover:bg-[var(--brand-tint)]/80 text-[var(--brand-deep)] transition-all cursor-pointer"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                                 <span>Receipt</span>

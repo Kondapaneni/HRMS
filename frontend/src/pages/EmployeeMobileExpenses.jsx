@@ -650,7 +650,7 @@ const EmployeeMobileExpenses = () => {
                         href={selectedBillUrl} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="flex items-center gap-2 px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-[14px] text-xs font-semibold shadow-xs active:scale-95 transition-all"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-full text-xs font-semibold shadow-xs active:scale-95 transition-all"
                       >
                         <ExternalLink className="w-4 h-4" />
                         <span>Open PDF in New Window</span>
