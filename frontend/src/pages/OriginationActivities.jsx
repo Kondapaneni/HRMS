@@ -756,19 +756,38 @@ const OriginationActivities = () => {
       </div>
 
       {/* Web Desktop Calendar View (Black & White Monochromatic Theme) */}
-      <div className="hidden md:flex flex-col h-[calc(100dvh-108px)] select-none antialiased space-y-3">
+      <div className="hidden md:flex flex-col h-[calc(100dvh-108px)] select-none antialiased space-y-4">
         
-        {/* Content Below Heading: Subtitle & Quick Metric Summary Pills */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 shrink-0 px-0.5">
+        {/* Header Bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 shrink-0 px-0.5">
           <div>
-            <p className="text-[13px] text-[var(--muted)]">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
+              {isSales
+                ? 'Sales Origination Pipeline'
+                : isBranchOperations
+                ? (branchInfo?.name ? `${branchInfo.name} Branch Pipeline` : 'Branch Operations Pipeline')
+                : 'Origination Loan Pipeline'}
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+              <span>
+                {isSales
+                  ? 'Sales Activities Directory'
+                  : isBranchOperations
+                  ? 'Branch Activities Directory'
+                  : 'Loan Activities Directory'}
+              </span>
+              <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">
+                {events.length} Total
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[var(--muted)] mt-0.5">
               {isBranchOperations
                 ? 'Coordinate customer visits, KYC verifications, loan processing follow-ups, and team activities.'
                 : 'Manage scheduled client calls, verification visits, document collections, and pipeline follow-ups.'}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
+          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar shrink-0 flex-wrap">
             <button
               type="button"
               onClick={() => {
@@ -816,6 +835,15 @@ const OriginationActivities = () => {
               title="Toggle Completed tasks visibility"
             >
               {stats.completedCount} Completed
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsActivitySidebarOpen(true)}
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white h-8 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0"
+            >
+              <Plus size={14} />
+              <span>Schedule Activity</span>
             </button>
           </div>
         </div>
