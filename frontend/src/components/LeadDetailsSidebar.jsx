@@ -156,17 +156,17 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
           /* Convert View */
           <>
             {/* Modal Header */}
-            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1F9D55]" />
-                  <span className="text-[10.5px] font-semibold text-[#1F9D55] uppercase tracking-wider">Member Conversion</span>
+                  <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">Member Conversion</span>
                 </div>
-                <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">Convert to Member</h2>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">Convert to Member</h2>
               </div>
               <button 
+                type="button"
                 onClick={() => setViewMode('details')} 
-                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-full transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -213,11 +213,11 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center justify-end gap-2.5 shrink-0">
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setViewMode('details')}
-                className="px-4 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] transition-all cursor-pointer"
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -225,7 +225,7 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
                 type="button"
                 onClick={handleConfirmConvert}
                 disabled={isPending}
-                className="px-5 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95"
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {isPending ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -240,17 +240,17 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
           /* Lead Details View */
           <>
             {/* Modal Header */}
-            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
                   <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">Prospect Profile</span>
                 </div>
-                <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">Lead Details</h2>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">Lead Details</h2>
               </div>
               <button 
+                type="button"
                 onClick={onClose} 
-                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-full transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -308,18 +308,24 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
             </div>
 
             {/* Actions Footer */}
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] grid grid-cols-1 gap-2.5 shrink-0">
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex flex-wrap items-center justify-end gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus('Not Interested')}
+                disabled={isPending || isConverted}
+                className="px-4 py-2 text-xs font-semibold text-[#D64550] bg-[#FDE8EA] hover:bg-[#fbd5d8] border border-[#D64550]/20 rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                {isPending ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />}
+                <span>Not Interested</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => handleUpdateStatus('Follow Up')}
                 disabled={isPending || isConverted}
-                className="w-full flex items-center justify-center gap-1.5 bg-[var(--surface)] hover:bg-[var(--brand-tint)] text-[var(--text-2)] border border-[var(--line)] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+                className="px-4 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                {isPending ? (
-                  <Loader2 size={15} className="animate-spin" />
-                ) : (
-                  <Clock size={15} />
-                )}
+                {isPending ? <Loader2 size={13} className="animate-spin" /> : <Clock size={13} />}
                 <span>Follow Up</span>
               </button>
 
@@ -327,28 +333,10 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
                 type="button"
                 onClick={() => handleUpdateStatus('Converted')}
                 disabled={isPending || isConverted}
-                className="w-full flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+                className="px-5 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                {isPending ? (
-                  <Loader2 size={15} className="animate-spin" />
-                ) : (
-                  <UserPlus size={15} />
-                )}
+                {isPending ? <Loader2 size={13} className="animate-spin" /> : <UserPlus size={13} />}
                 <span>Convert to Member</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleUpdateStatus('Not Interested')}
-                disabled={isPending || isConverted}
-                className="w-full flex items-center justify-center gap-1.5 bg-[var(--status-danger-bg)] hover:opacity-90 text-[var(--status-danger)] border border-[var(--status-danger)]/20 px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
-              >
-                {isPending ? (
-                  <Loader2 size={15} className="animate-spin" />
-                ) : (
-                  <XCircle size={15} />
-                )}
-                <span>Not Interested</span>
               </button>
             </div>
           </>

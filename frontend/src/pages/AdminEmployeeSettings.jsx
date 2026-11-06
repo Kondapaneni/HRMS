@@ -359,23 +359,19 @@ const AdminEmployeeSettings = () => {
               className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
             >
               {/* Header */}
-              <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+              <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
                 <div>
-                  <div className="flex items-center gap-1.5 text-[#D64550] mb-0.5">
-                    <AlertTriangle size={15} />
-                    <span className="text-[11px] font-medium">Offboarding confirmation</span>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">Offboarding Confirmation</span>
                   </div>
-                  <h2 className="text-lg font-medium text-[var(--text)] tracking-tight">
-                    Confirm employment status
+                  <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                    Confirm Employment Status
                   </h2>
-                  <p className="text-xs text-[var(--muted)] mt-0.5">
-                    Marking employee as <strong className="text-[#D64550]">{pendingStatus}</strong>
-                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowExitModal(false)}
-                  className="text-[var(--muted)] hover:text-[var(--text)] p-1.5 rounded-full transition-colors cursor-pointer"
+                  className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -416,23 +412,21 @@ const AdminEmployeeSettings = () => {
               </div>
 
               {/* Footer Actions */}
-              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end gap-2.5 shrink-0">
-                <Button
+              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+                <button
                   type="button"
-                  variant="secondary"
                   onClick={() => setShowExitModal(false)}
-                  className="h-10 px-5 rounded-full text-xs font-medium"
+                  className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
                 >
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
                   form="exit-form"
-                  variant="danger"
-                  className="h-10 px-6 rounded-full text-xs font-medium justify-center"
+                  className="px-6 py-2 text-xs font-semibold text-white bg-[#D64550] hover:bg-[#b83540] rounded-full shadow-xs transition-all cursor-pointer"
                 >
-                  Confirm offboarding
-                </Button>
+                  Confirm Offboarding
+                </button>
               </div>
             </motion.div>
           </div>,

@@ -17,7 +17,8 @@ import {
   UserCheck,
   Package,
   Clock,
-  UserPlus
+  UserPlus,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
@@ -451,24 +452,21 @@ const AdminFeatureAccess = () => {
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-md bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] flex flex-col animate-in slide-in-from-right duration-200">
               {/* Header */}
-              <div className="p-5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)]/50">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
-                    <Shield className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-[var(--text)]">
-                      Manage {selectedFeature.title.endsWith('Manager') ? `${selectedFeature.title}s` : selectedFeature.title}
-                    </h3>
-                    <p className="text-xs text-[var(--muted)] line-clamp-1">Select staff who should have this permission</p>
-                  </div>
+              <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
+                <div>
+                  <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                    ROLE DELEGATION
+                  </span>
+                  <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                    Manage {selectedFeature.title.endsWith('Manager') ? `${selectedFeature.title}s` : selectedFeature.title}
+                  </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => !saving && setSelectedFeature(null)}
-                  className="w-8 h-8 flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] rounded-full hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                  className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X size={18} />
                 </button>
               </div>
 
@@ -547,25 +545,30 @@ const AdminFeatureAccess = () => {
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)]/50 flex justify-end gap-2.5">
-                <Button
+              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+                <button
                   type="button"
-                  variant="secondary"
-                  size="sm"
                   onClick={() => !saving && setSelectedFeature(null)}
                   disabled={saving}
+                  className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
-                  variant="primary"
-                  size="sm"
                   onClick={handleSaveModal}
-                  loading={saving}
+                  disabled={saving}
+                  className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                  Save Permissions
-                </Button>
+                  {saving ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>Save Permissions</span>
+                  )}
+                </button>
               </div>
             </div>
           </div>

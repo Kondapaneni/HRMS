@@ -595,24 +595,20 @@ const AdminAttendanceRegularize = () => {
             className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative"
           >
             {/* Header */}
-            <div className="px-6 py-5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)]/50 shrink-0">
+            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
               <div>
-                <div className="flex items-center gap-1.5 text-[var(--brand-deep)] mb-1">
-                  <CalendarCheck size={16} />
-                  <span className="text-xs font-semibold">Attendance Regularization</span>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">Attendance Regularization</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[var(--text)]">
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
                   Regularize Record
                 </h2>
-                <p className="text-xs text-[var(--muted)] mt-0.5">
-                  Date: <strong className="text-[var(--text)] font-semibold">{selectedRecord?.date}</strong>
-                </p>
               </div>
               <button 
                 type="button" 
                 onClick={() => setIsModalOpen(false)}
                 disabled={modalLoading}
-                className="w-8 h-8 flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] rounded-full hover:bg-[var(--surface-alt)] transition-colors cursor-pointer disabled:opacity-50"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
               >
                 <X size={18} />
               </button>
@@ -685,25 +681,23 @@ const AdminAttendanceRegularize = () => {
             </div>
 
             {/* Footer Actions */}
-            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)]/50 flex justify-end gap-3 shrink-0">
-              <Button
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+              <button
                 type="button"
-                variant="secondary"
-                size="sm"
                 onClick={() => setIsModalOpen(false)}
                 disabled={modalLoading}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
                 form="regularize-form"
-                variant="primary"
-                size="sm"
-                loading={modalLoading}
+                disabled={modalLoading}
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
-                Save Regularization
-              </Button>
+                {modalLoading ? 'Saving...' : 'Save Regularization'}
+              </button>
             </div>
           </motion.div>
         </div>,

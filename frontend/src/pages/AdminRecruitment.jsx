@@ -1066,15 +1066,21 @@ const AdminRecruitment = () => {
             transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
             className="bg-[var(--surface)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
-            <div className="p-5 border-b border-[var(--line)] flex justify-between items-center shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <h3 className="text-[16px] font-medium text-[var(--text)] tracking-tight">
-                  Convert to employee
-                </h3>
-                <p className="text-[12px] text-[var(--muted)]">Create staff account and official employee profile</p>
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  TALENT ACQUISITION
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                  Convert to Employee
+                </h2>
               </div>
-              <button onClick={() => setIsConvertModalOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer">
-                <X className="w-4 h-4" />
+              <button 
+                type="button"
+                onClick={() => setIsConvertModalOpen(false)} 
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
               </button>
             </div>
             
@@ -1129,14 +1135,24 @@ const AdminRecruitment = () => {
               </form>
             </div>
 
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-2.5">
-              <Button type="button" variant="secondary" onClick={() => setIsConvertModalOpen(false)} disabled={convertEmployeeMutation.isPending}>
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsConvertModalOpen(false)}
+                disabled={convertEmployeeMutation.isPending}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
+              >
                 Cancel
-              </Button>
-              <Button type="submit" form="convert-candidate-form" variant="primary" disabled={convertEmployeeMutation.isPending}>
-                <UserCheck className="w-3.5 h-3.5 mr-1" />
-                {convertEmployeeMutation.isPending ? 'Converting...' : 'Convert candidate'}
-              </Button>
+              </button>
+              <button
+                type="submit"
+                form="convert-candidate-form"
+                disabled={convertEmployeeMutation.isPending}
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                <UserCheck size={14} />
+                <span>{convertEmployeeMutation.isPending ? 'Converting...' : 'Convert Candidate'}</span>
+              </button>
             </div>
           </motion.div>
         </div>,
@@ -1157,18 +1173,21 @@ const AdminRecruitment = () => {
             className="bg-[var(--surface)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Application pipeline</span>
-                <h2 className="text-[16px] font-medium text-[var(--text)] tracking-tight">
-                  Application timeline
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  APPLICATION PIPELINE
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                  Application Timeline
                 </h2>
               </div>
               <button 
+                type="button"
                 onClick={() => setIsTimelineModalOpen(false)} 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
             
@@ -1202,10 +1221,14 @@ const AdminRecruitment = () => {
               )}
             </div>
             
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end shrink-0">
-              <Button variant="secondary" onClick={() => setIsTimelineModalOpen(false)}>
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsTimelineModalOpen(false)}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
+              >
                 Close
-              </Button>
+              </button>
             </div>
           </motion.div>
         </div>,
@@ -1226,18 +1249,21 @@ const AdminRecruitment = () => {
             className="bg-[var(--surface)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Candidate interview</span>
-                <h2 className="text-[16px] font-medium text-[var(--text)] tracking-tight">
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  CANDIDATE INTERVIEW
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
                   Schedule {interviewData.status}
                 </h2>
               </div>
               <button 
+                type="button"
                 onClick={() => setIsScheduleModalOpen(false)} 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
             
@@ -1262,14 +1288,24 @@ const AdminRecruitment = () => {
               </form>
             </div>
 
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-2.5 shrink-0">
-              <Button type="button" variant="secondary" onClick={() => setIsScheduleModalOpen(false)} disabled={updateStatusMutation.isPending}>
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsScheduleModalOpen(false)}
+                disabled={updateStatusMutation.isPending}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
+              >
                 Cancel
-              </Button>
-              <Button type="submit" form="schedule-interview-form" variant="primary" disabled={updateStatusMutation.isPending}>
-                <Calendar className="w-3.5 h-3.5 mr-1" />
-                {updateStatusMutation.isPending ? 'Dispatching...' : 'Schedule & notify'}
-              </Button>
+              </button>
+              <button
+                type="submit"
+                form="schedule-interview-form"
+                disabled={updateStatusMutation.isPending}
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                <Calendar size={14} />
+                <span>{updateStatusMutation.isPending ? 'Dispatching...' : 'Schedule & Notify'}</span>
+              </button>
             </div>
           </motion.div>
         </div>,
@@ -1290,18 +1326,21 @@ const AdminRecruitment = () => {
             className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Recruitment opening</span>
-                <h2 className="text-[16px] font-medium text-[var(--text)] tracking-tight">
-                  Create job requisition
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  RECRUITMENT OPENING
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                  Create Job Requisition
                 </h2>
               </div>
               <button 
+                type="button"
                 onClick={() => setIsJobModalOpen(false)} 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
             
@@ -1377,17 +1416,34 @@ const AdminRecruitment = () => {
               </form>
             </div>
             
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-2.5 shrink-0">
-              <Button type="button" variant="secondary" onClick={() => setIsJobModalOpen(false)} disabled={createJobMutation.isPending}>
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsJobModalOpen(false)}
+                disabled={createJobMutation.isPending}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
+              >
                 Cancel
-              </Button>
-              <Button type="submit" form="post-job-form" variant="secondary" onClick={() => setSubmitStatus('Draft')} disabled={createJobMutation.isPending}>
-                {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save draft'}
-              </Button>
-              <Button type="submit" form="post-job-form" variant="primary" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending}>
-                <Sparkles className="w-3.5 h-3.5 mr-1" />
-                {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish opening'}
-              </Button>
+              </button>
+              <button
+                type="submit"
+                form="post-job-form"
+                onClick={() => setSubmitStatus('Draft')}
+                disabled={createJobMutation.isPending}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save Draft'}
+              </button>
+              <button
+                type="submit"
+                form="post-job-form"
+                onClick={() => setSubmitStatus('Published')}
+                disabled={createJobMutation.isPending}
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                <Sparkles size={14} />
+                <span>{createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish Opening'}</span>
+              </button>
             </div>
           </motion.div>
         </div>,

@@ -64,27 +64,29 @@ export const Drawer = ({
             className={`relative ${width} h-full bg-[var(--surface)] text-[var(--text)] rounded-l-[24px] shadow-[var(--shadow-modal)] flex flex-col z-10 overflow-hidden border-l border-[var(--line)]`}
           >
             {/* Header */}
-            <div className="px-6 py-5 border-b border-[var(--line)] flex items-start justify-between gap-4 shrink-0">
+            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
               <div>
-                {title && (
-                  <h3 className="text-[17px] font-medium text-[var(--text)] leading-snug">
-                    {title}
-                  </h3>
-                )}
                 {subtitle && (
-                  <p className="text-[12px] text-[var(--muted)] mt-0.5">
-                    {subtitle}
-                  </p>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                      {subtitle}
+                    </span>
+                  </div>
+                )}
+                {title && (
+                  <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                    {title}
+                  </h2>
                 )}
               </div>
               {showClose && (
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-8 h-8 rounded-full bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                  className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
                   aria-label="Close sheet"
                 >
-                  <X size={16} strokeWidth={1.7} />
+                  <X size={18} />
                 </button>
               )}
             </div>
@@ -96,7 +98,7 @@ export const Drawer = ({
 
             {/* Footer */}
             {footer && (
-              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex items-center justify-end gap-2.5 shrink-0">
+              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex items-center justify-end gap-3 shrink-0">
                 {footer}
               </div>
             )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Phone, MapPin, Loader2, Plus } from 'lucide-react';
+import { X, User, Phone, MapPin, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
@@ -102,17 +102,17 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
         className="bg-[var(--surface)] text-[var(--text)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
       >
         {/* Modal Header */}
-        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
           <div>
             <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
               <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">New Prospect</span>
             </div>
-            <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">Add New Lead</h2>
+            <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">Add New Lead</h2>
           </div>
           <button 
+            type="button"
             onClick={onClose} 
-            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-full transition-colors cursor-pointer"
+            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -157,11 +157,11 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
         </div>
 
         {/* Footer Buttons */}
-        <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center justify-end gap-2.5 shrink-0">
+        <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] transition-all cursor-pointer"
+            className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -169,7 +169,7 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
             type="submit"
             form="add-lead-form"
             disabled={isSubmitting}
-            className="px-5 py-2 rounded-full text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95"
+            className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
           >
             {isSubmitting ? (
               <>
@@ -177,10 +177,7 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
                 <span>Saving...</span>
               </>
             ) : (
-              <>
-                <Plus size={14} />
-                <span>Save Lead</span>
-              </>
+              <span>Save Lead</span>
             )}
           </button>
         </div>

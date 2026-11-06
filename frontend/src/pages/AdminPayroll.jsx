@@ -501,16 +501,18 @@ const AdminPayroll = () => {
             className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
             {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)]/50 shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <span className="text-xs font-semibold text-[var(--brand-deep)]">Payroll Statement</span>
-                <h2 className="text-lg font-semibold text-[var(--text)]">
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  PAYROLL STATEMENT
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
                   Payslip Statement
                 </h2>
               </div>
               <button 
                 onClick={closePayslipDrawer} 
-                className="w-8 h-8 flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] rounded-full hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -606,20 +608,22 @@ const AdminPayroll = () => {
             </div>
 
             {/* Drawer Footer */}
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)]/50 flex items-center gap-3 shrink-0">
-              <Button
-                variant="primary"
-                onClick={() => handleDownload(selectedPayslip)}
-                className="flex-1"
-              >
-                <Download className="w-4 h-4 mr-1.5" /> Download Payslip PDF
-              </Button>
-              <Button
-                variant="secondary"
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
                 onClick={closePayslipDrawer}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
               >
                 Close
-              </Button>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDownload(selectedPayslip)}
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Payslip PDF</span>
+              </button>
             </div>
           </motion.div>
         </div>,

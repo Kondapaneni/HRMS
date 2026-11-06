@@ -466,22 +466,22 @@ const CandidateJobs = () => {
         >
           <div className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 border-l border-[var(--line)]">
             {/* Drawer Header */}
-            <div className="px-6 py-4.5 border-b border-[var(--line)] flex items-center justify-between bg-[var(--surface)] shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-                  <Briefcase className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-[var(--text)]">Apply for Position</h2>
-                  <p className="text-xs text-[var(--muted)]">{selectedJob.title} &bull; {selectedJob.department}</p>
-                </div>
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
+              <div>
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  CAREERS & JOBS
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                  Apply for Position
+                </h2>
               </div>
               <button 
+                type="button"
                 onClick={() => setSelectedJob(null)} 
-                className="p-1.5 rounded-full hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
                 title="Close"
               >
-                <X className="w-5 h-5" />
+                <X size={18} />
               </button>
             </div>
             
@@ -704,7 +704,7 @@ const CandidateJobs = () => {
               <button 
                 type="button" 
                 onClick={() => setSelectedJob(null)} 
-                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-all cursor-pointer"
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -712,7 +712,7 @@ const CandidateJobs = () => {
                 type="submit"
                 form="apply-job-form"
                 disabled={applyMutation.isPending || resumes.length === 0}
-                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 rounded-full transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed shadow-xs"
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {applyMutation.isPending ? 'Submitting Application...' : 'Confirm & Submit'}
               </button>

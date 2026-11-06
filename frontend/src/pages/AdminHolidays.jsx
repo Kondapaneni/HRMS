@@ -346,22 +346,20 @@ const AdminHolidays = () => {
             className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative"
           >
             {/* Header */}
-            <div className="px-6 py-5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)]/50 shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <div className="flex items-center gap-1.5 text-[var(--brand-deep)] mb-1">
-                  <CalendarIcon size={16} />
-                  <span className="text-xs font-semibold">Holiday Management</span>
-                </div>
-                <h2 className="text-lg font-semibold text-[var(--text)]">
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  CALENDAR MANAGEMENT
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
                   {existingImage ? 'Edit Holiday' : 'Add Holiday'}
                 </h2>
-                <p className="text-xs text-[var(--muted)] mt-0.5">Date: <strong className="text-[var(--text)]">{selectedDate}</strong></p>
               </div>
               <button 
                 type="button" 
                 onClick={closeModal}
                 disabled={saving}
-                className="w-8 h-8 flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] rounded-full hover:bg-[var(--surface-alt)] transition-colors cursor-pointer disabled:opacity-50"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
               >
                 <X size={18} />
               </button>
@@ -409,25 +407,30 @@ const AdminHolidays = () => {
             </div>
             
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)]/50 flex justify-end gap-3 shrink-0">
-              <Button
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+              <button
                 type="button"
-                variant="secondary"
-                size="sm"
                 onClick={closeModal}
                 disabled={saving}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
                 form="holiday-form"
-                variant="primary"
-                size="sm"
-                loading={saving}
+                disabled={saving}
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                Save Holiday
-              </Button>
+                {saving ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <span>Save Holiday</span>
+                )}
+              </button>
             </div>
           </motion.div>
         </div>,

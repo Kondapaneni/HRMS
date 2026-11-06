@@ -434,16 +434,18 @@ const AdminExpenses = () => {
             className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
             {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)]/50 shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <span className="text-xs font-semibold text-[var(--brand-deep)]">Expense Claim</span>
-                <h2 className="text-lg font-semibold text-[var(--text)]">
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  EXPENSE REIMBURSEMENT
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
                   Claim Details
                 </h2>
               </div>
               <button 
                 onClick={closeReviewDrawer} 
-                className="w-8 h-8 flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] rounded-full hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -546,37 +548,36 @@ const AdminExpenses = () => {
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)]/50 flex items-center gap-3 shrink-0">
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
               {selectedExpense.status === 'Pending' ? (
                 <>
-                  <Button
-                    variant="primary"
-                    onClick={() => handleConfirmAction('Approved')}
-                    disabled={updateStatusMutation.isPending}
-                    loading={updateStatusMutation.isPending}
-                    className="flex-1"
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                    Approve Claim
-                  </Button>
-                  <Button
-                    variant="danger"
+                  <button
+                    type="button"
                     onClick={() => handleConfirmAction('Rejected')}
                     disabled={updateStatusMutation.isPending}
-                    className="flex-1"
+                    className="px-5 py-2 text-xs font-semibold text-white bg-[#D64550] hover:bg-[#b83540] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
-                    <XCircle className="w-4 h-4 mr-1.5" />
-                    Decline Claim
-                  </Button>
+                    <XCircle className="w-4 h-4" />
+                    <span>Decline Claim</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleConfirmAction('Approved')}
+                    disabled={updateStatusMutation.isPending}
+                    className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Approve Claim</span>
+                  </button>
                 </>
               ) : (
-                <Button
-                  variant="secondary"
+                <button
+                  type="button"
                   onClick={closeReviewDrawer}
-                  className="w-full"
+                  className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
                 >
                   Close Statement
-                </Button>
+                </button>
               )}
             </div>
           </motion.div>

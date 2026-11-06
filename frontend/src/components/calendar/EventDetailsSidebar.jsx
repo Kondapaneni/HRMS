@@ -84,23 +84,19 @@ const EventDetailsSidebar = ({
         className="bg-[var(--surface)] text-[var(--text)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
       >
         {/* Modal Header */}
-        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--brand-deep)]" />
-            <span
-              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
-                isCompleted
-                  ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#1F9D55]/20'
-                  : 'bg-[#E8F0FB] text-[#3B6FB6] border-[#3B6FB6]/20'
-              }`}
-            >
-              {event.status || 'Scheduled'}
-            </span>
+        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">Activity Schedule</span>
+            </div>
+            <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+              Event Details
+            </h2>
           </div>
           <button 
             type="button"
             onClick={onClose} 
-            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-full transition-colors cursor-pointer"
+            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -245,7 +241,14 @@ const EventDetailsSidebar = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center justify-end gap-2 shrink-0">
+        <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
+          >
+            Close
+          </button>
           {!isCompleted ? (
             <button
               type="button"
@@ -253,15 +256,15 @@ const EventDetailsSidebar = ({
                 onToggleComplete?.(event.id);
                 onClose();
               }}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-semibold border flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-[#E6F6EC] hover:bg-[#E6F6EC]/80 text-[#1F9D55] border-[#1F9D55]/20"
+              className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <CheckCircle2 size={14} />
               <span>Mark as Completed</span>
             </button>
           ) : (
-            <div className="w-full sm:w-auto px-5 py-2 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 bg-[#E6F6EC] text-[#1F9D55] border border-[#1F9D55]/20">
+            <div className="px-5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-[#E6F6EC] text-[#1F9D55] border border-[#1F9D55]/20 select-none">
               <CheckCircle2 size={14} />
-              <span>Activity Completed</span>
+              <span>Completed</span>
             </div>
           )}
         </div>

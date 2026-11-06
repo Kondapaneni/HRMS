@@ -354,12 +354,16 @@ const AdminAttendanceConfig = () => {
               className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative border-l border-[var(--line)]"
             >
               {/* Header */}
-              <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+              <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
                 <div>
-                  <h2 className="text-lg font-medium text-[var(--text)] tracking-tight">
-                    {editingGeo ? 'Edit geo location' : 'Add geo location'}
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                      Geo-Fence Settings
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                    {editingGeo ? 'Edit Geo Location' : 'Add Geo Location'}
                   </h2>
-                  <p className="text-xs text-[var(--muted)]">Geo-fence boundary configuration</p>
                 </div>
                 <button
                   type="button"
@@ -368,7 +372,7 @@ const AdminAttendanceConfig = () => {
                     setEditingGeo(null);
                   }}
                   disabled={isSubmitting}
-                  className="text-[var(--muted)] hover:text-[var(--text)] p-1.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                  className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <X size={18} />
                 </button>
@@ -440,29 +444,26 @@ const AdminAttendanceConfig = () => {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end gap-2.5 shrink-0">
-                <Button
+              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+                <button
                   type="button"
-                  variant="secondary"
                   onClick={() => {
                     setShowGeoModal(false);
                     setEditingGeo(null);
                   }}
-                  className="h-10 px-5 rounded-full text-xs font-medium"
                   disabled={isSubmitting}
+                  className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
                 >
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
                   form="geo-form"
-                  variant="primary"
-                  className="h-10 px-6 rounded-full text-xs font-medium justify-center"
                   disabled={isSubmitting}
-                  loading={isSubmitting}
+                  className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  {editingGeo ? 'Update location' : 'Save location'}
-                </Button>
+                  {isSubmitting ? 'Saving...' : editingGeo ? 'Update Location' : 'Save Location'}
+                </button>
               </div>
             </motion.div>
           </div>,
@@ -489,12 +490,16 @@ const AdminAttendanceConfig = () => {
               className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative border-l border-[var(--line)]"
             >
               {/* Header */}
-              <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+              <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
                 <div>
-                  <h2 className="text-lg font-medium text-[var(--text)] tracking-tight">
-                    {editingShift ? 'Edit shift time' : 'Add shift time'}
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                      Shift Schedule
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                    {editingShift ? 'Edit Shift Time' : 'Add Shift Time'}
                   </h2>
-                  <p className="text-xs text-[var(--muted)]">Shift timing windows</p>
                 </div>
                 <button
                   type="button"
@@ -503,7 +508,7 @@ const AdminAttendanceConfig = () => {
                     setEditingShift(null);
                   }}
                   disabled={isSubmitting}
-                  className="text-[var(--muted)] hover:text-[var(--text)] p-1.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                  className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <X size={18} />
                 </button>
@@ -545,29 +550,26 @@ const AdminAttendanceConfig = () => {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end gap-2.5 shrink-0">
-                <Button
+              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+                <button
                   type="button"
-                  variant="secondary"
                   onClick={() => {
                     setShowShiftModal(false);
                     setEditingShift(null);
                   }}
-                  className="h-10 px-5 rounded-full text-xs font-medium"
                   disabled={isSubmitting}
+                  className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
                 >
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
                   form="shift-form"
-                  variant="primary"
-                  className="h-10 px-6 rounded-full text-xs font-medium justify-center"
                   disabled={isSubmitting}
-                  loading={isSubmitting}
+                  className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  {editingShift ? 'Update shift time' : 'Save shift time'}
-                </Button>
+                  {isSubmitting ? 'Saving...' : editingShift ? 'Update Shift Time' : 'Save Shift Time'}
+                </button>
               </div>
             </motion.div>
           </div>,

@@ -470,30 +470,26 @@ const AdminAuditLogs = () => {
             <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
               <div className="w-screen max-w-2xl bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] flex flex-col">
                 {/* Header */}
-                <div className="p-5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)]">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-                      <ShieldCheck className="w-5 h-5" />
+                <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                        Security & Compliance
+                      </span>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-medium text-[var(--text)] tracking-tight">
-                          Audit log details
-                        </h3>
-                        {getActionBadge(selectedLog.action_type)}
-                      </div>
-                      <p className="text-xs text-[var(--muted)] font-mono mt-0.5">
-                        {selectedLog.audit_id} &bull;{' '}
-                        {format(new Date(selectedLog.timestamp), 'MMM d, yyyy h:mm:ss a')}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                        Audit Log Details
+                      </h2>
+                      {getActionBadge(selectedLog.action_type)}
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSelectedLog(null)}
-                    className="p-1.5 rounded-full text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] transition-colors cursor-pointer"
+                    className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
                   >
-                    <X className="w-5 h-5" />
+                    <X size={18} />
                   </button>
                 </div>
 
@@ -594,15 +590,14 @@ const AdminAuditLogs = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end items-center shrink-0">
-                  <Button
+                <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+                  <button
                     type="button"
-                    variant="secondary"
                     onClick={() => setSelectedLog(null)}
-                    className="h-9 px-5 rounded-full text-xs font-medium"
+                    className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
                   >
-                    Close inspector
-                  </Button>
+                    Close
+                  </button>
                 </div>
               </div>
             </div>

@@ -351,26 +351,21 @@ const AssessmentManagement = () => {
             <div className="w-screen max-w-2xl bg-[var(--surface)] shadow-2xl flex flex-col relative animate-in slide-in-from-right duration-300">
               
               {/* Header */}
-              <div className="p-5 border-b border-[var(--line)] flex justify-between items-center shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-[16px] font-medium text-[var(--text)] line-clamp-1">
-                      {selectedAssessmentForRules.title}
-                    </h3>
-                    <p className="text-[12px] text-[var(--muted)]">
-                      Assessment configuration & linked questions
-                    </p>
-                  </div>
+              <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
+                <div>
+                  <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                    ASSESSMENT RULES
+                  </span>
+                  <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight line-clamp-1">
+                    {selectedAssessmentForRules.title}
+                  </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedAssessmentForRules(null)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                  className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X size={18} />
                 </button>
               </div>
 
@@ -490,24 +485,26 @@ const AssessmentManagement = () => {
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end items-center gap-2.5 shrink-0">
-                <Button
-                  variant="secondary"
+              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end items-center gap-3 shrink-0">
+                <button
+                  type="button"
                   onClick={() => setSelectedAssessmentForRules(null)}
+                  className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
                 >
                   Close
-                </Button>
-                <Button
-                  variant="primary"
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     const targetId = selectedAssessmentForRules.id;
                     setSelectedAssessmentForRules(null);
                     navigate(`/admin/assessments/edit/${targetId}`);
                   }}
+                  className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <Edit className="w-3.5 h-3.5 mr-1" />
-                  <span>Edit assessment</span>
-                </Button>
+                  <Edit size={14} />
+                  <span>Edit Assessment</span>
+                </button>
               </div>
 
             </div>

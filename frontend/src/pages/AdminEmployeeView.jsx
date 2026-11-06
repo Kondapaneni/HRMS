@@ -7,7 +7,7 @@ import {
   ArrowLeft, Edit3, Settings, User, Mail, Phone, MapPin, Briefcase,
   CalendarDays, Building2, Shield, CreditCard, HeartHandshake, Globe,
   Clock, Laptop, Droplets, Download, Camera,
-  AlertCircle, TrendingUp, X, Sparkles
+  AlertCircle, TrendingUp, X, Sparkles, Loader2
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { pdf } from '@react-pdf/renderer';
@@ -781,17 +781,19 @@ const AdminEmployeeView = () => {
               className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-md md:max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
             >
               {/* Header */}
-              <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+              <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
                 <div>
-                  <h2 className="text-lg font-medium text-[var(--text)] tracking-tight">
-                    Promote employee
+                  <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                    STAFF ADVANCEMENT
+                  </span>
+                  <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                    Promote Employee
                   </h2>
-                  <p className="text-xs text-[var(--muted)]">Role advancement &amp; compensation revision</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsPromoteModalOpen(false)}
-                  className="text-[var(--muted)] hover:text-[var(--text)] p-1.5 rounded-full transition-colors cursor-pointer"
+                  className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -954,27 +956,33 @@ const AdminEmployeeView = () => {
               </form>
 
               {/* Footer Actions */}
-              <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end gap-2.5 shrink-0">
-                <Button
+              <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+                <button
                   type="button"
-                  variant="secondary"
                   disabled={isPromoting}
                   onClick={() => setIsPromoteModalOpen(false)}
-                  className="h-10 px-5 rounded-full text-xs font-medium"
+                  className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
                   form="promote-form"
-                  variant="primary"
                   disabled={isPromoting}
-                  loading={isPromoting}
-                  className="h-10 px-6 rounded-full text-xs font-medium justify-center"
+                  className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                  <Sparkles size={14} />
-                  <span>Confirm promotion</span>
-                </Button>
+                  {isPromoting ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Promoting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={14} />
+                      <span>Confirm Promotion</span>
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           </div>,

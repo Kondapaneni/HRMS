@@ -442,19 +442,21 @@ const DepartmentQuestionBank = () => {
             className="bg-[var(--surface)] shadow-2xl w-full max-w-2xl h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Question bank</span>
-                <h2 className="text-[16px] font-medium text-[var(--text)]">
-                  {editingId ? 'Edit department question' : 'Add question to bank'}
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  QUESTION BANK
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                  {editingId ? 'Edit Department Question' : 'Add Question to Bank'}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
@@ -644,17 +646,16 @@ const DepartmentQuestionBank = () => {
             </div>
 
             {/* Drawer Footer */}
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end items-center gap-2.5 shrink-0">
-              <Button
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end items-center gap-3 shrink-0">
+              <button
                 type="button"
-                variant="secondary"
                 onClick={() => setShowModal(false)}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant="secondary"
                 onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: true })}
                 disabled={
                   saveMutation.isPending ||
@@ -662,12 +663,12 @@ const DepartmentQuestionBank = () => {
                   form.options.some(o => !o.trim()) ||
                   form.correct_options.length === 0
                 }
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer disabled:opacity-50"
               >
-                Save & close
-              </Button>
-              <Button
+                Save & Close
+              </button>
+              <button
                 type="button"
-                variant="primary"
                 onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: false })}
                 disabled={
                   saveMutation.isPending ||
@@ -675,10 +676,11 @@ const DepartmentQuestionBank = () => {
                   form.options.some(o => !o.trim()) ||
                   form.correct_options.length === 0
                 }
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                {saveMutation.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
-                <span>{editingId ? 'Update & add another' : 'Save & add next'}</span>
-              </Button>
+                {saveMutation.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                <span>{editingId ? 'Update & Add Another' : 'Save & Add Next'}</span>
+              </button>
             </div>
           </motion.div>
         </div>,

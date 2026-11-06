@@ -634,10 +634,12 @@ const OriginationLoanApplicationsList = () => {
             className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
           >
             {/* Drawer Header */}
-            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
               <div>
-                <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-0.5">Loan Origination</p>
-                <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  LOAN ORIGINATION
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight flex items-center gap-2">
                   Application Details
                   <span className="text-xs font-mono font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px]">
                     {selectedApp.application_id || 'LA-DRAFT'}
@@ -645,8 +647,9 @@ const OriginationLoanApplicationsList = () => {
                 </h2>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedApp(null)}
-                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--line)] p-1.5 rounded-full transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -812,7 +815,14 @@ const OriginationLoanApplicationsList = () => {
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center gap-2.5 shrink-0 flex-wrap">
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0 items-center">
+              <button
+                type="button"
+                onClick={() => setSelectedApp(null)}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
               {selectedApp.status === 'Draft' ? (
                 <>
                   <button
@@ -820,25 +830,24 @@ const OriginationLoanApplicationsList = () => {
                     onClick={() => {
                       const target = selectedApp;
                       setSelectedApp(null);
-                      handleEditForm(target);
+                      handleOpenStudio(target);
                     }}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white shadow-xs transition-all cursor-pointer"
+                    className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer flex items-center gap-1.5"
                   >
-                    <FileEdit className="w-4 h-4" />
-                    <span>Continue / Edit Draft</span>
+                    <span>Studio</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
                   </button>
-
                   <button
                     type="button"
                     onClick={() => {
                       const target = selectedApp;
                       setSelectedApp(null);
-                      handleOpenStudio(target);
+                      handleEditForm(target);
                     }}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] transition-all cursor-pointer"
+                    className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    <span>Studio</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
+                    <FileEdit className="w-4 h-4" />
+                    <span>Continue / Edit Draft</span>
                   </button>
                 </>
               ) : (
@@ -849,20 +858,12 @@ const OriginationLoanApplicationsList = () => {
                     setSelectedApp(null);
                     handleOpenStudio(target);
                   }}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white shadow-xs transition-all cursor-pointer"
+                  className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <span>Open in Loan Application Studio</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               )}
-
-              <button
-                type="button"
-                onClick={() => setSelectedApp(null)}
-                className="px-4 py-2.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] transition-all cursor-pointer"
-              >
-                Close
-              </button>
             </div>
           </motion.div>
         </div>,

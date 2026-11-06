@@ -401,23 +401,21 @@ const EmployeeLeaves = () => {
           <div className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
             
             {/* Drawer Header */}
-            <div className="px-6 py-4 border-b border-[var(--line)] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
-                  <CalendarDays className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-[16px] font-medium text-[var(--text)]">
-                    Apply for leave
-                  </h2>
-                  <p className="text-[12px] text-[var(--muted)]">Submit time-off dates for manager approval</p>
-                </div>
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
+              <div>
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  LEAVE APPLICATION
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                  Apply for Leave
+                </h2>
               </div>
               <button 
+                type="button"
                 onClick={() => setIsModalOpen(false)} 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X size={18} />
               </button>
             </div>
 
@@ -546,22 +544,22 @@ const EmployeeLeaves = () => {
 
             {/* Drawer Footer Actions */}
             <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex items-center justify-end gap-3 shrink-0">
-              <Button
+              <button
                 type="button"
-                variant="secondary"
                 onClick={() => setIsModalOpen(false)}
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
                 form="apply-leave-form"
-                variant="primary"
                 disabled={submitting}
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
-                <span>{submitting ? 'Submitting...' : 'Submit request'}</span>
-              </Button>
+                {submitting && <Loader2 size={14} className="animate-spin" />}
+                <span>{submitting ? 'Submitting...' : 'Submit Application'}</span>
+              </button>
             </div>
 
           </div>

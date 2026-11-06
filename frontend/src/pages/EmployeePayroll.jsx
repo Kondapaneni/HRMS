@@ -303,25 +303,20 @@ const EmployeePayroll = () => {
           <div className="bg-[var(--surface)] text-[var(--text)] shadow-2xl w-full max-w-xl h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 antialiased">
             
             {/* Drawer Header */}
-            <div className="px-6 py-4 border-b border-[var(--line)] flex items-center justify-between bg-[var(--surface-alt)] shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-[var(--text)]">
-                    Payslip Breakdown
-                  </h3>
-                  <p className="text-xs text-[var(--muted)] mt-0.5">
-                    {(selectedPayslip.employeeName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Employee')} &bull; {getMonthYearString(selectedPayslip.month, selectedPayslip.year)}
-                  </p>
-                </div>
+            <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
+              <div>
+                <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
+                  PAYROLL BREAKDOWN
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+                  Payslip Breakdown
+                </h2>
               </div>
               <button
                 onClick={() => setSelectedPayslip(null)}
-                className="p-1.5 rounded-full hover:bg-[var(--line)] text-[var(--muted)] transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X size={18} />
               </button>
             </div>
 
@@ -415,18 +410,18 @@ const EmployeePayroll = () => {
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center justify-between shrink-0">
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setSelectedPayslip(null)}
-                className="px-5 py-2 rounded-full text-xs font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--line)] transition-all cursor-pointer"
+                className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={() => handleDownload(selectedPayslip)}
-                className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] transition-all cursor-pointer shadow-none"
+                className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download Official PDF</span>

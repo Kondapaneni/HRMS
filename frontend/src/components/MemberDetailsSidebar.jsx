@@ -52,19 +52,19 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
         className="bg-[var(--surface)] text-[var(--text)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
       >
         {/* Modal Header */}
-        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
           <div>
             <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
               <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">Member Profile</span>
             </div>
-            <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">
+            <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
               Member Details
             </h2>
           </div>
           <button 
+            type="button"
             onClick={onClose} 
-            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-full transition-colors cursor-pointer"
+            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -155,6 +155,17 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
             </div>
           </div>
 
+        </div>
+
+        {/* Modal Footer Actions */}
+        <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
+          >
+            Close
+          </button>
         </div>
       </motion.div>
     </div>,
