@@ -126,7 +126,7 @@ const AdminAttendanceConfig = () => {
               setEditingGeo(null);
               setShowGeoModal(true);
             }}
-            className="h-9 px-4 rounded-[12px] text-xs font-medium"
+            className="h-9 px-4 rounded-full text-xs font-medium"
           >
             <Globe size={14} />
             <span>Add location</span>
@@ -137,7 +137,7 @@ const AdminAttendanceConfig = () => {
               setEditingShift(null);
               setShowShiftModal(true);
             }}
-            className="h-9 px-4 rounded-[12px] text-xs font-medium"
+            className="h-9 px-4 rounded-full text-xs font-medium"
           >
             <Clock size={14} />
             <span>Add shift time</span>
@@ -448,7 +448,7 @@ const AdminAttendanceConfig = () => {
                     setShowGeoModal(false);
                     setEditingGeo(null);
                   }}
-                  className="h-10 px-5 rounded-[12px] text-xs font-medium"
+                  className="h-10 px-5 rounded-full text-xs font-medium"
                   disabled={isSubmitting}
                 >
                   Cancel
@@ -457,7 +457,7 @@ const AdminAttendanceConfig = () => {
                   type="submit"
                   form="geo-form"
                   variant="primary"
-                  className="h-10 px-6 rounded-[12px] text-xs font-medium justify-center"
+                  className="h-10 px-6 rounded-full text-xs font-medium justify-center"
                   disabled={isSubmitting}
                   loading={isSubmitting}
                 >
@@ -553,7 +553,7 @@ const AdminAttendanceConfig = () => {
                     setShowShiftModal(false);
                     setEditingShift(null);
                   }}
-                  className="h-10 px-5 rounded-[12px] text-xs font-medium"
+                  className="h-10 px-5 rounded-full text-xs font-medium"
                   disabled={isSubmitting}
                 >
                   Cancel
@@ -562,7 +562,7 @@ const AdminAttendanceConfig = () => {
                   type="submit"
                   form="shift-form"
                   variant="primary"
-                  className="h-10 px-6 rounded-[12px] text-xs font-medium justify-center"
+                  className="h-10 px-6 rounded-full text-xs font-medium justify-center"
                   disabled={isSubmitting}
                   loading={isSubmitting}
                 >
@@ -598,7 +598,7 @@ const AdminAttendanceConfig = () => {
                   type="button"
                   variant="secondary"
                   onClick={() => setItemToDelete(null)}
-                  className="h-9 px-4 rounded-[12px] text-xs font-medium"
+                  className="h-9 px-4 rounded-full text-xs font-medium"
                 >
                   Cancel
                 </Button>
@@ -606,7 +606,7 @@ const AdminAttendanceConfig = () => {
                   type="button"
                   variant="danger"
                   onClick={confirmDelete}
-                  className="h-9 px-5 rounded-[12px] text-xs font-medium justify-center"
+                  className="h-9 px-5 rounded-full text-xs font-medium justify-center"
                 >
                   Delete
                 </Button>

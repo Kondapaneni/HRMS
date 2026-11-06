@@ -29,11 +29,11 @@ export const Button = React.forwardRef(({
     'inline-flex items-center justify-center font-medium transition-all duration-150 select-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2';
 
   const sizeClasses = {
-    sm: 'h-[36px] px-3 text-[13px] rounded-[10px] gap-1.5',
-    md: 'h-[40px] px-4 text-[14px] rounded-[12px] gap-2',
-    lg: 'h-[44px] px-5 text-[15px] rounded-[14px] gap-2.5',
-    icon: 'w-[40px] h-[40px] p-0 rounded-[12px]',
-    'icon-sm': 'w-[36px] h-[36px] p-0 rounded-[10px]',
+    sm: 'h-[36px] px-3.5 text-[13px] rounded-full gap-1.5',
+    md: 'h-[40px] px-5 text-[14px] rounded-full gap-2',
+    lg: 'h-[44px] px-6 text-[15px] rounded-full gap-2.5',
+    icon: 'w-[40px] h-[40px] p-0 rounded-full',
+    'icon-sm': 'w-[36px] h-[36px] p-0 rounded-full',
     'icon-circle': 'w-[40px] h-[40px] p-0 rounded-full',
   };
 

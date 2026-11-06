@@ -341,7 +341,7 @@ const AdminSettings = () => {
                     <button
                       type="button"
                       onClick={() => removeHeadline(index)}
-                      className="w-10 h-10 flex items-center justify-center text-[var(--danger-text)] bg-[var(--danger-bg)] hover:opacity-80 rounded-[12px] transition-opacity cursor-pointer shrink-0"
+                      className="w-10 h-10 flex items-center justify-center text-[var(--danger-text)] bg-[var(--danger-bg)] hover:opacity-80 rounded-full transition-opacity cursor-pointer shrink-0"
                       title="Remove headline"
                     >
                       <Trash2 className="w-4 h-4" />

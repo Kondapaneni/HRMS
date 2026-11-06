@@ -303,7 +303,7 @@ const AdminVerifyDocuments = () => {
         <Button
           variant="primary"
           onClick={() => navigate('/admin/recruitment')}
-          className="h-9 px-4 rounded-[12px] text-xs font-medium"
+          className="h-9 px-4 rounded-full text-xs font-medium"
         >
           Return to recruitment
         </Button>
@@ -337,7 +337,7 @@ const AdminVerifyDocuments = () => {
               onClick={() => sendEmailMutation.mutate()}
               disabled={!allRequiredVerified || sendEmailMutation.isPending || hasNotified}
               loading={sendEmailMutation.isPending}
-              className="h-9 px-4 rounded-[12px] text-xs font-medium"
+              className="h-9 px-4 rounded-full text-xs font-medium"
             >
               {hasNotified ? <CheckCircle2 size={14} /> : <Send size={14} />}
               <span>{hasNotified ? 'Candidate notified' : 'Notify candidate verified'}</span>
@@ -347,7 +347,7 @@ const AdminVerifyDocuments = () => {
           <Button
             variant="secondary"
             onClick={() => navigate('/admin/recruitment')}
-            className="h-9 px-3.5 rounded-[12px] text-xs font-medium"
+            className="h-9 px-3.5 rounded-full text-xs font-medium"
           >
             <ArrowLeft size={14} />
             <span>Back</span>

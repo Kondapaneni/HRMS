@@ -203,7 +203,7 @@ const AdminReports = () => {
             }
             disabled={downloadingSection === 'employees'}
             loading={downloadingSection === 'employees'}
-            className="mt-3 sm:mt-0 h-9 rounded-[12px] text-xs font-medium"
+            className="mt-3 sm:mt-0 h-9 px-4 rounded-full text-xs font-medium"
           >
             <Download size={14} />
             <span>Export CSV</span>
@@ -295,7 +295,7 @@ const AdminReports = () => {
               }
               disabled={downloadingSection === 'attendance'}
               loading={downloadingSection === 'attendance'}
-              className="h-9 rounded-[12px] text-xs font-medium"
+              className="h-9 px-4 rounded-full text-xs font-medium"
             >
               <Download size={14} />
               <span>Export CSV</span>
@@ -370,7 +370,7 @@ const AdminReports = () => {
               }
               disabled={downloadingSection === 'payroll'}
               loading={downloadingSection === 'payroll'}
-              className="h-9 rounded-[12px] text-xs font-medium"
+              className="h-9 px-4 rounded-full text-xs font-medium"
             >
               <Download size={14} />
               <span>Export CSV</span>

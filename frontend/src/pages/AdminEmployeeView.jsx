@@ -78,7 +78,7 @@ const AdminEmployeeView = () => {
         <Button
           variant="secondary"
           onClick={() => navigate('/admin/employees')}
-          className="mt-3 h-9 px-4 rounded-[12px] text-xs font-medium"
+          className="mt-3 h-9 px-4 rounded-full text-xs font-medium"
         >
           Back to directory
         </Button>
@@ -304,7 +304,7 @@ const AdminEmployeeView = () => {
           <Button
             variant="secondary"
             onClick={openPromoteModal}
-            className="h-9 px-4 rounded-[12px] font-medium text-xs justify-center"
+            className="h-9 px-4 rounded-full font-medium text-xs justify-center"
           >
             <TrendingUp size={14} className="text-[#1F9D55]" />
             <span>Promote employee</span>
@@ -312,7 +312,7 @@ const AdminEmployeeView = () => {
           <Button
             variant="primary"
             onClick={() => navigate(`/admin/employees/${id}/edit`)}
-            className="h-9 px-4 rounded-[12px] font-medium text-xs justify-center"
+            className="h-9 px-4 rounded-full font-medium text-xs justify-center"
           >
             <Edit3 size={14} />
             <span>Edit profile</span>
@@ -320,7 +320,7 @@ const AdminEmployeeView = () => {
           <Button
             variant="secondary"
             onClick={() => navigate(`/admin/employees/${id}/settings`)}
-            className="h-9 px-3.5 rounded-[12px] font-medium text-xs justify-center"
+            className="h-9 px-3.5 rounded-full font-medium text-xs justify-center"
           >
             <Settings size={14} />
             <span>Security</span>
@@ -328,7 +328,7 @@ const AdminEmployeeView = () => {
           <Button
             variant="secondary"
             onClick={() => navigate('/admin/employees')}
-            className="h-9 px-3.5 rounded-[12px] font-medium text-xs justify-center"
+            className="h-9 px-3.5 rounded-full font-medium text-xs justify-center"
           >
             <ArrowLeft size={14} />
             <span>Directory</span>
@@ -960,7 +960,7 @@ const AdminEmployeeView = () => {
                   variant="secondary"
                   disabled={isPromoting}
                   onClick={() => setIsPromoteModalOpen(false)}
-                  className="h-10 px-5 rounded-[12px] text-xs font-medium"
+                  className="h-10 px-5 rounded-full text-xs font-medium"
                 >
                   Cancel
                 </Button>
@@ -970,7 +970,7 @@ const AdminEmployeeView = () => {
                   variant="primary"
                   disabled={isPromoting}
                   loading={isPromoting}
-                  className="h-10 px-6 rounded-[12px] text-xs font-medium justify-center"
+                  className="h-10 px-6 rounded-full text-xs font-medium justify-center"
                 >
                   <Sparkles size={14} />
                   <span>Confirm promotion</span>

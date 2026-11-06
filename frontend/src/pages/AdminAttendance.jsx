@@ -153,7 +153,7 @@ const AdminAttendance = () => {
             <Button
               variant="secondary"
               onClick={() => navigate('/admin/attendance/regularize')}
-              className="h-9 px-3.5 rounded-[12px] text-xs font-medium"
+              className="h-9 px-3.5 rounded-full text-xs font-medium"
             >
               <CalendarCheck size={14} />
               <span>Regularize</span>

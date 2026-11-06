@@ -339,7 +339,7 @@ const AdminAttendanceLocation = () => {
                   {record.checkInLat && record.checkInLng && (
                     <button
                       onClick={() => focusMarker('checkIn')}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-[10px] bg-[var(--surface)] text-[var(--status-success-text)] hover:bg-[var(--surface)]/80 transition-colors cursor-pointer shadow-xs"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--status-success-text)] hover:bg-[var(--surface)]/80 transition-colors cursor-pointer shadow-xs"
                       title="Focus on map"
                     >
                       <MapPin size={13} />
@@ -361,7 +361,7 @@ const AdminAttendanceLocation = () => {
                   {record.checkOutLat && record.checkOutLng && (
                     <button
                       onClick={() => focusMarker('checkOut')}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-[10px] bg-[var(--surface)] text-[var(--status-danger-text)] hover:bg-[var(--surface)]/80 transition-colors cursor-pointer shadow-xs"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--status-danger-text)] hover:bg-[var(--surface)]/80 transition-colors cursor-pointer shadow-xs"
                       title="Focus on map"
                     >
                       <MapPin size={13} />
@@ -415,7 +415,7 @@ const AdminAttendanceLocation = () => {
                           {(punch.latitude && punch.longitude) && (
                             <button
                               onClick={() => focusMarker('punch', idx)}
-                              className={`inline-flex h-7 w-7 items-center justify-center rounded-[10px] bg-[var(--surface)] transition-colors cursor-pointer shadow-xs ${
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--surface)] transition-colors cursor-pointer shadow-xs ${
                                 isTracker ? 'text-[var(--accent-pink-deep)] hover:bg-[var(--surface)]/80' : 'text-[var(--brand-deep)] hover:bg-[var(--surface)]/80'
                               }`}
                               title="Focus on map"

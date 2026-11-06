@@ -599,7 +599,7 @@ const AdminAuditLogs = () => {
                     type="button"
                     variant="secondary"
                     onClick={() => setSelectedLog(null)}
-                    className="h-9 px-5 rounded-[12px] text-xs font-medium"
+                    className="h-9 px-5 rounded-full text-xs font-medium"
                   >
                     Close inspector
                   </Button>

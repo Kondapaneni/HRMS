@@ -142,7 +142,7 @@ const AdminEmployeeEdit = () => {
         <Button
           variant="secondary"
           onClick={() => navigate(`/admin/employees/${id}`)}
-          className="h-9 px-4 rounded-[12px] font-medium text-xs justify-center shrink-0 self-start sm:self-auto"
+          className="h-9 px-4 rounded-full font-medium text-xs justify-center shrink-0 self-start sm:self-auto"
         >
           <ArrowLeft size={14} />
           <span>Back to profile</span>
@@ -588,7 +588,7 @@ const AdminEmployeeEdit = () => {
             type="button"
             variant="secondary"
             onClick={() => navigate(`/admin/employees/${id}`)}
-            className="h-10 px-5 rounded-[12px] text-xs font-medium"
+            className="h-10 px-5 rounded-full text-xs font-medium"
           >
             Cancel
           </Button>
@@ -597,7 +597,7 @@ const AdminEmployeeEdit = () => {
             variant="primary"
             disabled={saving}
             loading={saving}
-            className="h-10 px-6 rounded-[12px] text-xs font-medium justify-center"
+            className="h-10 px-6 rounded-full text-xs font-medium justify-center"
           >
             <Save size={14} />
             <span>Save changes</span>

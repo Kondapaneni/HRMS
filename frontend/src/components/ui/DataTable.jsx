@@ -339,7 +339,7 @@ export const DataTable = ({
               size="sm"
               disabled={currentPage <= 1 || isLoading}
               onClick={() => handlePageChange(currentPage - 1)}
-              className="h-[32px] w-[32px] p-0 rounded-[8px]"
+              className="h-[32px] w-[32px] p-0 rounded-full"
               aria-label="Previous Page"
             >
               <ChevronLeft size={16} strokeWidth={1.7} />
@@ -349,7 +349,7 @@ export const DataTable = ({
               size="sm"
               disabled={currentPage >= totalPages || isLoading}
               onClick={() => handlePageChange(currentPage + 1)}
-              className="h-[32px] w-[32px] p-0 rounded-[8px]"
+              className="h-[32px] w-[32px] p-0 rounded-full"
               aria-label="Next Page"
             >
               <ChevronRight size={16} strokeWidth={1.7} />

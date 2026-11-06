@@ -90,7 +90,7 @@ const AdminEmployees = () => {
         <Button
           variant="primary"
           onClick={() => setIsModalOpen(true)}
-          className="h-10 px-5 rounded-[12px] font-medium text-xs justify-center shrink-0"
+          className="h-10 px-5 rounded-full font-medium text-xs justify-center shrink-0"
         >
           <Plus size={15} />
           <span>Add employee</span>
@@ -227,7 +227,7 @@ const AdminEmployees = () => {
                             <button
                               type="button"
                               onClick={() => navigate(`/admin/employees/${emp.id}`)}
-                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[var(--text)] rounded-[10px] hover:bg-[var(--brand-tint)] hover:text-[var(--brand-deep)] transition-colors cursor-pointer gap-2"
+                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[var(--text)] rounded-full hover:bg-[var(--brand-tint)] hover:text-[var(--brand-deep)] transition-colors cursor-pointer gap-2"
                             >
                               <Eye className="w-3.5 h-3.5 text-[var(--muted)]" />
                               <span>View profile</span>
@@ -235,7 +235,7 @@ const AdminEmployees = () => {
                             <button
                               type="button"
                               onClick={() => navigate(`/admin/employees/${emp.id}/edit`)}
-                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[var(--text)] rounded-[10px] hover:bg-[var(--brand-tint)] hover:text-[var(--brand-deep)] transition-colors cursor-pointer gap-2"
+                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[var(--text)] rounded-full hover:bg-[var(--brand-tint)] hover:text-[var(--brand-deep)] transition-colors cursor-pointer gap-2"
                             >
                               <Edit className="w-3.5 h-3.5 text-[var(--muted)]" />
                               <span>Edit details</span>
@@ -243,7 +243,7 @@ const AdminEmployees = () => {
                             <button
                               type="button"
                               onClick={() => navigate(`/admin/employees/${emp.id}/settings`)}
-                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[var(--text)] rounded-[10px] hover:bg-[var(--brand-tint)] hover:text-[var(--brand-deep)] transition-colors cursor-pointer gap-2"
+                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[var(--text)] rounded-full hover:bg-[var(--brand-tint)] hover:text-[var(--brand-deep)] transition-colors cursor-pointer gap-2"
                             >
                               <Settings className="w-3.5 h-3.5 text-[var(--muted)]" />
                               <span>Security &amp; access</span>

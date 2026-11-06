@@ -755,7 +755,7 @@ const AdminRecruitment = () => {
                         {(isHired || isConverted) && (
                           <button 
                             onClick={() => navigate('/admin/recruitment/verify-documents/' + app.id, { state: { application: app } })}
-                            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] text-[12px] font-medium bg-[var(--brand-tint)] text-[var(--brand-deep)] hover:opacity-85 transition-opacity cursor-pointer"
+                            className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[12px] font-medium bg-[var(--brand-tint)] text-[var(--brand-deep)] hover:opacity-85 transition-opacity cursor-pointer"
                           >
                             <BadgeCheck className="w-3.5 h-3.5" />
                             Verify documents
@@ -878,7 +878,7 @@ const AdminRecruitment = () => {
               <button 
                 type="button" 
                 onClick={() => setIsOfferModalOpen(false)}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[12px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[13px] font-medium text-[var(--text)] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[13px] font-medium text-[var(--text)] transition-colors cursor-pointer"
               >
                 <ArrowLeft size={14} />
                 <span>Back to pipeline</span>
@@ -1073,7 +1073,7 @@ const AdminRecruitment = () => {
                 </h3>
                 <p className="text-[12px] text-[var(--muted)]">Create staff account and official employee profile</p>
               </div>
-              <button onClick={() => setIsConvertModalOpen(false)} className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer">
+              <button onClick={() => setIsConvertModalOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1166,7 +1166,7 @@ const AdminRecruitment = () => {
               </div>
               <button 
                 onClick={() => setIsTimelineModalOpen(false)} 
-                className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -1235,7 +1235,7 @@ const AdminRecruitment = () => {
               </div>
               <button 
                 onClick={() => setIsScheduleModalOpen(false)} 
-                className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -1299,7 +1299,7 @@ const AdminRecruitment = () => {
               </div>
               <button 
                 onClick={() => setIsJobModalOpen(false)} 
-                className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>

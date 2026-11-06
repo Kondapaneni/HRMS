@@ -436,7 +436,7 @@ const AdminAttendanceRegularize = () => {
             {rec.status !== 'future' && (
               <button
                 onClick={() => handleOpenModal(rec)}
-                className="flex-1 bg-[var(--surface)] border border-[var(--line)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] text-[11px] font-semibold py-1 rounded-[10px] transition-colors cursor-pointer shadow-xs"
+                className="flex-1 bg-[var(--surface)] border border-[var(--line)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] text-[11px] font-semibold py-1 rounded-full transition-colors cursor-pointer shadow-xs"
               >
                 Regularize
               </button>
@@ -444,7 +444,7 @@ const AdminAttendanceRegularize = () => {
             {(rec.checkIn || rec.checkOut) && (
               <button
                 onClick={() => navigate(`/admin/attendance/location?id=${rec.attendanceRecordId}&date=${rec.date}`, { state: { fromRegularize: true } })}
-                className="flex-none px-2 py-1 bg-[var(--surface)] border border-[var(--line)] text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] text-[11px] font-semibold rounded-[10px] transition-colors cursor-pointer shadow-xs"
+                className="flex-none px-2 py-1 bg-[var(--surface)] border border-[var(--line)] text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] text-[11px] font-semibold rounded-full transition-colors cursor-pointer shadow-xs"
                 title="View Location"
               >
                 <MapPin size={13} />
