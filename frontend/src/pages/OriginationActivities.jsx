@@ -759,7 +759,7 @@ const OriginationActivities = () => {
       <div className="hidden md:flex flex-col h-[calc(100dvh-108px)] select-none antialiased space-y-4">
         
         {/* Header Bar */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 shrink-0 px-0.5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0 px-0.5">
           <div>
             <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
               {isSales
@@ -785,66 +785,6 @@ const OriginationActivities = () => {
                 ? 'Coordinate customer visits, KYC verifications, loan processing follow-ups, and team activities.'
                 : 'Manage scheduled client calls, verification visits, document collections, and pipeline follow-ups.'}
             </p>
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar shrink-0 flex-wrap">
-            <button
-              type="button"
-              onClick={() => {
-                setShowScheduled(true);
-                setShowCompleted(true);
-                setShowUrgentOnly(false);
-                setSearchQuery('');
-              }}
-              className="text-[12px] font-semibold px-3 py-1 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] transition-all cursor-pointer"
-              title="Click to reset filters and view all tasks"
-            >
-              {events.length} Total Tasks
-            </button>
-
-            <button
-              type="button"
-              onClick={handleToday}
-              className="text-[12px] font-semibold px-3 py-1 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] transition-all cursor-pointer"
-              title="Click to jump to today"
-            >
-              {stats.todayCount} Due Today
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowUrgentOnly(prev => !prev)}
-              className={`text-[12px] font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer ${
-                showUrgentOnly
-                  ? 'border-[#131315] bg-[#131315] text-white dark:border-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18181B] shadow-2xs'
-                  : 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)]'
-              }`}
-              title="Toggle High & Urgent priority filter"
-            >
-              {stats.urgentCount} High Priority
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowCompleted(prev => !prev)}
-              className={`text-[12px] font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer ${
-                showCompleted
-                  ? 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)]'
-                  : 'border-[var(--line)] bg-[var(--surface-alt)] text-[var(--muted)] line-through'
-              }`}
-              title="Toggle Completed tasks visibility"
-            >
-              {stats.completedCount} Completed
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsActivitySidebarOpen(true)}
-              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white h-8 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0"
-            >
-              <Plus size={14} />
-              <span>Schedule Activity</span>
-            </button>
           </div>
         </div>
 
