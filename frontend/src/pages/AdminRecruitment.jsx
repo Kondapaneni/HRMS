@@ -4,7 +4,6 @@ import SearchBar from '../components/ui/SearchBar';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
@@ -141,13 +140,12 @@ const AdminRecruitment = () => {
     mutationFn: async () => {
       let description_pdf_url = null;
       if (jobFile) {
-        const fileExt = jobFile.name.split('.').pop();
-        const safeTitle = jobFormData.title ? jobFormData.title.trim().replace(/\s+/g, '-') : 'Job';
-        const fileName = `${safeTitle}-Job-Description-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('job_descriptions').upload(fileName, jobFile);
-        if (uploadError) throw uploadError;
-        
-        description_pdf_url = window.location.origin + "/Job-Description/" + fileName;
+        const uploadData = new FormData();
+        uploadData.append('file', jobFile);
+        const uploadResponse = await api.post('/admin/jobs/description', uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        description_pdf_url = uploadResponse.data.description_pdf_url;
       }
 
       const jobDataToInsert = { ...jobFormData, description_pdf_url, status: submitStatus };
