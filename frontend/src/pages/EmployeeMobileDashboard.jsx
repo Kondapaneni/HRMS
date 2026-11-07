@@ -22,30 +22,8 @@ const EmployeeMobileDashboard = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [lockoutSeconds, setLockoutSeconds] = useState(null);
   const [liveSeconds, setLiveSeconds] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const { data: trainingVideos = [] } = useQuery({
-    queryKey: ['employee', 'trainingVideos'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/employee/training/videos');
-        return res.data || [];
-      } catch {
-        return [];
-      }
-    },
-    staleTime: 60000,
-  });
-
-
-
 
   const { data: dashboardData, isLoading: loading } = useQuery({
     queryKey: ['employee', 'dashboard'],
