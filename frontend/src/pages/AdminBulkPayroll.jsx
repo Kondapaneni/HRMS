@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
