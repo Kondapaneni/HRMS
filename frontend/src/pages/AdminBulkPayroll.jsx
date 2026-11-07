@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
@@ -36,11 +36,7 @@ const AdminBulkPayroll = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  useEffect(() => {
-    fetchPendingEmployees();
-  }, [selectedMonth, selectedYear, debouncedSearchQuery]);
-
-  const fetchPendingEmployees = async () => {
+  const fetchPendingEmployees = useCallback(async () => {
     try {
       setIsLoading(true);
       setMessage(null);
@@ -53,7 +49,13 @@ const AdminBulkPayroll = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedMonth, selectedYear, debouncedSearchQuery]);
+
+  useEffect(() => {
+    fetchPendingEmployees();
+  }, [fetchPendingEmployees]);
+
+
 
   const filteredEmployees = employees;
 
