@@ -436,7 +436,7 @@ const CandidateProfile = () => {
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-[var(--text)] truncate">{resume.name}</p>
                           <a 
-                            href={resume.id ? `/api/candidate/resumes/${encodeURIComponent(resume.id)}/file` : resume.url} 
+                            href={resume.id ? `/api/candidate/resumes/${encodeURIComponent(resume.id)}/file` : `/api/candidate/resume-file?url=${encodeURIComponent(resume.url || '')}`} 
                             target="_blank" 
                             rel="noreferrer" 
                             className="text-[11px] font-semibold text-[var(--brand-deep)] hover:underline inline-flex items-center gap-1 mt-0.5"
