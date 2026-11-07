@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, User, Briefcase, Clock } from 'lucide-react';
