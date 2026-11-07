@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { Loader2, ChevronLeft, ChevronRight, AlertCircle, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +11,7 @@ const ApplyMobileLeave = () => {
   const queryClient = useQueryClient();
   const [, setError] = useState('');
   
-  const [leaveType, setLeaveType] = useState('unpaid');
+  const [leaveType, setLeaveType] = useState('paid');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
@@ -28,13 +28,6 @@ const ApplyMobileLeave = () => {
   const balance = leavesData?.balance || { paidTotal: 12, paidUsed: 0, unpaidUsed: 0, totalApproved: 0 };
   const history = leavesData?.history || [];
   const paidRemaining = Math.max(balance.paidTotal - balance.paidUsed, 0);
-
-  useEffect(() => {
-    if (leavesData) {
-      if (paidRemaining > 0) setLeaveType('paid');
-      else setLeaveType('unpaid');
-    }
-  }, [leavesData, paidRemaining]);
 
   const hasPaidLeaveThisMonth = () => {
     const dateToCheck = startDate ? new Date(startDate) : calendarDate;
@@ -54,11 +47,7 @@ const ApplyMobileLeave = () => {
     });
   };
 
-  useEffect(() => {
-    if (hasPaidLeaveThisMonth() && leaveType === 'paid') {
-      setLeaveType('unpaid');
-    }
-  }, [startDate, calendarDate, history, leaveType]);
+  const selectedLeaveType = paidRemaining > 0 && !hasPaidLeaveThisMonth() ? leaveType : 'unpaid';
 
   const applyMutation = useMutation({
     mutationFn: async (data) => {
@@ -83,7 +72,7 @@ const ApplyMobileLeave = () => {
     
     setError('');
     applyMutation.mutate({
-      leaveType,
+      leaveType: selectedLeaveType,
       startDate,
       endDate: endDate || startDate,
       reason
@@ -225,7 +214,7 @@ const ApplyMobileLeave = () => {
                 <div className="relative">
                   <select 
                     name="leaveType" 
-                    value={leaveType} 
+                    value={selectedLeaveType} 
                     onChange={e => setLeaveType(e.target.value)} 
                     required 
                     className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 text-xs font-semibold text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
