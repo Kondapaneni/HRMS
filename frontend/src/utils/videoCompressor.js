@@ -314,10 +314,16 @@ export const uploadToSignedUrlWithProgress = ({
   if (!supabaseUrl || !supabaseAnonKey) return reject(new Error('Missing Supabase environment variables'));
 
   const xhr = new XMLHttpRequest();
+  const formData = new FormData();
+  const uploadBlob = contentType && fileBlob.type !== contentType
+    ? new Blob([fileBlob], { type: contentType })
+    : fileBlob;
+  formData.append('cacheControl', '3600');
+  formData.append('', uploadBlob, fileBlob.name || 'training-video');
+
   xhr.open('PUT', uploadUrl, true);
   xhr.setRequestHeader('apikey', supabaseAnonKey);
-  xhr.setRequestHeader('Authorization', `Bearer ${supabaseAnonKey}`);
-  xhr.setRequestHeader('Content-Type', contentType || fileBlob.type || 'application/octet-stream');
+  xhr.setRequestHeader('Authorization', 'Bearer ' + supabaseAnonKey);
   xhr.setRequestHeader('x-upsert', 'false');
 
   const startedAt = Date.now();
@@ -337,7 +343,7 @@ export const uploadToSignedUrlWithProgress = ({
       catch { resolve({}); }
       return;
     }
-    let message = `Upload failed (${xhr.status})`;
+    let message = 'Upload failed (' + xhr.status + ')';
     try {
       const payload = JSON.parse(xhr.responseText || '{}');
       message = payload.message || payload.error || payload.msg || message;
@@ -346,7 +352,7 @@ export const uploadToSignedUrlWithProgress = ({
   };
   xhr.onerror = () => reject(new Error('Network connection error during file upload'));
   xhr.onabort = () => reject(new Error('Upload was cancelled'));
-  xhr.send(fileBlob);
+  xhr.send(formData);
 });
 
 export const formatBytes = (bytes, decimals = 1) => {
