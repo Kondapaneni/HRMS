@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 /**
  * Chart Palette constants from Section 1.5:
