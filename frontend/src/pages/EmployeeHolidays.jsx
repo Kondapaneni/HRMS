@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { 
   ChevronLeft, 
@@ -70,11 +70,6 @@ const EmployeeHolidays = () => {
     onError: () => toast.error('Failed to load holidays'),
   });
 
-  const hasLoadedOnce = useRef(false);
-  if (!loading && holidays) {
-    hasLoadedOnce.current = true;
-  }
-
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   const handleMonthChange = (e) => setCurrentMonth(new Date(e.target.value + '-01'));
@@ -92,7 +87,7 @@ const EmployeeHolidays = () => {
 
   const nextHoliday = upcomingHolidays[0] || null;
 
-  if (!hasLoadedOnce.current && loading && !holidays.length) {
+  if (loading && !holidays.length) {
     return <PageLoader message="Loading Company Holidays..." />;
   }
 
