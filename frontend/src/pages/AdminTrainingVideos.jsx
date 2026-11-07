@@ -24,9 +24,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { supabase } from '../lib/supabase';
 import PageLoader from '../components/PageLoader';
-import { compressVideo, uploadToSupabaseWithProgress, formatBytes } from '../utils/videoCompressor';
+import { compressVideo, uploadToSignedUrlWithProgress, formatBytes } from '../utils/videoCompressor';
 import { StatCard, Button, Avatar } from '../components/ui';
 
 const AdminTrainingVideos = () => {
@@ -165,13 +164,15 @@ const AdminTrainingVideos = () => {
         setCompressProgress(0);
 
         try {
-          const compResult = await compressVideo(videoFile, (progress) => {
-            setCompressProgress(progress);
+          const compResult = await compressVideo(videoFile, {
+            onProgress: (progress) => setCompressProgress(progress)
           });
 
-          fileToUpload = compResult.file;
+          fileToUpload = compResult.compressedFile || videoFile;
           setCompressionResult(compResult);
-          toast.success(`Video compressed! Saved ${compResult.savingsPercent}%`);
+          if (!compResult.skipped) {
+            toast.success(`Video compressed! Saved ${compResult.savingsPercent}%`);
+          }
         } catch (compressErr) {
           console.warn('In-browser compression skipped or failed, uploading original:', compressErr);
           toast('Proceeding with standard upload...', { icon: 'ℹ️' });
@@ -184,22 +185,21 @@ const AdminTrainingVideos = () => {
       setIsUploading(true);
       setUploadProgress({ loaded: 0, total: fileToUpload.size, percent: 0, speedMBps: '0.0' });
 
-      const cleanFileName = fileToUpload.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const fileName = `${Date.now()}_${cleanFileName}`;
+      const signedResponse = await api.post('/admin/training/videos/upload-url', {
+        content_type: fileToUpload.type
+      });
+      const { upload_url, video_url } = signedResponse.data;
 
-      const { publicUrl } = await uploadToSupabaseWithProgress(
-        supabase,
-        'training-videos',
-        fileName,
-        fileToUpload,
-        (progress) => {
-          setUploadProgress(progress);
-        }
-      );
+      await uploadToSignedUrlWithProgress({
+        uploadUrl: upload_url,
+        fileBlob: fileToUpload,
+        contentType: fileToUpload.type,
+        onProgress: (progress) => setUploadProgress(progress)
+      });
 
       addVideoMutation.mutate({
         title,
-        video_url: publicUrl
+        video_url
       });
     } catch (err) {
       toast.error(err.message || 'Failed to upload video');
