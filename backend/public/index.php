@@ -767,11 +767,17 @@ $app->post('/api/reset-password', function (Request $request, Response $response
     $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
     // Update password and clear token
-    $updateStmt = $conn->prepare("UPDATE users SET password = :hash, reset_token = NULL, reset_token_expires = NULL, \"forcePasswordChange\" = false WHERE id = :id");
+    $updateStmt = $conn->prepare("UPDATE users SET password = :hash, reset_token = NULL, reset_token_expires = NULL, \"forcePasswordChange\" = false, session_version = COALESCE(session_version, 0) + 1 WHERE id = :id AND (reset_token = :token OR reset_token = :legacy_token) AND reset_token_expires > CURRENT_TIMESTAMP");
     $updateStmt->execute([
         'hash' => $passwordHash,
-        'id' => $user['id']
+        'id' => $user['id'],
+        'token' => hash('sha256', $token),
+        'legacy_token' => $token
     ]);
+    if ($updateStmt->rowCount() !== 1) {
+        $response->getBody()->write(json_encode(['error' => 'Password reset link has already been used or expired.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
 
     $response->getBody()->write(json_encode([
         'message' => 'Password has been successfully reset',
