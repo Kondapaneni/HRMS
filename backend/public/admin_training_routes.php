@@ -299,10 +299,15 @@ $app->put('/api/admin/training/videos/{id}/assign', function (Request $request, 
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    $employeeIds = array_values(array_unique(array_filter(
-        array_map(static fn($value) => is_string($value) || is_int($value) ? trim((string)$value) : '', $rawIds),
-        static fn($value) => $value !== ''
-    )));
+    $employeeIds = [];
+    foreach ($rawIds as $rawId) {
+        if ((!is_string($rawId) && !is_int($rawId)) || trim((string)$rawId) === '') {
+            $response->getBody()->write(json_encode(['error' => 'Choose valid employees for this training video.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+        $employeeIds[] = trim((string)$rawId);
+    }
+    $employeeIds = array_values(array_unique($employeeIds));
 
     $db = new Database();
     $conn = $db->getConnection();
