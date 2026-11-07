@@ -1,0 +1,55 @@
+name: One-time frontend dependency refresh
+
+on:
+  push:
+    branches: [security-performance-audit-fixes]
+    paths:
+      - .github/workflows/one-time-dependency-refresh.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v5
+        with:
+          ref: security-performance-audit-fixes
+          persist-credentials: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Apply compatible npm security updates
+        working-directory: frontend
+        run: npm audit fix || true
+
+      - name: Verify production build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Verify new pagination utilities
+        working-directory: frontend
+        run: npx eslint src/utils/fetchAllAdminEmployees.js src/utils/fetchAllAdminJobs.js
+
+      - name: Report remaining dependency advisories
+        working-directory: frontend
+        run: npm audit --audit-level=high || true
+
+      - name: Commit refreshed dependency lockfiles
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/package.json frontend/package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: refresh frontend dependency security patches"
+            git push origin HEAD:security-performance-audit-fixes
+          else
+            echo "No compatible dependency updates were available."
+          fi
