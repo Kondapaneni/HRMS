@@ -240,7 +240,7 @@ const CandidateMobileProfile = ({
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-[var(--text)] truncate">{resume.name}</p>
                         <a
-                          href={resume.url}
+                          href={resume.id ? `/api/candidate/resumes/${encodeURIComponent(resume.id)}/file` : resume.url}
                           target="_blank"
                           rel="noreferrer"
                           className="text-[10px] font-semibold text-[var(--brand-deep)] hover:underline inline-flex items-center gap-0.5 mt-0.5"
