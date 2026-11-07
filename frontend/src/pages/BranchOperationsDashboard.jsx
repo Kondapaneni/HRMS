@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchDashboardData } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
