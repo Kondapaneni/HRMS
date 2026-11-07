@@ -3,21 +3,7 @@ import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/ui/SearchBar';
-import { 
-  Play, 
-  CheckCircle2, 
-  Circle, 
-  Search, 
-  Clock, 
-  Check, 
-  ChevronRight, 
-  ChevronLeft,
-  LayoutGrid,
-  Tv,
-  Film,
-  BookOpen,
-  RotateCcw
-} from 'lucide-react';
+import { Play, CheckCircle2, Circle, Clock, Check, ChevronRight, ChevronLeft, LayoutGrid, Tv, Film, BookOpen, RotateCcw } from 'lucide-react';
 import api from '../api/axios';
 import EmployeeMobileTrainingVideos from './EmployeeMobileTrainingVideos';
 import PageLoader from '../components/PageLoader';

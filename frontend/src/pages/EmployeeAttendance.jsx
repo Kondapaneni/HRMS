@@ -130,7 +130,7 @@ const EmployeeAttendance = () => {
           setPunchingAction(null);
         }
       },
-      (error) => {
+      () => {
         const errorMsg = 'Unable to read your location. Please allow location access to check in/out.';
         setError(errorMsg);
         toast.error(errorMsg);

@@ -43,7 +43,7 @@ const EmployeeMobileMap = () => {
   }, [action, navigate]);
 
   // Fetch geofences from backend
-  const { data, isLoading: loadingGeofences, error: _geofencesError } = useQuery({
+  const { data, isLoading: loadingGeofences } = useQuery({
     queryKey: ['employee', 'geofences'],
     queryFn: async () => {
       try {
