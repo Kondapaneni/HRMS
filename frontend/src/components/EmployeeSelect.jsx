@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption } from '@headlessui/react';
 import { Check, Search, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
