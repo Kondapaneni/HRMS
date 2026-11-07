@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, LogOut, Sliders, Settings, Menu, X, ArrowLeft } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from './ui/Avatar';
 import ThemeToggle from './ui/ThemeToggle';
@@ -29,8 +29,6 @@ export const AppShell = ({
   headerTitle,
   headerAction,
   searchComponent,
-  notificationsCount = 0,
-  onNotificationClick,
   hideMobileNavRoutes = [],
   disableMobileDrawer = false,
   hideProfileAvatar = false,
