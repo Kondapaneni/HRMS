@@ -18,6 +18,10 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       - key: TRUSTED_CLIENT_IP_HEADER
         value: CF-Connecting-IP
       - key: GOOGLE_MAPS_API_KEY
