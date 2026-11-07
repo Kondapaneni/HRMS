@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
