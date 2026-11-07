@@ -27,7 +27,7 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: TRUSTED_CLIENT_IP_HEADER
-        value: True-Client-IP
+        value: CF-Connecting-IP
       - key: GOOGLE_MAPS_API_KEY
         sync: false
       - key: GOOGLE_GEOCODING_API_KEY
