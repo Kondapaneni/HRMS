@@ -457,8 +457,6 @@ const CandidateProfile = () => {
                           <p className="text-xs font-semibold text-[var(--text)] truncate">{resume.name}</p>
                           <button type="button" 
                             onClick={() => handlePreviewResume(resume)} 
-                            target="_blank" 
-                            rel="noreferrer" 
                             className="text-[11px] font-semibold text-[var(--brand-deep)] hover:underline inline-flex items-center gap-1 mt-0.5"
                           >
                             <span>Preview document</span>
