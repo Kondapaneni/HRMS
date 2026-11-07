@@ -743,7 +743,7 @@ const AdminRecruitment = () => {
                       <div className="flex flex-wrap items-center justify-start md:justify-end gap-2">
                         {app.resume_url && (
                           <a 
-                            href={app.resume_url} 
+                            href={/^[a-f0-9]{40}$/i.test(String(app.resume_url)) ? `/api/admin/applications/${encodeURIComponent(app.id)}/resume` : app.resume_url} 
                             target="_blank" 
                             rel="noreferrer" 
                             className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[12px] font-medium bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-colors"
