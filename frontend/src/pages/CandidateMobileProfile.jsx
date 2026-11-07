@@ -18,7 +18,7 @@ import {
 const CandidateMobileProfile = ({
   formData, handleInputChange, handleSave, handleAvatarUpload, 
   isUploadingAvatar, isUploadingResume, handleFileUpload, 
-  handleSetPrimaryResume, handleDeleteResume
+  handleSetPrimaryResume, handleDeleteResume, handlePreviewResume
 }) => {
   return (
     <div className="space-y-4 pb-14 antialiased select-none font-sans md:hidden">
@@ -239,15 +239,14 @@ const CandidateMobileProfile = ({
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-[var(--text)] truncate">{resume.name}</p>
-                        <a
-                          href={resume.id ? `/api/candidate/resumes/${encodeURIComponent(resume.id)}/file` : `/api/candidate/resume-file?url=${encodeURIComponent(resume.url || '')}`}
-                          target="_blank"
-                          rel="noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewResume(resume)}
                           className="text-[10px] font-semibold text-[var(--brand-deep)] hover:underline inline-flex items-center gap-0.5 mt-0.5"
                         >
                           <span>Preview document</span>
                           <ExternalLink size={9} />
-                        </a>
+                        </button>
                       </div>
                     </div>
 
