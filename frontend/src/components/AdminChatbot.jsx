@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, X, RotateCcw, Copy, Check, Plus,
@@ -25,7 +25,7 @@ const AdminChatbot = () => {
     try {
       const saved = sessionStorage.getItem('hrms_admin_chat_history');
       if (saved) return JSON.parse(saved);
-    } catch (_) {}
+    } catch { /* Session storage may be unavailable in private browsing. */ }
     return [];
   });
   const [loading, setLoading] = useState(false);
@@ -50,7 +50,7 @@ const AdminChatbot = () => {
       setMessages([welcomeMsg]);
       try {
         sessionStorage.setItem('hrms_admin_chat_history', JSON.stringify([welcomeMsg]));
-      } catch (_) {}
+      } catch { /* Session storage may be unavailable in private browsing. */ }
     }
   }, [profile]);
 
@@ -59,7 +59,7 @@ const AdminChatbot = () => {
     if (messages.length > 0) {
       try {
         sessionStorage.setItem('hrms_admin_chat_history', JSON.stringify(messages));
-      } catch (_) {}
+      } catch { /* Session storage may be unavailable in private browsing. */ }
     }
   }, [messages]);
 
@@ -138,7 +138,7 @@ const AdminChatbot = () => {
     setMessages([welcomeMsg]);
     try {
       sessionStorage.setItem('hrms_admin_chat_history', JSON.stringify([welcomeMsg]));
-    } catch (_) {}
+    } catch { /* Session storage may be unavailable in private browsing. */ }
     toast.success('Conversation reset');
   };
 
