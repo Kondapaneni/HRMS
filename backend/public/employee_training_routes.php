@@ -73,8 +73,9 @@ $app->get('/api/employee/training/videos', function (Request $request, Response 
 
         $response->getBody()->write(json_encode($formattedVideos));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+    } catch (\Throwable $e) {
+        error_log('Employee training video list failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to load training videos right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware());
@@ -161,8 +162,9 @@ $app->post('/api/employee/training/progress', function (Request $request, Respon
             'data' => $result
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+    } catch (\Throwable $e) {
+        error_log('Employee training progress update failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to update training progress right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware());
@@ -201,8 +203,9 @@ $app->get('/api/employee/training/progress', function (Request $request, Respons
 
         $response->getBody()->write(json_encode($formatted));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+    } catch (\Throwable $e) {
+        error_log('Employee training progress list failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to load training progress right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware());
