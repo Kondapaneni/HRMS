@@ -188,6 +188,25 @@ function loanBatchSignApplicationRows(array &$rows, array $docsByAppId): void
             $row['id'] ?? null,
             $row['lead_id'] ?? null
         );
+        // Include legacy form_data document references, but only within this
+        // application's own private Storage folder.
+        if (is_array($formData['documents'] ?? null)) {
+            foreach ($formData['documents'] as $legacyKey => $legacyDocument) {
+                $legacyReference = is_array($legacyDocument)
+                    ? ($legacyDocument['url'] ?? $legacyDocument['proxy_url'] ?? null)
+                    : $legacyDocument;
+                $legacyPath = is_string($legacyReference)
+                    ? loanStorageObjectPath($legacyReference, 'loan_documents')
+                    : null;
+                if ($legacyPath && $applicationUuid !== '' && str_starts_with($legacyPath, $applicationUuid . '/')
+                    && !isset($documents[$legacyKey])) {
+                    $documents[$legacyKey] = [
+                        'url' => $legacyReference,
+                        'slot_key' => is_array($legacyDocument) ? ($legacyDocument['slot_key'] ?? $legacyKey) : $legacyKey
+                    ];
+                }
+            }
+        }
         $documentPaths = [];
         foreach ($documents as $key => $document) {
             $reference = $document['url'] ?? null;
