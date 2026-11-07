@@ -40,15 +40,12 @@ export const AppShell = ({
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileMenuRoute, setMobileMenuRoute] = useState(null);
+  const isMobileMenuOpen = mobileMenuRoute === location.pathname;
+  const setIsMobileMenuOpen = (open) => setMobileMenuRoute(open ? location.pathname : null);
   const [forceHideMobileNav, setForceHideMobileNav] = useState(false);
 
   const scrollContainerRef = useRef(null);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
 
   // Listen for custom hide event
   useEffect(() => {
