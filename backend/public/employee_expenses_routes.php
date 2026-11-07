@@ -12,7 +12,9 @@ function expenseObjectPath(?string $storedPath, string $ownerId): ?string
     elseif (str_starts_with($stored, '/Bills/')) $path = substr($stored, strlen('/Bills/'));
     else return null;
     if ($path === '' || str_contains($path, '..') || preg_match('/[^A-Za-z0-9_./-]/', $path)) return null;
-    if (!str_starts_with($path, $ownerId . '/')) return null;
+    $isNewPrivatePath = str_starts_with($stored, 'storage:expenses/');
+    if ($isNewPrivatePath && !str_starts_with($path, $ownerId . '/')) return null;
+    if (!$isNewPrivatePath && str_contains($path, '/')) return null;
     return $path;
 }
 
@@ -134,7 +136,7 @@ $app->post('/api/employee/expenses', function (Request $request, Response $respo
     $amount = $data['amount'] ?? 0;
     $category = $data['category'] ?? '';
     $bill_url = $data['bill_url'] ?? null;
-    if ($bill_url !== null && !expenseObjectPath((string)$bill_url, (string)$decodedToken->id)) {
+    if ($bill_url !== null && (!str_starts_with((string)$bill_url, 'storage:expenses/') || !expenseObjectPath((string)$bill_url, (string)$decodedToken->id))) {
         $response->getBody()->write(json_encode(['error' => 'Invalid receipt reference. Upload the receipt again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
