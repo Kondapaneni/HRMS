@@ -69,6 +69,9 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Build production Docker image
+        run: docker build --tag hrms-ci .
+
       - name: Lint new pagination utilities
         working-directory: frontend
         run: npx eslint src/utils/fetchAllAdminEmployees.js src/utils/fetchAllAdminJobs.js
