@@ -1,9 +1,8 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import SearchBar from '../components/ui/SearchBar';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import { 
   FileText, 
@@ -55,6 +54,31 @@ const CandidateDocuments = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('ALL');
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  const openDocumentPreview = async (doc) => {
+    setPreviewDoc({ ...doc, docType: doc.docType || documentTypes.find(type => type.id === doc.document_type) });
+    setIsPreviewLoading(true);
+    try {
+      const res = await api.get(`/candidate/documents/${encodeURIComponent(doc.id)}/file`, { responseType: 'blob' });
+      setPreviewUrl(URL.createObjectURL(res.data));
+    } catch (error) {
+      setPreviewDoc(null);
+      toast.error('Unable to open this document. Please try again.');
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  const closeDocumentPreview = () => {
+    setPreviewDoc(null);
+    setPreviewUrl(null);
+  };
   const fileInputRefs = useRef({});
 
   const { data: documents = [], isLoading } = useQuery({
@@ -71,34 +95,11 @@ const CandidateDocuments = () => {
 
   const uploadMutation = useMutation({
     mutationFn: async ({ docTypeId, file }) => {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${profile.id}/${docTypeId}_${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('candidate_documents')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const proxyUrl = window.location.origin + "/Candidate-Document/" + filePath;
-
-      // Delete existing from storage
-      const res = await api.get('/candidate/documents');
-      const docs = res.data.documents || [];
-      const existingDoc = docs.find(d => d.document_type === docTypeId);
-
-      if (existingDoc && existingDoc.file_path) {
-        const parts = existingDoc.file_path.split('/Candidate-Document/');
-        if (parts.length > 1) {
-          const oldStoragePath = parts[1];
-          await supabase.storage.from('candidate_documents').remove([oldStoragePath]);
-        }
-      }
-
-      const resPost = await api.post('/candidate/documents', {
-          document_type: docTypeId,
-          file_path: proxyUrl,
-          file_name: file.name
+      const formData = new FormData();
+      formData.append('document_type', docTypeId);
+      formData.append('file', file);
+      const resPost = await api.post('/candidate/documents/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       return resPost.data.document;
     },
@@ -487,7 +488,7 @@ const CandidateDocuments = () => {
                               {currentDoc && (
                                 <button
                                   type="button"
-                                  onClick={() => setPreviewDoc({ ...currentDoc, docType: doc })}
+                                  onClick={() => openDocumentPreview({ ...currentDoc, docType: doc })}
                                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-xs font-semibold text-[var(--brand-deep)] transition-all cursor-pointer shadow-xs"
                                   title="Preview Document"
                                 >
@@ -573,7 +574,7 @@ const CandidateDocuments = () => {
 
               <div className="flex items-center gap-2">
                 <a
-                  href={previewDoc.file_path}
+                  href={previewUrl || undefined}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-xs font-semibold text-[var(--brand-deep)] transition-all"
@@ -585,7 +586,7 @@ const CandidateDocuments = () => {
 
                 <button
                   type="button"
-                  onClick={() => setPreviewDoc(null)}
+                  onClick={closeDocumentPreview}
                   className="w-8 h-8 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
                 >
                   <X size={16} />
@@ -595,11 +596,13 @@ const CandidateDocuments = () => {
 
             {/* Modal Embedded Viewer */}
             <div className="flex-1 bg-[#1F1F23] relative overflow-hidden">
-              <iframe
-                src={`${previewDoc.file_path}#toolbar=0`}
-                title={previewDoc.file_name}
-                className="w-full h-full border-0"
-              />
+              {previewUrl ? (
+                <iframe src={`${previewUrl}#toolbar=0`} title={previewDoc.file_name} className="w-full h-full border-0" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white text-sm">
+                  {isPreviewLoading ? 'Loading secure document…' : 'Document preview unavailable'}
+                </div>
+              )}
             </div>
           </div>
         </div>
