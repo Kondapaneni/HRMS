@@ -2,7 +2,6 @@ import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { Globe, Clock, Edit2, Trash2, AlertTriangle, X, Plus, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
@@ -10,7 +9,6 @@ import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
 
 const AdminAttendanceConfig = () => {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const [showGeoModal, setShowGeoModal] = useState(false);
@@ -97,7 +95,7 @@ const AdminAttendanceConfig = () => {
         toast.success('Shift time deleted successfully');
       }
       queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete item');
     } finally {
       setItemToDelete(null);

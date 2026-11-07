@@ -195,7 +195,7 @@ const AdminEmployeeView = () => {
     if (timeline) {
       try {
         history = JSON.parse(timeline);
-      } catch (e) {
+      } catch {
         history = [];
       }
     }

@@ -215,7 +215,7 @@ const AdminAttendanceRegularize = () => {
         };
       case 'paid leave':
       case 'unpaid leave':
-      case 'sandwich leave':
+      case 'sandwich leave': {
         let labelStr = computedStatus.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         if (computedStatus === 'sandwich leave') labelStr = 'Sandwich';
         return {
@@ -225,6 +225,7 @@ const AdminAttendanceRegularize = () => {
           badge: 'bg-[var(--surface)] text-[var(--accent-pink-deep)]',
           label: labelStr
         };
+      }
       case 'holiday':
         return {
           bg: 'bg-[var(--surface-alt)]',

@@ -3,9 +3,7 @@ import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { 
-  Shield, 
   Edit2, 
-  Search, 
   X, 
   Monitor, 
   Plus, 
@@ -19,8 +17,6 @@ import {
   Headphones, 
   HardDrive, 
   User, 
-  CheckCircle2, 
-  AlertTriangle, 
   Wrench, 
   ChevronLeft, 
   ChevronRight, 
@@ -30,7 +26,6 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -50,7 +45,6 @@ const getCategoryIcon = (category) => {
 };
 
 const AdminAssets = () => {
-  const { token } = useAuth();
   const queryClient = useQueryClient();
 
   // Filters and Pagination
@@ -65,8 +59,8 @@ const AdminAssets = () => {
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [modalMode, setModalMode] = useState(''); // 'assign', 'add', 'edit', 'history'
   const [modalSearch, setModalSearch] = useState('');
-  const [assetHistory, setAssetHistory] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
+  const [, setAssetHistory] = useState([]);
+  const [, setHistoryLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Debounce search query (300ms)
