@@ -49,7 +49,7 @@ class RateLimiter
         // Render exposes the originating client address as True-Client-IP.
         // Do not use X-Forwarded-For: Render appends to that header, so its
         // leftmost value may be supplied by the caller.
-        $trustedHeader = getenv('TRUSTED_CLIENT_IP_HEADER') ?: '';
+        $trustedHeader = trim((string)($_ENV['TRUSTED_CLIENT_IP_HEADER'] ?? getenv('TRUSTED_CLIENT_IP_HEADER') ?: ''));
         $headerMap = [
             'True-Client-IP' => 'HTTP_TRUE_CLIENT_IP',
             'CF-Connecting-IP' => 'HTTP_CF_CONNECTING_IP',
@@ -61,7 +61,8 @@ class RateLimiter
 
         // For other deployments, trust forwarded chains only from explicitly
         // configured proxy IPs. Never trust X-Forwarded-For by default.
-        $trusted = array_filter(array_map('trim', explode(',', getenv('TRUSTED_PROXY_IPS') ?: '')));
+        $trustedProxyIps = (string)($_ENV['TRUSTED_PROXY_IPS'] ?? getenv('TRUSTED_PROXY_IPS') ?: '');
+        $trusted = array_filter(array_map('trim', explode(',', $trustedProxyIps)));
         if (!in_array($remote, $trusted, true)) return $remote;
 
         $chain = array_map('trim', explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''));
