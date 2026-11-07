@@ -208,6 +208,10 @@ const AdminTrainingVideos = () => {
     deleteMutation.mutate(id);
   };
 
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
   const isBusy = isCompressing || isUploading || addVideoMutation.isPending;
 
   if (videosLoading) {
