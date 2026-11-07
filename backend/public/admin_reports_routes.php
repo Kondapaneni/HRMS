@@ -3,7 +3,8 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
-use App\Config\Database;\nuse Slim\Psr7\Stream;
+use App\Config\Database;
+use Slim\Psr7\Stream;
 
 /**
  * Generate CSV output from a PDO statement

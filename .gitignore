@@ -9,4 +9,17 @@ build/
 ngrok.log
 *.zip
 *.apk
-!frontend/public/downloads/*.apk\n\n# Local development and diagnostic artifacts\n.idea/\n.vscode/\n*.log\nlogs/\ntmp/\ntemp/\nscratch_*\nchat_backup/\ndatabase-backups/\n*.sql\n!supabase/migrations/*.sql\n
+!frontend/public/downloads/*.apk
+
+# Local development and diagnostic artifacts
+.idea/
+.vscode/
+*.log
+logs/
+tmp/
+temp/
+scratch_*
+chat_backup/
+database-backups/
+*.sql
+!supabase/migrations/*.sql

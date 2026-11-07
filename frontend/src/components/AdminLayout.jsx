@@ -42,7 +42,8 @@ const AdminLayout = () => {
       if (error) throw error;
       return count || 0;
     },
-    refetchInterval: 30000,\n    refetchIntervalInBackground: false,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
   });
 
   /**
