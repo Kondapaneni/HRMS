@@ -211,7 +211,7 @@ $app->get('/api/admin/attendance', function (Request $request, Response $respons
     $date = $queryParams['date'] ?? date('Y-m-d');
     $search = $queryParams['search'] ?? '';
     $page = max(1, (int)($queryParams['page'] ?? 1));
-    $limit = max(1, (int)($queryParams['limit'] ?? 10));
+    $limit = max(1, min(100, (int)($queryParams['limit'] ?? 10)));
     $offset = ($page - 1) * $limit;
 
     $db = new Database();
