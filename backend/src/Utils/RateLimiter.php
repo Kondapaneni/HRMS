@@ -46,6 +46,17 @@ class RateLimiter
         $remote = trim($_SERVER['REMOTE_ADDR'] ?? '');
         if (!filter_var($remote, FILTER_VALIDATE_IP)) return '127.0.0.1';
 
+        // Render routes public traffic through Cloudflare. Cloudflare overwrites
+        // CF-Connecting-IP, so it is safer here than the client-controllable
+        // leftmost value in X-Forwarded-For.
+        $trustedHeader = getenv('TRUSTED_CLIENT_IP_HEADER') ?: '';
+        if ($trustedHeader === 'CF-Connecting-IP') {
+            $clientIp = trim($_SERVER['HTTP_CF_CONNECTING_IP'] ?? '');
+            return filter_var($clientIp, FILTER_VALIDATE_IP) ? $clientIp : $remote;
+        }
+
+        // For other deployments, trust forwarded chains only from explicitly
+        // configured proxy IPs. Never trust X-Forwarded-For by default.
         $trusted = array_filter(array_map('trim', explode(',', getenv('TRUSTED_PROXY_IPS') ?: '')));
         if (!in_array($remote, $trusted, true)) return $remote;
 
