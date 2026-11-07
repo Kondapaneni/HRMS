@@ -1,25 +1,6 @@
 
 
 /**
- * Chart Palette constants from Section 1.5:
- * Series in order: #8AADDB, #E3B9DF, #131315, #B9CDE8, #C98BC2, #5B86C2
- * Bar tracks: #EAF0FA (dark: #23262E)
- * Grid lines: #EFEFF1 (dark: #26262B)
- */
-export const CHART_COLORS = [
-  '#8AADDB', // 1: Brand pastel blue
-  '#E3B9DF', // 2: Accent pastel pink
-  '#131315', // 3: Ink
-  '#B9CDE8', // 4: Soft light blue
-  '#C98BC2', // 5: Muted purple/pink
-  '#5B86C2', // 6: Deep blue
-];
-
-export const CHART_TRACK = 'var(--chart-track)';
-export const CHART_GRID = 'var(--chart-grid)';
-export const CHART_SELECTED = 'var(--chart-selected)';
-
-/**
  * Custom dark tooltip pill for Recharts
  * Spec: Dark tooltip pill, radius 9px, 12px text
  */

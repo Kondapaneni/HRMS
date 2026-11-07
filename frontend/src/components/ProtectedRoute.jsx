@@ -156,5 +156,3 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-export { getRoleHomePath };
-
