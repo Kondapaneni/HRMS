@@ -168,7 +168,9 @@ const AdminRecruitment = () => {
       setIsJobModalOpen(false);
       setJobFormData({ title: '', department: '', location: '', type: 'Full Time', experience: '', salary_min: '', salary_max: '', vacancy: '1', skills: '', qualification: '', description: '', status: 'Draft', deadline: '' });
       setJobFile(null);
+      setJobsPage(1);
       queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'job-filter-options'] });
     },
     onError: (error) => {
       console.error(error);
