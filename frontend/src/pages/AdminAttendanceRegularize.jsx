@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Search, Calendar, MapPin, AlertCircle, X, CalendarCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
