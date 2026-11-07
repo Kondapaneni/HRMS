@@ -109,7 +109,12 @@ $app->get('/api/admin/candidates', function (Request $request, Response $respons
 
         $response->getBody()->write(json_encode([
             'candidates' => $candidates,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'stats' => [
+                'totalApplicants' => (int)($statsRow['total_applicants'] ?? 0),
+                'inInterview' => (int)($statsRow['in_interview'] ?? 0),
+                'hiredCount' => (int)($statsRow['hired_count'] ?? 0)
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -383,10 +388,13 @@ $app->get('/api/admin/jobs', function (Request $request, Response $response, $ar
         }
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
+        $statsStmt = $conn->query("SELECT COUNT(*) FILTER (WHERE status = 'Published') AS open_positions FROM jobs");
+        $statsRow = $statsStmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
         $response->getBody()->write(json_encode([
             'jobs' => $jobs,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'stats' => ['openPositions' => (int)($statsRow['open_positions'] ?? 0)]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -481,21 +489,35 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
     $search = trim($params['search'] ?? '');
 
     try {
-        $where = '';
+        $conditions = [];
         $queryParams = [];
 
-        if (!empty($search)) {
-            $where = 'WHERE (u."firstName" ILIKE ? OR u."lastName" ILIKE ? OR u.email ILIKE ? OR j.title ILIKE ?)';
+        if ($search !== '') {
+            $conditions[] = '(u."firstName" ILIKE ? OR u."lastName" ILIKE ? OR u.email ILIKE ? OR j.title ILIKE ?)';
             $searchTerm = '%' . $search . '%';
             $queryParams = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
         }
+        $jobIdFilter = trim((string)($params['job_id'] ?? ''));
+        $statusFilter = trim((string)($params['status'] ?? ''));
+        if ($jobIdFilter !== '') {
+            $conditions[] = 'a.job_id = ?';
+            $queryParams[] = $jobIdFilter;
+        }
+        if ($statusFilter !== '') {
+            $conditions[] = 'a.status = ?';
+            $queryParams[] = $statusFilter;
+        }
+        $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
 
         $sql = "
-            SELECT a.*, j.title as job_title, j.department as job_department,
+            SELECT a.*, j.title as job_title, j.department as job_department, j.location as job_location,
+                   u."firstName" AS candidate_first_name, u."lastName" AS candidate_last_name, u.email AS candidate_email,
+                   cp.phone AS candidate_phone, cp.experience AS candidate_experience,
                    (SELECT COUNT(*) FROM candidate_documents cd WHERE cd.candidate_id = a.candidate_id AND (cd.status = 'pending' OR cd.status IS NULL)) as pending_documents_count
             FROM applications a 
             JOIN jobs j ON a.job_id = j.id
             LEFT JOIN users u ON a.candidate_id = u.id
+            LEFT JOIN candidate_profiles cp ON cp.user_id = a.candidate_id
             {$where}
             ORDER BY a.applied_date DESC
             LIMIT ? OFFSET ?
@@ -524,6 +546,14 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
         }
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
+        $statsStmt = $conn->query("
+            SELECT
+                COUNT(*) AS total_applicants,
+                COUNT(*) FILTER (WHERE status ILIKE '%Interview%') AS in_interview,
+                COUNT(*) FILTER (WHERE status IN ('Hired', 'Selected', 'Converted to Employee')) AS hired_count
+            FROM applications
+        ");
+        $statsRow = $statsStmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
         $appIds = array_column($applications, 'id');
         $timelinesByApp = [];
