@@ -11,7 +11,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { isNativeApp, isIOS, getAssetUrl } from '../api/axios';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -78,39 +77,24 @@ const EmployeeMobileProfile = () => {
   };
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
+
+    const upload = new FormData();
+    upload.append('file', file);
     try {
       setIsUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${employeeId || 'avatar'}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      if (avatar) {
-        const parts = avatar.split('/Avatar/');
-        if (parts.length > 1) {
-          const oldStoragePath = parts[1];
-          await supabase.storage.from('avatars').remove([oldStoragePath]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
-      if (uploadError) throw uploadError;
-
-      const avatarUrl = window.location.origin + "/Avatar/" + fileName;
-      await api.post('/employee/profile/avatar', { avatar: avatarUrl });
-
+      await api.post('/employee/profile/avatar', upload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       toast.success('Profile photo updated successfully!');
       queryClient.invalidateQueries(['employee', 'profile']);
       if (fetchProfile) await fetchProfile();
     } catch (error) {
-      toast.error(error.message || 'Error uploading image');
+      toast.error(error.response?.data?.error || 'Error uploading image');
     } finally {
       setIsUploading(false);
+      e.target.value = '';
     }
   };
 
