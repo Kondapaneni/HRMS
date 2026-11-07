@@ -7,6 +7,85 @@ use App\Config\Database;
 
 /** @var \Slim\App $app */
 
+
+function trainingStorageConfig(): array
+{
+    $baseUrl = rtrim((string)($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: ''), '/');
+    $serviceKey = (string)($_ENV['SUPABASE_SERVICE_ROLE_KEY'] ?? getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '');
+    if (!$baseUrl || !$serviceKey) throw new RuntimeException('Training storage is not configured.');
+    return [$baseUrl, $serviceKey];
+}
+
+function trainingStorageRequest(string $method, string $url, string $serviceKey, ?string $body = null, string $contentType = 'application/json'): array
+{
+    $context = stream_context_create(['http' => [
+        'method' => $method,
+        'header' => "Authorization: Bearer {$serviceKey}\r\napikey: {$serviceKey}\r\nContent-Type: {$contentType}\r\n",
+        'content' => $body ?? '',
+        'timeout' => 30,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    preg_match('/\\s(\\d{3})\\s/', $statusLine, $matches);
+    return ['status' => (int)($matches[1] ?? 0), 'body' => $result === false ? '' : $result];
+}
+
+function trainingVideoObjectPath(?string $videoUrl): ?string
+{
+    $value = trim((string)$videoUrl);
+    if ($value === '') return null;
+    if (preg_match('#/storage/v1/object/public/training_videos/([^?]+)#', $value, $m)) {
+        $path = rawurldecode($m[1]);
+    } elseif (preg_match('#(?:^|/)Training-Video/([^?]+)$#', $value, $m)) {
+        $path = rawurldecode($m[1]);
+    } else {
+        return null;
+    }
+    if ($path === '' || str_contains($path, '..') || preg_match('/[^A-Za-z0-9_./-]/', $path)) return null;
+    return $path;
+}
+
+// Admins receive a short-lived signed upload URL; the service-role key never reaches the browser.
+$app->post('/api/admin/training/videos/upload-url', function (Request $request, Response $response) {
+    try {
+        $data = json_decode($request->getBody()->getContents(), true) ?: [];
+        $mime = strtolower(trim((string)($data['content_type'] ?? '')));
+        $extensions = ['video/mp4' => 'mp4', 'video/webm' => 'webm', 'video/quicktime' => 'mov'];
+        if (!isset($extensions[$mime])) {
+            $response->getBody()->write(json_encode(['error' => 'Upload an MP4, WEBM, or MOV video.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+        }
+
+        [$baseUrl, $serviceKey] = trainingStorageConfig();
+        $filename = bin2hex(random_bytes(20)) . '.' . $extensions[$mime];
+        $signUrl = $baseUrl . '/storage/v1/object/upload/sign/training_videos/' . rawurlencode($filename);
+        $signed = trainingStorageRequest('POST', $signUrl, $serviceKey, json_encode([' upsert' => false]));
+        if ($signed['status'] < 200 || $signed['status'] >= 300) {
+            error_log('Training signed upload URL request failed with status ' . $signed['status']);
+            throw new RuntimeException('Unable to prepare secure video upload.');
+        }
+        $payload = json_decode($signed['body'], true) ?: [];
+        $relativeUrl = $payload['url'] ?? $payload['signedURL'] ?? null;
+        $token = $payload['token'] ?? null;
+        if (!$relativeUrl || !$token) throw new RuntimeException('Storage did not return a valid upload token.');
+        $uploadUrl = preg_match('#^https?://#i', $relativeUrl) ? $relativeUrl : $baseUrl . '/' . ltrim($relativeUrl, '/');
+
+        $response->getBody()->write(json_encode([
+            'upload_url' => $uploadUrl,
+            'token' => $token,
+            'object_path' => $filename,
+            'video_url' => '/Training-Video/' . $filename,
+            'content_type' => $mime
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (Throwable $e) {
+        error_log('Training signed upload URL failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to prepare secure video upload right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'canAdminAssessments'));
+
 // GET /api/admin/training/videos - List all training videos
 $app->get('/api/admin/training/videos', function (Request $request, Response $response, $args) {
     $db = new Database();
