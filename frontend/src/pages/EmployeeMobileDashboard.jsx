@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { 
   LogIn, 
@@ -21,7 +21,6 @@ import {
   User
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -46,14 +45,13 @@ const EmployeeMobileDashboard = () => {
       try {
         const res = await api.get('/employee/training/videos');
         return res.data || [];
-      } catch (e) {
+      } catch {
         return [];
       }
     },
     staleTime: 60000,
   });
 
-  const hasTrainingVideos = Array.isArray(trainingVideos) && trainingVideos.length > 0;
 
 
 
@@ -104,10 +102,7 @@ const EmployeeMobileDashboard = () => {
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
   const fullProfile = dashboardData?.fullProfile || profile;
-  const holidays = dashboardData?.holidays || [];
-  const expenses = dashboardData?.expenses || [];
   const birthdays = dashboardData?.birthdays || [];
-  const latestPayslip = dashboardData?.latestPayslip || null;
 
   const upcomingBirthdays = birthdays.slice(0, 3);
 
@@ -141,13 +136,6 @@ const EmployeeMobileDashboard = () => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `Locked (${m}m ${String(s).padStart(2, '0')}s)`;
-  };
-
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
   };
 
   const todayStr = new Date().toLocaleDateString('en-CA');
