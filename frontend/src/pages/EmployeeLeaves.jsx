@@ -436,7 +436,7 @@ const EmployeeLeaves = () => {
                       </div>
                       <select 
                         name="leaveType" 
-                        value={leaveType} 
+                        value={selectedLeaveType} 
                         onChange={e => setLeaveType(e.target.value)} 
                         required 
                         className="w-full h-10 rounded-[12px] border border-[var(--line)] bg-[var(--surface-alt)] px-3 text-[13px] text-[var(--text)] focus:border-[var(--brand)] focus:outline-none"
@@ -447,7 +447,7 @@ const EmployeeLeaves = () => {
                   ) : (
                     <select 
                       name="leaveType" 
-                      value={leaveType} 
+                      value={selectedLeaveType} 
                       onChange={e => setLeaveType(e.target.value)} 
                       required 
                       className="w-full h-10 rounded-[12px] border border-[var(--line)] bg-[var(--surface-alt)] px-3 text-[13px] text-[var(--text)] focus:border-[var(--brand)] focus:outline-none cursor-pointer"
