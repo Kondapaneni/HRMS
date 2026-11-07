@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/ui/SearchBar';
 import { 
-  Search, 
   CheckCircle2, 
   Clock, 
   XCircle, 
@@ -25,7 +24,6 @@ import {
   X,
   Check,
   FileEdit,
-  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getBranchLoanApplications } from '../services/loanServices';
