@@ -80,18 +80,26 @@ function loanStorageSignedUrl(string $bucket, string $objectPath, int $expiresIn
         : rtrim($baseUrl, '/') . '/storage/v1' . (str_starts_with($signed, '/') ? $signed : '/' . $signed);
 }
 
-function loanStorageSignedUrlFromReference(?string $reference, string $bucket): ?string
+function loanStorageSignedUrlFromReference(?string $reference, string $bucket, ?string $applicationUuid = null, bool $allowLegacyRoot = false): ?string
 {
     if (!$reference) return null;
     $path = loanStorageObjectPath($reference, $bucket);
-    return $path ? loanStorageSignedUrl($bucket, $path) : null;
+    if (!$path) return null;
+    if ($applicationUuid !== null) {
+        if (str_contains($path, '/')) {
+            if (!str_starts_with($path, $applicationUuid . '/')) return null;
+        } elseif (!$allowLegacyRoot) {
+            return null;
+        }
+    }
+    return loanStorageSignedUrl($bucket, $path);
 }
 
-function loanSignDocumentMap(array $documents): array
+function loanSignDocumentMap(array $documents, ?string $applicationUuid = null, bool $allowLegacyRoot = true): array
 {
     foreach ($documents as $key => $document) {
         $reference = is_array($document) ? ($document['url'] ?? $document['proxy_url'] ?? null) : $document;
-        $signed = loanStorageSignedUrlFromReference(is_string($reference) ? $reference : null, 'loan_documents');
+        $signed = loanStorageSignedUrlFromReference(is_string($reference) ? $reference : null, 'loan_documents', $applicationUuid, $allowLegacyRoot);
         if (!$signed) {
             unset($documents[$key]);
             continue;
@@ -105,19 +113,19 @@ function loanSignDocumentMap(array $documents): array
     return $documents;
 }
 
-function loanSignApplicationAssets(&$formData, &$signatures): void
+function loanSignApplicationAssets(&$formData, &$signatures, ?string $applicationUuid = null): void
 {
     if (!is_array($formData)) $formData = [];
     if (!is_array($signatures)) $signatures = [];
     foreach ($signatures as $key => $reference) {
-        $signed = loanStorageSignedUrlFromReference(is_string($reference) ? $reference : null, 'loan_signatures');
+        $signed = loanStorageSignedUrlFromReference(is_string($reference) ? $reference : null, 'loan_signatures', $applicationUuid, false);
         if ($signed) $signatures[$key] = $signed;
         else unset($signatures[$key]);
     }
     if (!empty($formData['timeline']) && is_array($formData['timeline'])) {
         foreach ($formData['timeline'] as &$event) {
             if (!is_array($event) || empty($event['signature'])) continue;
-            $signed = loanStorageSignedUrlFromReference(is_string($event['signature']) ? $event['signature'] : null, 'loan_signatures');
+            $signed = loanStorageSignedUrlFromReference(is_string($event['signature']) ? $event['signature'] : null, 'loan_signatures', $applicationUuid, false);
             if ($signed) $event['signature'] = $signed;
             else unset($event['signature']);
         }
@@ -169,7 +177,7 @@ function getLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null
             'slot_key' => $r['slot_key']
         ];
     }
-    return loanSignDocumentMap($docsMap);
+    return loanSignDocumentMap($docsMap, $uuidId, true);
 }
 
 /**
@@ -228,7 +236,7 @@ function resolveLoanDocumentsForRow(array $docsByAppId, $appId, $uuidId = null, 
             'slot_key' => $d['slot_key']
         ];
     }
-    return loanSignDocumentMap($docsMap);
+    return loanSignDocumentMap($docsMap, $uuidId, true);
 }
 
 /**
@@ -404,7 +412,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             }
 
             $appId = $application['application_id'] ?: $application['id'];
-            loanSignApplicationAssets($application['form_data'], $application['signatures']);
+            loanSignApplicationAssets($application['form_data'], $application['signatures'], (string)$application['id']);
             $application['documents'] = getLoanDocumentsFromTable($conn, $appId, $application['id'], $application['lead_id']);
         }
 
@@ -482,7 +490,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
             if (isset($row['signatures']) && is_string($row['signatures'])) {
                 $row['signatures'] = json_decode($row['signatures'], true);
             }
-            loanSignApplicationAssets($row['form_data'], $row['signatures']);
+            loanSignApplicationAssets($row['form_data'], $row['signatures'], (string)$row['id']);
             $row['documents'] = resolveLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
         }
         unset($row);
