@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
 
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   const navigate = useNavigate();
@@ -99,30 +98,22 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     setError(null);
 
     try {
-      let avatarUrl = null;
-      if (avatarFile) {
-        const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `avatars/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, avatarFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath);
-
-        avatarUrl = publicUrlData.publicUrl;
-      }
-
       const res = await api.post('/employees', {
         ...formData,
-        salary: parseFloat(formData.salary),
-        ...(avatarUrl && { avatar: avatarUrl })
+        salary: parseFloat(formData.salary)
       });
+
+      if (avatarFile && res.data?.id) {
+        const uploadData = new FormData();
+        uploadData.append('file', avatarFile);
+        try {
+          await api.post(`/admin/employees/${res.data.id}/avatar`, uploadData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+        } catch (avatarError) {
+          toast.error(avatarError.response?.data?.error || 'Employee was created, but the profile photo could not be uploaded. You can add it from the employee profile.');
+        }
+      }
       setLoading(false);
       toast.success('Employee created successfully!');
       onSuccess();
