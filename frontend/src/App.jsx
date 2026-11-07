@@ -4,6 +4,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
 import ChangePassword from './pages/ChangePassword'
@@ -139,12 +140,13 @@ function App() {
       <Router>
         <CapacitorLifecycle />
         <AuthProvider>
-          <BackgroundLocationTracker />
-          <TrackerPermissionGate />
-          <UpdateOverlay />
-          <LandscapeOverlay />
-          <Offline />
-          <Toaster
+          <ThemeProvider>
+            <BackgroundLocationTracker />
+            <TrackerPermissionGate />
+            <UpdateOverlay />
+            <LandscapeOverlay />
+            <Offline />
+            <Toaster
             position="top-right"
             containerStyle={{ zIndex: 9999999 }}
             toastOptions={{
@@ -379,6 +381,7 @@ function App() {
             {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </ThemeProvider>
         </AuthProvider>
       </Router>
     </PersistQueryClientProvider>

@@ -147,7 +147,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange"
+        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference"
         FROM users u
         WHERE u.email = ?
     ');
@@ -323,7 +323,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u.otp_code, u.otp_expires_at
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u.otp_code, u.otp_expires_at
         FROM users u
         WHERE LOWER(u.email) = LOWER(?)
     ');
@@ -450,7 +450,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     $conn = $db->getConnection();
     
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled",
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled",
                fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canExpenses", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canLoanOrigination", fa."canSalesOrigination", fa."canBranchOperations", fa."canAdminAssessments"
         FROM users u 
         LEFT JOIN employee e ON u.id = e."userId" 
@@ -493,6 +493,39 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
 
     $response->getBody()->write(json_encode(['error' => 'User not found']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+})->add(new AuthMiddleware());
+
+// Update Theme Preference (Protected - any authenticated user)
+$app->put('/api/user/theme', function (Request $request, Response $response, $args) {
+    $decodedToken = $request->getAttribute('user');
+    $body = $request->getParsedBody();
+    $theme = strtolower(trim($body['theme'] ?? $body['themePreference'] ?? 'system'));
+
+    if (!in_array($theme, ['light', 'dark', 'system'])) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid theme preference. Allowed values: light, dark, system']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmtUser = $conn->prepare('UPDATE users SET "themePreference" = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+        $stmtUser->execute([$theme, $decodedToken->id]);
+
+        $stmtEmp = $conn->prepare('UPDATE employee SET "themePreference" = ?, updated_at = CURRENT_TIMESTAMP WHERE "userId" = ?');
+        $stmtEmp->execute([$theme, $decodedToken->id]);
+
+        $response->getBody()->write(json_encode([
+            'success' => true,
+            'themePreference' => $theme,
+            'message' => 'Theme preference saved successfully'
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
 })->add(new AuthMiddleware());
 
 // Change password endpoint (Protected)

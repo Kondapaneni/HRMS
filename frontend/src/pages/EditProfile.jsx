@@ -15,19 +15,22 @@ import {
   Globe, 
   CalendarDays, 
   CheckCircle2,
-  Lock
+  Lock,
+  Laptop
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import EditMobileProfile from './EditMobileProfile';
 
 const EditProfile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { fetchProfile } = useAuth();
+  const { setThemePreference } = useTheme();
   
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -42,7 +45,8 @@ const EditProfile = () => {
     dateOfBirth: '',
     bloodGroup: '',
     emergencyContact: '',
-    emergencyPhone: ''
+    emergencyPhone: '',
+    themePreference: 'system'
   });
 
   const { data: responseData, isLoading: loading } = useQuery({
@@ -69,7 +73,8 @@ const EditProfile = () => {
         dateOfBirth: profileData.dateOfBirth ? new Date(profileData.dateOfBirth).toISOString().split('T')[0] : '',
         bloodGroup: profileData.bloodGroup || '',
         emergencyContact: profileData.emergencyContact || '',
-        emergencyPhone: profileData.emergencyPhone || ''
+        emergencyPhone: profileData.emergencyPhone || '',
+        themePreference: profileData.themePreference || 'system'
       });
     }
   }, [profileData]);
@@ -80,6 +85,9 @@ const EditProfile = () => {
     },
     onSuccess: async () => {
       toast.success('Profile updated successfully');
+      if (formData.themePreference) {
+        setThemePreference(formData.themePreference);
+      }
       queryClient.invalidateQueries(['employee', 'profile']);
       if (fetchProfile) {
         await fetchProfile();
@@ -381,6 +389,41 @@ const EditProfile = () => {
                   className="w-full rounded-[14px] border border-[var(--line)] bg-[var(--surface-alt)] px-3.5 py-2.5 text-xs text-[var(--text)] focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] focus:outline-none transition-all" 
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Workspace Appearance Card */}
+          <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-4">
+            <div className="flex items-center gap-2 pb-4 border-b border-[var(--line)]">
+              <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
+                <Laptop className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-[var(--text)]">Workspace Display &amp; Theme</h3>
+                <p className="text-xs text-[var(--muted)]">Choose your default appearance mode or align automatically with your device OS</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { id: 'light', label: 'Light Mode', desc: 'Crisp bright workspace appearance' },
+                { id: 'dark', label: 'Dark Mode', desc: 'High-contrast dark palette for low light' },
+                { id: 'system', label: 'System Default', desc: 'Automatically matches device OS settings' },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, themePreference: t.id })}
+                  className={`p-4 rounded-[18px] border text-left transition-all cursor-pointer ${
+                    formData.themePreference === t.id
+                      ? 'bg-[var(--brand-tint)] border-[var(--brand)] text-[var(--text)] font-semibold shadow-xs'
+                      : 'bg-[var(--surface-alt)] border-[var(--line)] text-[var(--muted)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  <p className="text-xs font-semibold text-[var(--text)]">{t.label}</p>
+                  <p className="text-[11px] text-[var(--muted)] mt-1 font-normal">{t.desc}</p>
+                </button>
+              ))}
             </div>
           </div>
 

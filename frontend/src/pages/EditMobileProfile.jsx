@@ -14,7 +14,10 @@ import {
   CalendarDays, 
   Shield,
   ChevronLeft,
-  ChevronDown
+  ChevronDown,
+  Sun,
+  Moon,
+  Laptop
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +25,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other', 'Prefer not to say'];
 const MARITAL_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
@@ -38,6 +42,7 @@ const EditMobileProfile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { fetchProfile } = useAuth();
+  const { setThemePreference } = useTheme();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -51,7 +56,8 @@ const EditMobileProfile = () => {
     dateOfBirth: '',
     bloodGroup: '',
     emergencyContact: '',
-    emergencyPhone: ''
+    emergencyPhone: '',
+    themePreference: 'system'
   });
 
   const { data: responseData, isLoading: loading } = useQuery({
@@ -78,7 +84,8 @@ const EditMobileProfile = () => {
         dateOfBirth: profileData.dateOfBirth ? new Date(profileData.dateOfBirth).toISOString().split('T')[0] : '',
         bloodGroup: matchOption(profileData.bloodGroup, BLOOD_OPTIONS),
         emergencyContact: profileData.emergencyContact || '',
-        emergencyPhone: profileData.emergencyPhone || ''
+        emergencyPhone: profileData.emergencyPhone || '',
+        themePreference: profileData.themePreference || 'system'
       });
     }
   }, [profileData]);
@@ -89,6 +96,9 @@ const EditMobileProfile = () => {
     },
     onSuccess: async () => {
       toast.success('Profile updated successfully!');
+      if (formData.themePreference) {
+        setThemePreference(formData.themePreference);
+      }
       queryClient.invalidateQueries(['employee', 'profile']);
       if (fetchProfile) await fetchProfile();
       navigate('/employee/profile');
@@ -316,6 +326,62 @@ const EditMobileProfile = () => {
               placeholder="+91 98765 43210"
               className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 text-xs font-medium text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none transition-all"
             />
+          </div>
+        </div>
+
+        {/* Theme Preference Card */}
+        <div className="bg-[var(--surface)] p-5 rounded-[24px] border border-[var(--line)] shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-semibold text-[var(--muted)] tracking-wider">DISPLAY PREFERENCE</p>
+              <h3 className="text-xs font-semibold text-[var(--text)] uppercase tracking-wider mt-0.5">
+                Workspace Theme
+              </h3>
+            </div>
+            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--muted)] capitalize">
+              {formData.themePreference}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, themePreference: 'light' })}
+              className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-[16px] border transition-all cursor-pointer ${
+                formData.themePreference === 'light'
+                  ? 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-xs'
+                  : 'bg-[var(--surface-alt)] border-[var(--line)] text-[var(--text)]'
+              }`}
+            >
+              <Sun size={18} className={formData.themePreference === 'light' ? 'text-[#E6B350]' : 'text-[var(--muted)]'} />
+              <span className="text-xs font-semibold">Light</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, themePreference: 'dark' })}
+              className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-[16px] border transition-all cursor-pointer ${
+                formData.themePreference === 'dark'
+                  ? 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-xs'
+                : 'bg-[var(--surface-alt)] border-[var(--line)] text-[var(--text)]'
+              }`}
+            >
+              <Moon size={18} className={formData.themePreference === 'dark' ? 'text-white' : 'text-[var(--muted)]'} />
+              <span className="text-xs font-semibold">Dark</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, themePreference: 'system' })}
+              className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-[16px] border transition-all cursor-pointer ${
+                formData.themePreference === 'system'
+                  ? 'bg-[var(--brand-deep)] text-white border-[var(--brand-deep)] shadow-xs'
+                  : 'bg-[var(--surface-alt)] border-[var(--line)] text-[var(--text)]'
+              }`}
+            >
+              <Laptop size={18} className={formData.themePreference === 'system' ? 'text-white' : 'text-[var(--muted)]'} />
+              <span className="text-xs font-semibold">System</span>
+            </button>
           </div>
         </div>
 

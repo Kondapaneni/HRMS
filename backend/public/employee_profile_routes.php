@@ -18,7 +18,7 @@ $app->get('/api/employee/profile', function (Request $request, Response $respons
                    e."panNumber", e.department, e.position, e.branch, e.salary, e."employmentType",
                    e."noticePeriod", e."shiftTime", e."workMode", e."weekOff", e."joinDate", e."managerId",
                    e.avatar, e.status, e.timeline, e."geoFenceEnabled", e."webAttendanceEnabled",
-                   e."emergencyContact", e."emergencyPhone",
+                   e."emergencyContact", e."emergencyPhone", e."themePreference",
                    b.name as branch_name
             FROM employee e 
             LEFT JOIN branches b ON e.branch::uuid = b.id 
@@ -107,23 +107,47 @@ $app->put('/api/employee/profile', function (Request $request, Response $respons
             throw new Exception("Employee record not found.");
         }
 
+        $themePref = isset($data['themePreference']) && in_array(strtolower(trim($data['themePreference'])), ['light', 'dark', 'system']) 
+            ? strtolower(trim($data['themePreference'])) 
+            : null;
+
         // Update Users Table
-        $stmtUpdateUser = $conn->prepare('UPDATE users SET "firstName" = ?, "lastName" = ?, email = ? WHERE id = ?');
-        $stmtUpdateUser->execute([$firstName, $lastName, $email, $decodedToken->id]);
+        if ($themePref) {
+            $stmtUpdateUser = $conn->prepare('UPDATE users SET "firstName" = ?, "lastName" = ?, email = ?, "themePreference" = ? WHERE id = ?');
+            $stmtUpdateUser->execute([$firstName, $lastName, $email, $themePref, $decodedToken->id]);
+        } else {
+            $stmtUpdateUser = $conn->prepare('UPDATE users SET "firstName" = ?, "lastName" = ?, email = ? WHERE id = ?');
+            $stmtUpdateUser->execute([$firstName, $lastName, $email, $decodedToken->id]);
+        }
 
         // Update Employee Table
-        $stmtUpdateEmp = $conn->prepare('
-            UPDATE employee 
-            SET "firstName" = ?, "lastName" = ?, email = ?, phone = ?, address = ?, gender = ?, 
-                "maritalStatus" = ?, nationality = ?, "dateOfBirth" = ?, "bloodGroup" = ?, 
-                "emergencyContact" = ?, "emergencyPhone" = ?
-            WHERE "userId" = ?
-        ');
-        $stmtUpdateEmp->execute([
-            $firstName, $lastName, $email, $phone, $address, $gender,
-            $maritalStatus, $nationality, $dateOfBirth ?: null, $bloodGroup,
-            $emergencyContact, $emergencyPhone, $decodedToken->id
-        ]);
+        if ($themePref) {
+            $stmtUpdateEmp = $conn->prepare('
+                UPDATE employee 
+                SET "firstName" = ?, "lastName" = ?, email = ?, phone = ?, address = ?, gender = ?, 
+                    "maritalStatus" = ?, nationality = ?, "dateOfBirth" = ?, "bloodGroup" = ?, 
+                    "emergencyContact" = ?, "emergencyPhone" = ?, "themePreference" = ?
+                WHERE "userId" = ?
+            ');
+            $stmtUpdateEmp->execute([
+                $firstName, $lastName, $email, $phone, $address, $gender,
+                $maritalStatus, $nationality, $dateOfBirth ?: null, $bloodGroup,
+                $emergencyContact, $emergencyPhone, $themePref, $decodedToken->id
+            ]);
+        } else {
+            $stmtUpdateEmp = $conn->prepare('
+                UPDATE employee 
+                SET "firstName" = ?, "lastName" = ?, email = ?, phone = ?, address = ?, gender = ?, 
+                    "maritalStatus" = ?, nationality = ?, "dateOfBirth" = ?, "bloodGroup" = ?, 
+                    "emergencyContact" = ?, "emergencyPhone" = ?
+                WHERE "userId" = ?
+            ');
+            $stmtUpdateEmp->execute([
+                $firstName, $lastName, $email, $phone, $address, $gender,
+                $maritalStatus, $nationality, $dateOfBirth ?: null, $bloodGroup,
+                $emergencyContact, $emergencyPhone, $decodedToken->id
+            ]);
+        }
 
         $conn->commit();
         $response->getBody()->write(json_encode(['message' => 'Profile updated successfully']));

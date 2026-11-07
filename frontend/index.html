@@ -37,9 +37,18 @@
     // Apply saved theme or system preference immediately to prevent flash
     (function() {
       try {
-        var saved = localStorage.getItem('theme');
-        var theme = saved === 'dark' ? 'dark' : 'light';
+        var savedPref = localStorage.getItem('themePreference') || localStorage.getItem('theme');
+        var theme = 'light';
+        if (savedPref === 'dark') {
+          theme = 'dark';
+        } else if (savedPref === 'light') {
+          theme = 'light';
+        } else {
+          // system default
+          theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
         document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-theme-preference', savedPref || 'system');
       } catch (e) {}
     })();
   </script>
