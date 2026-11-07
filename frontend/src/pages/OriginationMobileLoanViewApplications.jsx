@@ -16,8 +16,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
-import { getLoanApplications, updateLoanApplicationStatus } from '../services/loanServices';
+import { getLoanApplications, transferLoanApplicationToBranch } from '../services/loanServices';
 import { LoanDetailView } from '../components/forms';
 import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
 import { SignatureModal } from '../components/forms/SignatureModal';
@@ -162,31 +161,19 @@ export default function OriginationMobileLoanViewApplications({
       setIsSignatureModalOpen(false);
       setIsTransferring(true);
 
-      let signatureUrl = null;
+      let signatureFile = null;
       if (signatureDataUrl) {
         const res = await fetch(signatureDataUrl);
         const blob = await res.blob();
-        const fileToUpload = new File([blob], 'signature.png', { type: 'image/png' });
-
-        const fileName = `${dbId}/employee-signature-${Date.now()}.png`;
-        const { error: uploadError } = await supabase.storage
-          .from('loan_signatures')
-          .upload(fileName, fileToUpload, {
-            cacheControl: '3600',
-            upsert: true,
-          });
-
-        if (uploadError) throw new Error(uploadError.message);
-        signatureUrl = window.location.origin + '/Loan-Signature/' + fileName;
+        signatureFile = new File([blob], 'signature.png', { type: 'image/png' });
       }
 
       const timelineEvent = {
         stage: 'Branch Operations',
         timestamp: new Date().toISOString(),
-        signature: signatureUrl,
+        signature: null,
       };
-      const signatureData = signatureUrl ? { Origination: signatureUrl } : null;
-      await updateLoanApplicationStatus(dbId, 'Under Review', timelineEvent, signatureData);
+      await transferLoanApplicationToBranch(dbId, signatureFile);
 
       setLocalTimeline((prev) => [...prev, timelineEvent]);
       setLocalStatus('Under Review');
