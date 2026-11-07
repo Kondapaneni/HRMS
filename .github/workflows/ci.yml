@@ -1,0 +1,75 @@
+name: HRMS CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, security-performance-audit-fixes]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hrms-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: PHP syntax and Composer audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, fileinfo
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate Composer lock
+        working-directory: backend
+        run: composer validate --no-check-publish
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Lint PHP source
+        run: find backend -path 'backend/vendor' -prune -o -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Audit Composer dependencies
+        working-directory: backend
+        run: composer audit --locked --no-interaction
+
+  frontend:
+    name: Frontend build, lint and dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Audit frontend dependencies
+        working-directory: frontend
+        run: npm audit --audit-level=high
