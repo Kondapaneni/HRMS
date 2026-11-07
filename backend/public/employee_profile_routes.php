@@ -162,33 +162,6 @@ $app->put('/api/employee/profile', function (Request $request, Response $respons
     }
 })->add(new AuthMiddleware(['employee']));
 
-// Update Employee Avatar
-$app->post('/api/employee/profile/avatar', function (Request $request, Response $response, $args) {
-    $decodedToken = $request->getAttribute('user');
-    $data = $request->getParsedBody();
-    
-    $avatarUrl = trim($data['avatar'] ?? '');
-
-    if (empty($avatarUrl)) {
-        $response->getBody()->write(json_encode(['error' => 'Avatar URL is required']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-    }
-
-    $db = new Database();
-    $conn = $db->getConnection();
-
-    try {
-        $stmtUpdateEmp = $conn->prepare('UPDATE employee SET avatar = ? WHERE "userId" = ?');
-        $stmtUpdateEmp->execute([$avatarUrl, $decodedToken->id]);
-        
-        $response->getBody()->write(json_encode(['message' => 'Avatar updated successfully', 'avatar' => $avatarUrl]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-    }
-})->add(new AuthMiddleware(['employee']));
-
 // Get Upcoming Birthdays
 $app->get('/api/employee/birthdays', function (Request $request, Response $response, $args) {
     $db = new Database();
