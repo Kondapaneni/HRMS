@@ -297,6 +297,58 @@ export const uploadToSupabaseWithProgress = ({
   });
 };
 
+
+/**
+ * Uploads a file using a one-time URL issued by the authenticated backend.
+ * The service-role key never reaches the browser; progress remains available.
+ */
+export const uploadToSignedUrlWithProgress = ({
+  uploadUrl,
+  fileBlob,
+  contentType,
+  onProgress = () => {}
+}) => new Promise((resolve, reject) => {
+  if (!uploadUrl || !fileBlob) return reject(new Error('Missing secure upload details'));
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) return reject(new Error('Missing Supabase environment variables'));
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('PUT', uploadUrl, true);
+  xhr.setRequestHeader('apikey', supabaseAnonKey);
+  xhr.setRequestHeader('Authorization', `Bearer ${supabaseAnonKey}`);
+  xhr.setRequestHeader('Content-Type', contentType || fileBlob.type || 'application/octet-stream');
+  xhr.setRequestHeader('x-upsert', 'false');
+
+  const startedAt = Date.now();
+  xhr.upload.onprogress = (event) => {
+    if (!event.lengthComputable) return;
+    const elapsed = Math.max((Date.now() - startedAt) / 1000, 0.001);
+    onProgress({
+      loaded: event.loaded,
+      total: event.total,
+      percent: Math.min(Math.round((event.loaded / event.total) * 100), 100),
+      speedMBps: (event.loaded / elapsed / (1024 * 1024)).toFixed(1)
+    });
+  };
+  xhr.onload = () => {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try { resolve(JSON.parse(xhr.responseText || '{}')); }
+      catch { resolve({}); }
+      return;
+    }
+    let message = `Upload failed (${xhr.status})`;
+    try {
+      const payload = JSON.parse(xhr.responseText || '{}');
+      message = payload.message || payload.error || payload.msg || message;
+    } catch {}
+    reject(new Error(message));
+  };
+  xhr.onerror = () => reject(new Error('Network connection error during file upload'));
+  xhr.onabort = () => reject(new Error('Upload was cancelled'));
+  xhr.send(fileBlob);
+});
+
 export const formatBytes = (bytes, decimals = 1) => {
   if (!+bytes) return '0 Bytes';
   const k = 1024;
