@@ -118,9 +118,8 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $limit = max(1, min(100, (int)($params['limit'] ?? 50)));
     $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
     if ($offset < 0) $offset = 0;
     $search = trim($params['search'] ?? '');
 
