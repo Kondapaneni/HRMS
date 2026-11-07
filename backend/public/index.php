@@ -795,12 +795,7 @@ $app->get('/Job-Description/{filename:.+}', function (Request $request, Response
     return streamSupabaseFile($supabaseUrl, $response, $filename, 'attachment');
 });
 
-// Offer Letter proxy route for clean URLs
-$app->get('/Offer-Letter/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'attachment');
-});
+// Offer letters are served only through authenticated application-owner endpoints.
 
 function getMimeType($filename) {
     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
