@@ -2,17 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import SearchBar from '../components/ui/SearchBar';
 import { getSalesLeads } from '../services/salesServices';
-import { 
-  Phone, 
-  MapPin, 
-  CheckCircle2, 
-  Clock, 
-  Loader2, 
-  Plus, 
-  XCircle, 
-  RefreshCw,
-  Eye
-} from 'lucide-react';
+import { Phone, MapPin, CheckCircle2, Clock, Loader2, Plus, XCircle, RefreshCw, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import OriginationMobileSaleLeadsList from './OriginationMobileSaleLeadsList';
 import AddLeadSidebar from '../components/AddLeadSidebar';

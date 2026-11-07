@@ -1,20 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  CheckCircle2, 
-  Phone, 
-  UserPlus, 
-  XCircle, 
-  Loader2, 
-  RefreshCw, 
-  Briefcase, 
-  X, 
-  Check
-} from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, UserPlus, XCircle, Loader2, RefreshCw, Briefcase, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -38,13 +24,15 @@ const OriginationMobileSaleLeadDetails = () => {
     if (location.state?.lead) {
       try {
         sessionStorage.setItem('current_sale_lead', JSON.stringify(location.state.lead));
-      } catch (e) {}
+      } catch {
+        // Session storage is optional; keep the lead available in memory.
+      }
       return location.state.lead;
     }
     try {
       const saved = sessionStorage.getItem('current_sale_lead');
       return saved ? JSON.parse(saved) : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   });
@@ -61,9 +49,7 @@ const OriginationMobileSaleLeadDetails = () => {
       setCurrentStatus(variables.status);
       if (variables.product_type) {
         setCurrentProductType(variables.product_type);
-        if (lead) lead.product_type = variables.product_type;
       }
-      if (lead) lead.status = variables.status;
       queryClient.invalidateQueries({ queryKey: ['sales', 'leads'] });
       queryClient.invalidateQueries({ queryKey: ['sales', 'leads', 'list'] });
       queryClient.invalidateQueries({ queryKey: ['salesDashboard'] });

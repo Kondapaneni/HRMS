@@ -2,19 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
-import { 
-  Search, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  CheckCircle2, 
-  Clock, 
-  Loader2, 
-  Plus, 
-  XCircle, 
-  RefreshCw, 
-  Users
-} from 'lucide-react';
+import { Phone, MapPin, Calendar, CheckCircle2, Clock, Loader2, Plus, XCircle, RefreshCw, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { getSalesLeads } from '../services/salesServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';

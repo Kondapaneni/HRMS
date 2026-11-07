@@ -1,16 +1,5 @@
 import React from 'react';
-import { 
-  ArrowLeft, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  ShoppingBag, 
-  CheckCircle2, 
-  Loader2, 
-  ArrowRight, 
-  Lock, 
-  FileEdit
-} from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, ShoppingBag, CheckCircle2, Loader2, ArrowRight, Lock, FileEdit } from 'lucide-react';
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -49,13 +38,17 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
     if (location.state?.member) {
       try {
         sessionStorage.setItem('current_sale_member', JSON.stringify(location.state.member));
-      } catch (e) {}
+      } catch {
+        // The in-memory member remains available if session storage is blocked.
+      }
       return location.state.member;
     }
     try {
       const saved = sessionStorage.getItem('current_sale_member');
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch {
+      // Continue with the API-backed member fallback.
+    }
     if ((response?.leads || response?.data) && phone) {
       const leads = response?.leads || response?.data || [];
       const converted = leads.filter(l => l.status === 'Converted' && String(l.phone) === String(phone));
