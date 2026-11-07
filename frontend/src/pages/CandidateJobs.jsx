@@ -90,7 +90,7 @@ const CandidateJobs = () => {
   React.useEffect(() => {
     if (resumes.length > 0 && !selectedResumeUrl) {
       const primary = resumes.find(r => r.isPrimary);
-      setSelectedResumeUrl(primary ? primary.url : resumes[0].url);
+      setSelectedResumeUrl(primary ? (primary.id || primary.url) : (resumes[0].id || resumes[0].url));
     }
   }, [resumes, selectedResumeUrl]);
 
@@ -614,13 +614,13 @@ const CandidateJobs = () => {
                             <input 
                               type="radio" 
                               name="resumeSelection" 
-                              value={resume.url}
-                              checked={selectedResumeUrl === resume.url}
+                              value={resume.id || resume.url}
+                              checked={selectedResumeUrl === (resume.id || resume.url)}
                               onChange={(e) => setSelectedResumeUrl(e.target.value)}
                               className="w-4 h-4 text-[var(--brand)] focus:ring-[var(--brand)] border-[var(--line)]"
                             />
                             <div className="min-w-0">
-                              <p className={`text-xs font-semibold truncate ${selectedResumeUrl === resume.url ? 'text-[var(--brand-deep)]' : 'text-[var(--text)]'}`}>
+                              <p className={`text-xs font-semibold truncate ${selectedResumeUrl === (resume.id || resume.url) ? 'text-[var(--brand-deep)]' : 'text-[var(--text)]'}`}>
                                 {resume.name}
                               </p>
                               {resume.isPrimary && (
