@@ -10,7 +10,7 @@ CREATE POLICY "Public can read public asset storage objects"
 ON storage.objects
 FOR SELECT
 TO public
-USING (bucket_id IN ('avatars', 'holidays', 'job_descriptions', 'training_videos'));
+USING (bucket_id IN ('avatars', 'holidays', 'job_descriptions'));
 
 DROP POLICY IF EXISTS "Authenticated users can manage non-private storage objects" ON storage.objects;
 CREATE POLICY "Authenticated users can manage non-private storage objects"
