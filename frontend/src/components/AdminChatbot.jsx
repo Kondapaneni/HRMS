@@ -163,7 +163,7 @@ const AdminChatbot = () => {
       }
       // Bullet list
       if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
-        const itemText = line.trim().replace(/^[\*\-]\s+/, '');
+        const itemText = line.trim().replace(/^[-*]\s+/, '');
         return (
           <div key={idx} className="flex items-start gap-1.5 ml-1 my-1 text-xs text-[var(--text-2)] leading-relaxed">
             <span className="text-[var(--brand-deep)] font-bold select-none">•</span>
