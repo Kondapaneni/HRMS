@@ -190,7 +190,7 @@ $app->post('/api/admin/training/videos', function (Request $request, Response $r
     $videoUrl = trim($data['video_url'] ?? '');
 
     $assignedEmployeeIds = isset($data['assigned_employee_ids']) && is_array($data['assigned_employee_ids'])
-        ? json_encode(array_values(array_unique(array_filter($data['assigned_employee_ids'], 'is_string'))))
+        ? json_encode(array_values(array_unique(array_filter($data['assigned_employee_ids'], static fn($id) => is_string($id) || is_int($id)))))
         : '[]';
 
     if ($title === '' || !preg_match('#^/Training-Video/[A-Fa-f0-9]{40}\\.(?:mp4|webm|mov)$#', $videoUrl)) {
@@ -208,8 +208,19 @@ $app->post('/api/admin/training/videos', function (Request $request, Response $r
 
         $response->getBody()->write(json_encode(['message' => 'Video added successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
-    } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+    } catch (\Throwable $e) {
+        $objectPath = trainingVideoObjectPath($videoUrl);
+        if ($objectPath) {
+            try {
+                [$baseUrl, $serviceKey] = trainingStorageConfig();
+                $encodedPath = implode('/', array_map('rawurlencode', explode('/', $objectPath)));
+                trainingStorageRequest('DELETE', $baseUrl . '/storage/v1/object/training_videos/' . $encodedPath, $serviceKey);
+            } catch (\Throwable $cleanupError) {
+                error_log('Training video orphan cleanup failed: ' . $cleanupError->getMessage());
+            }
+        }
+        error_log('Training video record creation failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to save the training video right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'canAdminAssessments'));
