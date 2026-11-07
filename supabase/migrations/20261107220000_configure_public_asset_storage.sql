@@ -21,8 +21,12 @@ SET public = FALSE,
     allowed_mime_types = ARRAY['video/mp4', 'video/webm', 'video/quicktime']::text[]
 WHERE id = 'training_videos';
 
--- Holidays remain public-read only. Their existing file-size and MIME settings
--- are preserved because the app's complete holiday asset lifecycle is still
--- being audited.
+-- Holiday banners use the same validated image formats and size limit as
+-- avatars. They remain public-read only; uploads go through the admin PHP API.
+UPDATE storage.buckets
+SET public = TRUE,
+    file_size_limit = 5242880,
+    allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp']::text[]
+WHERE id = 'holidays';
 
 COMMIT;
