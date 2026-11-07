@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
-import { supabase } from '../lib/supabase';
 import {
   Clock, ChevronLeft, ChevronRight, Send, AlertTriangle,
-  Circle, CheckCircle2, Save, ShieldAlert, Loader2, ArrowLeft,
-  Lock, BookOpen, ShieldCheck, Monitor
+  CheckCircle2, Save, ShieldAlert, Loader2, ArrowLeft,
+  Lock, ShieldCheck
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -88,7 +87,7 @@ const EmployeeAssessmentEngine = () => {
         await api.put(`/employee/assessments/attempts/${currentExamData.attempt_id}/save`, {
           answers: currentAnswers
         });
-      } catch (saveErr) {
+      } catch {
         // Final auto-save failed, proceed with submission.
       }
 
@@ -103,7 +102,7 @@ const EmployeeAssessmentEngine = () => {
 
       // Exit fullscreen safely
       if (document.fullscreenElement) {
-        try { await document.exitFullscreen(); } catch (e) { /* ignore */ }
+        try { await document.exitFullscreen(); } catch { /* Fullscreen may already have been exited by the browser. */ }
       }
 
       // STEP 5: Navigate to result page
@@ -117,7 +116,7 @@ const EmployeeAssessmentEngine = () => {
         },
         replace: true
       });
-    } catch (err) {
+    } catch {
       setSubmitting(false);
       setUploadProgress('');
       submittedRef.current = false;

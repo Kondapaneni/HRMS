@@ -5,7 +5,6 @@ import {
   Plus, 
   Loader2, 
   Upload, 
-  FileText, 
   CheckCircle2, 
   XCircle, 
   Clock, 
@@ -14,7 +13,6 @@ import {
   IndianRupee,
   Receipt,
   X,
-  Sparkles
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -149,7 +147,7 @@ const EmployeeExpenses = () => {
       const objectUrl = URL.createObjectURL(response.data);
       previewWindow.location.href = objectUrl;
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-    } catch (error) {
+    } catch {
       previewWindow.close();
       toast.error('Unable to open this receipt.');
     }

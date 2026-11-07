@@ -21,7 +21,7 @@ const EmployeeAssessmentResult = () => {
       window._activeAssessmentStreams.forEach(stream => {
         try {
           stream.getTracks().forEach(track => {
-            try { track.enabled = false; track.stop(); } catch (e) {}
+            try { track.enabled = false; track.stop(); } catch { /* Media tracks may already be stopped. */ }
           });
         } catch (e) {}
       });
