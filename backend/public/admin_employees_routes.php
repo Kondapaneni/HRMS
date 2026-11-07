@@ -11,6 +11,9 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
     $db = new Database();
     $conn = $db->getConnection();
     
+    $user = $request->getAttribute('user');
+    $isAdmin = is_object($user) && ($user->role ?? '') === 'admin';
+
     $params = $request->getQueryParams();
     $limit = max(1, min(100, (int)($params['limit'] ?? 50)));
     $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
@@ -26,7 +29,13 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
         $queryParams = [$searchParam, $searchParam, $searchParam, $searchParam];
     }
 
-    $sql = 'SELECT e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", e.salary, e.status, e.avatar, e."managerId", b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id' . $whereClause . ' ORDER BY e."firstName" ASC LIMIT ? OFFSET ?';
+    // Feature-authorized payroll/employee managers only need directory fields.
+    // Do not expose salary, personal contact details, status internals, or manager
+    // metadata through this shared dropdown endpoint.
+    $columns = $isAdmin
+        ? 'e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", e.salary, e.status, e.avatar, e."managerId", b.name as branch_name'
+        : 'e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.department, e.position, e.branch, b.name as branch_name';
+    $sql = 'SELECT ' . $columns . ' FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id' . $whereClause . ' ORDER BY e."firstName" ASC LIMIT ? OFFSET ?';
 
     try {
         $stmt = $conn->prepare($sql);
@@ -57,7 +66,7 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
         $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], ['employees', 'payroll']));
 
 // Get all branches
 $app->get('/api/branches', function (Request $request, Response $response, $args) {
