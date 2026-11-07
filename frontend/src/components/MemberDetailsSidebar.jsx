@@ -27,8 +27,6 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
 
   if (!isOpen || !member) return null;
 
-  const defaultLeadId = String(member.lead_id || member.id || '');
-
   const rawProducts = isSale ? (member.products || []) : (member.loans || []);
   const productsList = rawProducts.length > 0 ? rawProducts : [
     {

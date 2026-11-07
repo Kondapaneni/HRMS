@@ -1,22 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Save, 
-  Loader2, 
-  FileText, 
-  Clock, 
-  MapPin, 
-  Users, 
-  Check, 
-  X, 
-  CheckCircle2, 
-  User, 
-  Calendar,
-  CalendarDays,
-  Tag
-} from 'lucide-react';
+import { ArrowLeft, Save, Loader2, FileText, Clock, MapPin, Check, X, CheckCircle2, User, Calendar, CalendarDays } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -495,8 +480,6 @@ export const MobileActivityDetailsModal = ({
   event,
   onToggleStatus,
   getPriorityBadge,
-  isSales = false,
-  isBranchOperations = false
 }) => {
   useEffect(() => {
     if (isOpen) {

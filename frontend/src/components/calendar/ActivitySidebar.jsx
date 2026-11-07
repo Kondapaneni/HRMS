@@ -2,17 +2,10 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  X,
-  Calendar as CalendarIcon,
-  MapPin,
-  FileText,
-  Loader2,
-  Tag
-} from 'lucide-react';
-import { format, parseISO, isBefore, startOfDay } from 'date-fns';
+import { X, Calendar as CalendarIcon, MapPin, FileText, Loader2 } from 'lucide-react';
+import { format, isBefore, startOfDay } from 'date-fns';
 import toast from 'react-hot-toast';
-import { Check, Users } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const ActivitySidebar = ({
   isOpen,
