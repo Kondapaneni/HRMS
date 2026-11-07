@@ -106,6 +106,28 @@ $app->post('/api/employee/training/progress', function (Request $request, Respon
         }
         
         $employeeId = $employeeRecord['id'];
+
+        // A user may update progress only for a course they can actually access.
+        $accessStmt = $conn->prepare('
+            SELECT 1
+            FROM training_videos
+            WHERE id = :videoId
+              AND (
+                  jsonb_array_length(COALESCE(assigned_employee_ids, '[]'::jsonb)) = 0
+                  OR assigned_employee_ids @> :employeeIdInt::jsonb
+                  OR assigned_employee_ids @> :employeeIdStr::jsonb
+              )
+            LIMIT 1
+        ');
+        $accessStmt->execute([
+            ':videoId' => $videoId,
+            ':employeeIdInt' => json_encode([(int)$employeeId]),
+            ':employeeIdStr' => json_encode([(string)$employeeId])
+        ]);
+        if (!$accessStmt->fetchColumn()) {
+            $response->getBody()->write(json_encode(['error' => 'Training video was not found or is not assigned to you.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
         
         $stmt = $conn->prepare('
             INSERT INTO public.employee_training_progress (employee_id, user_id, video_id, completed, completed_at, updated_at)
