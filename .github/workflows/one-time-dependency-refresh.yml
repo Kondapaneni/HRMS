@@ -26,9 +26,15 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Apply compatible npm security updates
+      - name: Refresh lockfile with the scoped ESLint minimatch override
         working-directory: frontend
-        run: npm audit fix || true
+        run: |
+          npm audit fix || true
+          npm install --package-lock-only --ignore-scripts
+
+      - name: Install exact lockfile dependencies
+        working-directory: frontend
+        run: npm ci
 
       - name: Verify production build
         working-directory: frontend
@@ -38,9 +44,9 @@ jobs:
         working-directory: frontend
         run: npx eslint src/utils/fetchAllAdminEmployees.js src/utils/fetchAllAdminJobs.js
 
-      - name: Report remaining dependency advisories
+      - name: Require a clean frontend dependency audit
         working-directory: frontend
-        run: npm audit --audit-level=high || true
+        run: npm audit --audit-level=moderate
 
       - name: Commit refreshed dependency lockfiles
         run: |
