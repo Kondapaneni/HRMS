@@ -7,7 +7,6 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate
 import toast from 'react-hot-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import { Button } from '../components/ui';
 
@@ -87,22 +86,14 @@ const AdminHolidays = () => {
       setSaving(true);
       let imageUrl = existingImage;
 
-      // Upload image to Supabase if a new file is selected
+      // Upload a new holiday image through the authenticated backend.
       if (holidayImage) {
-        const fileExt = holidayImage.name.split('.').pop();
-        const fileName = `holiday-${selectedDate}-${Math.random()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('holidays')
-          .upload(filePath, holidayImage);
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        const proxyUrl = window.location.origin + "/Holiday/" + fileName;
-        imageUrl = proxyUrl;
+        const uploadData = new FormData();
+        uploadData.append('file', holidayImage);
+        const uploadResponse = await api.post('/admin/holidays/image', uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        imageUrl = uploadResponse.data.image_url;
       }
 
       // Save to backend
