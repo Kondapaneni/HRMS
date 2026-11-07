@@ -4,18 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
-  Calendar,
   Clock,
   CheckCircle2,
   Loader2,
   X,
-  FileText,
   Copy,
   Building2,
   FileEdit,
   XCircle
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { getBranchLoanApplications } from '../services/loanServices';
