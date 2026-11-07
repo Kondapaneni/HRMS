@@ -94,6 +94,26 @@ const CandidateJobs = () => {
     }
   }, [resumes, selectedResumeUrl]);
 
+  const handlePreviewResume = async (resume) => {
+    const previewWindow = window.open('about:blank', '_blank');
+    if (!previewWindow) {
+      toast.error('Please allow pop-ups to preview your resume.');
+      return;
+    }
+    try {
+      const endpoint = resume?.id
+        ? `/candidate/resumes/${encodeURIComponent(resume.id)}/file`
+        : `/candidate/resume-file?url=${encodeURIComponent(resume?.url || '')}`;
+      const response = await api.get(endpoint, { responseType: 'blob' });
+      const objectUrl = URL.createObjectURL(response.data);
+      previewWindow.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      previewWindow.close();
+      toast.error('Unable to open this resume.');
+    }
+  };
+
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || (job.description && job.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesDept = filterDept === '' || job.department === filterDept;
@@ -605,7 +625,7 @@ const CandidateJobs = () => {
                         <label 
                           key={index} 
                           className={`flex items-center justify-between p-3.5 rounded-[14px] border cursor-pointer transition-all ${
-                            selectedResumeUrl === resume.url 
+                            selectedResumeUrl === (resume.id || resume.url) 
                               ? 'border-[var(--brand)] bg-[var(--brand-tint)]/60 shadow-xs' 
                               : 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)]'
                           }`}
@@ -632,15 +652,13 @@ const CandidateJobs = () => {
                           </div>
                           
                           <div className="flex items-center gap-2 shrink-0">
-                            <a
-                              href={resume.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(e) => e.stopPropagation()}
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handlePreviewResume(resume); }}
                               className="text-[10px] font-semibold text-[var(--brand-deep)] hover:underline"
                             >
                               Preview
-                            </a>
+                            </button>
                             <FileText className={`w-4 h-4 ${selectedResumeUrl === resume.url ? 'text-[var(--brand-deep)]' : 'text-[var(--muted)]'}`} />
                           </div>
                         </label>
