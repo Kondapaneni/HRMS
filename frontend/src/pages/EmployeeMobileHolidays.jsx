@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Calendar as CalendarIcon, Sparkles, AlertCircle, CheckCircle2, PartyPopper } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -16,11 +16,6 @@ const EmployeeMobileHolidays = () => {
     placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
   });
-
-  const hasLoadedOnce = useRef(false);
-  if (!loading && holidays) {
-    hasLoadedOnce.current = true;
-  }
 
   const todayStr = new Date().toLocaleDateString('en-CA');
   const currentYear = new Date().getFullYear();
@@ -55,7 +50,7 @@ const EmployeeMobileHolidays = () => {
       ? pastHolidays 
       : thisYearHolidays;
 
-  if (!hasLoadedOnce.current && loading && !holidays.length) {
+  if (loading && !holidays.length) {
     return <PageLoader message="Loading Company Holidays..." />;
   }
 
