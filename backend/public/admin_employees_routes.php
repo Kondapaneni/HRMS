@@ -233,7 +233,7 @@ $app->put('/api/admin/employees/{id}', function (Request $request, Response $res
         // Build dynamic update query
         $updateFields = [];
         $updateValues = [];
-        $allowedFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'gender', 'maritalStatus', 'nationality', 'dateOfBirth', 'bloodGroup', 'workEmail', 'panNumber', 'department', 'position', 'branch', 'salary', 'employmentType', 'noticePeriod', 'shiftTime', 'workMode', 'weekOff', 'joinDate', 'managerId', 'avatar'];
+        $allowedFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'gender', 'maritalStatus', 'nationality', 'dateOfBirth', 'bloodGroup', 'workEmail', 'panNumber', 'department', 'position', 'branch', 'salary', 'employmentType', 'noticePeriod', 'shiftTime', 'workMode', 'weekOff', 'joinDate', 'managerId'];
         
         foreach ($allowedFields as $field) {
             if (array_key_exists($field, $data)) {
