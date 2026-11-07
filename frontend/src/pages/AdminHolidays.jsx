@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, Plus, Sparkles, Image as ImageIcon, Archive } from 'lucide-react';
