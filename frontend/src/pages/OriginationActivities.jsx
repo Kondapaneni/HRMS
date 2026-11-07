@@ -309,7 +309,7 @@ const OriginationActivities = () => {
   const workspaceScope = isBranchOperations ? 'branch' : 'personal';
 
   // Fetch activities
-  const { data = {}, isLoading } = useQuery({
+  const { data = {} } = useQuery({
     queryKey: ['origination', 'activities', workspaceScope],
     queryFn: async () => {
       const response = await api.get('/origination/activities', {
@@ -438,13 +438,6 @@ const OriginationActivities = () => {
       setCurrentDate(prev => addDays(prev, 1));
       setSelectedDate(prev => addDays(prev, 1));
     }
-  };
-
-  const handleToday = () => {
-    const now = new Date();
-    setCurrentDate(now);
-    setSelectedDate(now);
-    setMiniCalendarDate(now);
   };
 
   // Calendar Days Calculation (Month Grid)
@@ -660,46 +653,6 @@ const OriginationActivities = () => {
         );
     }
   };
-
-  // KPI Stats Calculation
-  const stats = useMemo(() => {
-    const todayStart = startOfDay(new Date());
-    let todayCount = 0;
-    let upcomingCount = 0;
-    let urgentCount = 0;
-    let completedCount = 0;
-
-    events.forEach((evt) => {
-      if (evt.status === 'Completed') {
-        completedCount++;
-        return;
-      }
-
-      if (evt.priority === 'Urgent' || evt.priority === 'High') {
-        urgentCount++;
-      }
-
-      try {
-        const d = typeof evt.startDate === 'string' ? parseISO(evt.startDate) : evt.startDate;
-        if (isToday(d)) {
-          todayCount++;
-        } else if (d > todayStart) {
-          upcomingCount++;
-        }
-      } catch {
-        upcomingCount++;
-      }
-    });
-
-    const total = events.length;
-    return {
-      total,
-      todayCount,
-      upcomingCount,
-      urgentCount,
-      completedCount,
-    };
-  }, [events]);
 
   return (
     <>
@@ -1039,7 +992,6 @@ const OriginationActivities = () => {
                   {calendarDays.map((day, idx) => {
                     const isCurrMonth = isSameMonth(day, currentDate);
                     const isTodayDate = isToday(day);
-                    const isSelected = isSameDay(day, selectedDate);
                     const isPastDate = isBefore(day, startOfDay(new Date()));
                     const dayStr = format(day, 'yyyy-MM-dd');
                     const dayEvents = eventsByDate.get(dayStr) || [];
