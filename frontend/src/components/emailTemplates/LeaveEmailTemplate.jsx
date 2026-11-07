@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeEmailHtml } from '../../utils/sanitizeEmailHtml';
 import templateHtml from '../../../../backend/src/Templates/leave_email.html?raw';
 
 const LeaveEmailTemplate = () => {
@@ -11,7 +12,7 @@ const LeaveEmailTemplate = () => {
     .replace(/\{\{endDate\}\}/g, '[End Date]')
     .replace(/\{\{currentYear\}\}/g, new Date().getFullYear());
 
-  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+  return <div dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(htmlContent) }} />;
 };
 
 export default LeaveEmailTemplate;
