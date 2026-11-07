@@ -27,6 +27,7 @@ import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
 import { compressVideo, uploadToSignedUrlWithProgress, formatBytes } from '../utils/videoCompressor';
 import { StatCard, Button, Avatar } from '../components/ui';
+import { fetchAllAdminEmployees } from '../utils/fetchAllAdminEmployees';
 
 const AdminTrainingVideos = () => {
   const queryClient = useQueryClient();
@@ -71,8 +72,7 @@ const AdminTrainingVideos = () => {
   const { data: employees = [], isLoading: employeesLoading } = useQuery({
     queryKey: ['admin', 'employeesList'],
     queryFn: async () => {
-      const res = await api.get('/admin/employees?limit=1000');
-      return res.data?.employees || [];
+      return fetchAllAdminEmployees();
     },
     staleTime: 5 * 60 * 1000
   });
