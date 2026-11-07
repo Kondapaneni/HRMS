@@ -79,6 +79,7 @@ const EmployeeMobileDashboard = () => {
   useEffect(() => {
     const status = rateLimitStatus || dashboardData?.mapsRateLimit;
     if (status?.locked && status.secondsRemaining > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- apply the API-provided map rate-limit countdown to the mobile dashboard.
       setLockoutSeconds(status.secondsRemaining);
     } else if (status && !status.locked) {
       setLockoutSeconds(null);
@@ -126,6 +127,7 @@ const EmployeeMobileDashboard = () => {
   // Calculate live seconds
   useEffect(() => {
     if (!todayRecord?.checkIn) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the live duration when the active shift state changes.
       setLiveSeconds(0);
       return;
     }

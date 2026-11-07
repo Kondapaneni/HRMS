@@ -44,6 +44,7 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (profileData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable profile fields from the loaded profile.
       setFormData({
         firstName: profileData.firstName || '',
         lastName: profileData.lastName || '',

@@ -58,6 +58,7 @@ const BranchOperationsMobileLeads = () => {
     if (selectedEmployee !== 'all' && filteredCreators.length > 0) {
       const exists = filteredCreators.some(c => c.userId === selectedEmployee);
       if (!exists) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- clear an employee filter that is invalid for the newly selected pipeline.
         setSelectedEmployee('all');
       }
     }

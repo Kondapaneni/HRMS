@@ -52,6 +52,7 @@ const AdminBulkPayroll = () => {
   }, [selectedMonth, selectedYear, debouncedSearchQuery]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refresh pending employees whenever payroll filters change.
     fetchPendingEmployees();
   }, [fetchPendingEmployees]);
 

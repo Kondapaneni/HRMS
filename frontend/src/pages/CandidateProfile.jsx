@@ -54,6 +54,7 @@ const CandidateProfile = () => {
 
   useEffect(() => {
     if (profileData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate candidate profile form state after the profile is loaded.
       setFormData(prev => ({
         ...prev,
         phone: profileData.phone || '',

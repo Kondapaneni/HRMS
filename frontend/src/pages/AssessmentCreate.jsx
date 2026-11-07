@@ -94,6 +94,7 @@ const AssessmentCreate = () => {
 
   useEffect(() => {
     if (existingAssessment && isEditing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- initialize the assessment form from loaded assessment data.
       setForm({
         title: existingAssessment.title || '',
         department: existingAssessment.department || 'IT',

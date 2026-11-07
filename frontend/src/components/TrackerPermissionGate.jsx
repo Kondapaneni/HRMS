@@ -39,6 +39,7 @@ export default function TrackerPermissionGate() {
   useEffect(() => {
     if (!isNative || !isEmployee) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- check native permission state on mount and app resume.
     checkPermissions();
 
     // Re-check automatically when user returns from settings or dialog

@@ -36,6 +36,7 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- switch to details view when the selected lead changes.
       setViewMode('details');
       if (isSale) {
         setSelectedType(lead?.product_type || 'Current Account / Corporate Banking');

@@ -105,6 +105,7 @@ const AdminPerformance = () => {
 
   useEffect(() => {
     if ((!selectedEmpId || !employees.some((e) => e.id === selectedEmpId)) && employees.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- select the first available employee after report data loads.
       setSelectedEmpId(employees[0].id);
     }
   }, [employees, selectedEmpId]);

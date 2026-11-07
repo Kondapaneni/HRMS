@@ -73,6 +73,7 @@ export default function OriginationLoanViewApplication() {
   // Sync state if application is loaded via async query
   useEffect(() => {
     if (application) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync the local status display when the selected loan application changes.
       if (application.status) setLocalStatus(application.status);
       const docs = formData?.documents || application.documents || application.form_data?.documents || {};
       setCurrentDocs(docs);

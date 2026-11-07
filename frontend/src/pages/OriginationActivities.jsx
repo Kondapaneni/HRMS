@@ -64,6 +64,7 @@ const QuickCreateModal = ({
       }
       const times = getSmartInitialTimes(effectiveDate);
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the event form when opening a new calendar activity.
       setTitle('');
       setStartDate(effectiveDate);
       setStartTime(times.startTime);

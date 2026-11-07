@@ -73,6 +73,7 @@ const EmployeeMobileTrainingVideos = () => {
   // Default to first video if not set
   useEffect(() => {
     if (videos.length > 0 && !selectedVideoId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- select the first available training video after private metadata loads.
       setSelectedVideoId(videos[0].id);
     }
   }, [videos, selectedVideoId]);

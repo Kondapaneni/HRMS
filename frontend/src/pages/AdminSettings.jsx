@@ -50,6 +50,7 @@ const AdminSettings = () => {
 
   useEffect(() => {
     if (fetchedSettings && fetchedSettings.session_timeout) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate settings state from the settings API response.
       setSettings({
         sessionTimeout: fetchedSettings.session_timeout || '30',
         trackingIntervalMinutes: fetchedSettings.tracking_interval_minutes ? Number(fetchedSettings.tracking_interval_minutes) : 15,

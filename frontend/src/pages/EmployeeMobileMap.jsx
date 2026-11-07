@@ -82,6 +82,7 @@ const EmployeeMobileMap = () => {
   // Get user location
   useEffect(() => {
     if (!navigator.geolocation) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- report unsupported browser geolocation through the location UI state.
       setLocationError('Geolocation is not supported by your device browser.');
       return;
     }

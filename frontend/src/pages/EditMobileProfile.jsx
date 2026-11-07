@@ -53,6 +53,7 @@ const EditMobileProfile = () => {
 
   useEffect(() => {
     if (profileData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable mobile profile fields from the loaded profile.
       setFormData({
         firstName: profileData.firstName || '',
         lastName: profileData.lastName || '',

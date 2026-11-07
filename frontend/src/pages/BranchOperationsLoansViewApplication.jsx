@@ -56,6 +56,7 @@ export default function BranchOperationsLoansViewApplication() {
   useEffect(() => {
     if (application) {
       const docs = formData?.documents || application.documents || application.form_data?.documents || {};
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate private loan document references when the application changes.
       setCurrentDocs(docs);
       const timeline = formData?.timeline || application.form_data?.timeline || [];
       setLocalTimeline(timeline);

@@ -107,6 +107,7 @@ const EmployeeMobileCamera = () => {
 
   // Start camera on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- start the native camera after the camera screen is activated.
     startCamera('user');
     return () => {
       if (streamRef.current) {

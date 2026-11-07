@@ -54,6 +54,7 @@ export const MobileActivityCreatePage = ({
       const endH = new Date(nextH.getTime() + 60 * 60 * 1000);
       const endHourStr = format(endH, 'HH:00');
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate the activity editor when a different event is selected.
       setFormData({
         title: '',
         priority: 'Medium',

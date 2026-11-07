@@ -72,6 +72,7 @@ const EmployeeDashboard = () => {
 
   useEffect(() => {
     if (dashboardData?.mapsRateLimit?.locked && dashboardData.mapsRateLimit.secondsRemaining > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- apply the API-provided map rate-limit countdown to the dashboard.
       setLockoutSeconds(dashboardData.mapsRateLimit.secondsRemaining);
     } else if (dashboardData?.mapsRateLimit && !dashboardData.mapsRateLimit.locked) {
       setLockoutSeconds(null);

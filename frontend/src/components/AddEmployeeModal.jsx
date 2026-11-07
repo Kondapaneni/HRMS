@@ -63,6 +63,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the form and load branches when the modal opens.
       fetchBranches();
       setFormData({ 
         ...initialFormState, 

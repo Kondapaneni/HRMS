@@ -347,6 +347,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
     }
     
     if (propApplication?.id || location.state?.application?.id || location.state?.application?.application_id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- load the selected loan application into the editable form.
       setLoadedAppId(propApplication?.id || location.state?.application?.id || location.state?.application?.application_id);
     }
 

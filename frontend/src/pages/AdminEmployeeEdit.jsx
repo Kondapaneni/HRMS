@@ -62,12 +62,14 @@ const AdminEmployeeEdit = () => {
     if (cleanData.dateOfBirth) cleanData.dateOfBirth = cleanData.dateOfBirth.split('T')[0];
     if (cleanData.joinDate) cleanData.joinDate = cleanData.joinDate.split('T')[0];
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate the edit form when the selected employee record loads.
     setFormData(cleanData);
   }, [employeeQuery.data]);
 
   useEffect(() => {
     if (formData.managerId && managersQuery.data) {
       const m = managersQuery.data.find((emp) => emp.id === formData.managerId);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- populate the manager label from the loaded employee relationship.
       if (m) setManagerSearch(`${m.firstName} ${m.lastName} (${m.employeeId})`);
     } else if (!formData.managerId) {
       setManagerSearch('');
