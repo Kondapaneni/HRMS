@@ -96,7 +96,7 @@ export const ThemeProvider = ({ children }) => {
         console.error('Failed to sync theme preference to database:', err);
       }
     }
-  }, []);
+  }, [currentUserId]);
 
   return (
     <ThemeContext.Provider value={{ themePreference: resolvedThemePreference, effectiveTheme, setThemePreference }}>
