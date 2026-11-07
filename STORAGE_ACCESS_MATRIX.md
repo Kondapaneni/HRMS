@@ -46,6 +46,8 @@ Apply all migrations in timestamp order before deploying the matching PHP backen
 
 The migrations are committed to the audit branch but must not be assumed applied to the connected Supabase project until the migration history confirms it.
 
+After applying the final storage-policy migration, run `supabase/tests/storage_policy_allowlist.test.sql` against the target database to assert that only the public-read allowlist remains and no direct browser write policy survives.
+
 ## Backend configuration
 
 Set these on the Render backend only:
