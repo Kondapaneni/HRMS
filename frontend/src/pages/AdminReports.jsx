@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { Download, Users, Calendar, IndianRupee, Filter, Building2, Loader2 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -16,8 +15,6 @@ import {
 const CHART_PALETTE = ['#8AADDB', '#E3B9DF', '#131315', '#B9CDE8', '#C98BC2', '#5B86C2'];
 
 const AdminReports = () => {
-  const { token } = useAuth();
-
   // States for date filters
   const [attendanceMonth, setAttendanceMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [payrollMonth, setPayrollMonth] = useState(format(new Date(), 'yyyy-MM'));

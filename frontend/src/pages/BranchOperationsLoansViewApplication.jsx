@@ -3,24 +3,12 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { Lock, Printer, Loader2, X, ArrowLeft, FileEdit } from 'lucide-react';
-import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { getBranchLoanApplications, getBranches } from '../services/loanServices';
 import { preloadAndDecodeImages } from '../utils/imageCompressor';
 import { LoanDetailView } from '../components/forms';
 import BranchOperationsMobileLoansViewApplication from './BranchOperationsMobileLoansViewApplication';
 
-
-// Helper: Safe date formatter
-const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
-  if (!dateStr) return '—';
-  try {
-    const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? '—' : format(d, formatPattern);
-  } catch (e) {
-    return '—';
-  }
-};
 
 export default function BranchOperationsLoansViewApplication() {
   const location = useLocation();
@@ -91,9 +79,7 @@ export default function BranchOperationsLoansViewApplication() {
   }, [previewDoc]);
 
   const appId = application?.application_id || formData?.application_id || 'LA-DRAFT';
-  const dbId = application?.id || formData?.id;
   const loanType = application?.loan_type || formData?.loan_type || 'Personal Loan';
-  const appStatus = String(localStatus);
 
   const handlePrint = async () => {
     try {
@@ -125,18 +111,11 @@ export default function BranchOperationsLoansViewApplication() {
       setTimeout(() => {
         document.title = originalTitle;
       }, 1000);
-    } catch (e) {
+    } catch {
       console.warn('Print preparation error:', e);
       window.print();
     } finally {
       setIsPrinting(false);
-    }
-  };
-
-  const handleCopyId = () => {
-    if (appId) {
-      navigator.clipboard.writeText(appId);
-      toast.success(`Copied Application ID: ${appId}`);
     }
   };
 
@@ -182,8 +161,6 @@ export default function BranchOperationsLoansViewApplication() {
     );
   }
 
-  const applicantName = formData?.applicant_name || application?.applicant_name || 'Unnamed Applicant';
-  const applicantPhone = formData?.phone_number || application?.phone_number || '';
   
   // Resolve friendly branch name from branches table or application data
   const rawBranch = String(application?.branch || formData?.branch || '').trim();

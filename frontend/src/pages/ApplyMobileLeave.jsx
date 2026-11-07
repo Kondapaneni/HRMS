@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Loader2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertCircle, Send } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, AlertCircle, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -9,7 +9,6 @@ import toast from 'react-hot-toast';
 const ApplyMobileLeave = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [error, setError] = useState('');
   
   const [leaveType, setLeaveType] = useState('unpaid');
   const [startDate, setStartDate] = useState('');

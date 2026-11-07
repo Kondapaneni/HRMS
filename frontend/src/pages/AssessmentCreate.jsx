@@ -366,7 +366,7 @@ const AssessmentCreate = () => {
                     const isMultiple = item.question_type === 'mcq_multiple';
                     let opts = item.options || [];
                     if (typeof opts === 'string') {
-                      try { opts = JSON.parse(opts); } catch (e) { opts = []; }
+                      try { opts = JSON.parse(opts); } catch { opts = []; }
                     }
 
                     return (

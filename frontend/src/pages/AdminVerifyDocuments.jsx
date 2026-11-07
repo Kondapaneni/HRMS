@@ -6,7 +6,6 @@ import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import documentVerifiedEmailTemplateHtml from '../../../backend/src/Templates/candidate_documents_verified_email.html?raw';
-import { useAuth } from '../contexts/AuthContext';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
@@ -155,7 +154,6 @@ const AdminVerifyDocuments = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
 
   const [updatingDocId, setUpdatingDocId] = React.useState(null);
   const [filterTab, setFilterTab] = useState('All');
