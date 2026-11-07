@@ -52,9 +52,26 @@ const EmployeeMobileExpenses = () => {
   const [category, setCategory] = useState('Travel');
   const [billFile, setBillFile] = useState(null);
   const [selectedBillUrl, setSelectedBillUrl] = useState(null);
+  const [selectedBillIsPdf, setSelectedBillIsPdf] = useState(false);
   const controls = useDragControls();
 
   const fileInputRef = useRef(null);
+  const handleOpenBill = async (expense) => {
+    try {
+      const response = await api.get(`/employee/expenses/${encodeURIComponent(expense.id)}/bill`, { responseType: 'blob' });
+      const objectUrl = URL.createObjectURL(response.data);
+      setSelectedBillIsPdf((expense.bill_url || '').toLowerCase().includes('.pdf'));
+      setSelectedBillUrl(objectUrl);
+    } catch (error) {
+      toast.error('Unable to open this receipt.');
+    }
+  };
+
+  const closeBillPreview = () => {
+    if (selectedBillUrl?.startsWith('blob:')) URL.revokeObjectURL(selectedBillUrl);
+    setSelectedBillUrl(null);
+  };
+
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('toggle-mobile-bottom-nav', { detail: isFormOpen || !!selectedBillUrl }));
@@ -556,7 +573,7 @@ const EmployeeMobileExpenses = () => {
                     <div className="pt-2 border-t border-[var(--line)] flex justify-end">
                       <button
                         type="button"
-                        onClick={() => setSelectedBillUrl(exp.bill_url)}
+                        onClick={() => handleOpenBill(exp)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] hover:opacity-90 transition-all cursor-pointer active:scale-95"
                       >
                         <FileText className="w-3.5 h-3.5" />
@@ -581,7 +598,7 @@ const EmployeeMobileExpenses = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
-                onClick={() => setSelectedBillUrl(null)}
+                onClick={closeBillPreview}
                 className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
               />
 
@@ -634,7 +651,7 @@ const EmployeeMobileExpenses = () => {
 
                 {/* Scrollable Content */}
                 <div className="p-4 sm:p-5 overflow-y-auto flex-1 bg-[var(--surface-alt)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center justify-center">
-                  {selectedBillUrl.toLowerCase().endsWith('.pdf') ? (
+                  {selectedBillIsPdf ? (
                     <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
                       <div className="w-16 h-16 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
                         <FileText className="w-8 h-8" />
