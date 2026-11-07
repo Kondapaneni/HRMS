@@ -72,7 +72,7 @@ $app->get('/api/employee/expenses', function (Request $request, Response $respon
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['employee']));
@@ -159,7 +159,7 @@ $app->post('/api/employee/expenses', function (Request $request, Response $respo
         $response->getBody()->write(json_encode(['message' => 'Expense submitted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['employee']));
@@ -197,7 +197,7 @@ $app->delete('/api/employee/expenses/{id}', function (Request $request, Response
         $response->getBody()->write(json_encode(['message' => 'Expense deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['employee']));
