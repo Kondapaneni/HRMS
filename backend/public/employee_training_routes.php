@@ -114,7 +114,7 @@ $app->post('/api/employee/training/progress', function (Request $request, Respon
             FROM training_videos
             WHERE id = :videoId
               AND (
-                  jsonb_array_length(COALESCE(assigned_employee_ids, '[]'::jsonb)) = 0
+                  jsonb_array_length(COALESCE(assigned_employee_ids, ''[]''::jsonb)) = 0
                   OR assigned_employee_ids @> :employeeIdInt::jsonb
                   OR assigned_employee_ids @> :employeeIdStr::jsonb
               )
