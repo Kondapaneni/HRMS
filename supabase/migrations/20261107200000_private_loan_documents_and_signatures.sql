@@ -2,6 +2,8 @@
 -- All new uploads use random application-scoped paths and are accessed through
 -- authenticated PHP endpoints that verify loan ownership or branch access.
 --
+-- app_builds is handled by a later migration and remains private until a release
+-- distribution workflow is implemented.
 -- Read-only audit before this migration:
 --   * 23 loan_documents rows mapped to an existing application and Storage object.
 --   * 15 legacy metadata rows had neither a matching application nor an object.
