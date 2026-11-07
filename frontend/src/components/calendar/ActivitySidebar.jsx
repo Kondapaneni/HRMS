@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { X, Calendar as CalendarIcon, MapPin, FileText, Loader2 } from 'lucide-react';
+import { X, MapPin, FileText, Loader2, Users } from 'lucide-react';
 import { format, isBefore, startOfDay } from 'date-fns';
 import toast from 'react-hot-toast';
 import { Check } from 'lucide-react';
