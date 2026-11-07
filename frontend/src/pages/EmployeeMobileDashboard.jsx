@@ -61,7 +61,7 @@ const EmployeeMobileDashboard = () => {
       try {
         const res = await api.get('/employee/maps-rate-limit-status');
         return res.data;
-      } catch (e) {
+      } catch {
         return { locked: false, secondsRemaining: null };
       }
     },
