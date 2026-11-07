@@ -65,16 +65,18 @@ const ForgotPassword = () => {
         <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
           <div>
             {/* Back link */}
-            <Link
-              to={backLink}
-              className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-black transition-colors mb-6 font-medium cursor-pointer"
-            >
-              <ArrowLeft size={14} />
-              <span>Back to sign in</span>
-            </Link>
+            <div className="flex justify-center sm:justify-start mb-6">
+              <Link
+                to={backLink}
+                className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-black transition-colors font-medium cursor-pointer"
+              >
+                <ArrowLeft size={14} />
+                <span>Back to sign in</span>
+              </Link>
+            </div>
 
             {/* Acme HRMS Brand Badge */}
-            <div className="flex items-center gap-2.5 mb-5 sm:mb-6">
+            <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-5 sm:mb-6">
               <img
                 src="/logo.png"
                 alt="Acme HRMS"

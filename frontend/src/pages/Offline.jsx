@@ -50,7 +50,7 @@ const Offline = () => {
                 ============================================================ */}
             <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full text-center sm:text-left">
               <div>
-                <div className="flex items-center gap-2.5 mb-6">
+                <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-6">
                   <img
                     src="/logo.png"
                     alt="Acme HRMS"
@@ -61,7 +61,7 @@ const Offline = () => {
                   </span>
                 </div>
 
-                <div className="w-16 h-16 rounded-full bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mb-5 shadow-xs">
+                <div className="w-16 h-16 rounded-full bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mb-5 shadow-xs mx-auto sm:mx-0">
                   <WifiOff size={28} />
                 </div>
 
@@ -69,7 +69,7 @@ const Offline = () => {
                   You are offline
                 </h1>
 
-                <p className="text-xs sm:text-sm text-neutral-500 mb-8 leading-relaxed max-w-xs font-normal">
+                <p className="text-xs sm:text-sm text-neutral-500 mb-8 leading-relaxed max-w-xs font-normal mx-auto sm:mx-0">
                   Your internet connection appears to have disconnected. Check your network or Wi-Fi settings to continue using Acme HRMS.
                 </p>
 

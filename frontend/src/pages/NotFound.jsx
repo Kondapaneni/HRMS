@@ -19,7 +19,7 @@ const NotFound = () => {
             ============================================================ */}
         <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full text-center sm:text-left">
           <div>
-            <div className="flex items-center gap-2.5 mb-6">
+            <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-6">
               <img
                 src="/logo.png"
                 alt="Acme HRMS"
@@ -38,7 +38,7 @@ const NotFound = () => {
               Page not found
             </h1>
 
-            <p className="text-xs sm:text-sm text-neutral-500 max-w-sm mb-8 leading-relaxed font-normal">
+            <p className="text-xs sm:text-sm text-neutral-500 max-w-sm mb-8 leading-relaxed font-normal mx-auto sm:mx-0">
               The page or workspace resource you are searching for might have been moved, renamed, or is temporarily inaccessible.
             </p>
 

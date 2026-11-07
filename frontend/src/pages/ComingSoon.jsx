@@ -19,7 +19,7 @@ const ComingSoon = () => {
             ============================================================ */}
         <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full text-center sm:text-left">
           <div>
-            <div className="flex items-center gap-2.5 mb-6">
+            <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-6">
               <img
                 src="/logo.png"
                 alt="Acme HRMS"
@@ -30,7 +30,7 @@ const ComingSoon = () => {
               </span>
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-[#F3F9F1] border border-[#2F6B38]/20 text-[#2F6B38] flex items-center justify-center mb-5 shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-[#F3F9F1] border border-[#2F6B38]/20 text-[#2F6B38] flex items-center justify-center mb-5 shadow-xs mx-auto sm:mx-0">
               <Sparkles size={26} />
             </div>
 
@@ -38,7 +38,7 @@ const ComingSoon = () => {
               Under development
             </h1>
 
-            <p className="text-xs sm:text-sm text-neutral-500 max-w-sm mb-8 leading-relaxed font-normal">
+            <p className="text-xs sm:text-sm text-neutral-500 max-w-sm mb-8 leading-relaxed font-normal mx-auto sm:mx-0">
               This module is currently being built and tested for your workspace. Stay tuned for upcoming feature releases!
             </p>
 
