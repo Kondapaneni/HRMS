@@ -49,56 +49,49 @@ const AdminRecruitment = () => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [jobFilter, setJobFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [jobsPage, setJobsPage] = useState(1);
+  const [applicationsPage, setApplicationsPage] = useState(1);
+  const pageLimit = 25;
 
   // Debounce search query (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
+      setApplicationsPage(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
-    queryKey: ['admin', 'jobs'],
+  const { data: jobsResponse = { jobs: [], total: 0, stats: {} }, isLoading: isLoadingJobs } = useQuery({
+    queryKey: ['admin', 'jobs', jobsPage],
     queryFn: async () => {
-      const res = await api.get('/admin/jobs');
-      return res.data.jobs || [];
+      const res = await api.get(`/admin/jobs?page=${jobsPage}&limit=${pageLimit}`);
+      return res.data || { jobs: [], total: 0, stats: {} };
     },
     onError: () => toast.error('Failed to load jobs')
   });
+  const jobs = jobsResponse.jobs || [];
+  const jobsTotal = Number(jobsResponse.total || 0);
+  const jobsTotalPages = Math.max(1, Math.ceil(jobsTotal / pageLimit));
 
-  const { data: applications = [], isLoading: isLoadingApps } = useQuery({
-    queryKey: ['admin', 'applications', debouncedSearchQuery],
+  const { data: applicationsResponse = { applications: [], total: 0, stats: {} }, isLoading: isLoadingApps } = useQuery({
+    queryKey: ['admin', 'applications', debouncedSearchQuery, jobFilter, statusFilter, applicationsPage],
     queryFn: async () => {
-      const res = await api.get(`/admin/applications?search=${encodeURIComponent(debouncedSearchQuery)}`);
-      return res.data.applications || [];
+      const params = new URLSearchParams({
+        search: debouncedSearchQuery,
+        page: String(applicationsPage),
+        limit: String(pageLimit)
+      });
+      if (jobFilter) params.set('job_id', jobFilter);
+      if (statusFilter) params.set('status', statusFilter);
+      const res = await api.get(`/admin/applications?${params.toString()}`);
+      return res.data || { applications: [], total: 0, stats: {} };
     },
     onError: () => toast.error('Failed to load applications')
   });
-
-  const { data: candidateProfiles = [] } = useQuery({
-    queryKey: ['admin', 'candidate_profiles'],
-    queryFn: async () => {
-      const res = await api.get('/admin/candidate-profiles');
-      return res.data.profiles || [];
-    }
-  });
-
-  const { data: candidatesInfo = [] } = useQuery({
-    queryKey: ['admin', 'candidates_info'],
-    queryFn: async () => {
-      const res = await api.get('/admin/candidates');
-      return res.data.candidates || [];
-    }
-  });
-
-  const { data: allCandidateDocuments = [] } = useQuery({
-    queryKey: ['admin', 'all_candidate_documents'],
-    queryFn: async () => {
-      const res = await api.get('/admin/candidate-documents');
-      return res.data.documents || [];
-    }
-  });
+  const applications = applicationsResponse.applications || [];
+  const applicationsTotal = Number(applicationsResponse.total || 0);
+  const applicationsTotalPages = Math.max(1, Math.ceil(applicationsTotal / pageLimit));
 
   const { data: branches = [] } = useQuery({
     queryKey: ['admin', 'branches'],
@@ -106,6 +99,13 @@ const AdminRecruitment = () => {
       const res = await api.get('/branches');
       return res.data.branches || [];
     }
+  });
+
+  const getCandidateUserInfo = (application) => ({
+    id: application?.candidate_id,
+    firstName: application?.candidate_first_name || '',
+    lastName: application?.candidate_last_name || '',
+    email: application?.candidate_email || ''
   });
 
   // Job Modal State
@@ -284,14 +284,14 @@ const AdminRecruitment = () => {
   });
 
   const updateApplicationStatus = (app, status) => {
-    const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+    const userInfo = getCandidateUserInfo(app);
     updateStatusMutation.mutate({ app, userInfo, newStatus: status });
   };
 
   const handleScheduleInterview = (e) => {
     e.preventDefault();
     if (!selectedApp) return;
-    const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
+    const userInfo = getCandidateUserInfo(selectedApp);
     const notes = `Date: ${interviewData.date}, Time: ${interviewData.time}, Location: ${interviewData.location}. ${interviewData.notes}`;
     updateStatusMutation.mutate({ 
       app: selectedApp, 
@@ -326,7 +326,7 @@ const AdminRecruitment = () => {
       await api.post('/admin/convert-candidate', payload);
     },
     onSuccess: () => {
-      const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
+      const userInfo = getCandidateUserInfo(selectedApp);
       updateStatusMutation.mutate({ 
         app: selectedApp, 
         userInfo, 
@@ -358,8 +358,8 @@ const AdminRecruitment = () => {
   };
 
   const openConvertModal = (app) => {
-    const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
-    const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+    const appProfile = ({ phone: app.candidate_phone, experience: app.candidate_experience });
+    const userInfo = getCandidateUserInfo(app);
     setSelectedApp(app);
     setConvertData({
       firstName: userInfo?.firstName || '',
@@ -378,8 +378,8 @@ const AdminRecruitment = () => {
   };
 
   const openOfferModal = (app) => {
-    const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
-    const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+    const appProfile = ({ phone: app.candidate_phone, experience: app.candidate_experience });
+    const userInfo = getCandidateUserInfo(app);
     setSelectedApp(app);
     setOfferData({
       firstName: userInfo?.firstName || '',
@@ -426,7 +426,7 @@ const AdminRecruitment = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
+      const userInfo = getCandidateUserInfo(selectedApp);
       updateStatusMutation.mutate({ 
         app: selectedApp, 
         userInfo, 
@@ -721,10 +721,9 @@ const AdminRecruitment = () => {
                 const isHired = status === 'Hired' || status === 'Selected';
                 const isInterview = status.includes('Interview');
                 const nextInterviewRound = getNextInterviewRound(status);
-                const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
-                const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
-                const candidateDocs = allCandidateDocuments.filter(d => d.candidate_id === app.candidate_id);
-                const pendingDocsCount = candidateDocs.filter(d => d.status === 'pending').length;
+                const appProfile = ({ phone: app.candidate_phone, experience: app.candidate_experience });
+                const userInfo = getCandidateUserInfo(app);
+                const pendingDocsCount = Number(app.pending_documents_count || 0);
                 
                 return (
                   <div key={app.id} className="rounded-[24px] bg-[var(--surface)] p-5 space-y-4">
