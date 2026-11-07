@@ -13,7 +13,7 @@ function holidayImageStorageUpload($file): string
     }
     $stream = $file->getStream();
     $contents = $stream->getContents();
-    $mime = (new \\finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+    $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
     $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
     if (!isset($extensions[$mime])) throw new DomainException('Only JPEG, PNG, or WEBP images are allowed.');
 
@@ -25,14 +25,14 @@ function holidayImageStorageUpload($file): string
     $url = $baseUrl . '/storage/v1/object/holidays/' . rawurlencode($filename);
     $context = stream_context_create(['http' => [
         'method' => 'POST',
-        'header' => "Authorization: Bearer {$serviceKey}\\r\\napikey: {$serviceKey}\\r\\nContent-Type: {$mime}\\r\\nx-upsert: false\\r\\nCache-Control: no-store\\r\\n",
+        'header' => "Authorization: Bearer {$serviceKey}\r\napikey: {$serviceKey}\r\nContent-Type: {$mime}\r\nx-upsert: false\r\nCache-Control: no-store\r\n",
         'content' => $contents,
         'timeout' => 25,
         'ignore_errors' => true
     ]]);
     $result = @file_get_contents($url, false, $context);
     $statusLine = $http_response_header[0] ?? '';
-    preg_match('/\\\\s(\\\\d{3})\\\\s/', $statusLine, $matches);
+    preg_match('/\\s(\\d{3})\\s/', $statusLine, $matches);
     $status = (int)($matches[1] ?? 0);
     if ($status < 200 || $status >= 300) {
         error_log('Holiday image upload failed with status ' . $status);
