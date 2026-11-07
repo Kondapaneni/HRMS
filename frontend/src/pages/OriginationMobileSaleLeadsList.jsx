@@ -13,7 +13,6 @@ import {
   Plus, 
   XCircle, 
   RefreshCw, 
-  X,
   Users
 } from 'lucide-react';
 import { format } from 'date-fns';
