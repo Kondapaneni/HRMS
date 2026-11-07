@@ -864,13 +864,7 @@ $app->get('/Holiday/{filename:.+}', function (Request $request, Response $respon
 
 // Candidate documents are served only by authenticated candidate/admin API endpoints.
 
-// Bills proxy route
-$app->get('/Bills/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/expenses/" . $encodedFilename;
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
-});
+// Expense receipts are served only after employee ownership or admin permission checks.
 
 
 // Loan Document proxy route
