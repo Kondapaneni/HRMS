@@ -371,8 +371,8 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     }
 
     // OTP matched! Clear OTP immediately
-    $clearStmt = $conn->prepare('UPDATE users SET otp_code = NULL, otp_code_hash = NULL, otp_expires_at = NULL WHERE id = ?');
-    $clearStmt->execute([$user['id']]);
+    $clearStmt = $conn->prepare('UPDATE users SET otp_code = NULL, otp_code_hash = NULL, otp_expires_at = NULL WHERE id = ? AND (otp_code_hash = ? OR otp_code = ?) AND otp_expires_at > CURRENT_TIMESTAMP');
+    $clearStmt->execute([$user['id'], $storedOtpHash ?? '', $legacyOtp ?? '']);
     if ($clearStmt->rowCount() !== 1) {
         $response->getBody()->write(json_encode(['error' => 'Verification code has already been used. Please request a new one.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(401);

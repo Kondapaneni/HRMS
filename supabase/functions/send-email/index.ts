@@ -25,7 +25,10 @@ serve(async (req: Request) => {
     if (id === null || String(id).length > 128) return new Response(JSON.stringify({ error: "Invalid queue reference" }), { status: 400 });
     const { data, error } = await supabase.from("email_queue").select("id,to_email,subject,body,status").eq("id", id).maybeSingle();
     if (error || !data) return new Response(JSON.stringify({ error: "Queued email not found" }), { status: 404 });
-    if (data.status === "processed") return new Response(JSON.stringify({ success: true, duplicate: true }), { status: 200 });
+    if (data.status !== "pending") return new Response(JSON.stringify({ success: true, ignored: true }), { headers: { "Content-Type": "application/json" }, status: 200 });
+    const { data: claimed, error: claimError } = await supabase
+      .from("email_queue").update({ status: "processing" }).eq("id", id).eq("status", "pending").select("id").maybeSingle();
+    if (claimError || !claimed) return new Response(JSON.stringify({ success: true, duplicate: true }), { headers: { "Content-Type": "application/json" }, status: 200 });
     if (!data.to_email || !data.subject || !data.body) {
       await supabase.from("email_queue").update({ status: "failed" }).eq("id", id);
       return new Response(JSON.stringify({ error: "Queued email is incomplete" }), { status: 422 });

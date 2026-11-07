@@ -130,7 +130,7 @@ $app->post('/api/candidate/activate', function (Request $request, Response $resp
     }
 
     $updateStmt = $conn->prepare("UPDATE users SET \"isActive\" = 'true', reset_token = NULL, reset_token_expires = NULL WHERE id = :id");
-    $updateStmt->execute(['id' => $user['id']]);
+    $updateStmt->execute(['id' => $user['id'], 'token' => hash('sha256', $token)]);
 
     $response->getBody()->write(json_encode(['message' => 'Account activated successfully! You can now sign in.']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
