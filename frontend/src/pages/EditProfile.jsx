@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Loader2, Save, AlertCircle, User, Shield, CalendarDays, CheckCircle2, Lock, Laptop } from 'lucide-react';
+import { Loader2, Save, AlertCircle, User, Shield, Lock, Laptop } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';

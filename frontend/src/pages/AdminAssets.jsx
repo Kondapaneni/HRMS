@@ -146,7 +146,7 @@ const AdminAssets = () => {
     try {
       const response = await api.get(`/admin/assets/${asset.id}/history`);
       setAssetHistory(response.data.data || []);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load asset history.');
     } finally {
       setHistoryLoading(false);
@@ -184,7 +184,7 @@ const AdminAssets = () => {
       await api.delete(`/admin/assets/${id}`);
       toast.success('Asset deleted successfully.');
       queryClient.invalidateQueries({ queryKey: ['admin', 'assets'] });
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete asset.');
     }
   };
@@ -196,7 +196,7 @@ const AdminAssets = () => {
       toast.success(userId ? 'Asset assigned successfully.' : 'Asset unassigned.');
       closeModal();
       queryClient.invalidateQueries({ queryKey: ['admin', 'assets'] });
-    } catch (error) {
+    } catch {
       toast.error('Failed to update assignment.');
     } finally {
       setSaving(false);

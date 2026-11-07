@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Loader2, Save, Globe, CalendarDays, Shield, ChevronLeft, ChevronDown, Sun, Moon, Laptop } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Loader2, Save, ChevronLeft, ChevronDown, Sun, Moon, Laptop } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
