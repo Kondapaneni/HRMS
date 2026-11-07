@@ -499,120 +499,157 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
 })->add(new AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
- * Endpoint to save or update documents for a loan application into dedicated public.loan_documents table.
+ * Legacy metadata-only document writes are disabled. Files must be uploaded through
+ * the multipart endpoint so ownership, MIME, size, and Storage object paths are verified.
  */
 $app->post('/api/loans/applications/{id}/documents', function (Request $request, Response $response, $args) {
-    $identifier = $args['id'];
-    $data = $request->getParsedBody();
-
-    if (!is_array($data)) {
-        $raw = (string)$request->getBody();
-        $data = json_decode($raw, true) ?: [];
-    }
-
-    $documents = $data['documents'] ?? [];
-
-    try {
-        $db = new Database();
-        $conn = $db->getConnection();
-
-        // Find application by UUID id or application_id or lead_id
-        $findStmt = $conn->prepare('
-            SELECT id, application_id, lead_id, loan_type, status, form_data
-            FROM public.loan_applications
-            WHERE id::text = ? OR application_id = ? OR lead_id = ?
-            ORDER BY created_at DESC
-            LIMIT 1
-        ');
-        $findStmt->execute([$identifier, $identifier, $identifier]);
-        $appRow = $findStmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$appRow) {
-            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
-        }
-
-        $appId = $appRow['application_id'] ?: $appRow['id'];
-
-        // Save/Upsert documents directly into dedicated public.loan_documents table
-        if (is_array($documents) && !empty($documents)) {
-            upsertLoanDocumentsToTable($conn, $appId, $documents);
-        }
-
-        // Fetch all current documents from dedicated public.loan_documents table
-        $allDocs = getLoanDocumentsFromTable($conn, $appId, $appRow['id'], $appRow['lead_id']);
-
-        if (isset($appRow['form_data']) && is_string($appRow['form_data'])) {
-            $appRow['form_data'] = json_decode($appRow['form_data'], true);
-        }
-        $appRow['documents'] = $allDocs;
-
-        $response->getBody()->write(json_encode([
-            'success' => true,
-            'message' => 'Documents saved successfully to loan_documents table',
-            'application' => $appRow,
-            'documents' => $allDocs
-        ]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-
-    } catch (\Exception $e) {
-        error_log("Error updating application documents: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Failed to save documents: ' . $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-    }
-})->add(new \App\Middleware\AuthMiddleware());
+    $response->getBody()->write(json_encode(['error' => 'Use the secure document upload endpoint.']));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(410);
+})->add(new AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
- * Endpoint to delete a specific document from a loan application in dedicated public.loan_documents table.
+ * Upload a loan applicant/co-applicant/guarantor photo to private Storage.
  */
-$app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Request $request, Response $response, $args) {
-    $identifier = $args['id'];
-    $docKey = $args['docKey'];
+$app->post('/api/loans/applications/{id}/documents/{docKey}', function (Request $request, Response $response, $args) {
+    $allowedSlots = ['applicant_photo', 'co_applicant_photo', 'guarantor_1_photo', 'guarantor_2_photo', 'guarantor_3_photo'];
+    $slotKey = (string)$args['docKey'];
+    if (!in_array($slotKey, $allowedSlots, true)) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid document slot.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
 
+    $file = $request->getUploadedFiles()['file'] ?? null;
+    if (!$file || $file->getError() !== UPLOAD_ERR_OK || !$file->getSize() || $file->getSize() > 5 * 1024 * 1024) {
+        $response->getBody()->write(json_encode(['error' => 'Choose an image smaller than 5 MB.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $contents = $file->getStream()->getContents();
+    $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+    $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    if (!isset($extensions[$mime])) {
+        $response->getBody()->write(json_encode(['error' => 'Only JPEG, PNG, or WEBP images are accepted.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+    }
+
+    $uploadedPath = null;
+    $baseUrl = null;
+    $serviceKey = null;
     try {
         $db = new Database();
         $conn = $db->getConnection();
+        $user = $request->getAttribute('user');
+        $appRow = loanFindOwnedApplication($conn, (string)$args['id'], $user);
+        if (!$appRow) return $response->withStatus(404);
 
-        $findStmt = $conn->prepare('
-            SELECT id, application_id, lead_id
-            FROM public.loan_applications
-            WHERE id::text = ? OR application_id = ? OR lead_id = ?
-            ORDER BY created_at DESC
-            LIMIT 1
-        ');
-        $findStmt->execute([$identifier, $identifier, $identifier]);
-        $appRow = $findStmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$appRow) {
-            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $uploadedPath = (string)$appRow['id'] . '/' . bin2hex(random_bytes(20)) . '.' . $extensions[$mime];
+        $upload = loanStorageRequest('POST', 'loan_documents', $uploadedPath, $serviceKey, $baseUrl, $contents, $mime);
+        if ($upload['status'] < 200 || $upload['status'] >= 300) {
+            error_log('Loan document Storage upload failed with status ' . $upload['status']);
+            throw new RuntimeException('Loan document upload failed.');
         }
 
-        $appId = $appRow['application_id'] ?: $appRow['id'];
+        $identifiers = array_values(array_unique(array_filter([
+            (string)($appRow['application_id'] ?? ''),
+            (string)$appRow['id'],
+            (string)($appRow['lead_id'] ?? '')
+        ])));
+        $appKey = (string)($appRow['application_id'] ?: $appRow['id']);
+        $conn->beginTransaction();
+        $lock = $conn->prepare('SELECT id FROM public.loan_applications WHERE id = ? FOR UPDATE');
+        $lock->execute([$appRow['id']]);
+        $existingSql = 'SELECT url FROM public.loan_documents WHERE application_id IN (' . implode(',', array_fill(0, count($identifiers), '?')) . ') AND slot_key = ? ORDER BY created_at DESC LIMIT 1 FOR UPDATE';
+        $existingStmt = $conn->prepare($existingSql);
+        $existingStmt->execute(array_merge($identifiers, [$slotKey]));
+        $oldReference = $existingStmt->fetchColumn();
 
-        // Delete row from dedicated public.loan_documents table
-        $delStmt = $conn->prepare('
-            DELETE FROM public.loan_documents
-            WHERE (application_id = ? OR application_id = ? OR application_id = ?) AND slot_key = ?
+        $deleteSql = 'DELETE FROM public.loan_documents WHERE application_id IN (' . implode(',', array_fill(0, count($identifiers), '?')) . ') AND slot_key = ?';
+        $deleteStmt = $conn->prepare($deleteSql);
+        $deleteStmt->execute(array_merge($identifiers, [$slotKey]));
+
+        $save = $conn->prepare('
+            INSERT INTO public.loan_documents (application_id, slot_key, url, updated_at)
+            VALUES (?, ?, ?, NOW())
+            ON CONFLICT (application_id, slot_key) DO UPDATE SET url = EXCLUDED.url, updated_at = NOW()
         ');
-        $delStmt->execute([$appId, (string)$appRow['id'], (string)$appRow['lead_id'], $docKey]);
+        $save->execute([$appKey, $slotKey, 'storage:loan_documents/' . $uploadedPath]);
 
-        // Fetch remaining documents from dedicated table
-        $remainingDocs = getLoanDocumentsFromTable($conn, $appId, $appRow['id'], $appRow['lead_id']);
+        $signed = loanStorageSignedUrl('loan_documents', $uploadedPath);
+        if (!$signed) throw new RuntimeException('Loan document preview URL could not be created.');
+        $conn->commit();
+
+        if ($oldReference) {
+            $oldPath = loanStorageObjectPath((string)$oldReference, 'loan_documents');
+            if ($oldPath && $oldPath !== $uploadedPath && (!str_contains($oldPath, '/') || str_starts_with($oldPath, (string)$appRow['id'] . '/'))) {
+                loanStorageRequest('DELETE', 'loan_documents', $oldPath, $serviceKey, $baseUrl);
+            }
+        }
 
         $response->getBody()->write(json_encode([
             'success' => true,
-            'message' => 'Document removed successfully from loan_documents table',
-            'documents' => $remainingDocs
+            'document' => ['url' => $signed, 'slot_key' => $slotKey]
         ]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+        if ($uploadedPath && $serviceKey && $baseUrl) loanStorageRequest('DELETE', 'loan_documents', $uploadedPath, $serviceKey, $baseUrl);
+        error_log('Loan document upload failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to upload the loan document right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'loanOrigination'));
 
-    } catch (\Exception $e) {
-        error_log("Error deleting document: " . $e->getMessage());
+/**
+ * Delete a document only after verifying the requesting user owns the application
+ * (or is an admin) and remove its Storage object through the server-side service key.
+ */
+$app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Request $request, Response $response, $args) {
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $user = $request->getAttribute('user');
+        $appRow = loanFindOwnedApplication($conn, (string)$args['id'], $user);
+        if (!$appRow) return $response->withStatus(404);
+
+        $identifiers = array_values(array_unique(array_filter([
+            (string)($appRow['application_id'] ?? ''),
+            (string)$appRow['id'],
+            (string)($appRow['lead_id'] ?? '')
+        ])));
+        $lookupSql = 'SELECT url FROM public.loan_documents WHERE application_id IN (' . implode(',', array_fill(0, count($identifiers), '?')) . ') AND slot_key = ? ORDER BY created_at DESC LIMIT 1';
+        $lookup = $conn->prepare($lookupSql);
+        $lookup->execute(array_merge($identifiers, [(string)$args['docKey']]));
+        $reference = $lookup->fetchColumn();
+        if (!$reference) return $response->withStatus(404);
+
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $objectPath = loanStorageObjectPath((string)$reference, 'loan_documents');
+        if ($objectPath) {
+            if (str_contains($objectPath, '/') && !str_starts_with($objectPath, (string)$appRow['id'] . '/')) {
+                return $response->withStatus(404);
+            }
+            $deleted = loanStorageRequest('DELETE', 'loan_documents', $objectPath, $serviceKey, $baseUrl);
+            if ($deleted['status'] >= 300 && $deleted['status'] !== 404) {
+                error_log('Loan document Storage delete failed with status ' . $deleted['status']);
+                return $response->withStatus(503);
+            }
+        }
+
+        $deleteSql = 'DELETE FROM public.loan_documents WHERE application_id IN (' . implode(',', array_fill(0, count($identifiers), '?')) . ') AND slot_key = ?';
+        $delete = $conn->prepare($deleteSql);
+        $delete->execute(array_merge($identifiers, [(string)$args['docKey']]));
+
+        $appKey = (string)($appRow['application_id'] ?: $appRow['id']);
+        $remainingDocs = getLoanDocumentsFromTable($conn, $appKey, $appRow['id'], $appRow['lead_id']);
+        $response->getBody()->write(json_encode(['success' => true, 'documents' => $remainingDocs]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Throwable $e) {
+        error_log('Loan document delete failed: ' . $e->getMessage());
         $response->getBody()->write(json_encode(['error' => 'Failed to delete document']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
  * Endpoint to update loan application status and append to timeline
