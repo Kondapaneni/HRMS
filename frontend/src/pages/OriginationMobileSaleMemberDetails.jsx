@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Phone, MapPin, Calendar, ShoppingBag, CheckCircle2, Loader2, ArrowRight, Lock, FileEdit } from 'lucide-react';
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -33,26 +33,30 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
     );
   }, [appsResponse]);
 
-  const member = React.useMemo(() => {
-    if (propMember) return propMember;
-    if (location.state?.member) {
-      try {
-        sessionStorage.setItem('current_sale_member', JSON.stringify(location.state.member));
-      } catch {
-        // The in-memory member remains available if session storage is blocked.
-      }
-      return location.state.member;
-    }
+  const stateMember = propMember || location.state?.member || null;
+  const [cachedMember] = useState(() => {
     try {
       const saved = sessionStorage.getItem('current_sale_member');
-      if (saved) return JSON.parse(saved);
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      // Continue with the API-backed member fallback.
+      return null;
     }
-    if ((response?.leads || response?.data) && phone) {
-      const leads = response?.leads || response?.data || [];
-      const converted = leads.filter(l => l.status === 'Converted' && String(l.phone) === String(phone));
-      if (converted.length > 0) {
+  });
+
+  useEffect(() => {
+    if (!stateMember) return;
+    try {
+      sessionStorage.setItem('current_sale_member', JSON.stringify(stateMember));
+    } catch {
+      // Keep the in-memory member when session storage is blocked.
+    }
+  }, [stateMember]);
+
+  const member = stateMember || cachedMember || (() => {
+    const leads = response?.leads || response?.data || [];
+    if (leads.length && phone) {
+      const converted = leads.filter((lead) => lead.status === 'Converted' && String(lead.phone) === String(phone));
+      if (converted.length) {
         const lead = converted[0];
         return {
           id: lead.phone,
@@ -62,12 +66,12 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
           address: lead.address,
           created_at: lead.created_at,
           status: 'Converted',
-          products: converted
+          products: converted,
         };
       }
     }
     return null;
-  }, [propMember, location.state?.member, response, phone]);
+  })();
 
   if (isLoadingLeads && !member) {
     return (
