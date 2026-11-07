@@ -1,27 +1,18 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext({});
 
-const PUBLIC_ROUTES = [
-  '/',
-  '/candidate/login',
-  '/candidate/activate',
-  '/forgot-password',
-  '/reset-password',
-];
-
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
-  const location = useLocation();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const hasInitialToken = typeof window !== 'undefined' && !!localStorage.getItem('token');
+  const [loading, setLoading] = useState(hasInitialToken);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(!hasInitialToken);
   const fetchInProgress = useRef(false);
 
   const fetchProfile = useCallback(async () => {
@@ -55,42 +46,22 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (isInitialized) return;
 
-    // Check if the current route is exactly a public route
-    const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
-    const hasToken = !!localStorage.getItem('token');
-
-    if (isPublicRoute && !hasToken) {
-      // Don't fetch on public routes if no token exists, finish initialization immediately
-      setLoading(false);
-      setIsInitialized(true);
-      return;
-    }
-
-    // On protected routes or if returning with a token, fetch profile with minimum 1200ms splash delay
     const initializeAuth = async () => {
-      if (!hasToken) {
-        setLoading(false);
-        setIsInitialized(true);
-        return;
-      }
-
       const startTime = Date.now();
-      
       await fetchProfile();
-      
+
       const elapsed = Date.now() - startTime;
       const minDelay = 1200;
-      
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
-      
+
       setLoading(false);
       setIsInitialized(true);
     };
 
     initializeAuth();
-  }, [fetchProfile, isInitialized, location.pathname]);
+  }, [fetchProfile, isInitialized]);
 
   const signIn = async (email, password) => {
     const response = await api.post('/login', { email, password });
