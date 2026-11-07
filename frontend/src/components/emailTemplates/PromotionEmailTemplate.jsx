@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import templateHtml from '../../../../backend/src/Templates/promotion_letter_email.html?raw';
 import { Award, TrendingUp, IndianRupee } from 'lucide-react';
 
