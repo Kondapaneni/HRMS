@@ -349,7 +349,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
 
     } catch (Exception $e) {
         $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['employee']));
@@ -375,7 +375,7 @@ $app->get('/api/employee/maps-rate-limit-status', function (Request $request, Re
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 });
@@ -419,7 +419,7 @@ $app->get('/api/employee/geofences', function (Request $request, Response $respo
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['employee']));
@@ -452,7 +452,7 @@ $app->get('/api/employee/holidays', function (Request $request, Response $respon
         $response->getBody()->write(json_encode($holidays));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['employee']));
