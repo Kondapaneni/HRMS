@@ -101,7 +101,7 @@ const EmployeeMobileMap = () => {
           } else {
             setAddress(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
           }
-        } catch (e) {
+        } catch {
           setAddress(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
         }
       },
