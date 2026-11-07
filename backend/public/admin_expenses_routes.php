@@ -109,7 +109,7 @@ $app->get('/api/admin/expenses', function (Request $request, Response $response,
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['admin'], 'canExpenses'));
@@ -161,7 +161,7 @@ $app->put('/api/admin/expenses/{id}', function (Request $request, Response $resp
         $response->getBody()->write(json_encode(['message' => 'Expense updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['admin'], 'canExpenses'));
