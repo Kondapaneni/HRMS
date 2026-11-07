@@ -277,6 +277,62 @@ $app->post('/api/admin/send-email', function (Request $request, Response $respon
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
 
+
+// Job-description uploads are written by the server; the bucket is public-read only.
+function jobDescriptionStorageUpload($file): string
+{
+    if (!$file || $file->getError() !== UPLOAD_ERR_OK || !$file->getSize() || $file->getSize() > 5 * 1024 * 1024) {
+        throw new InvalidArgumentException('Choose a PDF smaller than 5 MB.');
+    }
+    $stream = $file->getStream();
+    $contents = $stream->getContents();
+    $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+    if ($mime !== 'application/pdf' || substr($contents, 0, 5) !== '%PDF-') {
+        throw new DomainException('Only valid PDF files are allowed.');
+    }
+
+    $baseUrl = rtrim((string)($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: ''), '/');
+    $serviceKey = (string)($_ENV['SUPABASE_SERVICE_ROLE_KEY'] ?? getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '');
+    if (!$baseUrl || !$serviceKey) throw new RuntimeException('Secure job-description storage is not configured.');
+
+    $filename = bin2hex(random_bytes(20)) . '.pdf';
+    $url = $baseUrl . '/storage/v1/object/job_descriptions/' . rawurlencode($filename);
+    $context = stream_context_create(['http' => [
+        'method' => 'POST',
+        'header' => "Authorization: Bearer {$serviceKey}\r\napikey: {$serviceKey}\r\nContent-Type: application/pdf\r\nx-upsert: false\r\nCache-Control: no-store\r\n",
+        'content' => $contents,
+        'timeout' => 30,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    preg_match('/\\s(\\d{3})\\s/', $statusLine, $matches);
+    $status = (int)($matches[1] ?? 0);
+    if ($status < 200 || $status >= 300) {
+        error_log('Job-description storage upload failed with status ' . $status);
+        throw new RuntimeException('Unable to upload the job description.');
+    }
+    return '/Job-Description/' . $filename;
+}
+
+$app->post('/api/admin/jobs/description', function (Request $request, Response $response) {
+    try {
+        $path = jobDescriptionStorageUpload($request->getUploadedFiles()['file'] ?? null);
+        $response->getBody()->write(json_encode(['description_pdf_url' => $path]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (InvalidArgumentException $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    } catch (DomainException $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+    } catch (Throwable $e) {
+        error_log('Job-description upload failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to upload the job description right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'recruitment'));
+
 // Get all jobs
 $app->get('/api/admin/jobs', function (Request $request, Response $response, $args) {
     $db = new Database();
