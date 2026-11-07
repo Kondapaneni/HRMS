@@ -97,6 +97,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setError(null);
 
+    let avatarUploadFailed = false;
     try {
       const res = await api.post('/employees', {
         ...formData,
@@ -111,11 +112,13 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
         } catch (avatarError) {
-          toast.error(avatarError.response?.data?.error || 'Employee was created, but the profile photo could not be uploaded. You can add it from the employee profile.');
+          avatarUploadFailed = true;
+          console.error('Employee created, but avatar upload failed:', avatarError);
         }
       }
       setLoading(false);
       toast.success('Employee created successfully!');
+      if (avatarUploadFailed) toast.error('Profile photo could not be uploaded. You can add it from the employee profile.');
       onSuccess();
       
       if (res.data && res.data.id) {
