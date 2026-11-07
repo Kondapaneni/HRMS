@@ -114,6 +114,30 @@ $app->get('/api/admin/expenses', function (Request $request, Response $response,
     }
 })->add(new AuthMiddleware(['admin'], 'canExpenses'));
 
+
+$app->get('/api/admin/expenses/{id}/bill', function (Request $request, Response $response, $args) {
+    try {
+        $db = new Database(); $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT user_id, bill_url FROM expenses WHERE id = ? LIMIT 1');
+        $stmt->execute([$args['id']]);
+        $expense = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$expense || empty($expense['bill_url'])) return $response->withStatus(404);
+        $path = expenseObjectPath((string)$expense['bill_url'], (string)$expense['user_id']);
+        if (!$path) return $response->withStatus(404);
+        [$baseUrl, $serviceKey] = expenseStorageConfig();
+        $download = expenseStorageRequest('GET', $path, $serviceKey, $baseUrl);
+        if ($download['status'] !== 200) return $response->withStatus(404);
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $mime = ['pdf' => 'application/pdf', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'][$ext] ?? 'application/octet-stream';
+        $response->getBody()->write($download['body']);
+        return $response->withHeader('Content-Type', $mime)->withHeader('Content-Disposition', 'inline')
+            ->withHeader('Cache-Control', 'private, no-store, max-age=0')->withHeader('X-Content-Type-Options', 'nosniff');
+    } catch (Throwable $e) {
+        error_log('Admin expense receipt access failed: ' . $e->getMessage());
+        return $response->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'canExpenses'));
+
 // Update Expense Status (Approve/Reject)
 $app->put('/api/admin/expenses/{id}', function (Request $request, Response $response, $args) {
     $data = $request->getParsedBody();
