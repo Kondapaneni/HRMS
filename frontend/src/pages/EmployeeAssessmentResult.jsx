@@ -23,7 +23,7 @@ const EmployeeAssessmentResult = () => {
           stream.getTracks().forEach(track => {
             try { track.enabled = false; track.stop(); } catch { /* Media tracks may already be stopped. */ }
           });
-        } catch (e) {}
+        } catch { /* Cleanup errors are intentionally ignored. */ }
       });
       window._activeAssessmentStreams.clear();
     }
@@ -31,7 +31,7 @@ const EmployeeAssessmentResult = () => {
     // Push state into browser history stack so Back button triggers popstate
     window.history.pushState(null, '', window.location.href);
 
-    const handlePopState = (e) => {
+    const handlePopState = () => {
       // Intercept back button/gesture and redirect immediately to assessments dashboard
       navigate('/employee/assessments', { replace: true });
     };
