@@ -45,6 +45,43 @@ function candidateDocumentObjectPath(string $storedPath): ?string
     return $path;
 }
 
+
+function resumeStorageRequest(string $method, string $objectPath, string $serviceKey, string $baseUrl, ?string $body = null, string $contentType = 'application/octet-stream')
+{
+    $segments = array_map('rawurlencode', explode('/', ltrim($objectPath, '/')));
+    $url = rtrim($baseUrl, '/') . '/storage/v1/object/resumes/' . implode('/', $segments);
+    $headers = ['Authorization: Bearer ' . $serviceKey, 'apikey: ' . $serviceKey, 'Content-Type: ' . $contentType, 'Cache-Control: no-store'];
+    $context = stream_context_create(['http' => ['method' => $method, 'header' => implode("\r\n", $headers), 'content' => $body ?? '', 'timeout' => 25, 'ignore_errors' => true]]);
+    $result = @file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    preg_match('/\\s(\\d{3})\\s/', $statusLine, $matches);
+    return ['status' => (int)($matches[1] ?? 0), 'body' => $result === false ? '' : $result];
+}
+
+function resumeObjectPath(array $resume): ?string
+{
+    $stored = (string)($resume['storagePath'] ?? '');
+    if (str_starts_with($stored, 'storage:resumes/')) $path = substr($stored, strlen('storage:resumes/'));
+    elseif (str_contains($stored, '/Resume/')) $path = substr($stored, strpos($stored, '/Resume/') + strlen('/Resume/'));
+    else return null;
+    if ($path === '' || str_contains($path, '..') || preg_match('/[^A-Za-z0-9_./-]/', $path)) return null;
+    return $path;
+}
+
+function resumeSignedUrl(string $objectPath, string $serviceKey, string $baseUrl): ?string
+{
+    $segments = array_map('rawurlencode', explode('/', ltrim($objectPath, '/')));
+    $url = rtrim($baseUrl, '/') . '/storage/v1/object/sign/resumes/' . implode('/', $segments);
+    $body = json_encode(['expiresIn' => 60]);
+    $context = stream_context_create(['http' => ['method' => 'POST', 'header' => "Authorization: Bearer {$serviceKey}\r\napikey: {$serviceKey}\r\nContent-Type: application/json\r\n", 'content' => $body, 'timeout' => 15, 'ignore_errors' => true]]);
+    $result = @file_get_contents($url, false, $context);
+    if ($result === false) return null;
+    $data = json_decode($result, true);
+    $signed = $data['signedURL'] ?? $data['signedUrl'] ?? null;
+    if (!$signed) return null;
+    return str_starts_with($signed, 'http') ? $signed : rtrim($baseUrl, '/') . '/storage/v1' . (str_starts_with($signed, '/') ? $signed : '/' . $signed);
+}
+
 // Get Candidate Profile
 /** @var \Slim\App $app */
 $app->get('/api/candidate/profile', function (Request $request, Response $response, $args) {
@@ -122,6 +159,130 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+
+ // Resume upload: files are stored privately and referenced by opaque resume IDs.
+$app->post('/api/candidate/resumes', function (Request $request, Response $response) {
+    $user = $request->getAttribute('user');
+    $file = ($request->getUploadedFiles()['file'] ?? null);
+    if (!$file || $file->getError() !== UPLOAD_ERR_OK || !$file->getSize() || $file->getSize() > 5 * 1024 * 1024) {
+        $response->getBody()->write(json_encode(['error' => 'Choose a resume smaller than 5 MB.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+    $originalName = basename((string)$file->getClientFilename());
+    $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    $allowed = ['pdf' => ['application/pdf'], 'doc' => ['application/msword', 'application/octet-stream'], 'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip']];
+    if (!isset($allowed[$extension])) {
+        $response->getBody()->write(json_encode(['error' => 'Only PDF, DOC, and DOCX resumes are accepted.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+    }
+    $contents = $file->getStream()->getContents();
+    $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+    if (!in_array($mime, $allowed[$extension], true)) {
+        $response->getBody()->write(json_encode(['error' => 'The uploaded file content does not match its extension.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+    }
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ?');
+        $stmt->execute([$user->id]);
+        $stored = $stmt->fetchColumn();
+        $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
+        if (count($resumes) >= 3) {
+            $response->getBody()->write(json_encode(['error' => 'You can only upload a maximum of 3 resumes.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+        }
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $id = bin2hex(random_bytes(20));
+        $objectPath = (string)$user->id . '/' . $id . '.' . $extension;
+        $upload = resumeStorageRequest('POST', $objectPath, $serviceKey, $baseUrl, $contents, $mime);
+        if ($upload['status'] < 200 || $upload['status'] >= 300) throw new RuntimeException('Resume storage upload failed.');
+        $resume = ['id' => $id, 'name' => $originalName, 'storagePath' => 'storage:resumes/' . $objectPath, 'isPrimary' => count($resumes) === 0];
+        $resumes[] = $resume;
+        $save = $conn->prepare('INSERT INTO candidate_profiles (user_id, resume_url) VALUES (?, ?) ON CONFLICT (user_id) DO UPDATE SET resume_url = EXCLUDED.resume_url, updated_at = CURRENT_TIMESTAMP');
+        $save->execute([$user->id, json_encode($resumes)]);
+        $response->getBody()->write(json_encode(['resume' => $resume]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (Throwable $e) {
+        if (isset($objectPath, $serviceKey, $baseUrl)) resumeStorageRequest('DELETE', $objectPath, $serviceKey, $baseUrl);
+        error_log('Resume upload failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to upload resume.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+// Set primary resume; only IDs already present in the signed-in candidate profile are accepted.
+$app->put('/api/candidate/resumes/{id}/primary', function (Request $request, Response $response, $args) {
+    $user = $request->getAttribute('user');
+    try {
+        $db = new Database(); $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ? FOR UPDATE');
+        $stmt->execute([$user->id]);
+        $stored = $stmt->fetchColumn();
+        $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
+        $found = false;
+        foreach ($resumes as &$resume) {
+            if (($resume['id'] ?? null) === $args['id']) $found = true;
+            $resume['isPrimary'] = (($resume['id'] ?? null) === $args['id']);
+        }
+        unset($resume);
+        if (!$found) return $response->withStatus(404);
+        $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+        $save->execute([json_encode($resumes), $user->id]);
+        $response->getBody()->write(json_encode(['resumes' => $resumes]));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (Throwable $e) { error_log('Primary resume update failed: ' . $e->getMessage()); return $response->withStatus(503); }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+// Delete a resume owned by the signed-in candidate.
+$app->delete('/api/candidate/resumes/{id}', function (Request $request, Response $response, $args) {
+    $user = $request->getAttribute('user');
+    try {
+        $db = new Database(); $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ? FOR UPDATE');
+        $stmt->execute([$user->id]);
+        $stored = $stmt->fetchColumn();
+        $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
+        $removed = null;
+        $resumes = array_values(array_filter($resumes, function ($resume) use ($args, &$removed) {
+            if (($resume['id'] ?? null) === $args['id']) { $removed = $resume; return false; }
+            return true;
+        }));
+        if (!$removed) return $response->withStatus(404);
+        if (!empty($removed['isPrimary']) && count($resumes)) $resumes[0]['isPrimary'] = true;
+        $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+        $save->execute([json_encode($resumes), $user->id]);
+        $objectPath = resumeObjectPath($removed);
+        if ($objectPath) {
+            [$baseUrl, $serviceKey] = attendanceStorageConfig();
+            resumeStorageRequest('DELETE', $objectPath, $serviceKey, $baseUrl);
+        }
+        $response->getBody()->write(json_encode(['resumes' => $resumes]));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (Throwable $e) { error_log('Resume delete failed: ' . $e->getMessage()); return $response->withStatus(503); }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+// Candidate preview: resume ID is resolved only inside the current candidate's profile.
+$app->get('/api/candidate/resumes/{id}/file', function (Request $request, Response $response, $args) {
+    $user = $request->getAttribute('user');
+    try {
+        $db = new Database(); $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ?');
+        $stmt->execute([$user->id]);
+        $stored = $stmt->fetchColumn();
+        $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
+        $selected = null;
+        foreach ($resumes as $resume) if (($resume['id'] ?? null) === $args['id']) { $selected = $resume; break; }
+        if (!$selected) return $response->withStatus(404);
+        $path = resumeObjectPath($selected);
+        if (!$path) return $response->withStatus(404);
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $signed = resumeSignedUrl($path, $serviceKey, $baseUrl);
+        if (!$signed) return $response->withStatus(404);
+        return $response->withHeader('Location', $signed)->withHeader('Cache-Control', 'private, no-store')->withStatus(302);
+    } catch (Throwable $e) { error_log('Candidate resume preview failed: ' . $e->getMessage()); return $response->withStatus(503); }
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
 // Mark Documents Tab as Seen
