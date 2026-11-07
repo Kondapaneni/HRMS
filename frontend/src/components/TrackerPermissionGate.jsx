@@ -20,13 +20,7 @@ export default function TrackerPermissionGate() {
   const isNative = Capacitor.isNativePlatform();
 
   const checkPermissions = useCallback(async () => {
-    if (!isNative || !isEmployee) {
-      setChecking(false);
-      return;
-    }
-
     try {
-      setChecking(true);
       const res = await NativeLocationTracker.checkPermissionsStatus();
       setStatus({
         notificationsGranted: !!res.notificationsGranted,
@@ -40,7 +34,7 @@ export default function TrackerPermissionGate() {
     } finally {
       setChecking(false);
     }
-  }, [isNative, isEmployee]);
+  }, []);
 
   useEffect(() => {
     if (!isNative || !isEmployee) return;
