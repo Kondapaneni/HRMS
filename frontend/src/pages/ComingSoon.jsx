@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import { Sparkles, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
