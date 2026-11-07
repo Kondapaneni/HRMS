@@ -48,9 +48,6 @@ export default function BranchOperationsLoansViewApplication() {
   const [currentDocs, setCurrentDocs] = useState(
     formData?.documents || application?.documents || application?.form_data?.documents || {}
   );
-  const [localStatus, setLocalStatus] = useState(
-    application?.status || formData?.status || 'Under Review'
-  );
   const [localTimeline, setLocalTimeline] = useState(
     formData?.timeline || application?.form_data?.timeline || []
   );
@@ -58,7 +55,6 @@ export default function BranchOperationsLoansViewApplication() {
   // Sync state if application is loaded via async query
   useEffect(() => {
     if (application) {
-      if (application.status) setLocalStatus(application.status);
       const docs = formData?.documents || application.documents || application.form_data?.documents || {};
       setCurrentDocs(docs);
       const timeline = formData?.timeline || application.form_data?.timeline || [];
