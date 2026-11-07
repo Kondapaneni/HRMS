@@ -18,7 +18,8 @@ import {
   Package,
   Clock,
   UserPlus,
-  Loader2
+  Loader2,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
@@ -50,10 +51,17 @@ const featuresList = [
   },
   {
     key: 'canPayroll',
-    title: 'Payroll & Compensation Manager',
+    title: 'Payroll Manager',
     category: 'Core HRMS',
     icon: DollarSign,
-    description: 'Permissions to execute monthly bulk payroll cycles, generate payslips, and review employee expense claims.'
+    description: 'Permissions to execute monthly bulk payroll cycles, generate payslips, and manage compensation.'
+  },
+  {
+    key: 'canExpenses',
+    title: 'Expenses Manager',
+    category: 'Core HRMS',
+    icon: Receipt,
+    description: 'Permissions to review, audit, approve, and decline employee expense reimbursement claims.'
   },
   {
     key: 'canAssets',

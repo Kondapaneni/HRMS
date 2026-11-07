@@ -176,7 +176,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 
         unset($user['password']); // Don't return password hash
 
-        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments" FROM user_feature_access WHERE "userId" = ?');
+        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canExpenses", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments" FROM user_feature_access WHERE "userId" = ?');
         $faStmt->execute([$user['id']]);
         $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
         
@@ -185,6 +185,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
                 'canAttendance' => (bool)$fa['canAttendance'],
                 'canLeave' => (bool)$fa['canLeave'],
                 'canPayroll' => (bool)$fa['canPayroll'],
+                'canExpenses' => (bool)($fa['canExpenses'] ?? false),
                 'canEmployees' => (bool)$fa['canEmployees'],
                 'canRecruitment' => (bool)$fa['canRecruitment'],
                 'canAssets' => (bool)$fa['canAssets'],
@@ -384,7 +385,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     unset($user['otp_code'], $user['otp_expires_at']);
 
     // Fetch feature access
-    $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments" FROM user_feature_access WHERE "userId" = ?');
+    $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canExpenses", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments" FROM user_feature_access WHERE "userId" = ?');
     $faStmt->execute([$user['id']]);
     $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -393,6 +394,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
             'canAttendance' => (bool)$fa['canAttendance'],
             'canLeave' => (bool)$fa['canLeave'],
             'canPayroll' => (bool)$fa['canPayroll'],
+            'canExpenses' => (bool)($fa['canExpenses'] ?? false),
             'canEmployees' => (bool)$fa['canEmployees'],
             'canRecruitment' => (bool)$fa['canRecruitment'],
             'canAssets' => (bool)$fa['canAssets'],
@@ -449,7 +451,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     
     $stmt = $conn->prepare('
         SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled",
-               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canLoanOrigination", fa."canSalesOrigination", fa."canBranchOperations", fa."canAdminAssessments"
+               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canExpenses", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canLoanOrigination", fa."canSalesOrigination", fa."canBranchOperations", fa."canAdminAssessments"
         FROM users u 
         LEFT JOIN employee e ON u.id = e."userId" 
         LEFT JOIN user_feature_access fa ON u.id = fa."userId"
@@ -473,6 +475,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canAttendance' => (bool)$user['canAttendance'],
                 'canLeave' => (bool)$user['canLeave'],
                 'canPayroll' => (bool)$user['canPayroll'],
+                'canExpenses' => (bool)($user['canExpenses'] ?? false),
                 'canEmployees' => (bool)$user['canEmployees'],
                 'canRecruitment' => (bool)$user['canRecruitment'],
                 'canAssets' => (bool)$user['canAssets'],
@@ -482,7 +485,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canAdminAssessments' => (bool)($user['canAdminAssessments'] ?? false),
             ];
         }
-        unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets'], $user['canLoanOrigination'], $user['canSalesOrigination'], $user['canBranchOperations'], $user['canAdminAssessments']);
+        unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canExpenses'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets'], $user['canLoanOrigination'], $user['canSalesOrigination'], $user['canBranchOperations'], $user['canAdminAssessments']);
         
         $response->getBody()->write(json_encode($user));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);

@@ -82,6 +82,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
         else if ((path.startsWith('/admin/attendance') || path.startsWith('/admin/holidays')) && fa.canAttendance && isHR) hasAccess = true;
         else if (path.startsWith('/admin/leaves') && fa.canLeave) hasAccess = true;
         else if (path.startsWith('/admin/payroll') && fa.canPayroll) hasAccess = true;
+        else if (path.startsWith('/admin/expenses') && fa.canExpenses) hasAccess = true;
         else if ((path === '/admin/employees' || path.startsWith('/admin/employees/') || path.startsWith('/admin/directory')) && fa.canEmployees) hasAccess = true;
         else if (path.startsWith('/admin/recruitment') && fa.canRecruitment) hasAccess = true;
         else if (path.startsWith('/admin/assets') && fa.canAssets) hasAccess = true;
@@ -116,6 +117,8 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
       } else if (path.startsWith('/admin/leaves') && fa.canLeave) {
         hasAdminModuleAccess = true;
       } else if (path.startsWith('/admin/payroll') && fa.canPayroll) {
+        hasAdminModuleAccess = true;
+      } else if (path.startsWith('/admin/expenses') && fa.canExpenses) {
         hasAdminModuleAccess = true;
       } else if ((path.startsWith('/admin/employees') || path.startsWith('/admin/directory')) && fa.canEmployees) {
         hasAdminModuleAccess = true;

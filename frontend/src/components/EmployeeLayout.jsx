@@ -208,6 +208,7 @@ const EmployeeLayout = () => {
       fa?.canAttendance ||
       fa?.canLeave ||
       fa?.canPayroll ||
+      fa?.canExpenses ||
       fa?.canAssets ||
       fa?.canRecruitment ||
       fa?.canAdminAssessments;
@@ -220,6 +221,7 @@ const EmployeeLayout = () => {
         (fa.canAttendance && '/admin/attendance') ||
         (fa.canLeave && '/admin/leaves') ||
         (fa.canPayroll && '/admin/payroll') ||
+        (fa.canExpenses && '/admin/expenses') ||
         (fa.canAssets && '/admin/assets') ||
         (fa.canAdminAssessments && '/admin/assessments/questions');
 

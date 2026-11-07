@@ -112,7 +112,7 @@ $app->get('/api/admin/expenses', function (Request $request, Response $response,
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'canExpenses'));
 
 // Update Expense Status (Approve/Reject)
 $app->put('/api/admin/expenses/{id}', function (Request $request, Response $response, $args) {
@@ -140,4 +140,4 @@ $app->put('/api/admin/expenses/{id}', function (Request $request, Response $resp
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'canExpenses'));

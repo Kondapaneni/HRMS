@@ -270,7 +270,7 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
     $isAdmin = ($userRole === 'admin');
 
     $faStmt = $conn->prepare('
-        SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment",
+        SELECT "canAttendance", "canLeave", "canPayroll", "canExpenses", "canEmployees", "canRecruitment",
                "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments"
         FROM user_feature_access
         WHERE "userId" = ?

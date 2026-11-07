@@ -72,10 +72,11 @@ const AdminFeaturesLayout = () => {
       });
     }
 
-    // Money: Payroll + Assets
-    if (fa.canPayroll || fa.canAssets) {
+    // Money: Payroll + Expenses + Assets
+    if (fa.canPayroll || fa.canExpenses || fa.canAssets) {
       const chips = [];
       if (fa.canPayroll) chips.push({ label: 'Payroll', path: '/admin/payroll' });
+      if (fa.canExpenses) chips.push({ label: 'Expenses', path: '/admin/expenses' });
       if (fa.canAssets) chips.push({ label: 'Assets', path: '/admin/assets' });
       groups.push({
         id: 'money',
@@ -85,6 +86,7 @@ const AdminFeaturesLayout = () => {
         chips,
         activeMatch: (pathname) =>
           pathname.startsWith('/admin/payroll') ||
+          pathname.startsWith('/admin/expenses') ||
           pathname.startsWith('/admin/assets'),
       });
     }
