@@ -81,7 +81,6 @@ export default defineConfig({
         '/Loan-Signature',
         '/Resume',
         '/Job-Description',
-        '/Offer-Letter',
         '/Training-Video'
       ].map(path => [
         path,
