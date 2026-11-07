@@ -10,7 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 
 const CandidateMobileApplications = ({ 
-  applications, getStatusBadge, setIsTimelineModalOpen, setTimelineApp, handlePreviewOfferLetter
+  applications, setIsTimelineModalOpen, setTimelineApp, handlePreviewOfferLetter
 }) => {
   const getBadgeStyle = (status) => {
     switch (status) {

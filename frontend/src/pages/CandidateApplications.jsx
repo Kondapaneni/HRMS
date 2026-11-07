@@ -27,10 +27,8 @@ const CandidateApplications = () => {
           if (/^[a-f0-9]{40}$/i.test(String(app.resume_url))) {
             resumeName = 'Selected Resume';
           } else {
-            try {
-              const urlParts = String(app.resume_url).split('/');
-              resumeName = urlParts[urlParts.length - 1];
-            } catch (e) {}
+            const urlParts = String(app.resume_url).split('/');
+            resumeName = urlParts[urlParts.length - 1];
           }
         }
         
@@ -68,8 +66,9 @@ const CandidateApplications = () => {
       const objectUrl = URL.createObjectURL(response.data);
       previewWindow.location.href = objectUrl;
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-    } catch (error) {
+    } catch {
       previewWindow.close();
+      toast.error('Unable to open this resume. Please try again.');
     }
   };
 

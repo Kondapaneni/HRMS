@@ -7,7 +7,7 @@ import {
   CheckCircle2,
   RefreshCw
 } from 'lucide-react';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,7 +28,6 @@ const CandidateLogin = () => {
     password: ''
   });
 
-  const navigate = useNavigate();
   const { user, profile } = useAuth();
 
   useEffect(() => {
