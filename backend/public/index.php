@@ -575,18 +575,36 @@ $app->put('/api/change-password', function (Request $request, Response $response
     $conn = $db->getConnection();
     
     try {
+        $secret = trim($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
+        if (strlen($secret) < 32) {
+            error_log('Change-password error: JWT_SECRET is missing or too short.');
+            $response->getBody()->write(json_encode(['error' => 'Authentication service configuration error.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+        }
+
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-        
-        $stmt = $conn->prepare('UPDATE users SET password = ?, "forcePasswordChange" = false WHERE id = ?');
+        $stmt = $conn->prepare('UPDATE users SET password = ?, "forcePasswordChange" = false, session_version = COALESCE(session_version, 0) + 1 WHERE id = ? RETURNING session_version');
         $stmt->execute([$hashedPassword, $decodedToken->id]);
-        
-        $userStmt = $conn->prepare('SELECT role FROM users WHERE id = ?');
+        $newSessionVersion = (int)$stmt->fetchColumn();
+
+        $userStmt = $conn->prepare('SELECT email, role FROM users WHERE id = ?');
         $userStmt->execute([$decodedToken->id]);
         $user = $userStmt->fetch(PDO::FETCH_ASSOC);
-        
+
+        $newToken = JWT::encode([
+            'iss' => 'acme_hrms',
+            'iat' => time(),
+            'exp' => min((int)$decodedToken->exp, time() + 86400),
+            'id' => $decodedToken->id,
+            'email' => $user['email'],
+            'role' => $user['role'],
+            'sv' => $newSessionVersion
+        ], $secret, 'HS256');
+
         $response->getBody()->write(json_encode([
             'message' => 'Password updated successfully',
-            'role' => $user['role']
+            'role' => $user['role'],
+            'token' => $newToken
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
