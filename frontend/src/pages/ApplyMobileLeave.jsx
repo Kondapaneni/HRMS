@@ -11,7 +11,7 @@ const ApplyMobileLeave = () => {
   const queryClient = useQueryClient();
   const [, setError] = useState('');
   
-  const [leaveType, setLeaveType] = useState('paid');
+  const [leaveType, setLeaveType] = useState(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
@@ -47,7 +47,8 @@ const ApplyMobileLeave = () => {
     });
   };
 
-  const selectedLeaveType = paidRemaining > 0 && !hasPaidLeaveThisMonth() ? leaveType : 'unpaid';
+  const preferredLeaveType = leaveType ?? (leavesData && paidRemaining > 0 ? 'paid' : 'unpaid');
+  const selectedLeaveType = preferredLeaveType === 'paid' && (paidRemaining <= 0 || hasPaidLeaveThisMonth()) ? 'unpaid' : preferredLeaveType;
 
   const applyMutation = useMutation({
     mutationFn: async (data) => {
