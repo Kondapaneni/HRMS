@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 const ApplyMobileLeave = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [, setError] = useState('');
   
   const [leaveType, setLeaveType] = useState('unpaid');
   const [startDate, setStartDate] = useState('');
