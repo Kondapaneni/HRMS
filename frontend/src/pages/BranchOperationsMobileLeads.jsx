@@ -22,7 +22,7 @@ const BranchOperationsMobileLeads = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data, isLoading, isFetching, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['branchOperationsLeads', selectedEmployee, selectedPipeline, selectedStatusFilter, debouncedSearch],
     queryFn: getBranchLeads,
     placeholderData: (previousData) => previousData,

@@ -25,6 +25,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
+  const navigate = useNavigate();
+  const otpInputsRef = useRef([]);
 
   
 

@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Camera, RefreshCw, UploadCloud, X, AlertCircle, Check } from 'lucide-react';
+import { Camera, RefreshCw, X, AlertCircle, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../api/axios';
 
@@ -17,7 +17,7 @@ const EmployeeMobileCamera = () => {
   const streamRef = useRef(null);
 
   const [currentFacingMode, setCurrentFacingMode] = useState('user'); // 'user' or 'environment'
-  const [stream, setStream] = useState(null);
+  const [, setStream] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [photoDataUrl, setPhotoDataUrl] = useState(null);
   const [cameraError, setCameraError] = useState('');
@@ -54,7 +54,7 @@ const EmployeeMobileCamera = () => {
           video: { facingMode: { exact: facing } },
           audio: false
         });
-      } catch (exactErr) {
+      } catch {
         // 2. If exact fails, search enumerated video devices
         try {
           const devices = await navigator.mediaDevices.enumerateDevices();

@@ -1,26 +1,18 @@
 import { useState } from 'react';
 import { 
-  Gift, 
   Sparkles, 
   PartyPopper, 
   Calendar, 
-  Clock, 
-  Users, 
-  Heart,
   Smile,
-  CheckCircle2,
   Cake,
   AlertCircle
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
 import toast from 'react-hot-toast';
 
 const EmployeeMobileBirthdays = () => {
-  const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'week' | 'today'
 
   const { data: birthdays = [], isLoading: loading } = useQuery({
