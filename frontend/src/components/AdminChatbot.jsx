@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, X, RotateCcw, Copy, Check, Plus,
@@ -39,20 +39,11 @@ const AdminChatbot = () => {
 
   const activeSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : INITIAL_SUGGESTIONS;
 
-  // Initialize greeting on first load if empty
-  useEffect(() => {
-    if (messages.length === 0) {
-      const firstName = profile?.firstName || 'Admin';
-      const welcomeMsg = {
-        role: 'assistant',
-        content: `Hi **${firstName}**!\n\nI am your **Admin HR Assistant**. I have full access to all employees' data and can help you with questions like:\n* **Employee Counts** (e.g. "How many employees are active?")\n* **Department Details** (e.g. "Who works in IT?")\n* **Branch Summaries** (e.g. "List employees in Corporate")\n* **Reporting Structure**\n\nAsk me anything about the organization or select one of the suggestions below.`
-      };
-      setMessages([welcomeMsg]);
-      try {
-        sessionStorage.setItem('hrms_admin_chat_history', JSON.stringify([welcomeMsg]));
-      } catch { /* Session storage may be unavailable in private browsing. */ }
-    }
-  }, [profile]);
+  const welcomeMessage = useMemo(() => ({
+    role: 'assistant',
+    content: `Hi **${profile?.firstName || 'Admin'}**! I am your Admin HR Assistant. Ask me about employees, departments, branches, reporting, and attendance.`
+  }), [profile?.firstName]);
+  const displayMessages = useMemo(() => messages.length > 0 ? messages : [welcomeMessage], [messages, welcomeMessage]);
 
   // Persist messages to sessionStorage
   useEffect(() => {
@@ -68,13 +59,12 @@ const AdminChatbot = () => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOpen, loading]);
+  }, [displayMessages, isOpen, loading]);
 
   // Focus input on open
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 250);
-      setUnreadCount(0);
     }
   }, [isOpen]);
 
@@ -83,7 +73,7 @@ const AdminChatbot = () => {
     if (!text || loading) return;
 
     const userMessage = { role: 'user', content: text };
-    const updatedMessages = [...messages, userMessage];
+    const updatedMessages = [...displayMessages, userMessage];
     setMessages(updatedMessages);
     setInputMessage('');
     setShowSuggestionsMenu(false);
@@ -207,7 +197,7 @@ const AdminChatbot = () => {
       {/* 1. Floating Circular Action Button (FAB) */}
       <div className="fixed bottom-[var(--chatbot-bottom)] right-5 md:right-6 z-40 select-none">
         <motion.button
-          onClick={() => setIsOpen(prev => !prev)}
+          onClick={() => { if (!isOpen) setUnreadCount(0); setIsOpen(!isOpen); }}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
           aria-label={isOpen ? 'Close chat' : 'Open Admin HR Assistant'}
@@ -293,7 +283,7 @@ const AdminChatbot = () => {
 
             {/* Conversation Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[var(--bg)] scrollbar-thin">
-              {messages.map((msg, index) => {
+              {displayMessages.map((msg, index) => {
                 const isUser = msg.role === 'user';
                 return (
                   <motion.div
