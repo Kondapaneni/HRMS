@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { createPortal } from 'react-dom';
@@ -18,7 +18,6 @@ import {
   Clock, 
   Calendar, 
   BadgeCheck, 
-  Search, 
   Building2, 
   MapPin, 
   IndianRupee, 
@@ -483,13 +482,6 @@ const AdminRecruitment = () => {
   const inInterview = Number(applicationsResponse.stats?.inInterview || 0);
   const hiredCount = Number(applicationsResponse.stats?.hiredCount || 0);
 
-  useEffect(() => {
-    if (applicationsPage > applicationsTotalPages) setApplicationsPage(applicationsTotalPages);
-  }, [applicationsPage, applicationsTotalPages]);
-
-  useEffect(() => {
-    if (jobsPage > jobsTotalPages) setJobsPage(jobsTotalPages);
-  }, [jobsPage, jobsTotalPages]);
 
   if (isLoadingJobs) return <PageLoader message="Loading recruitment data..." />;
 
