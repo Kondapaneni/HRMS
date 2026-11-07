@@ -19,6 +19,7 @@ const AdminAttendanceLocation = () => {
   const markersRef = useRef({ checkIn: null, checkOut: null, punch: [] });
   const infoWindowRef = useRef(null);
   const pinnedMarkerRef = useRef(null);
+  const photoObjectUrlsRef = useRef({});
 
   const { data, isLoading: loading } = useQuery({
     queryKey: ['admin', 'attendance-location', id],
@@ -32,6 +33,43 @@ const AdminAttendanceLocation = () => {
       navigate('/admin/attendance');
     },
   });
+
+  // Load protected attendance photos with the authenticated API client.
+  useEffect(() => {
+    if (!data) return undefined;
+    let cancelled = false;
+    const createdUrls = [];
+    const photoPaths = new Set([
+      data.record?.checkInPhoto,
+      data.record?.checkOutPhoto,
+      ...(data.punches || []).map(punch => punch.photo)
+    ].filter(value => typeof value === 'string' && value.startsWith('/Attendance/')));
+
+    const loadPhotos = async () => {
+      const nextUrls = {};
+      await Promise.all([...photoPaths].map(async path => {
+        const filename = path.slice('/Attendance/'.length);
+        if (!/^[A-Za-z0-9._-]{1,181}$/.test(filename)) return;
+        try {
+          const response = await axios.get(`/storage/attendance/${encodeURIComponent(filename)}`, { responseType: 'blob' });
+          const objectUrl = URL.createObjectURL(response.data);
+          createdUrls.push(objectUrl);
+          nextUrls[path] = objectUrl;
+        } catch (error) {
+          console.warn('Unable to load attendance photo securely:', error);
+        }
+      }));
+      if (!cancelled) photoObjectUrlsRef.current = nextUrls;
+    };
+
+    photoObjectUrlsRef.current = {};
+    loadPhotos();
+    return () => {
+      cancelled = true;
+      createdUrls.forEach(url => URL.revokeObjectURL(url));
+      photoObjectUrlsRef.current = {};
+    };
+  }, [data]);
 
   const hidePhotoInfo = () => {
     if (infoWindowRef.current) infoWindowRef.current.close();
@@ -73,8 +111,10 @@ const AdminAttendanceLocation = () => {
 
     const isWebLabel = (url) => url && !url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('/');
 
+    const displayPhotoUrl = photoObjectUrlsRef.current[photoUrl] || photoUrl;
+
     if (photoUrl && !isWebLabel(photoUrl)) {
-      content += `<div style="flex-shrink:0;width:105px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:12px;box-shadow:0 4px 12px rgba(19,19,21,0.08);" /></div>`;
+      content += `<div style="flex-shrink:0;width:105px;"><img src="${displayPhotoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:12px;box-shadow:0 4px 12px rgba(19,19,21,0.08);" /></div>`;
     } else if (photoUrl && isWebLabel(photoUrl)) {
       content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#EAF0FA;border:1px solid #D2E0F5;border-radius:10px;color:#5B86C2;font-size:11px;text-align:center;box-sizing:border-box;font-weight:600;">${photoUrl}</div>`;
     } else {
