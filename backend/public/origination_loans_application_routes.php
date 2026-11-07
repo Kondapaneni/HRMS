@@ -652,8 +652,184 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
 })->add(new AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
- * Endpoint to update loan application status and append to timeline
+ * Transfer a loan application to Branch Operations and securely store its signature.
  */
+$app->post('/api/loans/applications/{id}/transfer-to-branch', function (Request $request, Response $response, $args) {
+    $uploadedPath = null;
+    $baseUrl = null;
+    $serviceKey = null;
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $user = $request->getAttribute('user');
+        $appRow = loanFindOwnedApplication($conn, (string)$args['id'], $user);
+        if (!$appRow) return $response->withStatus(404);
+
+        $signatureRef = null;
+        $file = $request->getUploadedFiles()['signature'] ?? null;
+        if ($file) {
+            if ($file->getError() !== UPLOAD_ERR_OK || !$file->getSize() || $file->getSize() > 2 * 1024 * 1024) {
+                $response->getBody()->write(json_encode(['error' => 'Signature must be smaller than 2 MB.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+            $contents = $file->getStream()->getContents();
+            $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+            if ($mime !== 'image/png') {
+                $response->getBody()->write(json_encode(['error' => 'Only PNG signatures are accepted.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+            }
+            [$baseUrl, $serviceKey] = attendanceStorageConfig();
+            $uploadedPath = (string)$appRow['id'] . '/' . bin2hex(random_bytes(20)) . '.png';
+            $upload = loanStorageRequest('POST', 'loan_signatures', $uploadedPath, $serviceKey, $baseUrl, $contents, 'image/png');
+            if ($upload['status'] < 200 || $upload['status'] >= 300) {
+                error_log('Loan signature Storage upload failed with status ' . $upload['status']);
+                throw new RuntimeException('Loan signature upload failed.');
+            }
+            $signatureRef = 'storage:loan_signatures/' . $uploadedPath;
+        }
+
+        $conn->beginTransaction();
+        $lockedApp = loanFindOwnedApplication($conn, (string)$args['id'], $user, true);
+        if (!$lockedApp || (string)$lockedApp['id'] !== (string)$appRow['id']) {
+            $conn->rollBack();
+            if ($uploadedPath && $serviceKey && $baseUrl) loanStorageRequest('DELETE', 'loan_signatures', $uploadedPath, $serviceKey, $baseUrl);
+            return $response->withStatus(404);
+        }
+
+        $formData = is_string($lockedApp['form_data']) ? (json_decode($lockedApp['form_data'], true) ?: []) : ($lockedApp['form_data'] ?: []);
+        if (!isset($formData['timeline']) || !is_array($formData['timeline'])) $formData['timeline'] = [];
+        $formData['timeline'][] = [
+            'stage' => 'Branch Operations',
+            'timestamp' => gmdate('c'),
+            'signature' => $signatureRef
+        ];
+        $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        if ($signatureRef) {
+            $signaturePayload = json_encode(['Origination' => $signatureRef]);
+            $update = $conn->prepare("UPDATE public.loan_applications SET status = 'Under Review', form_data = ?::jsonb, signatures = COALESCE(signatures, '{}'::jsonb) || ?::jsonb, updated_at = NOW() WHERE id = ?");
+            $update->execute([$jsonPayload, $signaturePayload, $lockedApp['id']]);
+        } else {
+            $update = $conn->prepare("UPDATE public.loan_applications SET status = 'Under Review', form_data = ?::jsonb, updated_at = NOW() WHERE id = ?");
+            $update->execute([$jsonPayload, $lockedApp['id']]);
+        }
+        $conn->commit();
+
+        $response->getBody()->write(json_encode(['success' => true, 'message' => 'Application transferred to Branch Operations.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+        if ($uploadedPath && $serviceKey && $baseUrl) loanStorageRequest('DELETE', 'loan_signatures', $uploadedPath, $serviceKey, $baseUrl);
+        error_log('Loan transfer failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to transfer the loan application right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'loanOrigination'));
+
+/**
+ * Update a loan status without accepting caller-supplied signature URLs.
+ */
+$app->patch('/api/loans/applications/{id}/status', function (Request $request, Response $response, $args) {
+    $data = $request->getParsedBody();
+    if (!is_array($data)) {
+        $data = json_decode((string)$request->getBody(), true) ?: [];
+    }
+
+    $status = trim((string)($data['status'] ?? ''));
+    $timelineEvent = $data['timelineEvent'] ?? null;
+    if ($status === '') {
+        $response->getBody()->write(json_encode(['error' => 'Status is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+    if (!empty($data['signatureData']) || (is_array($timelineEvent) && !empty($timelineEvent['signature']))) {
+        $response->getBody()->write(json_encode(['error' => 'Signatures must be uploaded through the secure transfer endpoint.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $appRow = loanFindOwnedApplication($conn, (string)$args['id'], $request->getAttribute('user'));
+        if (!$appRow) return $response->withStatus(404);
+
+        $formData = is_string($appRow['form_data']) ? (json_decode($appRow['form_data'], true) ?: []) : ($appRow['form_data'] ?: []);
+        if ($timelineEvent) {
+            if (!is_array($timelineEvent)) return $response->withStatus(400);
+            if (!isset($formData['timeline']) || !is_array($formData['timeline'])) $formData['timeline'] = [];
+            $formData['timeline'][] = $timelineEvent;
+        }
+
+        $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $update = $conn->prepare('UPDATE public.loan_applications SET status = ?, form_data = ?::jsonb, updated_at = NOW() WHERE id = ?');
+        $update->execute([$status, $jsonPayload, $appRow['id']]);
+
+        $response->getBody()->write(json_encode(['success' => true, 'message' => 'Status updated successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Throwable $e) {
+        error_log('Loan status update failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Failed to update application status']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'loanOrigination'));
+
+/**
+ * Delete a loan application only for its owner or an administrator.
+ */
+$app->delete('/api/loans/applications/{id}', function (Request $request, Response $response, $args) {
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $user = $request->getAttribute('user');
+        $appRow = loanFindOwnedApplication($conn, (string)$args['id'], $user);
+        if (!$appRow) return $response->withStatus(404);
+
+        $identifiers = array_values(array_unique(array_filter([
+            (string)($appRow['application_id'] ?? ''),
+            (string)$appRow['id'],
+            (string)($appRow['lead_id'] ?? '')
+        ])));
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+
+        $docSql = 'SELECT url FROM public.loan_documents WHERE application_id IN (' . implode(',', array_fill(0, count($identifiers), '?')) . ')';
+        $docStmt = $conn->prepare($docSql);
+        $docStmt->execute($identifiers);
+        foreach ($docStmt->fetchAll(PDO::FETCH_COLUMN) as $reference) {
+            $objectPath = loanStorageObjectPath((string)$reference, 'loan_documents');
+            if ($objectPath && (!str_contains($objectPath, '/') || str_starts_with($objectPath, (string)$appRow['id'] . '/'))) {
+                loanStorageRequest('DELETE', 'loan_documents', $objectPath, $serviceKey, $baseUrl);
+            }
+        }
+
+        $formData = is_string($appRow['form_data']) ? (json_decode($appRow['form_data'], true) ?: []) : ($appRow['form_data'] ?: []);
+        $signatures = is_string($appRow['signatures']) ? (json_decode($appRow['signatures'], true) ?: []) : ($appRow['signatures'] ?: []);
+        $signatureRefs = array_values(array_filter($signatures, 'is_string'));
+        foreach (($formData['timeline'] ?? []) as $event) {
+            if (is_array($event) && !empty($event['signature']) && is_string($event['signature'])) $signatureRefs[] = $event['signature'];
+        }
+        foreach (array_unique($signatureRefs) as $reference) {
+            $objectPath = loanStorageObjectPath($reference, 'loan_signatures');
+            if ($objectPath && str_starts_with($objectPath, (string)$appRow['id'] . '/')) {
+                loanStorageRequest('DELETE', 'loan_signatures', $objectPath, $serviceKey, $baseUrl);
+            }
+        }
+
+        $conn->beginTransaction();
+        $deleteDocs = $conn->prepare('DELETE FROM public.loan_documents WHERE application_id IN (' . implode(',', array_fill(0, count($identifiers), '?')) . ')');
+        $deleteDocs->execute($identifiers);
+        $deleteApp = $conn->prepare('DELETE FROM public.loan_applications WHERE id = ?');
+        $deleteApp->execute([$appRow['id']]);
+        $conn->commit();
+
+        $response->getBody()->write(json_encode(['success' => true, 'message' => 'Loan application deleted successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+        error_log('Loan application delete failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Error deleting loan application']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'loanOrigination'));
+
 $app->patch('/api/loans/applications/{id}/status', function (Request $request, Response $response, $args) {
     $identifier = $args['id'];
     $data = $request->getParsedBody();
