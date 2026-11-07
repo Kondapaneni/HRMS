@@ -63,7 +63,10 @@ const ChangePassword = () => {
     setIsLoading(true);
 
     try {
-      await api.put('/change-password', { newPassword });
+      const response = await api.put('/change-password', { newPassword });
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       await fetchProfile();
       toast.success('Password updated successfully!');
 
