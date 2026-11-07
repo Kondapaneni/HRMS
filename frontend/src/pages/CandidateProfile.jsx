@@ -140,12 +140,10 @@ const CandidateProfile = () => {
 
   const handleDeleteResume = async (index) => {
     const resume = formData.resumes[index];
-    if (!resume?.id) {
-      toast.error('This older resume needs to be re-uploaded before it can be securely deleted.');
-      return;
-    }
     try {
-      const res = await api.delete(`/candidate/resumes/${encodeURIComponent(resume.id)}`);
+      const res = resume?.id
+        ? await api.delete(`/candidate/resumes/${encodeURIComponent(resume.id)}`)
+        : await api.delete('/candidate/resume-legacy', { params: { url: resume?.url || '' } });
       setFormData(prev => ({ ...prev, resumes: res.data.resumes || [] }));
       queryClient.invalidateQueries(['candidate', 'profile']);
       queryClient.invalidateQueries(['candidate', 'profile_for_jobs']);
