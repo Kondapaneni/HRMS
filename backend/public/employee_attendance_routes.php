@@ -5,6 +5,134 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 use App\Utils\RateLimiter;
 
+// Private attendance photo upload/download. The service-role key stays server-side only.
+function attendanceStorageConfig(): array
+{
+    $baseUrl = rtrim($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: '', '/');
+    $serviceKey = $_ENV['SUPABASE_SERVICE_ROLE_KEY'] ?? getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '';
+    if (!$baseUrl || !$serviceKey) {
+        throw new RuntimeException('Secure file storage is not configured.');
+    }
+    return [$baseUrl, $serviceKey];
+}
+
+function attendanceStorageRequest(string $method, string $objectPath, string $serviceKey, string $baseUrl, ?string $body = null, string $contentType = 'application/octet-stream')
+{
+    $url = $baseUrl . '/storage/v1/object/attendance/' . rawurlencode($objectPath);
+    $headers = [
+        'Authorization: Bearer ' . $serviceKey,
+        'apikey: ' . $serviceKey,
+        'Content-Type: ' . $contentType,
+        'Cache-Control: no-store'
+    ];
+    $context = stream_context_create(['http' => [
+        'method' => $method,
+        'header' => implode("\r\n", $headers),
+        'content' => $body ?? '',
+        'timeout' => 20,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    preg_match('/\\s(\\d{3})\\s/', $statusLine, $matches);
+    return ['status' => (int)($matches[1] ?? 0), 'body' => $result === false ? '' : $result];
+}
+
+$app->post('/api/employee/attendance/photo', function (Request $request, Response $response) {
+    $files = $request->getUploadedFiles();
+    $file = $files['photo'] ?? null;
+    if (!$file || $file->getError() !== UPLOAD_ERR_OK || !$file->getSize() || $file->getSize() > 5 * 1024 * 1024) {
+        $response->getBody()->write(json_encode(['error' => 'Please upload an attendance photo smaller than 5 MB.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $stream = $file->getStream();
+    $contents = $stream->getContents();
+    $finfo = new \\finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->buffer($contents);
+    $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    if (!isset($allowed[$mime])) {
+        $response->getBody()->write(json_encode(['error' => 'Only JPEG, PNG, or WEBP attendance photos are allowed.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+    }
+
+    try {
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $fileName = bin2hex(random_bytes(20)) . '.' . $allowed[$mime];
+        $upload = attendanceStorageRequest('POST', $fileName, $serviceKey, $baseUrl, $contents, $mime);
+        if ($upload['status'] < 200 || $upload['status'] >= 300) {
+            error_log('Attendance storage upload failed with status ' . $upload['status']);
+            throw new RuntimeException('Unable to securely upload attendance photo.');
+        }
+        $response->getBody()->write(json_encode(['photo' => '/Attendance/' . $fileName]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (Throwable $e) {
+        error_log('Attendance photo upload failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to upload attendance photo right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['employee']));
+
+$app->get('/Attendance/{filename:[A-Za-z0-9._-]+}', function (Request $request, Response $response, $args) {
+    $user = $request->getAttribute('user');
+    $filename = $args['filename'];
+    if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,180}$/', $filename)) {
+        return $response->withStatus(404);
+    }
+
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        if (!$conn) throw new RuntimeException('Database unavailable.');
+        $isAdmin = (($user->role ?? '') === 'admin');
+        $pathPattern = '%/Attendance/' . $filename;
+        $stmt = $conn->prepare('
+            SELECT 1 FROM attendance
+            WHERE (:is_admin = TRUE OR "employeeId" = :uid)
+              AND ("checkInPhoto" LIKE :checkin_path OR "checkOutPhoto" LIKE :checkout_path)
+            LIMIT 1
+        ');
+        $stmt->execute([
+            ':is_admin' => $isAdmin,
+            ':uid' => $user->id,
+            ':checkin_path' => $pathPattern,
+            ':checkout_path' => $pathPattern
+        ]);
+        $authorized = (bool)$stmt->fetchColumn();
+
+        if (!$authorized) {
+            $punchStmt = $conn->prepare('
+                SELECT 1 FROM attendance_punches
+                WHERE (:is_admin = TRUE OR "employeeId" = :uid) AND photo LIKE :photo_path
+                LIMIT 1
+            ');
+            $punchStmt->execute([
+                ':is_admin' => $isAdmin,
+                ':uid' => $user->id,
+                ':photo_path' => $pathPattern
+            ]);
+            $authorized = (bool)$punchStmt->fetchColumn();
+        }
+
+        if (!$authorized) return $response->withStatus(404);
+
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $download = attendanceStorageRequest('GET', $filename, $serviceKey, $baseUrl);
+        if ($download['status'] !== 200) return $response->withStatus(404);
+
+        $response->getBody()->write($download['body']);
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $mime = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'][$ext] ?? 'application/octet-stream';
+        return $response->withHeader('Content-Type', $mime)
+            ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
+            ->withHeader('Cache-Control', 'private, no-store, max-age=0')
+            ->withHeader('X-Content-Type-Options', 'nosniff');
+    } catch (Throwable $e) {
+        error_log('Attendance photo download failed: ' . $e->getMessage());
+        return $response->withStatus(503);
+    }
+})->add(new AuthMiddleware());
+
 // Get Employee Attendance History
 /** @var \Slim\App $app */
 $app->get('/api/employee/attendance', function (Request $request, Response $response, $args) {
