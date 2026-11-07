@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,15 +6,7 @@ import { motion } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
-const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
-  const navigate = useNavigate();
-  const [branches, setBranches] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [, setError] = useState(null);
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
-
-  const initialFormState = {
+const initialFormState = {
     firstName: '',
     lastName: '',
     email: '',
@@ -27,7 +19,37 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     salary: '',
     status: 'Active',
     manager_id: ''
-  };
+};
+
+const const generateRandomPassword = () => {
+  const uppers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowers = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const specials = '!@#$%^&*()';
+  const all = uppers + lowers + numbers + specials;
+  
+  let pass = '';
+  pass += uppers.charAt(Math.floor(Math.random() * uppers.length));
+  pass += lowers.charAt(Math.floor(Math.random() * lowers.length));
+  pass += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  pass += specials.charAt(Math.floor(Math.random() * specials.length));
+  
+  for (let i = 0; i < 8; i++) {
+    pass += all.charAt(Math.floor(Math.random() * all.length));
+  }
+  
+  return pass.split('').sort(() => 0.5 - Math.random()).join('');
+};
+
+const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
+  const navigate = useNavigate();
+  const [branches, setBranches] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [, setError] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
+
 
   const [formData, setFormData] = useState(initialFormState);
 
@@ -64,9 +86,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
       setAvatarFile(null);
       setAvatarPreview(null);
     }
-  }, [isOpen]);
+  }, [isOpen, fetchBranches]);
 
-  const fetchBranches = async () => {
+
+  const fetchBranches = useCallback(async () => {
     try {
       const res = await api.get('/branches');
       setBranches(res.data.branches || []);
@@ -76,7 +99,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     } catch (e) {
       console.error("Failed to fetch branches", e);
     }
-  };
+  }, []);
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
