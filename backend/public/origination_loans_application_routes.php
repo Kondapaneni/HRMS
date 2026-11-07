@@ -402,7 +402,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
 
     } catch (\PDOException $e) {
         error_log("Database error submitting loan application: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Database error while saving to DB: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Database error while saving to DB: ' . 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     } catch (\Exception $e) {
         error_log("Error submitting loan application: " . $e->getMessage());
