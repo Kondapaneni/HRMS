@@ -1,24 +1,6 @@
 import { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { 
-  ArrowLeft, 
-  Loader2, 
-  Save, 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Heart, 
-  HeartHandshake, 
-  Globe, 
-  CalendarDays, 
-  Shield,
-  ChevronLeft,
-  ChevronDown,
-  Sun,
-  Moon,
-  Laptop
-} from 'lucide-react';
+import { Loader2, Save, Globe, CalendarDays, Shield, ChevronLeft, ChevronDown, Sun, Moon, Laptop } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

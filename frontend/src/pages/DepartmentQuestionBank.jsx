@@ -5,24 +5,9 @@ import { motion } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import SearchBar from '../components/ui/SearchBar';
-import {
-  HelpCircle, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  RefreshCw, 
-  X, 
-  Building2, 
-  CheckCircle2, 
-  CheckSquare, 
-  Disc,
-  Search,
-  Sparkles,
-  Loader2
-} from 'lucide-react';
+import { HelpCircle, Plus, Edit2, Trash2, RefreshCw, X, Building2, CheckCircle2, CheckSquare, Disc, Sparkles, Loader2 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 import StatCard from '../components/ui/StatCard';
-import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 
 const DEPARTMENTS = [
@@ -145,13 +130,13 @@ const DepartmentQuestionBank = () => {
     setEditingId(item.id);
     let opts = item.options || ['', '', '', ''];
     if (typeof opts === 'string') {
-      try { opts = JSON.parse(opts); } catch (e) { opts = ['', '', '', '']; }
+      try { opts = JSON.parse(opts); } catch { opts = ['', '', '', '']; }
     }
     while (opts.length < 4) opts.push('');
 
     let cOpts = item.correct_options;
     if (typeof cOpts === 'string') {
-      try { cOpts = JSON.parse(cOpts); } catch (e) { cOpts = null; }
+      try { cOpts = JSON.parse(cOpts); } catch { cOpts = null; }
     }
     if (!Array.isArray(cOpts) || cOpts.length === 0) {
       cOpts = [parseInt(item.correct_option) || 0];
@@ -322,11 +307,11 @@ const DepartmentQuestionBank = () => {
                 {questions.map((item, idx) => {
                   let opts = item.options || [];
                   if (typeof opts === 'string') {
-                    try { opts = JSON.parse(opts); } catch (e) { opts = []; }
+                    try { opts = JSON.parse(opts); } catch { opts = []; }
                   }
                   let cOpts = item.correct_options;
                   if (typeof cOpts === 'string') {
-                    try { cOpts = JSON.parse(cOpts); } catch (e) { cOpts = []; }
+                    try { cOpts = JSON.parse(cOpts); } catch { cOpts = []; }
                   }
                   if (!Array.isArray(cOpts) || cOpts.length === 0) {
                     cOpts = [parseInt(item.correct_option) || 0];

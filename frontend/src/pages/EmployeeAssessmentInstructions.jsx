@@ -3,11 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import {
-  Clock, Award, ShieldAlert, Video, AlertTriangle,
-  ChevronRight, BookOpen, Target, Monitor, Camera,
-  CheckCircle2, XCircle, ArrowLeft
+  Clock, Award, ShieldAlert, AlertTriangle,
+  ChevronRight, BookOpen, Target, Monitor,
+  ArrowLeft
 } from 'lucide-react';
-import PageLoader from '../components/PageLoader';
 
 const EmployeeAssessmentInstructions = () => {
   const navigate = useNavigate();

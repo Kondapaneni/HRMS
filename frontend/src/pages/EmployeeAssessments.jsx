@@ -3,13 +3,12 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { 
-  Award, Clock, CheckCircle2, PlayCircle, 
+  Clock, CheckCircle2, PlayCircle, 
   Calendar, Building2, BarChart2, ShieldAlert
 } from 'lucide-react';
 
 // Memoized Card Component (Requirement 8)
 const EmployeeAssessmentCard = React.memo(({ assessment, onStart, todayStr }) => {
-  const isCompleted = assessment.attempts_remaining <= 0;
   const inProgressId = assessment.in_progress_attempt_id;
   
   // Date calculations using memoized todayStr prop instead of creating new Date() in render
