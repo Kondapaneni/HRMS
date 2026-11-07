@@ -3,37 +3,29 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   Home,
   Clock,
-  Calendar,
   CalendarCheck,
-  CalendarDays,
   IndianRupee,
   Wallet,
-  DollarSign,
   BarChart2,
   Briefcase,
   ShoppingBag,
   Building2,
-  Award,
-  Play,
   User,
   Megaphone,
   Terminal,
-  Sparkles,
   Shield,
 } from 'lucide-react';
-import { useLocation, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import MaintenanceOverlay from './MaintenanceOverlay';
 import GlobalSearch from './GlobalSearch';
 import EmployeeChatbot from './EmployeeChatbot';
 import AppShell from './AppShell';
-import BottomNav from './ui/BottomNav';
 import api from '../api/axios';
 
 const EmployeeLayout = () => {
   const { profile } = useAuth();
-  const location = useLocation();
 
   const [isDevBypassed, setIsDevBypassed] = useState(
     () => localStorage.getItem('dev_bypass_maintenance_session') === 'true'
@@ -51,7 +43,7 @@ const EmployeeLayout = () => {
       try {
         const res = await api.get('/employee/assessments');
         return res.data || [];
-      } catch (e) {
+      } catch {
         return [];
       }
     },

@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
 import MaintenanceOverlay from './MaintenanceOverlay';
 import AppShell from './AppShell';
 import api from '../api/axios';
