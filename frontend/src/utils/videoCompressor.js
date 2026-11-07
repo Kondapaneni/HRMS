@@ -27,7 +27,7 @@ export const compressVideo = async (file, {
   audioBitrate = 128000,  // 128 kbps
   onProgress = () => {}
 } = {}) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // If MediaRecorder or Canvas is not available, return original
     if (typeof MediaRecorder === 'undefined' || typeof document === 'undefined') {
       console.warn('MediaRecorder not supported, using original video file.');
@@ -266,7 +266,9 @@ export const uploadToSignedUrlWithProgress = ({
     try {
       const payload = JSON.parse(xhr.responseText || '{}');
       message = payload.message || payload.error || payload.msg || message;
-    } catch {}
+    } catch {
+      // Keep the generic upload error when Storage returns a non-JSON body.
+    }
     reject(new Error(message));
   };
   xhr.onerror = () => reject(new Error('Network connection error during file upload'));
