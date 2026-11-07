@@ -30,8 +30,9 @@ function expenseStorageRequest(string $method, string $objectPath, string $servi
 
 function expenseStorageConfig(): array
 {
-    $url = rtrim($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: '', '/');
-    $key = $_ENV['SUPABASE_SERVICE_ROLE_KEY'] ?? getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '';
+    $urlValue = $_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?? '';
+    $key = $_ENV['SUPABASE_SERVICE_ROLE_KEY'] ?? getenv('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    $url = rtrim((string)$urlValue, '/');
     if (!$url || !$key) throw new RuntimeException('Private storage is not configured.');
     return [$url, $key];
 }
@@ -133,6 +134,10 @@ $app->post('/api/employee/expenses', function (Request $request, Response $respo
     $amount = $data['amount'] ?? 0;
     $category = $data['category'] ?? '';
     $bill_url = $data['bill_url'] ?? null;
+    if ($bill_url !== null && !expenseObjectPath((string)$bill_url, (string)$decodedToken->id)) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid receipt reference. Upload the receipt again.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
 
     if (empty($title) || empty($amount) || empty($category)) {
         $response->getBody()->write(json_encode(['error' => 'Title, amount, and category are required']));
@@ -167,7 +172,7 @@ $app->delete('/api/employee/expenses/{id}', function (Request $request, Response
 
     try {
         // Only allow deleting Pending expenses
-        $stmtCheck = $conn->prepare('SELECT status FROM expenses WHERE id = ? AND user_id = ?');
+        $stmtCheck = $conn->prepare('SELECT status, bill_url FROM expenses WHERE id = ? AND user_id = ?');
         $stmtCheck->execute([$expenseId, $decodedToken->id]);
         $expense = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
@@ -181,6 +186,11 @@ $app->delete('/api/employee/expenses/{id}', function (Request $request, Response
 
         $stmtDel = $conn->prepare('DELETE FROM expenses WHERE id = ?');
         $stmtDel->execute([$expenseId]);
+        $billPath = expenseObjectPath($expense['bill_url'] ?? null, (string)$decodedToken->id);
+        if ($billPath) {
+            try { [$baseUrl, $serviceKey] = expenseStorageConfig(); expenseStorageRequest('DELETE', $billPath, $serviceKey, $baseUrl); }
+            catch (Throwable $storageError) { error_log('Expense receipt cleanup failed: ' . $storageError->getMessage()); }
+        }
 
         $response->getBody()->write(json_encode(['message' => 'Expense deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
