@@ -792,7 +792,7 @@ $app->post('/api/reset-password', function (Request $request, Response $response
 // Job Description proxy route for clean URLs
 $app->get('/Job-Description/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
+    $supabaseUrl = ($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? '') . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
     return streamSupabaseFile($supabaseUrl, $response, $filename, 'attachment');
 });
 
@@ -845,14 +845,14 @@ function streamSupabaseFile($supabaseUrl, Response $response, $filename, $dispos
 // Avatar proxy route
 $app->get('/Avatar/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/avatars/" . rawurlencode($filename);
+    $supabaseUrl = ($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? '') . "/storage/v1/object/public/avatars/" . rawurlencode($filename);
     return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Holiday proxy route
 $app->get('/Holiday/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/holidays/" . rawurlencode($filename);
+    $supabaseUrl = ($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? '') . "/storage/v1/object/public/holidays/" . rawurlencode($filename);
     return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
