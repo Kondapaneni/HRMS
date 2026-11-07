@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Camera, RefreshCw, UploadCloud, X, AlertCircle, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../api/axios';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeMobileCamera = () => {
@@ -184,26 +183,23 @@ const EmployeeMobileCamera = () => {
     setIsSubmitting(true);
 
     try {
-      // 1. Upload photo to Supabase Storage (using 'avatars' bucket for convenience)
+      // Upload through the authenticated backend so the browser never receives storage write credentials.
       const blob = b64toBlob(photoDataUrl, 'image/jpeg');
-      const fileName = `attendance-${profile?.employeeId || 'emp'}-${Date.now()}.jpg`;
-
-      const { error: uploadError } = await supabase.storage.from('attendance').upload(fileName, blob, {
-        contentType: 'image/jpeg',
-        upsert: false
+      const uploadForm = new FormData();
+      uploadForm.append('photo', blob, 'attendance.jpg');
+      const uploadRes = await api.post('/employee/attendance/photo', uploadForm, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
+      const photoPath = uploadRes.data?.photo;
+      if (!photoPath) throw new Error('Attendance photo upload did not return a file path.');
 
-      if (uploadError) throw new Error('Failed to upload photo: ' + uploadError.message);
-
-      const publicUrl = window.location.origin + "/Attendance/" + fileName;
-
-      // 2. Submit Punch to backend
+      // Submit Punch to backend using the private, authenticated photo path.
       const punchRes = await api.post('/employee/attendance/punch', {
         action,
         latitude,
         longitude,
         address,
-        photo: publicUrl
+        photo: photoPath
       });
 
       const updatedAtt = punchRes.data?.attendance;
