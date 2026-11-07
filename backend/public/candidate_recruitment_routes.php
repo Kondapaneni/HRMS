@@ -184,9 +184,10 @@ $app->post('/api/candidate/resumes', function (Request $request, Response $respo
     try {
         $db = new Database();
         $conn = $db->getConnection();
-        $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ?');
+        $stmt = $conn->prepare('SELECT id, resume_url FROM candidate_profiles WHERE user_id = ? FOR UPDATE');
         $stmt->execute([$user->id]);
-        $stored = $stmt->fetchColumn();
+        $profileRow = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stored = $profileRow['resume_url'] ?? null;
         $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
         if (count($resumes) >= 3) {
             $response->getBody()->write(json_encode(['error' => 'You can only upload a maximum of 3 resumes.']));
@@ -199,8 +200,13 @@ $app->post('/api/candidate/resumes', function (Request $request, Response $respo
         if ($upload['status'] < 200 || $upload['status'] >= 300) throw new RuntimeException('Resume storage upload failed.');
         $resume = ['id' => $id, 'name' => $originalName, 'storagePath' => 'storage:resumes/' . $objectPath, 'isPrimary' => count($resumes) === 0];
         $resumes[] = $resume;
-        $save = $conn->prepare('INSERT INTO candidate_profiles (user_id, resume_url) VALUES (?, ?) ON CONFLICT (user_id) DO UPDATE SET resume_url = EXCLUDED.resume_url, updated_at = CURRENT_TIMESTAMP');
-        $save->execute([$user->id, json_encode($resumes)]);
+        if ($profileRow) {
+            $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+            $save->execute([json_encode($resumes), $user->id]);
+        } else {
+            $save = $conn->prepare('INSERT INTO candidate_profiles (user_id, resume_url) VALUES (?, ?)');
+            $save->execute([$user->id, json_encode($resumes)]);
+        }
         $response->getBody()->write(json_encode(['resume' => $resume]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     } catch (Throwable $e) {
