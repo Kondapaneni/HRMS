@@ -56,6 +56,14 @@ $app->get('/api/employee/training/videos', function (Request $request, Response 
         
         $videos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // The assignment query above authorizes the employee; only then issue a
+        // time-limited signed URL for each private training video.
+        foreach ($videos as &$video) {
+            $video['video_url'] = trainingVideoSignedUrl($video['video_url'] ?? null);
+        }
+        unset($video);
+
+
         // Normalize boolean is_completed
         $formattedVideos = array_map(function($v) {
             $v['is_completed'] = filter_var($v['is_completed'], FILTER_VALIDATE_BOOLEAN);
