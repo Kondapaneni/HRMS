@@ -756,7 +756,7 @@ const OriginationActivities = () => {
       </div>
 
       {/* Web Desktop Calendar View (Black & White Monochromatic Theme) */}
-      <div className="hidden md:flex flex-col h-[calc(100dvh-108px)] select-none antialiased space-y-4">
+      <div className="hidden md:flex flex-col min-h-[860px] select-none antialiased space-y-4 pb-12">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0 px-0.5">
@@ -789,7 +789,7 @@ const OriginationActivities = () => {
         </div>
 
         {/* Outer White Card Container with rounded corners */}
-        <div className="flex-1 flex rounded-[24px] border border-[var(--line)] bg-[var(--surface)] shadow-sm overflow-hidden min-h-0">
+        <div className="flex-1 flex rounded-[24px] border border-[var(--line)] bg-[var(--surface)] shadow-sm overflow-hidden min-h-[760px]">
           
           {/* =========================================================
               LEFT SIDEBAR: Mini Month Calendar + Filters + Search
@@ -1108,7 +1108,7 @@ const OriginationActivities = () => {
                           setQuickCreateDate(dayStr);
                           setIsQuickCreateOpen(true);
                         }}
-                        className={`border-b border-r border-[var(--line)] p-1.5 sm:p-2 flex flex-col justify-start min-h-[85px] transition-colors cursor-pointer group hover:bg-[var(--surface-alt)]/35 ${
+                        className={`border-b border-r border-[var(--line)] p-1.5 sm:p-2 flex flex-col justify-start min-h-[120px] transition-colors cursor-pointer group hover:bg-[var(--surface-alt)]/35 ${
                           isCurrMonth ? 'bg-[var(--surface)]' : 'bg-[var(--surface-alt)]/25'
                         } ${isPastDate ? 'opacity-70' : ''}`}
                       >
@@ -1141,7 +1141,7 @@ const OriginationActivities = () => {
                         </div>
 
                         {/* Event Chips List */}
-                        <div className="space-y-1 overflow-y-auto max-h-[75px] hide-scrollbar flex-1">
+                        <div className="space-y-1 overflow-y-auto max-h-[105px] hide-scrollbar flex-1">
                           {dayEvents.slice(0, 3).map((evt) => {
                             const isCompleted = evt.status === 'Completed';
                             const pillStyle = getEventPillStyle(evt);
@@ -1207,7 +1207,7 @@ const OriginationActivities = () => {
                     const dayEvents = eventsByDate.get(dayStr) || [];
 
                     return (
-                      <div key={i} className="px-1.5 space-y-1.5 min-h-[300px]">
+                      <div key={i} className="px-1.5 space-y-1.5 min-h-[500px]">
                         {dayEvents.map(evt => (
                           <div
                             key={evt.id}
