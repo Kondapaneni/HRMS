@@ -8,17 +8,9 @@ import {
   Shield, 
   ChevronRight, 
   Briefcase, 
-  Play, 
   Building2, 
   ShoppingBag,
   Cake,
-  Search,
-  X,
-  Wallet,
-  Award,
-  Sparkles,
-  MapPin,
-  User
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
