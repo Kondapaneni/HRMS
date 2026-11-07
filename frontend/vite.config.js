@@ -10,13 +10,13 @@ const yy = now.getFullYear() % 100;
 const m = now.getMonth() + 1;
 const d = now.getDate();
 
-let todayCommits = 1;
+let todayCommits;
 let gitCommitShort = '';
 try {
   const countOutput = execSync('git rev-list --count --since="midnight" HEAD').toString().trim();
   todayCommits = Math.max(1, parseInt(countOutput, 10) || 1);
   gitCommitShort = execSync('git rev-parse --short HEAD').toString().trim();
-} catch (e) {
+} catch {
   todayCommits = 1;
   gitCommitShort = 'dev';
 }
@@ -91,7 +91,7 @@ export default defineConfig({
                 try {
                   res.writeHead(502, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ error: 'Bad Gateway / Proxy Error', message: err?.message }));
-                } catch (_) { }
+                } catch { /* Proxy response may no longer be writable. */ }
               }
             });
           }
