@@ -38,7 +38,7 @@ const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
   try {
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? '—' : format(d, formatPattern);
-  } catch (e) {
+  } catch {
     return '—';
   }
 };
