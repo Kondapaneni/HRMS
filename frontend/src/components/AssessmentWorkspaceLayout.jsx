@@ -15,9 +15,9 @@ const AssessmentWorkspaceLayout = () => {
   const isAdmin = profile?.role === 'admin';
   const fa = profile?.featureAccess;
 
-  // If user has other HR Admin features (Employees, Attendance, Leave, Payroll, Assets, Recruitment),
-  // return to HR Admin portal. Otherwise, return to Employee Workspace.
-  const hrAdminPath =
+  // If user has other Admin features (Employees, Attendance, Leave, Payroll, Assets, Recruitment),
+  // return to Admin Features portal. Otherwise, return to Employee Workspace.
+  const adminFeaturesPath =
     (fa?.canEmployees && '/admin/employees') ||
     (fa?.canRecruitment && '/admin/recruitment') ||
     (fa?.canAttendance && '/admin/attendance') ||
@@ -25,10 +25,10 @@ const AssessmentWorkspaceLayout = () => {
     (fa?.canPayroll && '/admin/payroll') ||
     (fa?.canAssets && '/admin/assets');
 
-  const backDestination = isAdmin ? '/admin' : (hrAdminPath || '/employee');
+  const backDestination = isAdmin ? '/admin' : (adminFeaturesPath || '/employee');
   const backTitle = isAdmin
     ? 'Return to Admin Workspace'
-    : (hrAdminPath ? 'Return to HR Admin' : 'Return to Employee Workspace');
+    : (adminFeaturesPath ? 'Return to Admin Features' : 'Return to Employee Workspace');
 
   const railGroups = [
     {

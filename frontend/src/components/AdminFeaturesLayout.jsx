@@ -16,7 +16,7 @@ import AppShell from './AppShell';
 import Button from './ui/Button';
 import GlobalSearch from './GlobalSearch';
 
-const HRAdminLayout = () => {
+const AdminFeaturesLayout = () => {
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const fa = profile?.featureAccess;
@@ -121,7 +121,7 @@ const HRAdminLayout = () => {
   return (
     <>
       <AppShell
-        portalName="HR Admin"
+        portalName="Admin Features"
         portalSubtitle="Management Portal"
         railGroups={railGroups}
         bottomNavItems={[]}
@@ -145,17 +145,17 @@ const HRAdminLayout = () => {
 
       {/* Mobile Restriction Overlay */}
       <style>{`
-        .hr-admin-mobile-overlay {
+        .admin-features-mobile-overlay {
           display: none;
         }
         @media (max-width: 768px) {
-          .hr-admin-mobile-overlay {
+          .admin-features-mobile-overlay {
             display: flex;
           }
         }
       `}</style>
 
-      <div className="hr-admin-mobile-overlay fixed inset-0 z-[9999] flex-col items-center justify-center bg-[#131315]/45 backdrop-blur-md p-6 text-center select-none">
+      <div className="admin-features-mobile-overlay fixed inset-0 z-[9999] flex-col items-center justify-center bg-[#131315]/45 backdrop-blur-md p-6 text-center select-none">
         <div className="bg-[var(--surface)] text-[var(--text)] rounded-[24px] p-6 sm:p-8 max-w-sm w-full shadow-[var(--shadow-modal)] border border-[var(--line)]/50 flex flex-col items-center">
           <div className="w-14 h-14 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center mb-4">
             <Monitor size={26} strokeWidth={1.7} />
@@ -181,5 +181,5 @@ const HRAdminLayout = () => {
   );
 };
 
-export default HRAdminLayout;
+export default AdminFeaturesLayout;
 

@@ -213,7 +213,7 @@ const EmployeeLayout = () => {
       fa?.canAdminAssessments;
 
     if (hasAnyAdminAccess) {
-      // Resolve the first accessible admin path (mirrors HRAdminLayout group priority)
+      // Resolve the first accessible admin path (mirrors AdminFeaturesLayout group priority)
       const firstAdminPath =
         (fa.canEmployees && '/admin/employees') ||
         (fa.canRecruitment && '/admin/recruitment') ||
@@ -224,11 +224,11 @@ const EmployeeLayout = () => {
         (fa.canAdminAssessments && '/admin/assessments');
 
       groups.push({
-        id: 'hr-admin',
+        id: 'admin-features',
         icon: Shield,
-        label: 'HR Admin',
+        label: 'Admin Features',
         path: firstAdminPath,
-        chips: [{ label: 'HR Admin', path: firstAdminPath }],
+        chips: [{ label: 'Admin Features', path: firstAdminPath }],
         activeMatch: (pathname) => pathname.startsWith('/admin'),
       });
     }

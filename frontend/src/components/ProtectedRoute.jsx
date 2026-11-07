@@ -107,7 +107,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
 
       let hasAdminModuleAccess = false;
       if (path === '/admin' || path === '/admin/') {
-        // Allowed through to HRAdminLayout which redirects to first permitted module
+        // Allowed through to AdminFeaturesLayout which redirects to first permitted module
         hasAdminModuleAccess = true;
       } else if (path.startsWith('/admin/attendance') && fa.canAttendance) {
         hasAdminModuleAccess = true;
