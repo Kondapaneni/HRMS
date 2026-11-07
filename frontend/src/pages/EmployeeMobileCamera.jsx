@@ -4,13 +4,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Camera, RefreshCw, UploadCloud, X, AlertCircle, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../api/axios';
-import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeMobileCamera = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
 
   const { action, latitude, longitude, address } = location.state || {};
 
@@ -187,9 +185,7 @@ const EmployeeMobileCamera = () => {
       const blob = b64toBlob(photoDataUrl, 'image/jpeg');
       const uploadForm = new FormData();
       uploadForm.append('photo', blob, 'attendance.jpg');
-      const uploadRes = await api.post('/employee/attendance/photo', uploadForm, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const uploadRes = await api.post('/employee/attendance/photo', uploadForm);
       const photoPath = uploadRes.data?.photo;
       if (!photoPath) throw new Error('Attendance photo upload did not return a file path.');
 
