@@ -390,6 +390,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $appId = $application['application_id'] ?: $application['id'];
             loanSignApplicationAssets($application['form_data'], $application['signatures'], (string)$application['id']);
             $application['documents'] = getLoanDocumentsFromTable($conn, $appId, $application['id'], $application['lead_id']);
+            $application['form_data']['documents'] = $application['documents'];
         }
 
         $response->getBody()->write(json_encode([
@@ -468,6 +469,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
             }
             loanSignApplicationAssets($row['form_data'], $row['signatures'], (string)$row['id']);
             $row['documents'] = resolveLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
+            $row['form_data']['documents'] = $row['documents'];
         }
         unset($row);
 
