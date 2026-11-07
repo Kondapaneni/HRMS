@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
 import { 
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
@@ -77,7 +75,7 @@ const EmployeeProfile = () => {
     upload.append('file', file);
     try {
       setIsUploading(true);
-      const result = await api.post('/employee/profile/avatar', upload, {
+      await api.post('/employee/profile/avatar', upload, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success('Profile picture updated successfully!');
@@ -94,7 +92,7 @@ const EmployeeProfile = () => {
   const renderTimeline = () => {
     let history = [];
     if (timeline) {
-      try { history = JSON.parse(timeline); } catch (e) { history = []; }
+      try { history = JSON.parse(timeline); } catch { history = []; }
     }
     if (!history.length) {
       history = [{ date: joinDate, title: 'Joined Company', description: `Started as ${position || 'Employee'}` }];
@@ -787,7 +785,7 @@ const EmployeeProfile = () => {
                   doubleClick={{ disabled: true }}
                   panOnScroll={true}
                 >
-                  {({ zoomIn, zoomOut, resetTransform }) => {
+                  {() => {
                     return (
                       <div className="relative w-full h-full">
                         <TransformComponent wrapperClass="!w-full !h-full" contentClass="min-w-max min-h-max flex items-start justify-center pt-16 pb-32 px-16">
