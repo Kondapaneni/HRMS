@@ -70,7 +70,7 @@ const OriginationMobileLoanApplicationsList = () => {
     try {
       const d = new Date(dateStr);
       return isNaN(d.getTime()) ? '—' : format(d, 'dd MMM yyyy');
-    } catch (e) {
+    } catch {
       return '—';
     }
   };
