@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Phone, MapPin, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, User, Phone, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
