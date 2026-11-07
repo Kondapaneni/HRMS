@@ -1,8 +1,8 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
 import { Tree, TreeNode } from 'react-organizational-chart';
-import { Search, Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../components/ui/Avatar';
 import SearchBar from '../components/ui/SearchBar';
