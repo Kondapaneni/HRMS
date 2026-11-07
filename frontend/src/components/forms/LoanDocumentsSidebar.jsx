@@ -14,8 +14,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../lib/supabase';
-import { saveLoanDocuments, deleteLoanDocument } from '../../services/loanServices';
+import { uploadLoanDocument, deleteLoanDocument } from '../../services/loanServices';
 import { compressImageFile } from '../../utils/imageCompressor';
 import toast from 'react-hot-toast';
 
@@ -133,52 +132,15 @@ export function LoanDocumentsSidebar({
         quality: 0.85
       });
 
-      const fileExt = 'jpg';
-      const cleanSlotName = slotKey.replace(/_/g, '-');
-      const fileName = `${appId}_${cleanSlotName}_${Date.now()}.${fileExt}`;
-      const filePath = fileName;
-
-      // 1. Remove old photo from Supabase if exists
-      const currentDoc = documentsState[slotKey];
-      if (currentDoc && currentDoc.url) {
-        const parts = currentDoc.url.split('/Loan-Document/');
-        if (parts.length > 1) {
-          const oldStoragePath = parts[1];
-          try {
-            await supabase.storage.from('loan_documents').remove([oldStoragePath]);
-          } catch (e) {
-            console.warn('Could not remove old file from Supabase:', e);
-          }
-        }
-      }
-
-      // 2. Upload optimized photo to Supabase storage bucket 'loan_documents'
-      const { error: uploadError } = await supabase.storage
-        .from('loan_documents')
-        .upload(filePath, optimizedFile, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) {
-        throw new Error(uploadError.message || 'Failed to upload photo to storage.');
-      }
-
-      // 3. Construct proxy URL matching avatar pattern in EmployeeProfile.jsx
-      const documentUrl = window.location.origin + "/Loan-Document/" + fileName;
-
-      const docRecord = {
-        url: documentUrl,
-        slot_key: slotKey
-      };
+      // Upload and persist through the authenticated backend. The server validates
+      // the image, creates a random object path, and replaces the previous file.
+      const result = await uploadLoanDocument(targetId, slotKey, optimizedFile);
+      const docRecord = result.document;
 
       const updatedDocs = {
         ...documentsState,
         [slotKey]: docRecord
       };
-
-      // 4. Persist in database
-      await saveLoanDocuments(targetId, { [slotKey]: docRecord });
 
       setDocumentsState(updatedDocs);
       if (onDocumentsUpdated) {
@@ -206,17 +168,7 @@ export function LoanDocumentsSidebar({
     try {
       setIsUploadingSlot(slotKey);
 
-      // 1. Remove from Supabase storage
-      if (doc.file_name) {
-        await supabase.storage.from('loan_documents').remove([doc.file_name]);
-      } else if (doc.url) {
-        const parts = doc.url.split('/Loan-Document/');
-        if (parts.length > 1) {
-          await supabase.storage.from('loan_documents').remove([parts[1]]);
-        }
-      }
-
-      // 2. Delete from DB
+      // The backend verifies application ownership and removes the private object.
       await deleteLoanDocument(targetId, slotKey);
 
       const nextDocs = { ...documentsState };
