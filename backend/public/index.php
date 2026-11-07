@@ -161,7 +161,12 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
         
-        $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+        $secret = trim($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
+        if (empty($secret) || strlen($secret) < 32) {
+            error_log('Login error: JWT_SECRET environment variable is missing, empty, or insecure (minimum 32 characters required).');
+            $response->getBody()->write(json_encode(['error' => 'Authentication service configuration error. Please contact your administrator.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
         
         $payload = [
             'iss' => 'acme_hrms',
@@ -369,7 +374,12 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     $settings = $settingsStmt->fetch(PDO::FETCH_ASSOC);
     $sessionTimeout = $settings['session_timeout'] ?? '30';
 
-    $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+    $secret = trim($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
+    if (empty($secret) || strlen($secret) < 32) {
+        error_log('OTP verification error: JWT_SECRET environment variable is missing, empty, or insecure (minimum 32 characters required).');
+        $response->getBody()->write(json_encode(['error' => 'Authentication service configuration error. Please contact your administrator.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
 
     $payload = [
         'iss' => 'acme_hrms',

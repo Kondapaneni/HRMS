@@ -170,7 +170,12 @@ $app->post('/api/candidate/login', function (Request $request, Response $respons
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
         
-        $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+        $secret = trim($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
+        if (empty($secret) || strlen($secret) < 32) {
+            error_log('Candidate login error: JWT_SECRET environment variable is missing, empty, or insecure (minimum 32 characters required).');
+            $response->getBody()->write(json_encode(['error' => 'Authentication service configuration error. Please contact your administrator.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
         $payload = [
             'iss' => 'acme_hrms',
             'iat' => time(),

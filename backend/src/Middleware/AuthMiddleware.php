@@ -38,12 +38,19 @@ class AuthMiddleware
             return $this->unauthorizedResponse("Missing Authorization Token");
         }
 
-        $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+        $secret = trim($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
+
+        // Validate JWT secret before token verification
+        if (empty($secret) || strlen($secret) < 32) {
+            error_log("AuthMiddleware: JWT_SECRET environment variable is missing, empty, or insecure (minimum 32 characters required).");
+            return $this->serverErrorResponse("Authentication service configuration error.");
+        }
 
         try {
             $decoded = JWT::decode($token, new Key($secret, 'HS256'));
         } catch (Exception $e) {
-            return $this->unauthorizedResponse("Invalid or expired token: " . $e->getMessage() . " (Secret empty? " . (empty($secret) ? 'yes' : 'no') . ")");
+            error_log("AuthMiddleware: Token verification failed: " . $e->getMessage());
+            return $this->unauthorizedResponse("Invalid or expired token.");
         }
 
         // Check roles if specified
@@ -145,5 +152,14 @@ class AuthMiddleware
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(403);
+    }
+
+    private function serverErrorResponse(string $message): Response
+    {
+        $response = new SlimResponse();
+        $response->getBody()->write(json_encode(['error' => $message]));
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(500);
     }
 }
