@@ -468,16 +468,19 @@ const AdminRecruitment = () => {
     return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase() || 'CA';
   };
 
-  const filteredApplications = applications.filter(app => {
-    const matchesJob = jobFilter ? app.job_id === jobFilter : true;
-    const matchesStatus = statusFilter ? app.status === statusFilter : true;
-    return matchesJob && matchesStatus;
-  });
+  const filteredApplications = applications;
+  const openPositions = Number(jobsResponse.stats?.openPositions || 0);
+  const totalApplicants = Number(applicationsResponse.stats?.totalApplicants ?? applicationsTotal);
+  const inInterview = Number(applicationsResponse.stats?.inInterview || 0);
+  const hiredCount = Number(applicationsResponse.stats?.hiredCount || 0);
 
-  const openPositions = jobs.filter(j => j.status === 'Published').length;
-  const totalApplicants = applications.length;
-  const inInterview = applications.filter(a => (a.status || '').includes('Interview')).length;
-  const hiredCount = applications.filter(a => ['Hired', 'Selected', 'Converted to Employee'].includes(a.status)).length;
+  useEffect(() => {
+    if (applicationsPage > applicationsTotalPages) setApplicationsPage(applicationsTotalPages);
+  }, [applicationsPage, applicationsTotalPages]);
+
+  useEffect(() => {
+    if (jobsPage > jobsTotalPages) setJobsPage(jobsTotalPages);
+  }, [jobsPage, jobsTotalPages]);
 
   if (isLoadingJobs) return <PageLoader message="Loading recruitment data..." />;
 
@@ -545,10 +548,10 @@ const AdminRecruitment = () => {
           }`}
         >
           <Briefcase className="w-4 h-4" />
-          Job openings ({jobs.length})
+          Job openings ({jobsTotal})
         </button>
         <button
-          onClick={() => { setActiveTab('applications'); setJobFilter(''); }}
+          onClick={() => { setActiveTab('applications'); setJobFilter(''); setApplicationsPage(1); }}
           className={`flex items-center gap-2 px-4 py-2 text-[13px] font-medium rounded-full transition-colors cursor-pointer ${
             activeTab === 'applications'
               ? 'bg-[var(--ink)] text-white'
@@ -556,7 +559,7 @@ const AdminRecruitment = () => {
           }`}
         >
           <Users className="w-4 h-4" />
-          Applicant pipeline ({applications.length})
+          Applicant pipeline ({applicationsTotal})
         </button>
       </div>
 
@@ -623,7 +626,7 @@ const AdminRecruitment = () => {
                     <Button 
                       variant="secondary"
                       size="sm"
-                      onClick={() => { setActiveTab('applications'); setJobFilter(job.id); }}
+                      onClick={() => { setActiveTab('applications'); setJobFilter(job.id); setApplicationsPage(1); }}
                     >
                       View candidates
                     </Button>
@@ -663,6 +666,16 @@ const AdminRecruitment = () => {
             ))
           )}
         </div>
+        {jobsTotalPages > 1 && (
+          <div className="col-span-full flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+            <p className="text-xs text-[var(--muted)]">Showing {(jobsPage - 1) * pageLimit + 1}–{Math.min(jobsPage * pageLimit, jobsTotal)} of {jobsTotal} jobs</p>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setJobsPage((p) => Math.max(1, p - 1))} disabled={jobsPage <= 1 || isLoadingJobs} className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs disabled:opacity-40">Previous</button>
+              <span className="text-xs text-[var(--muted)] tabular-nums">Page {jobsPage} of {jobsTotalPages}</span>
+              <button type="button" onClick={() => setJobsPage((p) => Math.min(jobsTotalPages, p + 1))} disabled={jobsPage >= jobsTotalPages || isLoadingJobs} className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs disabled:opacity-40">Next</button>
+            </div>
+          </div>
+        )}
       )}
 
       {/* Content Body: Applicant Pipeline */}
@@ -680,7 +693,7 @@ const AdminRecruitment = () => {
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <select 
                 value={jobFilter}
-                onChange={(e) => setJobFilter(e.target.value)}
+                onChange={(e) => { setJobFilter(e.target.value); setApplicationsPage(1); }}
                 className="w-full sm:w-auto h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
               >
                 <option value="">All job positions</option>
@@ -691,7 +704,7 @@ const AdminRecruitment = () => {
 
               <select 
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => { setStatusFilter(e.target.value); setApplicationsPage(1); }}
                 className="w-full sm:w-auto h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
               >
                 <option value="">All pipeline statuses</option>
@@ -874,6 +887,16 @@ const AdminRecruitment = () => {
               })
             )}
           </div>
+          {applicationsTotalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+              <p className="text-xs text-[var(--muted)]">Showing {(applicationsPage - 1) * pageLimit + 1}–{Math.min(applicationsPage * pageLimit, applicationsTotal)} of {applicationsTotal} applications</p>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setApplicationsPage((p) => Math.max(1, p - 1))} disabled={applicationsPage <= 1 || isLoadingApps} className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs disabled:opacity-40">Previous</button>
+                <span className="text-xs text-[var(--muted)] tabular-nums">Page {applicationsPage} of {applicationsTotalPages}</span>
+                <button type="button" onClick={() => setApplicationsPage((p) => Math.min(applicationsTotalPages, p + 1))} disabled={applicationsPage >= applicationsTotalPages || isLoadingApps} className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs disabled:opacity-40">Next</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
