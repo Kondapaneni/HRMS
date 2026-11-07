@@ -171,7 +171,7 @@ const AdminVerifyDocuments = () => {
     try {
       const res = await api.get(`/admin/candidate-documents/${encodeURIComponent(doc.id)}/file`, { responseType: 'blob' });
       setPreviewUrl(URL.createObjectURL(res.data));
-    } catch (error) {
+    } catch {
       setPreviewDoc(null);
       toast.error('Unable to open this document. Please try again.');
     } finally {
