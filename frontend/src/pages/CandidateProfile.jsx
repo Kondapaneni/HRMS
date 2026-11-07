@@ -139,7 +139,7 @@ const CandidateProfile = () => {
       const objectUrl = URL.createObjectURL(response.data);
       previewWindow.location.href = objectUrl;
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-    } catch (error) {
+    } catch {
       previewWindow.close();
       toast.error('Unable to open this resume. Please try again.');
     }
@@ -152,7 +152,7 @@ const CandidateProfile = () => {
         ? await api.put(`/candidate/resumes/${encodeURIComponent(resume.id)}/primary`)
         : await api.put('/candidate/resume-legacy/primary', null, { params: { url: resume?.url || '' } });
       setFormData(prev => ({ ...prev, resumes: res.data.resumes || prev.resumes }));
-    } catch (error) {
+    } catch {
       toast.error('Unable to update the primary resume.');
     }
   };
@@ -166,7 +166,7 @@ const CandidateProfile = () => {
       setFormData(prev => ({ ...prev, resumes: res.data.resumes || [] }));
       queryClient.invalidateQueries(['candidate', 'profile']);
       queryClient.invalidateQueries(['candidate', 'profile_for_jobs']);
-    } catch (error) {
+    } catch {
       toast.error('Unable to delete this resume.');
     }
   };

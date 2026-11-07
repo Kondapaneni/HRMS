@@ -87,7 +87,7 @@ const CandidateApplications = () => {
       const objectUrl = URL.createObjectURL(response.data);
       previewWindow.location.href = objectUrl;
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-    } catch (error) {
+    } catch {
       previewWindow.close();
       toast.error('Unable to open this offer letter. Please try again.');
     }

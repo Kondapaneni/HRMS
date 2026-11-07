@@ -56,7 +56,7 @@ const EmployeeChatbot = () => {
     }
     list.push({ label: 'My Business Apps', query: 'What business apps do I have access to?' });
     return list;
-  }, [profile]);
+  }, [profile, messages.length]);
 
   // Initialize greeting on first load if empty (clean text, no emojis)
   useEffect(() => {
@@ -69,7 +69,7 @@ const EmployeeChatbot = () => {
       setMessages([welcomeMsg]);
       try {
         sessionStorage.setItem('hrms_employee_chat_history', JSON.stringify([welcomeMsg]));
-      } catch (_) {}
+      } catch { /* Session storage is optional; the in-memory chat remains available. */ }
     }
   }, [profile]);
 
