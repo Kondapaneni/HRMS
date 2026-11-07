@@ -54,7 +54,7 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin']));
@@ -71,7 +71,7 @@ $app->get('/api/branches', function (Request $request, Response $response, $args
         $response->getBody()->write(json_encode(['branches' => $branches]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin', 'employee']));
@@ -155,7 +155,7 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
@@ -285,7 +285,7 @@ $app->put('/api/admin/employees/{id}', function (Request $request, Response $res
         if ($conn->inTransaction()) {
             $conn->rollBack();
         }
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
@@ -383,7 +383,7 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
         if (isset($conn) && $conn->inTransaction()) {
             $conn->rollBack();
         }
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
@@ -449,7 +449,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
 
     } catch (\Exception $e) {
         $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => 'An error occurred while converting the candidate: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while converting the candidate: ' . 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
@@ -828,7 +828,7 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
         if ($conn->inTransaction()) {
             $conn->rollBack();
         }
-        $response->getBody()->write(json_encode(['error' => 'Failed to promote employee: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Failed to promote employee: ' . 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
