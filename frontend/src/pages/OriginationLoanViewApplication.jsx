@@ -12,7 +12,6 @@ import {
   FileEdit,
   Send
 } from 'lucide-react';
-import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { getLoanApplications, transferLoanApplicationToBranch, getBranches } from '../services/loanServices';
 import { preloadAndDecodeImages } from '../utils/imageCompressor';
