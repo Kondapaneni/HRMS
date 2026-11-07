@@ -59,6 +59,23 @@ const CandidateApplications = () => {
     staleTime: 5 * 60 * 1000
   });
 
+  const handlePreviewResume = async (resumeRef) => {
+    const previewWindow = window.open('about:blank', '_blank');
+    if (!previewWindow) return;
+    try {
+      const isLegacyUrl = String(resumeRef || '').startsWith('http') || String(resumeRef || '').includes('/Resume/');
+      const endpoint = isLegacyUrl
+        ? `/candidate/resume-file?url=${encodeURIComponent(resumeRef)}`
+        : `/candidate/resumes/${encodeURIComponent(resumeRef)}/file`;
+      const response = await api.get(endpoint, { responseType: 'blob' });
+      const objectUrl = URL.createObjectURL(response.data);
+      previewWindow.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      previewWindow.close();
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Applied': 
@@ -323,14 +340,13 @@ const CandidateApplications = () => {
                       <FileText size={12} className="text-[var(--accent-pink-deep)]" />
                       {timelineApp.resumeName}
                     </span>
-                    <a
-                      href={timelineApp.resumeUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewResume(timelineApp.resumeUrl)}
                       className="text-[11px] font-semibold text-[var(--brand-deep)] hover:underline"
                     >
                       View Resume
-                    </a>
+                    </button>
                   </div>
                 )}
 
