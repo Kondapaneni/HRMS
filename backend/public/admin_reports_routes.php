@@ -3,7 +3,7 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
-use App\Config\Database;
+use App\Config\Database;\nuse Slim\Psr7\Stream;
 
 /**
  * Generate CSV output from a PDO statement
@@ -15,7 +15,7 @@ function streamCsvOutput(Response $response, $filename, $stmt) {
         ->withHeader('Pragma', 'no-cache')
         ->withHeader('Expires', '0');
 
-    $stream = fopen('php://temp', 'r+');
+    $stream = fopen('php://temp/maxmemory:2097152', 'r+');
     
     // Fetch first row to get column headers
     $firstRow = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -44,7 +44,7 @@ function streamCsvOutput(Response $response, $filename, $stmt) {
 $app->get('/api/admin/reports/employees', function (Request $request, Response $response, $args) {
     $queryParams = $request->getQueryParams();
     $format = $queryParams['format'] ?? 'csv';
-    $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 100;
+    $limit = max(1, min(10000, (int)($queryParams['limit'] ?? 100)));
     $offset = isset($queryParams['offset']) ? (int)$queryParams['offset'] : (isset($queryParams['page']) ? (max(1, (int)$queryParams['page']) - 1) * $limit : 0);
     if ($limit <= 0) $limit = 100;
     if ($offset < 0) $offset = 0;
@@ -107,7 +107,7 @@ $app->get('/api/admin/reports/employees', function (Request $request, Response $
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin']));
 
 // GET /api/admin/reports/attendance
 $app->get('/api/admin/reports/attendance', function (Request $request, Response $response, $args) {
@@ -185,7 +185,7 @@ $app->get('/api/admin/reports/attendance', function (Request $request, Response 
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin']));
 
 // GET /api/admin/reports/payroll
 $app->get('/api/admin/reports/payroll', function (Request $request, Response $response, $args) {
@@ -266,4 +266,4 @@ $app->get('/api/admin/reports/payroll', function (Request $request, Response $re
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin']));

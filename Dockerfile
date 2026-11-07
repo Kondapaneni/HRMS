@@ -1,8 +1,8 @@
 # Stage 1: Build Frontend
-FROM node:20-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 WORKDIR /app
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci
 COPY frontend/ .
 
 # Declare the variables so Docker accepts them from Render
@@ -20,7 +20,7 @@ COPY backend/ /backend/
 
 RUN npm run build
 # Stage 2: Setup Backend and Combine
-FROM php:8.2-apache
+FROM php:8.4-apache
 
 # Install dependencies for PostgreSQL
 RUN apt-get update && apt-get install -y \
@@ -44,7 +44,7 @@ RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 WORKDIR /var/www/html
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copy backend application files
 COPY backend/ .

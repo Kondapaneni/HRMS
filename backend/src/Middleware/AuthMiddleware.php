@@ -8,18 +8,14 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Psr7\Response as SlimResponse;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Exception;
+use Throwable;
 use App\Config\Database;
 
 class AuthMiddleware
 {
-    private $requiredRoles;
+    private array $requiredRoles;
     private $requiredFeature;
 
-    /**
-     * @param array $requiredRoles
-     * @param string|array|null $requiredFeature
-     */
     public function __construct(array $requiredRoles = [], $requiredFeature = null)
     {
         $this->requiredRoles = $requiredRoles;
@@ -28,138 +24,121 @@ class AuthMiddleware
 
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
-        $authHeader = $request->getHeader('Authorization');
-        $token = null;
-        if (!empty($authHeader)) {
-            $token = str_replace('Bearer ', '', $authHeader[0]);
+        $authorization = trim($request->getHeaderLine('Authorization'));
+        if (!preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches)) {
+            return $this->jsonResponse('Missing or invalid Authorization token.', 401);
         }
 
-        if (empty($token)) {
-            return $this->unauthorizedResponse("Missing Authorization Token");
-        }
-
-        $secret = trim($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
-
-        // Validate JWT secret before token verification
-        if (empty($secret) || strlen($secret) < 32) {
-            error_log("AuthMiddleware: JWT_SECRET environment variable is missing, empty, or insecure (minimum 32 characters required).");
-            return $this->serverErrorResponse("Authentication service configuration error.");
+        $secret = trim($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+        if (strlen($secret) < 32) {
+            error_log('AuthMiddleware: JWT_SECRET is missing or too short.');
+            return $this->jsonResponse('Authentication service configuration error.', 503);
         }
 
         try {
-            $decoded = JWT::decode($token, new Key($secret, 'HS256'));
-        } catch (Exception $e) {
-            error_log("AuthMiddleware: Token verification failed: " . $e->getMessage());
-            return $this->unauthorizedResponse("Invalid or expired token.");
+            $decoded = JWT::decode($matches[1], new Key($secret, 'HS256'));
+            if (empty($decoded->id)) {
+                return $this->jsonResponse('Invalid or expired token.', 401);
+            }
+        } catch (Throwable $e) {
+            error_log('AuthMiddleware: Token verification failed: ' . $e->getMessage());
+            return $this->jsonResponse('Invalid or expired token.', 401);
         }
 
-        // Check roles if specified
-        $roleAllowed = false;
-        if (empty($this->requiredRoles) || in_array($decoded->role, $this->requiredRoles)) {
-            $roleAllowed = true;
-        }
+        try {
+            $db = new Database();
+            $conn = $db->getConnection();
+            if (!$conn) {
+                throw new \RuntimeException('Database connection unavailable.');
+            }
 
-        if (!$roleAllowed && $this->requiredFeature && $decoded->role === 'employee') {
-            try {
-                $db = new Database();
-                $conn = $db->getConnection();
-                if ($conn) {
-                    $features = is_array($this->requiredFeature) ? $this->requiredFeature : [$this->requiredFeature];
-                    foreach ($features as $feature) {
-                        $featureCol = str_starts_with($feature, 'can') ? $feature : ('can' . ucfirst($feature));
-                        // Check if column exists to prevent SQL errors, but we know the schema.
-                        $stmtCheck = $conn->prepare("SELECT \"$featureCol\" FROM user_feature_access WHERE \"userId\" = :uid");
-                        $stmtCheck->execute([':uid' => $decoded->id]);
-                        $fa = $stmtCheck->fetch();
-                        if ($fa && $fa[$featureCol]) {
+            // Never trust the JWT's role or active flag as current authorization state.
+            $stmt = $conn->prepare('SELECT id, email, role, "isActive" FROM users WHERE id = :uid LIMIT 1');
+            $stmt->execute([':uid' => $decoded->id]);
+            $account = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$account) {
+                return $this->jsonResponse('User account not found.', 401);
+            }
+            $active = in_array($account['isActive'], [true, 1, '1', 't', 'true'], true);
+            if (!$active) {
+                return $this->jsonResponse('Your account has been deactivated. Please contact your administrator.', 403);
+            }
+
+            $currentRole = (string)($account['role'] ?? '');
+            $roleAllowed = empty($this->requiredRoles) || in_array($currentRole, $this->requiredRoles, true);
+
+            if (!$roleAllowed && $this->requiredFeature && $currentRole === 'employee') {
+                $featureMap = [
+                    'attendance' => 'canAttendance', 'leave' => 'canLeave',
+                    'payroll' => 'canPayroll', 'expenses' => 'canExpenses',
+                    'employees' => 'canEmployees', 'recruitment' => 'canRecruitment',
+                    'assets' => 'canAssets', 'loanOrigination' => 'canLoanOrigination',
+                    'salesOrigination' => 'canSalesOrigination',
+                    'branchOperations' => 'canBranchOperations',
+                    'adminAssessments' => 'canAdminAssessments',
+                ];
+                $features = is_array($this->requiredFeature) ? $this->requiredFeature : [$this->requiredFeature];
+                $columns = [];
+                foreach ($features as $feature) {
+                    $key = lcfirst(preg_replace('/^can/', '', (string)$feature));
+                    if (isset($featureMap[$key])) $columns[] = $featureMap[$key];
+                }
+                if ($columns) {
+                    $select = implode(', ', array_map(static fn($column) => '"' . $column . '"', array_unique($columns)));
+                    $featureStmt = $conn->prepare("SELECT {$select} FROM user_feature_access WHERE \"userId\" = :uid LIMIT 1");
+                    $featureStmt->execute([':uid' => $decoded->id]);
+                    $access = $featureStmt->fetch(\PDO::FETCH_ASSOC) ?: [];
+                    foreach ($columns as $column) {
+                        if (in_array($access[$column] ?? false, [true, 1, '1', 't', 'true'], true)) {
                             $roleAllowed = true;
                             break;
                         }
                     }
                 }
-            } catch (Exception $e) {
-                error_log("AuthMiddleware: Failed to check feature access: " . $e->getMessage());
             }
-        }
 
-        if (!$roleAllowed) {
-            $featureStr = is_array($this->requiredFeature) ? implode(' or ', $this->requiredFeature) : $this->requiredFeature;
-            return $this->forbiddenResponse("Insufficient permissions. Required roles: " . implode(', ', $this->requiredRoles) . ($this->requiredFeature ? " or feature access: {$featureStr}" : ""));
-        }
+            if (!$roleAllowed) {
+                return $this->jsonResponse('Insufficient permissions.', 403);
+            }
 
-        // Append decoded token to request attributes
-        $request = $request->withAttribute('user', $decoded);
-
-        // Set Postgres session variables for audit triggers
-        try {
-            $db = new Database();
-            $conn = $db->getConnection();
-            if ($conn) {
-                // Check if user is active
-                $stmtCheck = $conn->prepare('SELECT "isActive" FROM users WHERE id = :uid');
-                $stmtCheck->execute([':uid' => $decoded->id ?? '']);
-                $userRow = $stmtCheck->fetch();
-                
-                if ($userRow !== false) {
-                    $userActiveStatus = $userRow['isActive'];
-                    $isActive = ($userActiveStatus === true || $userActiveStatus === 'true' || $userActiveStatus === 't' || $userActiveStatus == 1);
-                    if (!$isActive) {
-                        return $this->forbiddenResponse("Your account has been deactivated. Please contact your administrator.");
-                    }
-                } else {
-                    return $this->unauthorizedResponse("User account not found.");
-                }
-
-                $stmt = $conn->prepare("
-                    SELECT 
-                        set_config('app.current_user_id', :uid, false),
-                        set_config('app.current_user_email', :email, false),
-                        set_config('app.current_user_role', :role, false),
-                        set_config('app.ip_address', :ip, false),
-                        set_config('app.user_agent', :ua, false),
-                        set_config('app.session_id', :sid, false)
+            // Audit context is best-effort only; authentication and permission checks above fail closed.
+            try {
+                $audit = $conn->prepare("
+                    SELECT set_config('app.current_user_id', :uid, false),
+                           set_config('app.current_user_email', :email, false),
+                           set_config('app.current_user_role', :role, false),
+                           set_config('app.ip_address', :ip, false),
+                           set_config('app.user_agent', :ua, false),
+                           set_config('app.session_id', :sid, false)
                 ");
-                $stmt->execute([
-                    ':uid' => $decoded->id ?? '',
-                    ':email' => $decoded->email ?? '',
-                    ':role' => $decoded->role ?? '',
+                $audit->execute([
+                    ':uid' => (string)$account['id'],
+                    ':email' => (string)$account['email'],
+                    ':role' => $currentRole,
                     ':ip' => $_SERVER['REMOTE_ADDR'] ?? '',
                     ':ua' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-                    ':sid' => bin2hex(random_bytes(16))
+                    ':sid' => bin2hex(random_bytes(16)),
                 ]);
+            } catch (Throwable $e) {
+                error_log('AuthMiddleware: Audit context unavailable: ' . $e->getMessage());
             }
-        } catch (Exception $e) {
-            // Log but don't block the request — audit is non-critical
-            error_log("AuthMiddleware: Failed to set audit context: " . $e->getMessage());
+
+            $decoded->role = $currentRole;
+            $decoded->email = (string)$account['email'];
+            $request = $request->withAttribute('user', $decoded);
+        } catch (Throwable $e) {
+            error_log('AuthMiddleware: Account verification failed; blocking request: ' . $e->getMessage());
+            return $this->jsonResponse('Authentication service temporarily unavailable.', 503);
         }
 
         return $handler->handle($request);
     }
 
-    private function unauthorizedResponse(string $message): Response
+    private function jsonResponse(string $message, int $status): Response
     {
         $response = new SlimResponse();
         $response->getBody()->write(json_encode(['error' => $message]));
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(401);
-    }
-
-    private function forbiddenResponse(string $message): Response
-    {
-        $response = new SlimResponse();
-        $response->getBody()->write(json_encode(['error' => $message]));
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(403);
-    }
-
-    private function serverErrorResponse(string $message): Response
-    {
-        $response = new SlimResponse();
-        $response->getBody()->write(json_encode(['error' => $message]));
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(500);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 }
