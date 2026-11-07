@@ -200,8 +200,9 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
             ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+    } catch (\Throwable $e) {
+        error_log('Admin training video list failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to load training videos right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'canAdminAssessments'));
@@ -304,8 +305,9 @@ $app->put('/api/admin/training/videos/{id}/assign', function (Request $request, 
 
         $response->getBody()->write(json_encode(['message' => 'Employees assigned successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+    } catch (\Throwable $e) {
+        error_log('Admin training assignment update failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to update training assignments right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'canAdminAssessments'));
