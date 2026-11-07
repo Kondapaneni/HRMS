@@ -304,6 +304,7 @@ const AdminEmployees = () => {
         onSuccess={() => {
           setIsModalOpen(false);
           queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+          setPage(1);
         }}
       />
     </div>
