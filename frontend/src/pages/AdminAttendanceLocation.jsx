@@ -20,7 +20,7 @@ const getAttendanceFilename = (value) => {
   try {
     const parsed = new URL(value, window.location.origin);
     if (parsed.origin !== window.location.origin) return null;
-    const match = parsed.pathname.match(/^\\/Attendance\\/([A-Za-z0-9._-]{1,181})$/);
+    const match = parsed.pathname.match(/^\/Attendance\/([A-Za-z0-9._-]{1,181})$/);
     return match ? match[1] : null;
   } catch {
     return null;
