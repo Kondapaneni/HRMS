@@ -129,7 +129,7 @@ $app->post('/api/candidate/activate', function (Request $request, Response $resp
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    $updateStmt = $conn->prepare("UPDATE users SET \"isActive\" = 'true', reset_token = NULL, reset_token_expires = NULL WHERE id = :id");
+    $updateStmt = $conn->prepare("UPDATE users SET \"isActive\" = 'true', reset_token = NULL, reset_token_expires = NULL WHERE id = :id AND (reset_token = :token OR reset_token = :legacy_token)");
     $updateStmt->execute(['id' => $user['id'], 'token' => hash('sha256', $token), 'legacy_token' => $token]);
     if ($updateStmt->rowCount() !== 1) {
         $response->getBody()->write(json_encode(['error' => 'Activation link has already been used.']));
