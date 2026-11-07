@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import BranchOperationsMobileLoansEditApplication from './BranchOperationsMobileLoansEditApplication';
 
 export default function BranchOperationsLoansEditApplication() {
