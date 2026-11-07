@@ -565,6 +565,7 @@ const AdminRecruitment = () => {
 
       {/* Content Body: Jobs */}
       {activeTab === 'jobs' && (
+        <>
         <div className="grid gap-[14px] grid-cols-1 md:grid-cols-2">
           {jobs.length === 0 ? (
             <div className="col-span-full rounded-[24px] bg-[var(--surface)] p-12 text-center text-[var(--muted)] flex flex-col items-center justify-center space-y-2">
@@ -676,6 +677,7 @@ const AdminRecruitment = () => {
             </div>
           </div>
         )}
+        </>
       )}
 
       {/* Content Body: Applicant Pipeline */}
