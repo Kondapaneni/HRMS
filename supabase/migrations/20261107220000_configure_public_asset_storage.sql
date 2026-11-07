@@ -3,6 +3,10 @@
 -- the PHP backend or a one-time signed training-video upload URL.
 BEGIN;
 
+-- No app_builds bucket consumers or stored objects were found in this repository/project audit.
+-- Keep the unused bucket private rather than leaving a public download surface.
+UPDATE storage.buckets SET public = FALSE WHERE id = 'app_builds';
+
 UPDATE storage.buckets
 SET public = TRUE,
     file_size_limit = 5242880,
