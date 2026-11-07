@@ -208,7 +208,7 @@ const AdminRecruitment = () => {
   };
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterUrl = null }) => {
+    mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '' }) => {
       await api.put(`/admin/applications/${app.id}/status`, { 
         status: newStatus, 
         notes: additionalNotes || `Application status updated to ${newStatus}` 
@@ -244,12 +244,11 @@ const AdminRecruitment = () => {
             .replace(/{{additionalNotes}}/g, additionalNotes || `You have been invited for a ${newStatus}.`)
             .replace(/{{dashboardLink}}/g, dashboardLink)
             .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
-        } else if ((newStatus === 'Selected' || newStatus === 'Hired') && offerLetterUrl) {
+        } else if (newStatus === 'Selected' || newStatus === 'Hired') {
           subject = `Job Offer: ${app.jobs?.title}`;
           emailBody = offerEmailTemplateHtml
             .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
             .replace(/{{jobTitle}}/g, app.jobs?.title)
-            .replace(/{{offerLetterUrl}}/g, offerLetterUrl)
             .replace(/{{dashboardLink}}/g, dashboardLink)
             .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
         } else {
@@ -423,22 +422,18 @@ const AdminRecruitment = () => {
       const safeLastName = pdfData.lastName.trim().replace(/\s+/g, '-');
       const fileName = `${safeFirstName}-${safeLastName}.pdf`;
       
-      const { error: uploadError } = await supabase.storage.from('offer_letters').upload(fileName, blob, {
-        contentType: 'application/pdf',
-        upsert: true
+      const formData = new FormData();
+      formData.append('file', blob, fileName);
+      await api.post(`/admin/applications/${encodeURIComponent(selectedApp.id)}/offer-letter`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
-      
-      if (uploadError) throw uploadError;
-      
-      const proxyUrl = window.location.origin + "/Offer-Letter/" + fileName;
       
       const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
       updateStatusMutation.mutate({ 
         app: selectedApp, 
         userInfo, 
-        newStatus: 'Hired',
-        additionalNotes: `Candidate hired and offer letter generated.`,
-        offerLetterUrl: proxyUrl
+        newStatus: 'Hired', 
+        additionalNotes: `Candidate hired and offer letter generated.`
       }, {
         onSuccess: () => {
           setIsOfferModalOpen(false);
