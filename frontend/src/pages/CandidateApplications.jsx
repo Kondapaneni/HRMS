@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import CandidateMobileApplications from './CandidateMobileApplications';
@@ -53,6 +54,7 @@ const CandidateApplications = () => {
           status: app.status,
           resumeName: resumeName,
           resumeUrl: app.resume_url,
+          offerLetterAvailable: Number(app.offer_letter_available) === 1,
           noticePeriod: app.notice_period,
           coverNote: app.cover_note,
           timeline: timeline
@@ -77,6 +79,27 @@ const CandidateApplications = () => {
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
     } catch (error) {
       previewWindow.close();
+    }
+  };
+
+
+  const handlePreviewOfferLetter = async (applicationId) => {
+    const previewWindow = window.open('about:blank', '_blank');
+    if (!previewWindow) {
+      toast.error('Please allow pop-ups to preview the offer letter.');
+      return;
+    }
+    try {
+      const response = await api.get(
+        `/candidate/applications/${encodeURIComponent(applicationId)}/offer-letter`,
+        { responseType: 'blob' }
+      );
+      const objectUrl = URL.createObjectURL(response.data);
+      previewWindow.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      previewWindow.close();
+      toast.error('Unable to open this offer letter. Please try again.');
     }
   };
 
@@ -124,6 +147,7 @@ const CandidateApplications = () => {
         getStatusBadge={(status) => getStatusBadge(status).className}
         setIsTimelineModalOpen={setIsTimelineModalOpen}
         setTimelineApp={setTimelineApp}
+        handlePreviewOfferLetter={handlePreviewOfferLetter}
       />
 
       {/* Web Desktop View */}
@@ -258,6 +282,16 @@ const CandidateApplications = () => {
                       {app.timeline.length} stage {app.timeline.length === 1 ? 'event' : 'events'} recorded
                     </span>
                     <div className="flex items-center gap-2">
+                      {app.offerLetterAvailable && (
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewOfferLetter(app.id)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[var(--brand)]/30 bg-[var(--brand-tint)] hover:bg-[var(--brand)]/10 text-xs font-semibold text-[var(--brand-deep)] transition-all cursor-pointer"
+                        >
+                          <FileText size={13} />
+                          <span>View Offer Letter</span>
+                        </button>
+                      )}
                       {['Hired'].includes(app.status) && (
                         <Link 
                           to="/candidate/documents"
