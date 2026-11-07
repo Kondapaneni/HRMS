@@ -337,6 +337,8 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $createdById = isset($user['id']) ? (string)$user['id'] : (isset($user['user_id']) ? (string)$user['user_id'] : (isset($user['sub']) ? (string)$user['sub'] : null));
         }
 
+        $createdByRole = is_object($user) ? (string)($user->role ?? '') : (string)($user['role'] ?? '');
+
         // Fetch user's branch from employee table
         $branchStmt = $conn->prepare('SELECT branch FROM public.employee WHERE "userId" = ? LIMIT 1');
         $branchStmt->execute([$createdById]);
@@ -353,7 +355,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
                 ORDER BY created_at DESC
                 LIMIT 1
             ');
-            $checkStmt->execute([(string)$appId, (string)$appId, (string)($user->role ?? ''), $createdById]);
+            $checkStmt->execute([(string)$appId, (string)$appId, $createdByRole, $createdById]);
             $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
         }
 
@@ -365,7 +367,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
                 ORDER BY created_at DESC
                 LIMIT 1
             ');
-            $checkStmt->execute([$leadId, $loanType, (string)($user->role ?? ''), $createdById]);
+            $checkStmt->execute([$leadId, $loanType, $createdByRole, $createdById]);
             $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
         }
 
