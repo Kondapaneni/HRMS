@@ -184,6 +184,7 @@ $app->post('/api/candidate/resumes', function (Request $request, Response $respo
     try {
         $db = new Database();
         $conn = $db->getConnection();
+        $conn->beginTransaction();
         $stmt = $conn->prepare('SELECT id, resume_url FROM candidate_profiles WHERE user_id = ? FOR UPDATE');
         $stmt->execute([$user->id]);
         $profileRow = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -207,9 +208,11 @@ $app->post('/api/candidate/resumes', function (Request $request, Response $respo
             $save = $conn->prepare('INSERT INTO candidate_profiles (user_id, resume_url) VALUES (?, ?)');
             $save->execute([$user->id, json_encode($resumes)]);
         }
+        $conn->commit();
         $response->getBody()->write(json_encode(['resume' => $resume]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     } catch (Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
         if (isset($objectPath, $serviceKey, $baseUrl)) resumeStorageRequest('DELETE', $objectPath, $serviceKey, $baseUrl);
         error_log('Resume upload failed: ' . $e->getMessage());
         $response->getBody()->write(json_encode(['error' => 'Unable to upload resume.']));
@@ -222,6 +225,7 @@ $app->put('/api/candidate/resumes/{id}/primary', function (Request $request, Res
     $user = $request->getAttribute('user');
     try {
         $db = new Database(); $conn = $db->getConnection();
+        $conn->beginTransaction();
         $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ? FOR UPDATE');
         $stmt->execute([$user->id]);
         $stored = $stmt->fetchColumn();
@@ -235,9 +239,10 @@ $app->put('/api/candidate/resumes/{id}/primary', function (Request $request, Res
         if (!$found) return $response->withStatus(404);
         $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
         $save->execute([json_encode($resumes), $user->id]);
+        $conn->commit();
         $response->getBody()->write(json_encode(['resumes' => $resumes]));
         return $response->withHeader('Content-Type', 'application/json');
-    } catch (Throwable $e) { error_log('Primary resume update failed: ' . $e->getMessage()); return $response->withStatus(503); }
+    } catch (Throwable $e) { if (isset($conn) && $conn->inTransaction()) $conn->rollBack(); error_log('Primary resume update failed: ' . $e->getMessage()); return $response->withStatus(503); }
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
 // Delete a resume owned by the signed-in candidate.
@@ -245,6 +250,7 @@ $app->delete('/api/candidate/resumes/{id}', function (Request $request, Response
     $user = $request->getAttribute('user');
     try {
         $db = new Database(); $conn = $db->getConnection();
+        $conn->beginTransaction();
         $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ? FOR UPDATE');
         $stmt->execute([$user->id]);
         $stored = $stmt->fetchColumn();
@@ -258,6 +264,7 @@ $app->delete('/api/candidate/resumes/{id}', function (Request $request, Response
         if (!empty($removed['isPrimary']) && count($resumes)) $resumes[0]['isPrimary'] = true;
         $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
         $save->execute([json_encode($resumes), $user->id]);
+        $conn->commit();
         $objectPath = resumeObjectPath($removed);
         if ($objectPath) {
             [$baseUrl, $serviceKey] = attendanceStorageConfig();
@@ -265,7 +272,7 @@ $app->delete('/api/candidate/resumes/{id}', function (Request $request, Response
         }
         $response->getBody()->write(json_encode(['resumes' => $resumes]));
         return $response->withHeader('Content-Type', 'application/json');
-    } catch (Throwable $e) { error_log('Resume delete failed: ' . $e->getMessage()); return $response->withStatus(503); }
+    } catch (Throwable $e) { if (isset($conn) && $conn->inTransaction()) $conn->rollBack(); error_log('Resume delete failed: ' . $e->getMessage()); return $response->withStatus(503); }
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
 
