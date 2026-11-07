@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
-import api from '../api/axios';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { Search, Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
