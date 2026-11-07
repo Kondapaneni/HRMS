@@ -28,7 +28,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 
 const CATEGORY_OPTIONS = ['Travel', 'Meals', 'Supplies', 'Software', 'Hardware', 'Other'];
 
@@ -85,14 +84,12 @@ const EmployeeMobileExpenses = () => {
     mutationFn: async () => {
       let bill_url = null;
       if (billFile) {
-        const fileExt = billFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from('expenses')
-          .upload(fileName, billFile);
-
-        if (uploadError) throw new Error('Failed to upload bill receipt');
-        bill_url = window.location.origin + "/Bills/" + fileName;
+        const uploadForm = new FormData();
+        uploadForm.append('file', billFile);
+        const uploadResponse = await api.post('/employee/expenses/bill', uploadForm, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        bill_url = uploadResponse.data.bill_url;
       }
 
       const res = await api.post('/employee/expenses', {
