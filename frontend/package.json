@@ -58,5 +58,13 @@
     "globals": "^17.6.0",
     "tailwindcss": "^4.3.0",
     "vite": "^8.0.12"
+  },
+  "overrides": {
+    "eslint": {
+      "minimatch": "11.0.5"
+    },
+    "@eslint/config-array": {
+      "minimatch": "11.0.5"
+    }
   }
 }
