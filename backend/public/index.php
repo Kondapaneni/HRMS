@@ -171,7 +171,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         $payload = [
             'iss' => 'acme_hrms',
             'iat' => time(),
-            'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60), // Dynamic expiration
+            'exp' => time() + (($sessionTimeout === 'never') ? (60 * 60 * 12) : max(300, min(86400, ((int)$sessionTimeout) * 60))), // Dynamic expiration
             'id' => $user['id'],
             'email' => $user['email'],
             'role' => $user['role'],
@@ -393,7 +393,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     $payload = [
         'iss' => 'acme_hrms',
         'iat' => time(),
-        'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
+        'exp' => time() + (($sessionTimeout === 'never') ? (60 * 60 * 12) : max(300, min(86400, ((int)$sessionTimeout) * 60))),
         'id' => $user['id'],
         'email' => $user['email'],
         'role' => $user['role'],
