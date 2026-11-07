@@ -129,9 +129,10 @@ const CandidateProfile = () => {
 
   const handleSetPrimaryResume = async (index) => {
     const resume = formData.resumes[index];
-    if (!resume?.id) return;
     try {
-      const res = await api.put(`/candidate/resumes/${encodeURIComponent(resume.id)}/primary`);
+      const res = resume?.id
+        ? await api.put(`/candidate/resumes/${encodeURIComponent(resume.id)}/primary`)
+        : await api.put('/candidate/resume-legacy/primary', null, { params: { url: resume?.url || '' } });
       setFormData(prev => ({ ...prev, resumes: res.data.resumes || prev.resumes }));
     } catch (error) {
       toast.error('Unable to update the primary resume.');
