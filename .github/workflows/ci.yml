@@ -74,10 +74,9 @@ jobs:
         working-directory: frontend
         run: npx eslint src/utils/fetchAllAdminEmployees.js src/utils/fetchAllAdminJobs.js
 
-      - name: Existing repository lint baseline (non-blocking)
+      - name: Frontend ESLint
         working-directory: frontend
         run: npm run lint
-        continue-on-error: true
 
       - name: Audit frontend dependencies
         working-directory: frontend
