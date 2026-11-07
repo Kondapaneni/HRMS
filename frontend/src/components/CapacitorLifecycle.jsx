@@ -28,7 +28,7 @@ export default function CapacitorLifecycle() {
     const hideSplash = async () => {
       try {
         await SplashScreen.hide({ fadeOutDuration: 350 });
-      } catch (e) {
+      } catch {
         // Ignored on web
       }
     };

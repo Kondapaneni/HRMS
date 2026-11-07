@@ -87,7 +87,7 @@ const EmployeeLayout = () => {
       try {
         const res = await api.get('/news');
         return res.data;
-      } catch (e) {
+      } catch {
         return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
       }
     },

@@ -153,7 +153,7 @@ const EmployeeChatbot = () => {
     setMessages([welcomeMsg]);
     try {
       sessionStorage.setItem('hrms_employee_chat_history', JSON.stringify([welcomeMsg]));
-    } catch (_) {}
+    } catch { /* Session storage is optional; the in-memory chat remains available. */ }
     toast.success('Conversation reset');
   };
 

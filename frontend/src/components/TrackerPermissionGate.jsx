@@ -96,7 +96,7 @@ export default function TrackerPermissionGate() {
     try {
       await NativeLocationTracker.requestBatteryOptimization();
       setTimeout(checkPermissions, 1000);
-    } catch {
+    } catch (e) {
       console.error(e);
     }
   };

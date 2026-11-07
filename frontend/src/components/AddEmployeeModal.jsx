@@ -4,15 +4,13 @@ import { X, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
-import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   const navigate = useNavigate();
-  const { session } = useAuth();
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
 
