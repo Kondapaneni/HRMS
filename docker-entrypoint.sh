@@ -10,7 +10,7 @@ ENV_FILE="/var/www/html/.env"
 if [ ! -f "$ENV_FILE" ]; then
   echo "# Auto-generated from environment variables at container startup" > "$ENV_FILE"
 
-  ENV_VARS="DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD JWT_SECRET GOOGLE_MAPS_API_KEY GOOGLE_GEOCODING_API_KEY FRONTEND_URL VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY"
+  ENV_VARS="DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD JWT_SECRET GOOGLE_MAPS_API_KEY GOOGLE_GEOCODING_API_KEY FRONTEND_URL SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY TRUSTED_CLIENT_IP_HEADER TRUSTED_PROXY_IPS VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY"
 
   for var in $ENV_VARS; do
     val=$(printenv "$var" 2>/dev/null)
@@ -21,6 +21,11 @@ if [ ! -f "$ENV_FILE" ]; then
       echo "${var}='${escaped_val}'" >> "$ENV_FILE"
     fi
   done
+
+  # Keep legacy PHP proxy routes compatible with Render canonical SUPABASE_URL.
+  if [ -z "$(printenv VITE_SUPABASE_URL 2>/dev/null)" ] && [ -n "$(printenv SUPABASE_URL 2>/dev/null)" ]; then
+    echo "VITE_SUPABASE_URL=\"$(printenv SUPABASE_URL)\"" >> "$ENV_FILE"
+  fi
 
   chown www-data:www-data "$ENV_FILE"
   chmod 600 "$ENV_FILE"
