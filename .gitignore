@@ -12,6 +12,7 @@ ngrok.log
 !frontend/public/downloads/*.apk
 
 # Local development and diagnostic artifacts
+debug_*.php
 .idea/
 .vscode/
 *.log
