@@ -318,7 +318,7 @@ const EmployeeAssessmentEngine = () => {
         await api.put(`/employee/assessments/attempts/${examData.attempt_id}/save`, {
           answers: answersRef.current
         });
-      } catch (err) {
+      } catch {
         // ignore periodic save failures, form state remains.
       } finally {
         setAutoSaving(false);
@@ -364,7 +364,7 @@ const EmployeeAssessmentEngine = () => {
           } else {
             fetch(url, { method: 'PUT', body: payload, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => {});
           }
-        } catch (err) { /* ignore */ }
+        } catch { /* ignore */ }
         e.preventDefault();
         e.returnValue = '';
       }
