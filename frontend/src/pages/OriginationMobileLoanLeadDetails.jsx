@@ -30,13 +30,15 @@ const OriginationMobileLoanLeadDetails = () => {
     if (location.state?.lead) {
       try {
         sessionStorage.setItem('current_loan_lead', JSON.stringify(location.state.lead));
-      } catch (e) {}
+      } catch {
+        // Session storage can be unavailable in private browsing; keep the in-memory lead.
+      }
       return location.state.lead;
     }
     try {
       const saved = sessionStorage.getItem('current_loan_lead');
       return saved ? JSON.parse(saved) : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   });
@@ -53,9 +55,7 @@ const OriginationMobileLoanLeadDetails = () => {
       setCurrentStatus(variables.status);
       if (variables.loan_type) {
         setCurrentLoanType(variables.loan_type);
-        if (lead) lead.loan_type = variables.loan_type;
       }
-      if (lead) lead.status = variables.status;
       queryClient.invalidateQueries({ queryKey: ['origination', 'leads'] });
       queryClient.invalidateQueries({ queryKey: ['origination', 'leads', 'list'] });
       queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
