@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import SearchBar from '../components/ui/SearchBar';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -129,7 +129,7 @@ const CandidateDocuments = () => {
     uploadMutation.mutate({ docTypeId, file });
   };
 
-  const getDoc = (id) => documents.find(d => d.document_type === id);
+  const getDoc = useCallback((id) => documents.find(d => d.document_type === id), [documents]);
 
   const specialDoc = documentTypes.find(d => d.isSpecial);
   const requiredDocs = documentTypes.filter(d => d.isRequired && !d.isSpecial);
@@ -167,7 +167,7 @@ const CandidateDocuments = () => {
 
       return true;
     });
-  }, [activeCategoryFilter, searchQuery, documents]);
+  }, [activeCategoryFilter, searchQuery, getDoc]);
 
   if (isLoading && documents.length === 0) {
     return <PageLoader message="Loading Verification Records..." />;
