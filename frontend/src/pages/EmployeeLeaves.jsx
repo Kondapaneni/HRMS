@@ -40,7 +40,7 @@ const EmployeeLeaves = () => {
   }, [isModalOpen]);
 
   // Form State
-  const [leaveType, setLeaveType] = useState('paid');
+  const [leaveType, setLeaveType] = useState(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
@@ -129,7 +129,8 @@ const EmployeeLeaves = () => {
     });
   };
 
-  const selectedLeaveType = paidRemaining > 0 && !hasPaidLeaveThisMonth() ? leaveType : 'unpaid';
+  const preferredLeaveType = leaveType ?? (leavesData && paidRemaining > 0 ? 'paid' : 'unpaid');
+  const selectedLeaveType = preferredLeaveType === 'paid' && (paidRemaining <= 0 || hasPaidLeaveThisMonth()) ? 'unpaid' : preferredLeaveType;
 
   const renderCalendar = () => {
     const month = calendarDate.getMonth();
