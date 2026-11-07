@@ -190,6 +190,23 @@ const AdminRecruitment = () => {
     }
   });
 
+  const handlePreviewApplicationResume = async (applicationId) => {
+    const previewWindow = window.open('about:blank', '_blank');
+    if (!previewWindow) {
+      toast.error('Please allow pop-ups to preview the resume.');
+      return;
+    }
+    try {
+      const response = await api.get(`/admin/applications/${encodeURIComponent(applicationId)}/resume`, { responseType: 'blob' });
+      const objectUrl = URL.createObjectURL(response.data);
+      previewWindow.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      previewWindow.close();
+      toast.error('Unable to open this resume. Please try again.');
+    }
+  };
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterUrl = null }) => {
       await api.put(`/admin/applications/${app.id}/status`, { 
@@ -742,14 +759,13 @@ const AdminRecruitment = () => {
                       {/* Action Buttons */}
                       <div className="flex flex-wrap items-center justify-start md:justify-end gap-2">
                         {app.resume_url && (
-                          <a 
-                            href={`/api/admin/applications/${encodeURIComponent(app.id)}/resume`} 
-                            target="_blank" 
-                            rel="noreferrer" 
+                          <button
+                            type="button"
+                            onClick={() => handlePreviewApplicationResume(app.id)}
                             className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[12px] font-medium bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-colors"
                           >
                             <FileText className="w-3.5 h-3.5 text-[var(--muted)]" /> Resume
-                          </a>
+                          </button>
                         )}
 
                         {(isHired || isConverted) && (
