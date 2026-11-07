@@ -170,7 +170,7 @@ $app->post('/api/candidate/resumes', function (Request $request, Response $respo
     }
     $originalName = basename((string)$file->getClientFilename());
     $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-    $allowed = ['pdf' => ['application/pdf'], 'doc' => ['application/msword', 'application/octet-stream'], 'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip']];
+    $allowed = ['pdf' => ['application/pdf'], 'doc' => ['application/msword', 'application/x-ole-storage'], 'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip']];
     if (!isset($allowed[$extension])) {
         $response->getBody()->write(json_encode(['error' => 'Only PDF, DOC, and DOCX resumes are accepted.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
