@@ -18,10 +18,10 @@ DirectoryIndex index.html index.php
 # Always route version.json to index.php to guarantee CORS headers
 RewriteRule ^version\.json$ index.php [QSA,L]
 
-# If the request starts with api/, Offer-Letter/, Job-Description/, Resume/, Avatar/, Holiday/, Attendance/, Candidate-Document/, Bills/, Training-Video/, Loan-Document/ or Loan-Signature/ route it to index.php
+# If the request starts with api/, Job-Description/, Resume/, Avatar/, Holiday/, Attendance/, Candidate-Document/, Bills/, Training-Video/, Loan-Document/ or Loan-Signature/ route it to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(api|Offer-Letter|Job-Description|Resume|Avatar|Holiday|Attendance|Candidate-Document|Bills|Training-Video|Loan-Document|Loan-Signature)/ index.php [QSA,L]
+RewriteRule ^(api|Job-Description|Resume|Avatar|Holiday|Attendance|Candidate-Document|Bills|Training-Video|Loan-Document|Loan-Signature)/ index.php [QSA,L]
 
 # For all other non-file requests, route to index.html (React SPA)
 RewriteCond %{REQUEST_FILENAME} !-f
