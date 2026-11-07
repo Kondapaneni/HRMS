@@ -284,6 +284,7 @@ const AdminRecruitment = () => {
     onSuccess: (newStatus) => {
       toast.success(`Application updated to ${newStatus}`);
       queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] });
+      setApplicationsPage(1);
     },
     onError: (error) => {
       console.error(error);
