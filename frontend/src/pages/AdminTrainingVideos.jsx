@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
@@ -207,10 +207,6 @@ const AdminTrainingVideos = () => {
     if (!window.confirm(`Are you sure you want to delete "${videoTitle}"?`)) return;
     deleteMutation.mutate(id);
   };
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
 
   const isBusy = isCompressing || isUploading || addVideoMutation.isPending;
 
