@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, Sparkles, Archive } from 'lucide-react';
@@ -36,11 +36,6 @@ const AdminHolidays = () => {
     staleTime: 60 * 1000,
     onError: () => toast.error('Failed to load holidays'),
   });
-
-  const hasLoadedOnce = useRef(false);
-  if (!loading && holidays) {
-    hasLoadedOnce.current = true;
-  }
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -134,7 +129,7 @@ const AdminHolidays = () => {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr);
 
-  if (!hasLoadedOnce.current && loading && !holidays.length) {
+  if (loading && !holidays.length) {
     return <PageLoader message="Loading Company Holidays..." />;
   }
 
