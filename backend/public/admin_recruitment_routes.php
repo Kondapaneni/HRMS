@@ -55,6 +55,35 @@ $app->get('/api/admin/candidates', function (Request $request, Response $respons
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
 
+
+ // Admin resume preview is authorized against the application and its candidate profile.
+$app->get('/api/admin/applications/{id}/resume', function (Request $request, Response $response, $args) {
+    try {
+        $db = new Database(); $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT a.resume_url, cp.resume_url AS candidate_resumes FROM applications a JOIN candidate_profiles cp ON cp.user_id = a.candidate_id WHERE a.id = ? LIMIT 1');
+        $stmt->execute([$args['id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row || !$row['resume_url']) return $response->withStatus(404);
+        $resumes = is_string($row['candidate_resumes']) ? (json_decode($row['candidate_resumes'], true) ?: []) : (is_array($row['candidate_resumes']) ? $row['candidate_resumes'] : []);
+        $selected = null;
+        foreach ($resumes as $resume) {
+            if (($resume['id'] ?? null) === $row['resume_url'] || (($resume['url'] ?? null) && hash_equals((string)$resume['url'], (string)$row['resume_url']))) {
+                $selected = $resume; break;
+            }
+        }
+        if (!$selected) return $response->withStatus(404);
+        $path = resumeObjectPath($selected);
+        if (!$path) return $response->withStatus(404);
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $signed = resumeSignedUrl($path, $serviceKey, $baseUrl);
+        if (!$signed) return $response->withStatus(404);
+        return $response->withHeader('Location', $signed)->withHeader('Cache-Control', 'private, no-store')->withStatus(302);
+    } catch (Throwable $e) {
+        error_log('Admin application resume preview failed: ' . $e->getMessage());
+        return $response->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'recruitment'));
+
 // Send generic email to candidate
 $app->post('/api/admin/send-email', function (Request $request, Response $response, $args) {
     $db = new Database();
