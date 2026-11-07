@@ -16,7 +16,6 @@ import {
   ExternalLink
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import CandidateMobileProfile from './CandidateMobileProfile';
 
@@ -174,46 +173,27 @@ const CandidateProfile = () => {
   };
 
   const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload a valid image file');
-      return;
-    }
+    const upload = new FormData();
+    upload.append('file', file);
 
     try {
       setIsUploadingAvatar(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `candidate-${profile?.id || 'avatar'}-${Math.random()}.${fileExt}`;
-
-      if (formData.avatarUrl) {
-        const parts = formData.avatarUrl.split('/Avatar/');
-        if (parts.length > 1) {
-          const oldStoragePath = parts[1];
-          await supabase.storage.from('avatars').remove([oldStoragePath]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const proxyUrl = window.location.origin + "/Avatar/" + fileName;
-
-      setFormData(prev => {
-        const newData = { ...prev, avatarUrl: proxyUrl };
-        saveMutation.mutate(newData);
-        return newData;
+      const response = await api.post('/candidate/profile/avatar', upload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
+      const avatarUrl = response.data.avatar;
+      setFormData(prev => ({ ...prev, avatarUrl }));
+      queryClient.invalidateQueries(['candidate', 'profile']);
+      queryClient.invalidateQueries(['candidate', 'dashboard']);
       toast.success('Profile picture updated successfully!');
     } catch (error) {
-      toast.error('Failed to upload profile picture');
-      console.error(error);
+      toast.error(error.response?.data?.error || 'Failed to upload profile picture');
     } finally {
       setIsUploadingAvatar(false);
+      e.target.value = '';
     }
   };
 
