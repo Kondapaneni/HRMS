@@ -48,7 +48,7 @@ $app->post('/api/employee/attendance/photo', function (Request $request, Respons
 
     $stream = $file->getStream();
     $contents = $stream->getContents();
-    $finfo = new \\finfo(FILEINFO_MIME_TYPE);
+    $finfo = new \finfo(FILEINFO_MIME_TYPE);
     $mime = $finfo->buffer($contents);
     $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
     if (!isset($allowed[$mime])) {
@@ -73,7 +73,7 @@ $app->post('/api/employee/attendance/photo', function (Request $request, Respons
     }
 })->add(new AuthMiddleware(['employee']));
 
-$app->get('/Attendance/{filename:[A-Za-z0-9._-]+}', function (Request $request, Response $response, $args) {
+$app->get('/api/storage/attendance/{filename:[A-Za-z0-9._-]+}', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
     $filename = $args['filename'];
     if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,180}$/', $filename)) {
