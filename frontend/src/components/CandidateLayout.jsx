@@ -8,7 +8,7 @@ import {
   Compass,
   Terminal,
 } from 'lucide-react';
-import { useLocation, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import MaintenanceOverlay from './MaintenanceOverlay';
@@ -17,7 +17,6 @@ import api from '../api/axios';
 
 const CandidateLayout = () => {
   const { profile } = useAuth();
-  const location = useLocation();
 
   const [isDevBypassed, setIsDevBypassed] = useState(
     () => localStorage.getItem('dev_bypass_maintenance_session') === 'true'
@@ -28,19 +27,6 @@ const CandidateLayout = () => {
     setIsDevBypassed(false);
   };
 
-  const { data: profileData } = useQuery({
-    queryKey: ['candidate', 'profile', profile?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('candidate_profiles')
-        .select('avatar_url, documents_tab_seen_at')
-        .eq('user_id', profile.id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!profile?.id,
-  });
-
   // Fetch news & maintenance status
   const { data: newsData } = useQuery({
     queryKey: ['newsHeadlines'],
@@ -48,7 +34,7 @@ const CandidateLayout = () => {
       try {
         const res = await api.get('/news');
         return res.data;
-      } catch (e) {
+      } catch {
         return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
       }
     },

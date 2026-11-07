@@ -11,9 +11,8 @@ import {
   LogOut,
   GraduationCap
 } from 'lucide-react';
-import { useLocation, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 import AdminFeaturesLayout from './AdminFeaturesLayout';
 import AdminChatbot from './AdminChatbot';
@@ -23,13 +22,7 @@ import { supabase } from '../lib/supabase';
 
 const AdminLayout = () => {
   const { profile, signOut } = useAuth();
-  const location = useLocation();
-
-  // Non-admin roles (hr/manager/employee) with feature access use the Admin Features layout
-  if (profile?.role !== 'admin') {
-    return <AdminFeaturesLayout />;
-  }
-
+  // Keep hooks unconditional; non-admin users skip the admin-only count request.
   const { data: pendingDocsCount = 0 } = useQuery({
     queryKey: ['admin_pending_docs'],
     queryFn: async () => {
@@ -41,9 +34,15 @@ const AdminLayout = () => {
       if (error) throw error;
       return count || 0;
     },
+    enabled: profile?.role === 'admin',
     refetchInterval: 30000,
     refetchIntervalInBackground: false,
   });
+
+  // Non-admin roles with feature access use the Admin Features layout.
+  if (profile?.role !== 'admin') {
+    return <AdminFeaturesLayout />;
+  }
 
   /**
    * Admin Rail Navigation Groups (Section 4.2: 15 items become 7 rail groups)

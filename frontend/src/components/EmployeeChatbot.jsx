@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, X, RotateCcw, Copy, Check, Plus,
@@ -29,7 +29,7 @@ const EmployeeChatbot = () => {
     try {
       const saved = sessionStorage.getItem('hrms_employee_chat_history');
       if (saved) return JSON.parse(saved);
-    } catch (_) {}
+    } catch { /* Session storage is optional; the in-memory chat remains available. */ }
     return [];
   });
   const [loading, setLoading] = useState(false);
@@ -41,7 +41,7 @@ const EmployeeChatbot = () => {
   const inputRef = useRef(null);
 
   // Dynamic suggestion chips based on user's business app permissions
-  const activeSuggestions = React.useMemo(() => {
+  const activeSuggestions = useMemo(() => {
     const list = [...INITIAL_SUGGESTIONS];
     const fa = profile?.featureAccess || {};
     const isAdmin = profile?.role === 'admin';

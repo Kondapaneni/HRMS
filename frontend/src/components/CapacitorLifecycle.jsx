@@ -18,7 +18,7 @@ export default function CapacitorLifecycle() {
         await StatusBar.setOverlaysWebView({ overlay: false });
         await StatusBar.setStyle({ style: Style.Light });
         await StatusBar.setBackgroundColor({ color: '#FFFFFF' });
-      } catch (e) {
+      } catch {
         // Status bar might not be supported on all webviews
       }
     };
@@ -44,7 +44,7 @@ export default function CapacitorLifecycle() {
     let backListener;
     const setupBackButton = async () => {
       try {
-        backListener = await CapApp.addListener('backButton', ({ canGoBack }) => {
+        backListener = await CapApp.addListener('backButton', () => {
           const rootPaths = ['/', '/login', '/employee/dashboard', '/admin/dashboard'];
           if (rootPaths.includes(location.pathname)) {
             CapApp.exitApp();
