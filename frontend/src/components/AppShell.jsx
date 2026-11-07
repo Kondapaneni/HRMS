@@ -40,12 +40,16 @@ export const AppShell = ({
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [mobileMenuRoute, setMobileMenuRoute] = useState(null);
-  const isMobileMenuOpen = mobileMenuRoute === location.pathname;
-  const setIsMobileMenuOpen = (open) => setMobileMenuRoute(open ? location.pathname : null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [forceHideMobileNav, setForceHideMobileNav] = useState(false);
 
   const scrollContainerRef = useRef(null);
+
+  // Close the transient mobile drawer whenever the route changes.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- navigation must close the drawer immediately after route changes.
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   // Listen for custom hide event
   useEffect(() => {
