@@ -233,16 +233,17 @@ export const uploadToSignedUrlWithProgress = ({
   if (!supabaseUrl || !supabaseAnonKey) return reject(new Error('Missing Supabase environment variables'));
 
   const xhr = new XMLHttpRequest();
-  const formData = new FormData();
   const uploadBlob = contentType && fileBlob.type !== contentType
     ? new Blob([fileBlob], { type: contentType })
     : fileBlob;
-  formData.append('cacheControl', '3600');
-  formData.append('', uploadBlob, fileBlob.name || 'training-video');
+  const uploadContentType = contentType || uploadBlob.type || 'application/octet-stream';
 
+  // Supabase signed uploads expect the raw file bytes, not multipart FormData.
   xhr.open('PUT', uploadUrl, true);
   xhr.setRequestHeader('apikey', supabaseAnonKey);
   xhr.setRequestHeader('Authorization', 'Bearer ' + supabaseAnonKey);
+  xhr.setRequestHeader('Content-Type', uploadContentType);
+  xhr.setRequestHeader('Cache-Control', '3600');
   xhr.setRequestHeader('x-upsert', 'false');
 
   const startedAt = Date.now();
@@ -273,7 +274,7 @@ export const uploadToSignedUrlWithProgress = ({
   };
   xhr.onerror = () => reject(new Error('Network connection error during file upload'));
   xhr.onabort = () => reject(new Error('Upload was cancelled'));
-  xhr.send(formData);
+  xhr.send(uploadBlob);
 });
 
 export const formatBytes = (bytes, decimals = 1) => {
