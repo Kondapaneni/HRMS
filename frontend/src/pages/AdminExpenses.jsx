@@ -115,6 +115,23 @@ const AdminExpenses = () => {
     }
   });
 
+  const handleViewReceipt = async (expenseId) => {
+    const previewWindow = window.open('about:blank', '_blank');
+    if (!previewWindow) {
+      toast.error('Please allow pop-ups to view the receipt.');
+      return;
+    }
+    try {
+      const response = await api.get(`/admin/expenses/${encodeURIComponent(expenseId)}/bill`, { responseType: 'blob' });
+      const objectUrl = URL.createObjectURL(response.data);
+      previewWindow.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      previewWindow.close();
+      toast.error('Unable to open this receipt.');
+    }
+  };
+
   const openReviewDrawer = (expense, defaultAction = 'Approved') => {
     setSelectedExpense(expense);
     setActionType(defaultAction);
@@ -511,18 +528,17 @@ const AdminExpenses = () => {
               </div>
 
               {/* Attached Receipt */}
-              {selectedExpense.receipt_url && (
+              {selectedExpense.bill_url && (
                 <div className="border border-[var(--line)] rounded-[16px] p-4 bg-[var(--surface-alt)] space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-[var(--text)]">Attached Receipt Document</span>
-                    <a
-                      href={selectedExpense.receipt_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => handleViewReceipt(selectedExpense.id)}
                       className="inline-flex items-center gap-1 text-[var(--brand-deep)] hover:underline font-semibold"
                     >
                       <ExternalLink className="w-3.5 h-3.5" /> View Receipt
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}
