@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Download, Users, Calendar, IndianRupee, Filter, Building2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -77,11 +77,6 @@ const AdminReports = () => {
     staleTime: 60 * 1000,
   });
 
-  const hasLoadedOnce = useRef(false);
-  if (!loadingEmployees && !loadingAttendance && !loadingPayroll) {
-    hasLoadedOnce.current = true;
-  }
-
   const safeEmployees = Array.isArray(employeesData) ? employeesData : [];
   const safeAttendance = Array.isArray(attendanceData) ? attendanceData : [];
   const safePayroll = Array.isArray(payrollData) ? payrollData : [];
@@ -128,7 +123,7 @@ const AdminReports = () => {
   }, {});
   const payrollChartData = Object.values(departmentPayroll);
 
-  if (!hasLoadedOnce.current && (loadingEmployees || loadingAttendance || loadingPayroll)) {
+  if (loadingEmployees || loadingAttendance || loadingPayroll) {
     return <PageLoader message="Loading reports..." />;
   }
 
