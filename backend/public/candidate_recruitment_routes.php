@@ -124,7 +124,7 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
         if ($exists) {
             $stmtUpdate = $conn->prepare('
                 UPDATE candidate_profiles 
-                SET phone = ?, address = ?, current_title = ?, experience = ?, avatar_url = ?, updated_at = CURRENT_TIMESTAMP
+                SET phone = ?, address = ?, current_title = ?, experience = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE user_id = ?
             ');
             $stmtUpdate->execute([
@@ -132,21 +132,19 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
                 $data['address'] ?? null,
                 $data['currentTitle'] ?? null,
                 $data['experience'] ?? null,
-                $data['avatar'] ?? null,
                 $decodedToken->id
             ]);
         } else {
             $stmtInsert = $conn->prepare('
-                INSERT INTO candidate_profiles (user_id, phone, address, current_title, experience, avatar_url) 
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO candidate_profiles (user_id, phone, address, current_title, experience) 
+                VALUES (?, ?, ?, ?, ?)
             ');
             $stmtInsert->execute([
                 $decodedToken->id,
                 $data['phone'] ?? null,
                 $data['address'] ?? null,
                 $data['currentTitle'] ?? null,
-                $data['experience'] ?? null,
-                $data['avatar'] ?? null
+                $data['experience'] ?? null
             ]);
         }
 
