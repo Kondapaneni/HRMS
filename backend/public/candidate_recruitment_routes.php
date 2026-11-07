@@ -188,6 +188,7 @@ $app->post('/api/candidate/documents/upload', function (Request $request, Respon
         return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
     }
 
+    $dbCommitted = false;
     try {
         [$baseUrl, $serviceKey] = attendanceStorageConfig();
         $objectPath = (string)$user->id . '/' . bin2hex(random_bytes(20)) . '.pdf';
@@ -210,6 +211,7 @@ $app->post('/api/candidate/documents/upload', function (Request $request, Respon
         $insertStmt->execute([$user->id, $docTypeId, basename((string)$file->getClientFilename()), 'storage:candidate_documents/' . $objectPath]);
         $newId = $insertStmt->fetchColumn();
         $conn->commit();
+        $dbCommitted = true;
 
         if ($existingPath) {
             $oldObjectPath = candidateDocumentObjectPath((string)$existingPath);
@@ -223,7 +225,7 @@ $app->post('/api/candidate/documents/upload', function (Request $request, Respon
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     } catch (Throwable $e) {
         if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
-        if (isset($objectPath, $serviceKey, $baseUrl)) candidateStorageRequest('DELETE', $objectPath, $serviceKey, $baseUrl);
+        if (!$dbCommitted && isset($objectPath, $serviceKey, $baseUrl)) candidateStorageRequest('DELETE', $objectPath, $serviceKey, $baseUrl);
         error_log('Candidate document upload failed: ' . $e->getMessage());
         $response->getBody()->write(json_encode(['error' => 'Unable to upload the document right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
@@ -303,8 +305,23 @@ $app->delete('/api/candidate/documents/{type}', function (Request $request, Resp
     $conn = $db->getConnection();
     
     try {
+        $stmtFind = $conn->prepare('SELECT file_path FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
+        $stmtFind->execute([$decodedToken->id, $docTypeId]);
+        $storedPath = $stmtFind->fetchColumn();
         $stmtDelete = $conn->prepare('DELETE FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
         $stmtDelete->execute([$decodedToken->id, $docTypeId]);
+
+        if ($storedPath) {
+            try {
+                $objectPath = candidateDocumentObjectPath((string)$storedPath);
+                if ($objectPath) {
+                    [$baseUrl, $serviceKey] = attendanceStorageConfig();
+                    candidateStorageRequest('DELETE', $objectPath, $serviceKey, $baseUrl);
+                }
+            } catch (Throwable $storageError) {
+                error_log('Candidate document cleanup failed: ' . $storageError->getMessage());
+            }
+        }
 
         $response->getBody()->write(json_encode(['message' => 'Document deleted']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
