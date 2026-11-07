@@ -5,6 +5,60 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
+
+function holidayImageStorageUpload($file): string
+{
+    if (!$file || $file->getError() !== UPLOAD_ERR_OK || !$file->getSize() || $file->getSize() > 5 * 1024 * 1024) {
+        throw new InvalidArgumentException('Choose an image smaller than 5 MB.');
+    }
+    $stream = $file->getStream();
+    $contents = $stream->getContents();
+    $mime = (new \\finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+    $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    if (!isset($extensions[$mime])) throw new DomainException('Only JPEG, PNG, or WEBP images are allowed.');
+
+    $baseUrl = rtrim((string)($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: ''), '/');
+    $serviceKey = (string)($_ENV['SUPABASE_SERVICE_ROLE_KEY'] ?? getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '');
+    if (!$baseUrl || !$serviceKey) throw new RuntimeException('Holiday image storage is not configured.');
+
+    $filename = bin2hex(random_bytes(20)) . '.' . $extensions[$mime];
+    $url = $baseUrl . '/storage/v1/object/holidays/' . rawurlencode($filename);
+    $context = stream_context_create(['http' => [
+        'method' => 'POST',
+        'header' => "Authorization: Bearer {$serviceKey}\\r\\napikey: {$serviceKey}\\r\\nContent-Type: {$mime}\\r\\nx-upsert: false\\r\\nCache-Control: no-store\\r\\n",
+        'content' => $contents,
+        'timeout' => 25,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    preg_match('/\\\\s(\\\\d{3})\\\\s/', $statusLine, $matches);
+    $status = (int)($matches[1] ?? 0);
+    if ($status < 200 || $status >= 300) {
+        error_log('Holiday image upload failed with status ' . $status);
+        throw new RuntimeException('Unable to upload the holiday image.');
+    }
+    return '/Holiday/' . $filename;
+}
+
+$app->post('/api/admin/holidays/image', function (Request $request, Response $response) {
+    try {
+        $path = holidayImageStorageUpload($request->getUploadedFiles()['file'] ?? null);
+        $response->getBody()->write(json_encode(['image_url' => $path]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (InvalidArgumentException $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    } catch (DomainException $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+    } catch (Throwable $e) {
+        error_log('Holiday image upload failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to upload the holiday image right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'attendance'));
+
 // GET /api/admin/holidays - Get all holidays or filter by month
 /** @var \Slim\App $app */
 $app->get('/api/admin/holidays', function (Request $request, Response $response, $args) {
