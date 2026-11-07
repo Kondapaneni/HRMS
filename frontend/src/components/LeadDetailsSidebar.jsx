@@ -1,20 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  CheckCircle2, 
-  UserPlus, 
-  XCircle, 
-  Loader2, 
-  Briefcase, 
-  Check,
-  TrendingUp
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, Phone, MapPin, Calendar, Clock, CheckCircle2, UserPlus, XCircle, Loader2, Briefcase, Check, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateLeadStatus } from '../services/loanServices';

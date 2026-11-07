@@ -3,16 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { useAuth } from '../contexts/AuthContext';
 import { NativeLocationTracker } from '../plugins/NativeLocationTracker';
-import { 
-  Bell, 
-  BatteryCharging, 
-  MapPin, 
-  CheckCircle2, 
-  AlertTriangle, 
-  ExternalLink, 
-  RefreshCw, 
-  LogOut 
-} from 'lucide-react';
+import { Bell, BatteryCharging, MapPin, CheckCircle2, AlertTriangle, ExternalLink, RefreshCw, LogOut } from 'lucide-react';
 
 export default function TrackerPermissionGate() {
   const { user, profile, signOut } = useAuth();
@@ -96,7 +87,7 @@ export default function TrackerPermissionGate() {
     try {
       await NativeLocationTracker.requestNotificationPermission();
       setTimeout(checkPermissions, 1000);
-    } catch (e) {
+    } catch {
       console.error(e);
     }
   };
@@ -105,7 +96,7 @@ export default function TrackerPermissionGate() {
     try {
       await NativeLocationTracker.requestBatteryOptimization();
       setTimeout(checkPermissions, 1000);
-    } catch (e) {
+    } catch {
       console.error(e);
     }
   };
@@ -116,7 +107,7 @@ export default function TrackerPermissionGate() {
       setTimeout(async () => {
         await NativeLocationTracker.openAppSettings();
       }, 600);
-    } catch (e) {
+    } catch {
       await NativeLocationTracker.openAppSettings();
     }
   };

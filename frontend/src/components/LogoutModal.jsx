@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Loader2 } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import Button from './ui/Button';
 
 export default function LogoutModal({

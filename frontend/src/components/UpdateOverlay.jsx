@@ -25,7 +25,7 @@ export default function UpdateOverlay() {
       try {
         const res = await api.get('/news');
         return res.data;
-      } catch (e) {
+      } catch {
         return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
       }
     },
@@ -76,7 +76,7 @@ export default function UpdateOverlay() {
             setUpdateAvailable(true);
           }
         }
-      } catch (e) {
+      } catch {
         // Gracefully ignore version check failures
       }
     };

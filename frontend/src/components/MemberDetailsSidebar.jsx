@@ -1,12 +1,12 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, Briefcase, CheckCircle2, ArrowRight, Lock, MapPin, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, Phone, Briefcase, CheckCircle2, ArrowRight, Lock, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
-import { format } from 'date-fns';
+
 
 const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
   const isSale = type === 'sale';
@@ -28,7 +28,6 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
   if (!isOpen || !member) return null;
 
   const defaultLeadId = String(member.lead_id || member.id || '');
-  const isMemberDefaultCreated = createdLeadIds.has(defaultLeadId);
 
   const rawProducts = isSale ? (member.products || []) : (member.loans || []);
   const productsList = rawProducts.length > 0 ? rawProducts : [
