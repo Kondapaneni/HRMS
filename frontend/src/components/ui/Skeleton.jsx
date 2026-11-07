@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 /**
  * Skeleton component with soft shimmer animation
