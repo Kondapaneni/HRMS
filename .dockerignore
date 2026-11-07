@@ -1,0 +1,20 @@
+# Never copy local credentials or environment files into Docker build context.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and generated output are installed/built inside Docker.
+**/node_modules
+**/vendor
+**/dist
+**/build
+**/coverage
+
+# Repository metadata and local development artifacts.
+.git
+.gitignore
+**/.DS_Store
+**/*.log
+**/logs
+**/tmp
+**/temp
