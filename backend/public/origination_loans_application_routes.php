@@ -80,6 +80,187 @@ function loanStorageSignedUrl(string $bucket, string $objectPath, int $expiresIn
         : rtrim($baseUrl, '/') . '/storage/v1' . (str_starts_with($signed, '/') ? $signed : '/' . $signed);
 }
 
+
+/**
+ * Create signed URLs for many private Storage objects in one request per bucket
+ * (and bounded chunks), rather than one synchronous request per asset.
+ */
+function loanStorageSignedUrls(string $bucket, array $objectPaths, int $expiresIn = 900): array
+{
+    if (!in_array($bucket, ['loan_documents', 'loan_signatures'], true)) return [];
+    $paths = array_values(array_unique(array_filter($objectPaths, 'is_string')));
+    if (!$paths) return [];
+
+    [$baseUrl, $serviceKey] = attendanceStorageConfig();
+    $signedByPath = [];
+    foreach (array_chunk($paths, 100) as $chunk) {
+        $url = rtrim($baseUrl, '/') . '/storage/v1/object/sign/' . $bucket;
+        $context = stream_context_create(['http' => [
+            'method' => 'POST',
+            'header' => "Authorization: Bearer {$serviceKey}\r\n" .
+                "apikey: {$serviceKey}\r\n" .
+                "Content-Type: application/json\r\n" .
+                "Cache-Control: no-store\r\n",
+            'content' => json_encode(['expiresIn' => $expiresIn, 'paths' => $chunk]),
+            'timeout' => 15,
+            'ignore_errors' => true
+        ]]);
+        $result = @file_get_contents($url, false, $context);
+        if ($result === false) continue;
+        $items = json_decode($result, true);
+        if (!is_array($items)) continue;
+        foreach ($items as $item) {
+            if (!is_array($item) || !empty($item['error'])) continue;
+            $path = $item['path'] ?? null;
+            $signed = $item['signedURL'] ?? $item['signedUrl'] ?? null;
+            if (!is_string($path) || !is_string($signed) || $signed === '') continue;
+            $signedByPath[$path] = str_starts_with($signed, 'http')
+                ? $signed
+                : rtrim($baseUrl, '/') . '/storage/v1' . (str_starts_with($signed, '/') ? $signed : '/' . $signed);
+        }
+    }
+    return $signedByPath;
+}
+
+function loanResolveLoanDocumentsRaw(array $docsByAppId, $appId, $uuidId = null, $leadId = null): array
+{
+    $matched = [];
+    foreach ([$appId, $uuidId, $leadId] as $key) {
+        if (!empty($key) && isset($docsByAppId[(string)$key])) {
+            foreach ($docsByAppId[(string)$key] as $document) $matched[] = $document;
+        }
+    }
+    usort($matched, fn($a, $b) => strtotime($a['created_at']) <=> strtotime($b['created_at']));
+    $documents = [];
+    foreach ($matched as $document) {
+        $documents[$document['slot_key']] = [
+            'url' => $document['url'],
+            'slot_key' => $document['slot_key']
+        ];
+    }
+    return $documents;
+}
+
+/**
+ * Pre-sign every document/signature used by a list response in two bucket-level
+ * batches. Ownership checks are applied before paths are sent to Storage.
+ */
+function loanBatchSignApplicationRows(array &$rows, array $docsByAppId): void
+{
+    $prepared = [];
+    $pathsByBucket = ['loan_documents' => [], 'loan_signatures' => []];
+
+    foreach ($rows as $index => &$row) {
+        $formData = is_string($row['form_data'] ?? null)
+            ? (json_decode($row['form_data'], true) ?: [])
+            : (($row['form_data'] ?? null) ?: []);
+        $signatures = is_string($row['signatures'] ?? null)
+            ? (json_decode($row['signatures'], true) ?: [])
+            : (($row['signatures'] ?? null) ?: []);
+        if (!is_array($formData)) $formData = [];
+        if (!is_array($signatures)) $signatures = [];
+        $applicationUuid = (string)($row['id'] ?? '');
+
+        $signaturePaths = [];
+        foreach ($signatures as $key => $reference) {
+            $path = is_string($reference) ? loanStorageObjectPath($reference, 'loan_signatures') : null;
+            if ($path && $applicationUuid !== '' && str_starts_with($path, $applicationUuid . '/')) {
+                $signaturePaths[$key] = $path;
+                $pathsByBucket['loan_signatures'][$path] = $path;
+            }
+        }
+
+        $timelinePaths = [];
+        if (is_array($formData['timeline'] ?? null)) {
+            foreach ($formData['timeline'] as $eventIndex => $event) {
+                if (!is_array($event) || !is_string($event['signature'] ?? null)) continue;
+                $path = loanStorageObjectPath($event['signature'], 'loan_signatures');
+                if ($path && $applicationUuid !== '' && str_starts_with($path, $applicationUuid . '/')) {
+                    $timelinePaths[$eventIndex] = $path;
+                    $pathsByBucket['loan_signatures'][$path] = $path;
+                }
+            }
+        }
+
+        $documents = loanResolveLoanDocumentsRaw(
+            $docsByAppId,
+            $row['application_id'] ?? null,
+            $row['id'] ?? null,
+            $row['lead_id'] ?? null
+        );
+        $documentPaths = [];
+        foreach ($documents as $key => $document) {
+            $reference = $document['url'] ?? null;
+            $path = is_string($reference) ? loanStorageObjectPath($reference, 'loan_documents') : null;
+            if (!$path) continue;
+            if ($applicationUuid !== '') {
+                if (str_contains($path, '/')) {
+                    if (!str_starts_with($path, $applicationUuid . '/')) continue;
+                } else {
+                    // Preserve the existing legacy-root compatibility for loan_documents.
+                }
+            }
+            $documentPaths[$key] = $path;
+            $pathsByBucket['loan_documents'][$path] = $path;
+        }
+
+        $prepared[$index] = [
+            'form_data' => $formData,
+            'signatures' => $signatures,
+            'signature_paths' => $signaturePaths,
+            'timeline_paths' => $timelinePaths,
+            'documents' => $documents,
+            'document_paths' => $documentPaths
+        ];
+    }
+    unset($row);
+
+    $signedDocuments = loanStorageSignedUrls('loan_documents', array_values($pathsByBucket['loan_documents']));
+    $signedSignatures = loanStorageSignedUrls('loan_signatures', array_values($pathsByBucket['loan_signatures']));
+
+    foreach ($rows as $index => &$row) {
+        $item = $prepared[$index] ?? null;
+        if (!$item) continue;
+        $formData = $item['form_data'];
+        $signatures = $item['signatures'];
+
+        foreach ($signatures as $key => $reference) {
+            if (!isset($item['signature_paths'][$key], $signedSignatures[$item['signature_paths'][$key]])) {
+                unset($signatures[$key]);
+            } else {
+                $signatures[$key] = $signedSignatures[$item['signature_paths'][$key]];
+            }
+        }
+
+        if (is_array($formData['timeline'] ?? null)) {
+            foreach ($formData['timeline'] as $eventIndex => &$event) {
+                if (!is_array($event) || !isset($item['timeline_paths'][$eventIndex])) continue;
+                $path = $item['timeline_paths'][$eventIndex];
+                if (isset($signedSignatures[$path])) $event['signature'] = $signedSignatures[$path];
+                else unset($event['signature']);
+            }
+            unset($event);
+        }
+
+        $documents = [];
+        foreach ($item['documents'] as $key => $document) {
+            $path = $item['document_paths'][$key] ?? null;
+            if (!$path || !isset($signedDocuments[$path])) continue;
+            $documents[$key] = [
+                'url' => $signedDocuments[$path],
+                'slot_key' => $document['slot_key'] ?? $key
+            ];
+        }
+
+        $row['form_data'] = $formData;
+        $row['signatures'] = $signatures;
+        $row['documents'] = $documents;
+        if (!is_array($row['form_data'])) $row['form_data'] = [];
+        $row['form_data']['documents'] = $documents;
+    }
+    unset($row);
+}
+
 function loanStorageSignedUrlFromReference(?string $reference, string $bucket, ?string $applicationUuid = null, bool $allowLegacyRoot = false): ?string
 {
     if (!$reference) return null;
@@ -460,18 +641,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         // one query per row (was N+1 — a list of 50 applications meant 51 queries).
         $docsByAppId = getLoanDocumentsBatch($conn, $rows);
 
-        foreach ($rows as &$row) {
-            if (isset($row['form_data']) && is_string($row['form_data'])) {
-                $row['form_data'] = json_decode($row['form_data'], true);
-            }
-            if (isset($row['signatures']) && is_string($row['signatures'])) {
-                $row['signatures'] = json_decode($row['signatures'], true);
-            }
-            loanSignApplicationAssets($row['form_data'], $row['signatures'], (string)$row['id']);
-            $row['documents'] = resolveLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
-            $row['form_data']['documents'] = $row['documents'];
-        }
-        unset($row);
+        loanBatchSignApplicationRows($rows, $docsByAppId);
 
         $response->getBody()->write(json_encode([
             'success' => true,
