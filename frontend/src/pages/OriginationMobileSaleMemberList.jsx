@@ -11,7 +11,6 @@ import {
   Users, 
   Loader2, 
   ChevronRight, 
-  X,
   ShoppingBag
 } from 'lucide-react';
 import { format } from 'date-fns';
