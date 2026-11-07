@@ -185,7 +185,7 @@ const AdminDirectory = () => {
       if (search && hasMatchInSubtree) {
         setIsExpanded(true);
       }
-    }, [search, hasMatchInSubtree]);
+    }, [hasMatchInSubtree]);
 
     const labelContent = (
       <EmployeeNode
