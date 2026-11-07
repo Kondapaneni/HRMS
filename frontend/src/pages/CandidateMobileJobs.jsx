@@ -1,13 +1,6 @@
 import { useState } from 'react';
 import SearchBar from '../components/ui/SearchBar';
-import { 
-  Search, 
-  Briefcase, 
-  CheckCircle2, 
-  ExternalLink, 
-  Sparkles, 
-  X
-} from 'lucide-react';
+import { Briefcase, CheckCircle2, ExternalLink, Sparkles, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 

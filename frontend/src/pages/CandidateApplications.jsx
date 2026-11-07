@@ -1,16 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
-import { 
-  FileText, 
-  ChevronRight, 
-  X, 
-  Clock, 
-  Calendar, 
-  ArrowRight,
-  TrendingUp,
-  Folder
-} from 'lucide-react';
+import { FileText, ChevronRight, X, Clock, Calendar, ArrowRight, Folder } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';

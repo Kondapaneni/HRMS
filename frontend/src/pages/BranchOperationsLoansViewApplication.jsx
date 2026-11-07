@@ -2,24 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
-import {
-  Lock,
-  Printer,
-  Loader2,
-  X,
-  ArrowLeft,
-  Copy,
-  FileEdit,
-  Clock,
-  XCircle
-} from 'lucide-react';
+import { Lock, Printer, Loader2, X, ArrowLeft, FileEdit } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { getBranchLoanApplications, getBranches } from '../services/loanServices';
 import { preloadAndDecodeImages } from '../utils/imageCompressor';
 import { LoanDetailView } from '../components/forms';
 import BranchOperationsMobileLoansViewApplication from './BranchOperationsMobileLoansViewApplication';
-import { maskPhoneNumber } from '../utils/phoneUtils';
+
 
 // Helper: Safe date formatter
 const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
