@@ -11,7 +11,7 @@ import {
 import { Link } from 'react-router-dom';
 
 const CandidateMobileApplications = ({ 
-  applications, getStatusBadge, setIsTimelineModalOpen, setTimelineApp 
+  applications, getStatusBadge, setIsTimelineModalOpen, setTimelineApp, handlePreviewOfferLetter
 }) => {
   const getBadgeStyle = (status) => {
     switch (status) {
@@ -135,24 +135,33 @@ const CandidateMobileApplications = ({
                 </div>
 
                 {/* Actions Footer */}
-                <div className={`pt-2 border-t border-[var(--line)] ${app.status === 'Hired' ? 'grid grid-cols-2 gap-2' : 'flex'}`}>
+                <div className="pt-2 border-t border-[var(--line)] flex flex-wrap gap-2">
+                  {app.offerLetterAvailable && (
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewOfferLetter(app.id)}
+                      className="flex-1 min-w-[140px] h-10 rounded-full border border-[var(--brand)]/30 bg-[var(--brand-tint)] hover:bg-[var(--brand)]/10 text-[var(--brand-deep)] font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>View Offer Letter</span>
+                    </button>
+                  )}
                   {app.status === 'Hired' && (
-                    <Link 
+                    <Link
                       to="/candidate/documents"
-                      className="h-10 rounded-full border border-[#CEEAD6] bg-[#E6F6EC] hover:bg-[#CEEAD6] text-[#1F9D55] font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
+                      className="flex-1 min-w-[120px] h-10 rounded-full border border-[#CEEAD6] bg-[#E6F6EC] hover:bg-[#CEEAD6] text-[#1F9D55] font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
                     >
                       <Folder className="w-4 h-4" />
                       <span>Upload Docs</span>
                     </Link>
                   )}
-
-                  <button 
+                  <button
                     type="button"
                     onClick={() => {
                       setTimelineApp(app);
                       setIsTimelineModalOpen(true);
                     }}
-                    className="w-full h-10 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-[var(--text)] font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className="flex-1 min-w-[120px] h-10 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-[var(--text)] font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Clock className="w-4 h-4 text-[var(--brand-deep)]" />
                     <span>{app.status === 'Hired' ? 'Timeline' : 'View Progress'}</span>
