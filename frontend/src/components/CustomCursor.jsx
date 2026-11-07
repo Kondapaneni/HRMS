@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useRef } from 'react';
 
+const POSSIBLE_EMOJI = ['❄️'];
+
 const SnowflakeCursor = ({ element, zIndex }) => {
   const canvasRef = useRef(null);
   const particles = useRef([]);
   const canvImages = useRef([]);
   const animationFrame = useRef(null);
-  const possibleEmoji = ['❄️'];
   const prefersReducedMotion = useRef(null);
   
   useEffect(() => {
@@ -35,7 +36,7 @@ const SnowflakeCursor = ({ element, zIndex }) => {
       context.font = '12px serif';
       context.textBaseline = 'middle';
       context.textAlign = 'center';
-      possibleEmoji.forEach((emoji) => {
+      POSSIBLE_EMOJI.forEach((emoji) => {
         const measurements = context.measureText(emoji);
         const bgCanvas = document.createElement('canvas');
         const bgContext = bgCanvas.getContext('2d');
@@ -118,7 +119,7 @@ const SnowflakeCursor = ({ element, zIndex }) => {
     
     init();
     return () => destroy();
-  }, [element]);
+  }, [element, zIndex]);
   
   return null;
 };

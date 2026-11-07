@@ -62,9 +62,9 @@ const AdminAuditLogs = () => {
     onError: (error) => toast.error(error.response?.data?.error || 'Failed to fetch audit logs'),
   });
 
-  const logs = logsResponse?.data || [];
+  const logs = useMemo(() => logsResponse?.data || [], [logsResponse?.data]);
   const idMap = logsResponse?.idMap || {};
-  const pagination = logsResponse?.pagination || { page: 1, limit: 15, total: 0, totalPages: 0 };
+  const pagination = useMemo(() => logsResponse?.pagination || { page: 1, limit: 15, total: 0, totalPages: 0 }, [logsResponse?.pagination]);
 
   const clearFilters = () => {
     setSearchTerm('');

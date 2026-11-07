@@ -130,7 +130,7 @@ const BranchOperationsLoansApplicationsList = () => {
   });
 
   const branch = response?.branch || { name: 'Assigned Branch' };
-  const applications = response?.applications || [];
+  const applications = useMemo(() => response?.applications || [], [response?.applications]);
 
   // Compute Metrics & Stats across all applications
   const stats = useMemo(() => {

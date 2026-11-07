@@ -195,6 +195,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
         if (formData[`${pfx}business_income_per_month`]) updateField(`${pfx}business_income_per_month`, '');
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only rerun when conditional visibility inputs change; formData and updateField would retrigger on every edit.
   }, [
     formData.gender, formData.marital_status, formData.employment, showParents, showHusband,
     formData.has_co_applicant, formData.co_gender, formData.co_marital_status, formData.co_employment,
@@ -390,6 +391,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
     if (!directData && !isEditMode) {
       loadSavedDataFromDB(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rehydrate only when the source record changes, not after each user edit.
   }, [profile, location.state, propApplication, isEditMode]);
 
   const getCleanFormData = () => {

@@ -30,8 +30,8 @@ const BranchOperationsMobileLeads = () => {
   });
 
   const branch = data?.branch || { name: 'Assigned Branch' };
-  const allCreators = data?.creators || [];
-  const rawLeads = data?.leads || [];
+  const allCreators = useMemo(() => data?.creators || [], [data?.creators]);
+  const rawLeads = useMemo(() => data?.leads || [], [data?.leads]);
   const counts = data?.counts || {
     All: rawLeads.length,
     New: 0,

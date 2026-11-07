@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
       setProfileLoading(false);
       fetchInProgress.current = false;
     }
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     if (isInitialized) return;

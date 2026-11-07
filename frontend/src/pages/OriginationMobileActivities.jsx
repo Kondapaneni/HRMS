@@ -58,7 +58,7 @@ const OriginationMobileActivities = () => {
     }
   });
 
-  const rawEvents = data.activities || [];
+  const rawEvents = useMemo(() => data.activities || [], [data.activities]);
   const branchInfo = data.branch || null;
   const assignableEmployees = data.assignableEmployees || [];
 

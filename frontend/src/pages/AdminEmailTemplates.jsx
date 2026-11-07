@@ -22,7 +22,7 @@ const AdminEmailTemplates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
 
-  const templates = [
+  const templates = useMemo(() => [
     {
       id: 'welcome',
       name: 'Welcome Email (Employees)',
@@ -140,7 +140,7 @@ const AdminEmailTemplates = () => {
       subject: 'Document Verification Successful - Onboarding Cleared',
       content: <CandidateDocumentsVerifiedEmailTemplate />
     }
-  ];
+  ], []);
 
   // Category counts
   const categoryCounts = useMemo(() => {

@@ -121,7 +121,7 @@ const OriginationLoanApplicationsList = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  const applications = response?.applications || [];
+  const applications = useMemo(() => response?.applications || [], [response?.applications]);
 
   // Compute Metrics & Stats across all applications
   const stats = useMemo(() => {

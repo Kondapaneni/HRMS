@@ -218,7 +218,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
     });
 
     return items;
-  }, [user]);
+  }, [user, emp?.featureAccess?.canBranchOperations, emp?.featureAccess?.canLoanOrigination, emp?.featureAccess?.canSalesOrigination]);
 
   const filteredPages = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();

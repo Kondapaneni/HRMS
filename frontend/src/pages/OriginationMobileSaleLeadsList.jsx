@@ -24,7 +24,7 @@ const OriginationMobileSaleLeadsList = () => {
     queryFn: () => getSalesLeads({ search: debouncedSearch }),
   });
 
-  const rawLeads = response?.leads || response?.data || [];
+  const rawLeads = useMemo(() => response?.leads || response?.data || [], [response?.leads, response?.data]);
 
   const filteredLeads = useMemo(() => {
     let result = rawLeads;

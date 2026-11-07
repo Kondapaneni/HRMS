@@ -31,7 +31,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
   });
 
   const branch = response?.branch || { name: 'Assigned Branch' };
-  const applications = response?.applications || [];
+  const applications = useMemo(() => response?.applications || [], [response?.applications]);
 
   const statusCounts = useMemo(() => {
     const counts = { All: applications.length, Created: 0, 'Under Review': 0, Approved: 0, Draft: 0, Rejected: 0 };

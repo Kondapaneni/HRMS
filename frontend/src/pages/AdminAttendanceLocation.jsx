@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -95,7 +95,7 @@ const AdminAttendanceLocation = () => {
     if (infoWindowRef.current) infoWindowRef.current.close();
   };
 
-  const showPhotoInfo = (key, marker, index) => {
+  const showPhotoInfo = useCallback((key, marker, index) => {
     const infoWindow = infoWindowRef.current;
     const map = mapInstanceRef.current;
     if (!infoWindow || !map || !data) return;
@@ -317,7 +317,7 @@ const AdminAttendanceLocation = () => {
     };
 
     loadGoogleMapsScript();
-  }, [data]);
+  }, [data, showPhotoInfo]);
 
   const showAllMarkers = () => {
     if (window.__showAllMarkers) window.__showAllMarkers();

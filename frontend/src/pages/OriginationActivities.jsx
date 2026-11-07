@@ -320,7 +320,7 @@ const OriginationActivities = () => {
     }
   });
 
-  const events = data.activities || [];
+  const events = useMemo(() => data.activities || [], [data.activities]);
   const branchInfo = data.branch || null;
   const assignableEmployees = data.assignableEmployees || [];
 

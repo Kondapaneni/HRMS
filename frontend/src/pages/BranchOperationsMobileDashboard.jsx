@@ -37,7 +37,7 @@ const BranchOperationsMobileDashboard = () => {
   });
 
   const branch = data?.branch || { name: 'Assigned Branch' };
-  const allCreators = data?.creators || [];
+  const allCreators = useMemo(() => data?.creators || [], [data?.creators]);
   const recentLeads = data?.recentLeads || [];
   const recentApplications = data?.recentApplications || [];
 

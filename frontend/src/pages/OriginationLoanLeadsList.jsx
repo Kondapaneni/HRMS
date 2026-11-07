@@ -37,7 +37,7 @@ const OriginationLoanLeadsList = () => {
     queryFn: getLeads,
   });
 
-  const rawLeads = response?.leads || [];
+  const rawLeads = useMemo(() => response?.leads || [], [response?.leads]);
 
   const filteredLeads = useMemo(() => {
     let result = rawLeads;
