@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeEmailHtml } from '../../utils/sanitizeEmailHtml';
 import templateHtml from '../../../../backend/src/Templates/candidate_activate_email.html?raw';
 
 const CandidateActivateEmailTemplate = () => {

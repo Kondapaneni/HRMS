@@ -1,4 +1,5 @@
 import React from 'react';
+import { sanitizeEmailHtml } from '../../utils/sanitizeEmailHtml';
 import templateHtml from '../../../../backend/src/Templates/assessment_result_email.html?raw';
 
 const AssessmentResultEmailTemplate = () => {
@@ -12,7 +13,7 @@ const AssessmentResultEmailTemplate = () => {
     .replace(/\{\{resultLink\}\}/g, '#')
     .replace(/\{\{currentYear\}\}/g, new Date().getFullYear());
 
-  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+  return <div dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(htmlContent) }} />;
 };
 
 export default AssessmentResultEmailTemplate;
