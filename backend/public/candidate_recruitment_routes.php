@@ -103,7 +103,7 @@ $app->get('/api/candidate/profile', function (Request $request, Response $respon
         $response->getBody()->write(json_encode(['profile' => $profile ?: null]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
@@ -152,7 +152,7 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
         $response->getBody()->write(json_encode(['message' => 'Profile updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
@@ -415,7 +415,7 @@ $app->put('/api/candidate/profile/documents-seen', function (Request $request, R
         $response->getBody()->write(json_encode(['message' => 'Documents tab seen timestamp updated']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
@@ -435,7 +435,7 @@ $app->get('/api/candidate/documents', function (Request $request, Response $resp
         $response->getBody()->write(json_encode(['documents' => $documents]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
@@ -567,7 +567,7 @@ $app->delete('/api/candidate/documents/{type}', function (Request $request, Resp
         $response->getBody()->write(json_encode(['message' => 'Document deleted']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
@@ -616,7 +616,7 @@ $app->get('/api/candidate/jobs', function (Request $request, Response $response,
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
@@ -715,7 +715,7 @@ $app->get('/api/candidate/applications', function (Request $request, Response $r
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
@@ -809,7 +809,7 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
