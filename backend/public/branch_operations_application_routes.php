@@ -28,7 +28,7 @@ if (!function_exists('getBranchLoanDocumentsFromTable')) {
                 'slot_key' => $r['slot_key']
             ];
         }
-        return $docsMap;
+        return loanSignDocumentMap($docsMap);
     }
 }
 
@@ -89,7 +89,7 @@ if (!function_exists('resolveBranchLoanDocumentsForRow')) {
                 'slot_key' => $d['slot_key']
             ];
         }
-        return $docsMap;
+        return loanSignDocumentMap($docsMap);
     }
 }
 
@@ -256,6 +256,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             $formData = is_string($row['form_data']) ? json_decode($row['form_data'], true) : ($row['form_data'] ?: []);
             $signatures = is_string($row['signatures']) ? json_decode($row['signatures'], true) : ($row['signatures'] ?: []);
 
+            loanSignApplicationAssets($formData, $signatures);
             $timeline = $formData['timeline'] ?? [];
             $currentStage = trim($formData['stage'] ?? ($formData['current_stage'] ?? ''));
 
@@ -292,10 +293,9 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             // Resolve documents from the batch fetched above
             $docs = resolveBranchLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
             if (isset($formData['documents']) && is_array($formData['documents'])) {
-                foreach ($formData['documents'] as $k => $v) {
-                    if (!isset($docs[$k]) && !empty($v)) {
-                        $docs[$k] = is_array($v) ? $v : ['url' => $v, 'slot_key' => $k];
-                    }
+                $legacyDocs = loanSignDocumentMap($formData['documents']);
+                foreach ($legacyDocs as $k => $v) {
+                    if (!isset($docs[$k])) $docs[$k] = $v;
                 }
             }
             $formData['documents'] = $docs;
@@ -350,7 +350,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
         $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch applications: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'branchOperations'));
 
 /**
  * Helper to map form keys to friendly labels for Audit Logs.
@@ -495,7 +495,7 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
 
         // Fetch editor employee details for the audit log
         $empStmt = $conn->prepare('
-            SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email, e.department, e.position,
+            SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch,
                    b.name as branch_name
             FROM employee e
             LEFT JOIN branches b ON e.branch::uuid = b.id
@@ -525,6 +525,11 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         if (!$existingApp) {
             $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $isAdmin = is_object($decodedToken) ? (($decodedToken->role ?? '') === 'admin') : (($decodedToken['role'] ?? '') === 'admin');
+        if (!$isAdmin && (!$editorEmp || empty($editorEmp['branch']) || (string)$existingApp['branch'] !== (string)$editorEmp['branch'])) {
+            return $response->withStatus(404);
         }
 
         $oldFormData = is_string($existingApp['form_data'])
@@ -640,6 +645,9 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
             if (isset($updatedRecord['signatures']) && is_string($updatedRecord['signatures'])) {
                 $updatedRecord['signatures'] = json_decode($updatedRecord['signatures'], true);
             }
+            if (!is_array($updatedRecord['form_data'])) $updatedRecord['form_data'] = [];
+            if (!is_array($updatedRecord['signatures'])) $updatedRecord['signatures'] = [];
+            loanSignApplicationAssets($updatedRecord['form_data'], $updatedRecord['signatures']);
             $updatedRecord['documents'] = getBranchLoanDocumentsFromTable($conn, $updatedRecord['application_id'], $updatedRecord['id'], $updatedRecord['lead_id']);
 
             // Fetch audit logs from dedicated table
@@ -682,4 +690,4 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         $response->getBody()->write(json_encode(['error' => 'An error occurred while updating application: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'branchOperations'));
