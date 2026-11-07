@@ -84,14 +84,19 @@ $app->get('/api/storage/attendance/{filename:[A-Za-z0-9._-]+}', function (Reques
         $db = new Database();
         $conn = $db->getConnection();
         if (!$conn) throw new RuntimeException('Database unavailable.');
-        $isAdmin = (($user->role ?? '') === 'admin');
+        $canViewAllAttendance = (($user->role ?? '') === 'admin');
+        if (!$canViewAllAttendance) {
+            $featureStmt = $conn->prepare('SELECT "canAttendance" FROM user_feature_access WHERE "userId" = :uid LIMIT 1');
+            $featureStmt->execute([':uid' => $user->id]);
+            $canViewAllAttendance = in_array($featureStmt->fetchColumn(), [true, 1, '1', 't', 'true'], true);
+        }
         $pathPattern = '%/Attendance/' . $filename;
-        $ownerCondition = $isAdmin ? 'TRUE' : '"employeeId" = :uid';
+        $ownerCondition = $canViewAllAttendance ? 'TRUE' : '"employeeId" = :uid';
         $attendanceParams = [
             ':checkin_path' => $pathPattern,
             ':checkout_path' => $pathPattern
         ];
-        if (!$isAdmin) $attendanceParams[':uid'] = $user->id;
+        if (!$canViewAllAttendance) $attendanceParams[':uid'] = $user->id;
         $stmt = $conn->prepare("
             SELECT 1 FROM attendance
             WHERE {$ownerCondition}
@@ -102,9 +107,9 @@ $app->get('/api/storage/attendance/{filename:[A-Za-z0-9._-]+}', function (Reques
         $authorized = (bool)$stmt->fetchColumn();
 
         if (!$authorized) {
-            $punchOwnerCondition = $isAdmin ? 'TRUE' : '"employeeId" = :uid';
+            $punchOwnerCondition = $canViewAllAttendance ? 'TRUE' : '"employeeId" = :uid';
             $punchParams = [':photo_path' => $pathPattern];
-            if (!$isAdmin) $punchParams[':uid'] = $user->id;
+            if (!$canViewAllAttendance) $punchParams[':uid'] = $user->id;
             $punchStmt = $conn->prepare("
                 SELECT 1 FROM attendance_punches
                 WHERE {$punchOwnerCondition} AND photo LIKE :photo_path
@@ -131,7 +136,7 @@ $app->get('/api/storage/attendance/{filename:[A-Za-z0-9._-]+}', function (Reques
         error_log('Attendance photo download failed: ' . $e->getMessage());
         return $response->withStatus(503);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // Get Employee Attendance History
 /** @var \Slim\App $app */
