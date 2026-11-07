@@ -40,7 +40,7 @@ $app->get('/api/employee/training/videos', function (Request $request, Response 
             FROM training_videos tv
             LEFT JOIN public.employee_training_progress etp 
                 ON etp.video_id = tv.id AND etp.employee_id = :empIdUuid
-            WHERE jsonb_array_length(COALESCE(tv.assigned_employee_ids, ''[]''::jsonb)) = 0
+            WHERE jsonb_array_length(COALESCE(tv.assigned_employee_ids, \'[]\'::jsonb)) = 0
                OR tv.assigned_employee_ids @> :employeeIdInt::jsonb
                OR tv.assigned_employee_ids @> :employeeIdStr::jsonb
             ORDER BY tv.created_at DESC
@@ -114,7 +114,7 @@ $app->post('/api/employee/training/progress', function (Request $request, Respon
             FROM training_videos
             WHERE id = :videoId
               AND (
-                  jsonb_array_length(COALESCE(assigned_employee_ids, ''[]''::jsonb)) = 0
+                  jsonb_array_length(COALESCE(assigned_employee_ids, \'[]\'::jsonb)) = 0
                   OR assigned_employee_ids @> :employeeIdInt::jsonb
                   OR assigned_employee_ids @> :employeeIdStr::jsonb
               )
