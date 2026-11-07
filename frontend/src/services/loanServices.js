@@ -83,17 +83,22 @@ export const deleteLoanApplication = async (appId) => {
 };
 
 /**
- * Saves/updates documents for a loan application.
- * @param {string} appId - Application ID or UUID
- * @param {Object} documents - Map or array of document objects
+ * Uploads one loan document through the authenticated backend.
  */
-export const saveLoanDocuments = async (appId, documents) => {
-  const response = await api.post(`/loans/applications/${encodeURIComponent(appId)}/documents`, { documents });
+export const uploadLoanDocument = async (appId, slotKey, file) => {
+  const formData = new FormData();
+  formData.append('file', file, file.name || `${slotKey}.jpg`);
+  const response = await api.post(
+    `/loans/applications/${encodeURIComponent(appId)}/documents/${encodeURIComponent(slotKey)}`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
   return response.data;
 };
 
 /**
  * Deletes a document from a loan application.
+
  * @param {string} appId - Application ID or UUID
  * @param {string} docKey - Document key
  */
@@ -103,23 +108,22 @@ export const deleteLoanDocument = async (appId, docKey) => {
 };
 
 /**
- * Updates the status of a loan application and adds a timeline event.
- * @param {string} appId - Application ID or UUID
- * @param {string} status - New status
- * @param {Object} timelineEvent - Event object to append to timeline array
- * @param {Object} signatureData - Object containing the signature mapping (e.g., { "Origination": url })
+ * Transfers an application to Branch Operations with an optional signature file.
  */
-export const updateLoanApplicationStatus = async (appId, status, timelineEvent, signatureData) => {
-  const payload = { status };
-  if (timelineEvent) payload.timelineEvent = timelineEvent;
-  if (signatureData) payload.signatureData = signatureData;
-  
-  const response = await api.patch(`/loans/applications/${encodeURIComponent(appId)}/status`, payload);
+export const transferLoanApplicationToBranch = async (appId, signatureFile = null) => {
+  const formData = new FormData();
+  if (signatureFile) formData.append('signature', signatureFile, 'signature.png');
+  const response = await api.post(
+    `/loans/applications/${encodeURIComponent(appId)}/transfer-to-branch`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
   return response.data;
 };
 
 /**
- * Updates an existing loan application in Branch Operations with audit logging.
+ * Updates an existing loan application in Branch Operations
+ with audit logging.
  * @param {string|number} appId - Application ID or UUID
  * @param {Object} formData - Updated form data object
  * @param {string} loanType - Loan type ('Personal Loan' or 'Business Loan')
