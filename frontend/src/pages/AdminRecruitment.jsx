@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { fetchAllAdminJobs } from '../utils/fetchAllAdminJobs';
 
 import { 
   Briefcase, 
@@ -92,6 +93,12 @@ const AdminRecruitment = () => {
   const applications = applicationsResponse.applications || [];
   const applicationsTotal = Number(applicationsResponse.total || 0);
   const applicationsTotalPages = Math.max(1, Math.ceil(applicationsTotal / pageLimit));
+
+  const { data: jobFilterOptions = [] } = useQuery({
+    queryKey: ['admin', 'job-filter-options'],
+    queryFn: fetchAllAdminJobs,
+    staleTime: 5 * 60 * 1000
+  });
 
   const { data: branches = [] } = useQuery({
     queryKey: ['admin', 'branches'],
@@ -699,7 +706,7 @@ const AdminRecruitment = () => {
                 className="w-full sm:w-auto h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
               >
                 <option value="">All job positions</option>
-                {jobs.map(job => (
+                {jobFilterOptions.map(job => (
                   <option key={job.id} value={job.id}>{job.title}</option>
                 ))}
               </select>
