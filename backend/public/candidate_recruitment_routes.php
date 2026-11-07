@@ -533,42 +533,10 @@ $app->get('/api/candidate/documents/{id}/file', function (Request $request, Resp
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
-// Upload/Replace Candidate Document (Record file details after frontend uploaded to Supabase Storage)
-$app->post('/api/candidate/documents', function (Request $request, Response $response, $args) {
-    $decodedToken = $request->getAttribute('user');
-    $data = $request->getParsedBody();
-    
-    $docTypeId = $data['document_type'] ?? '';
-    $fileName = $data['file_name'] ?? '';
-    $filePath = $data['file_path'] ?? '';
-
-    if (!$docTypeId || !$fileName || !$filePath) {
-        $response->getBody()->write(json_encode(['error' => 'Missing required fields']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-    }
-    
-    $db = new Database();
-    $conn = $db->getConnection();
-    
-    try {
-        // Delete existing document of this type
-        $stmtDelete = $conn->prepare('DELETE FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
-        $stmtDelete->execute([$decodedToken->id, $docTypeId]);
-        
-        $stmtInsert = $conn->prepare('INSERT INTO candidate_documents (candidate_id, document_type, file_name, file_path) VALUES (?, ?, ?, ?)');
-        $stmtInsert->execute([$decodedToken->id, $docTypeId, $fileName, $filePath]);
-
-        // Get the newly inserted record to return
-        $stmtGet = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
-        $stmtGet->execute([$decodedToken->id, $docTypeId]);
-        $newDoc = $stmtGet->fetch(PDO::FETCH_ASSOC);
-
-        $response->getBody()->write(json_encode(['message' => 'Document saved', 'document' => $newDoc]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-    }
+// Legacy metadata-only document upload endpoint removed; uploads must use the validated storage endpoint.
+$app->post('/api/candidate/documents', function (Request $request, Response $response) {
+    $response->getBody()->write(json_encode(['error' => 'Use the secure document upload endpoint.']));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(410);
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
 // Delete Candidate Document
