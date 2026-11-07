@@ -5,6 +5,8 @@
 
 # Dependencies and generated output are installed/built inside Docker.
 **/node_modules
+**/uploads
+**/storage
 **/vendor
 **/dist
 **/build
