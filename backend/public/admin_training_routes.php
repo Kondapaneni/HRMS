@@ -83,7 +83,7 @@ $app->post('/api/admin/training/videos/upload-url', function (Request $request, 
         [$baseUrl, $serviceKey] = trainingStorageConfig();
         $filename = bin2hex(random_bytes(20)) . '.' . $extensions[$mime];
         $signUrl = $baseUrl . '/storage/v1/object/upload/sign/training_videos/' . rawurlencode($filename);
-        $signed = trainingStorageRequest('POST', $signUrl, $serviceKey, json_encode(['upsert' => false]));
+        $signed = trainingStorageRequest('POST', $signUrl, $serviceKey, json_encode([]));
         if ($signed['status'] < 200 || $signed['status'] >= 300) {
             error_log('Training signed upload URL request failed with status ' . $signed['status']);
             throw new RuntimeException('Unable to prepare secure video upload.');
