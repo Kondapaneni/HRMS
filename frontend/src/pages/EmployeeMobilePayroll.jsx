@@ -1,19 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
-import { 
-  Download, 
-  IndianRupee, 
-  TrendingDown, 
-  TrendingUp, 
-  Wallet, 
-  AlertCircle, 
-  FileText, 
-  ChevronRight, 
-  ChevronLeft,
-  X,
-  Receipt
-} from 'lucide-react';
+import { Download, TrendingDown, TrendingUp, Wallet, AlertCircle, FileText, X, Receipt } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';

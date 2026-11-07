@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
-import {
-  User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
-  Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
-  Calendar, Clock, UserCheck, Users, Camera, ChevronRight, FileText,
-  X, Edit2, Sparkles, Building, CheckCircle2, AlertCircle,
-  Download, RefreshCw, Sun, Moon
-} from 'lucide-react';
+import { User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2, Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop, Calendar, Clock, UserCheck, Users, Camera, ChevronRight, X, Edit2, Building, Download, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { isNativeApp, isIOS, getAssetUrl } from '../api/axios';
@@ -151,7 +145,7 @@ const EmployeeMobileProfile = () => {
   const renderTimeline = () => {
     let history = [];
     if (timeline) {
-      try { history = JSON.parse(timeline); } catch (e) { history = []; }
+      try { history = JSON.parse(timeline); } catch { history = []; }
     }
     if (!history.length) {
       history = [{ date: joinDate, title: 'Joined Company', description: `Started as ${position || 'Employee'}` }];

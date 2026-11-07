@@ -2,23 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import SearchBar from '../components/ui/SearchBar';
-import { 
-  Play, 
-  ArrowLeft, 
-  CheckCircle2, 
-  Circle, 
-  Search, 
-  GraduationCap, 
-  Clock, 
-  Check, 
-  ChevronRight,
-  ChevronLeft,
-  Film,
-  Sparkles,
-  Award,
-  RotateCcw,
-  X
-} from 'lucide-react';
+import { Play, ArrowLeft, CheckCircle2, Circle, GraduationCap, Clock, Check, ChevronRight, ChevronLeft, Film, Award, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';

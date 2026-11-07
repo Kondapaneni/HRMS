@@ -1,29 +1,8 @@
 import { useState, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  Clock, 
-  CalendarDays, 
-  Activity, 
-  BarChart2, 
-  TrendingUp, 
-  Users, 
-  Sparkles, 
-  ChevronRight,
-  Award,
-  RefreshCw
-} from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line
-} from 'recharts';
+import { Clock, CalendarDays, Activity, BarChart2, TrendingUp, Users, RefreshCw } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import api from '../api/axios';
 import EmployeeMobileSearchBar from '../components/EmployeeMobileSearchBar';
 
