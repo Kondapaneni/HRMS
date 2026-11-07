@@ -407,18 +407,6 @@ const OriginationMobileActivities = () => {
             All Tasks ({monthListSections.totalInMonth})
           </button>
         </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            const now = new Date();
-            setCurrentDate(now);
-            setSelectedDate(now);
-          }}
-          className="px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] text-xs font-semibold text-[var(--text)] shadow-2xs hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
-        >
-          Today
-        </button>
       </div>
 
       {/* TAB 1: Calendar Experience */}

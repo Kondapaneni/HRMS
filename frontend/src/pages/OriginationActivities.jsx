@@ -1039,16 +1039,8 @@ const OriginationActivities = () => {
                 </div>
               </div>
 
-              {/* Right Side (Right Edge): Today button + Prev/Next buttons + Month Title */}
+              {/* Right Side (Right Edge): Prev/Next buttons + Month Title */}
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleToday}
-                  className="px-3.5 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] shadow-2xs transition-colors cursor-pointer"
-                >
-                  Today
-                </button>
-
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
