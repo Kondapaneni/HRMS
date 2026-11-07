@@ -26,7 +26,7 @@ FROM php:8.4-apache
 RUN printf 'upload_max_filesize=6M\npost_max_size=7M\nmax_execution_time=60\n' > /usr/local/etc/php/conf.d/uploads.ini
 
 # Install dependencies for PostgreSQL
-RUN apt-get update && apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     libpq-dev \
     unzip \
     git \
