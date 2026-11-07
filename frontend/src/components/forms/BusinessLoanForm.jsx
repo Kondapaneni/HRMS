@@ -2,19 +2,10 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../contexts/AuthContext';
-import {
-  FormGrid,
-  TextField,
-  PhoneField,
-  NumberField,
-  SelectField,
-  RadioGroup,
-  AadhaarField,
-  useFormState
-} from './index';
+import { FormGrid, TextField, PhoneField, NumberField, SelectField, RadioGroup, AadhaarField, useFormState } from './index';
 import { validateBusinessLoanForm, capitalizeWords, capitalizeText } from '../../utils/loanValidations';
 import { submitLoanApplication, getLoanApplications, deleteLoanApplication, updateLoanApplicationDetails } from '../../services/loanServices';
-import { Send, Save, Loader2, Download, CheckCircle2, Lock, ArrowLeft, Trash2 } from 'lucide-react';
+import { Send, Save, Loader2, CheckCircle2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function BusinessLoanForm({ isEditMode: propEditMode, application: propApplication, onSaved }) {
@@ -593,8 +584,6 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       setIsSubmitting(false);
     }
   };
-
-  const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly || isAlreadySubmitted);
 
   const renderGuarantorForm = (idx) => {
     const pfx = `guarantor_${idx}_`;

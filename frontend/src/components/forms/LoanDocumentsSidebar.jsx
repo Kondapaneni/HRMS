@@ -1,19 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { 
-  X, 
-  Camera, 
-  UploadCloud, 
-  CheckCircle2, 
-  Trash2, 
-  Loader2, 
-  User, 
-  Users, 
-  Shield, 
-  Clock,
-  Image as ImageIcon
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { X, Camera, UploadCloud, CheckCircle2, Trash2, Loader2, User, Users, Shield, Clock, Image as ImageIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { uploadLoanDocument, deleteLoanDocument } from '../../services/loanServices';
 import { compressImageFile } from '../../utils/imageCompressor';
 import toast from 'react-hot-toast';

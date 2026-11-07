@@ -1,25 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Building2,
-  User,
-  Users,
-  Shield,
-  ShieldCheck,
-  Calendar,
-  UserCheck,
-  Edit3,
-  ChevronDown,
-  ChevronUp,
-  History,
-  FileEdit,
-  MapPin,
-  Briefcase,
-  Phone,
-  FileText,
-  CheckCircle2,
-  Clock,
-  Sparkles
-} from 'lucide-react';
+import { Building2, User, Users, Shield, ShieldCheck, Calendar, UserCheck, ChevronDown, ChevronUp, History, FileEdit, MapPin, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { preloadAndDecodeImages } from '../../utils/imageCompressor';
 
