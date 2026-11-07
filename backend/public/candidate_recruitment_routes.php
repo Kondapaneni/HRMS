@@ -285,7 +285,37 @@ $app->delete('/api/candidate/resumes/{id}', function (Request $request, Response
 
 
  
- // Remove a legacy resume only after verifying that the exact URL belongs to this candidate.
+ 
+$app->put('/api/candidate/resume-legacy/primary', function (Request $request, Response $response) {
+    $user = $request->getAttribute('user');
+    $requestedUrl = (string)($request->getQueryParams()['url'] ?? '');
+    try {
+        $db = new Database(); $conn = $db->getConnection();
+        $conn->beginTransaction();
+        $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ? FOR UPDATE');
+        $stmt->execute([$user->id]);
+        $stored = $stmt->fetchColumn();
+        $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
+        $found = false;
+        foreach ($resumes as &$resume) {
+            if (!empty($resume['url']) && hash_equals((string)$resume['url'], $requestedUrl)) $found = true;
+            $resume['isPrimary'] = !empty($resume['url']) && hash_equals((string)$resume['url'], $requestedUrl);
+        }
+        unset($resume);
+        if (!$found) { $conn->rollBack(); return $response->withStatus(404); }
+        $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+        $save->execute([json_encode($resumes), $user->id]);
+        $conn->commit();
+        $response->getBody()->write(json_encode(['resumes' => $resumes]));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+        error_log('Legacy primary resume update failed: ' . $e->getMessage());
+        return $response->withStatus(503);
+    }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+// Remove a legacy resume only after verifying that the exact URL belongs to this candidate.
 $app->delete('/api/candidate/resume-legacy', function (Request $request, Response $response) {
     $user = $request->getAttribute('user');
     $requestedUrl = (string)($request->getQueryParams()['url'] ?? '');
