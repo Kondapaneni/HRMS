@@ -35,9 +35,12 @@ export const ThemeProvider = ({ children }) => {
     return 'system';
   });
 
-  const [hasUserOverride, setHasUserOverride] = useState(false);
+  const [userOverride, setUserOverride] = useState(null);
+  const currentUserId = profile?.id ?? null;
   const profileThemePreference = ['light', 'dark', 'system'].includes(profile?.themePreference) ? profile.themePreference : null;
-  const resolvedThemePreference = hasUserOverride ? themePreference : (profileThemePreference || themePreference);
+  const resolvedThemePreference = userOverride?.userId === currentUserId
+    ? userOverride.preference
+    : (profileThemePreference || themePreference);
 
   const [systemTheme, setSystemTheme] = useState(getSystemTheme);
 
@@ -82,7 +85,7 @@ export const ThemeProvider = ({ children }) => {
     if (!['light', 'dark', 'system'].includes(newPref)) return;
     
     setThemePreferenceState(newPref);
-    setHasUserOverride(true);
+    setUserOverride({ userId: currentUserId, preference: newPref });
     localStorage.setItem('themePreference', newPref);
 
     const token = localStorage.getItem('token');
