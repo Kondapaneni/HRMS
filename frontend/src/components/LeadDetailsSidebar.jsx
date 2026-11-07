@@ -11,7 +11,6 @@ import {
   UserPlus, 
   XCircle, 
   Loader2, 
-  RefreshCw, 
   Briefcase, 
   Check,
   TrendingUp

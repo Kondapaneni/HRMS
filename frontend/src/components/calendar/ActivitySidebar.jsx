@@ -5,13 +5,9 @@ import { motion } from 'framer-motion';
 import {
   X,
   Calendar as CalendarIcon,
-  Clock,
   MapPin,
   FileText,
   Loader2,
-  Save,
-  User,
-  Phone,
   Tag
 } from 'lucide-react';
 import { format, parseISO, isBefore, startOfDay } from 'date-fns';

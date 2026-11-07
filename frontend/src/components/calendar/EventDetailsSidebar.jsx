@@ -7,12 +7,7 @@ import {
   Clock, 
   MapPin, 
   FileText, 
-  Trash2, 
-  Edit3, 
   CheckCircle2, 
-  RotateCcw, 
-  AlertCircle,
-  User,
   UserCheck, 
   ArrowRightLeft, 
   Loader2 

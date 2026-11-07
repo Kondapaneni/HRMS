@@ -11,7 +11,6 @@ import {
   AlertTriangle, 
   ExternalLink, 
   RefreshCw, 
-  ShieldCheck, 
   LogOut 
 } from 'lucide-react';
 

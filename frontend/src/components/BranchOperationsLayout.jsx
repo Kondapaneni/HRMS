@@ -1,7 +1,5 @@
 import { 
-  Building2, 
   Activity, 
-  Briefcase, 
   ArrowLeft,
   LayoutDashboard,
   Users,

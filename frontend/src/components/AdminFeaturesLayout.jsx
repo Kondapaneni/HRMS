@@ -5,8 +5,6 @@ import {
   Users,
   Clock,
   Wallet,
-  Briefcase,
-  Package,
   GraduationCap,
   ArrowLeft,
   Monitor,
