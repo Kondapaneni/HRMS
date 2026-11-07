@@ -1,23 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  X,
-  CheckCircle2,
-  XCircle,
-  Eye,
-  Loader2,
-  FileText,
-  AlertCircle,
-  Send,
-  ArrowLeft,
-  Clock,
-  Lock,
-  Building2,
-  User,
-  ShieldCheck,
-  Check
-} from 'lucide-react';
+import { X, CheckCircle2, Eye, FileText, AlertCircle, Send, ArrowLeft, Clock, Lock, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useParams, useNavigate } from 'react-router-dom';

@@ -4,26 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import SearchBar from '../components/ui/SearchBar';
-import {
-  ArrowLeft,
-  ArrowRight, 
-  CheckCircle2, 
-  Shield, 
-  Clock, 
-  Building2, 
-  CheckSquare, 
-  Disc, 
-  Layers, 
-  Check, 
-  Sparkles, 
-  RefreshCw,
-  FileText, 
-  Users,
-  Search
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Shield, Clock, Building2, CheckSquare, Disc, Layers, Check, Sparkles, RefreshCw, FileText, Users } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 import Button from '../components/ui/Button';
-import StatusBadge from '../components/ui/StatusBadge';
 
 const DEPARTMENTS = [
   'Engineering',

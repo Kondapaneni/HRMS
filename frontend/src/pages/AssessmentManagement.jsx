@@ -5,24 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import SearchBar from '../components/ui/SearchBar';
-import {
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Shield, 
-  Clock, 
-  Award, 
-  Building2,
-  FileText, 
-  HelpCircle, 
-  Calendar,
-  Search,
-  FileCheck2,
-  Layers,
-  Loader2,
-  X
-} from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Shield, Clock, Award, Building2, HelpCircle, Calendar, FileCheck2, Layers, Loader2, X } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
