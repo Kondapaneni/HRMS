@@ -58,7 +58,7 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin'], ['employees', 'assets', 'attendance', 'leave', 'payroll', 'expenses', 'recruitment', 'loanOrigination']));
+})->add(new AuthMiddleware(['admin']));
 
 // Get all branches
 $app->get('/api/branches', function (Request $request, Response $response, $args) {
