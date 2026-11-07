@@ -63,7 +63,7 @@ $app->get('/api/employee/leaves', function (Request $request, Response $response
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['employee']));
@@ -169,7 +169,7 @@ $app->post('/api/employee/leaves/apply', function (Request $request, Response $r
         if ($conn->inTransaction()) {
             $conn->rollBack();
         }
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['employee']));
@@ -202,7 +202,7 @@ $app->put('/api/employee/leaves/{id}/cancel', function (Request $request, Respon
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['employee']));
