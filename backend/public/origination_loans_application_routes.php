@@ -167,7 +167,7 @@ function getLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null
             'slot_key' => $r['slot_key']
         ];
     }
-    return $docsMap;
+    return loanSignDocumentMap($docsMap);
 }
 
 /**
@@ -226,7 +226,7 @@ function resolveLoanDocumentsForRow(array $docsByAppId, $appId, $uuidId = null, 
             'slot_key' => $d['slot_key']
         ];
     }
-    return $docsMap;
+    return loanSignDocumentMap($docsMap);
 }
 
 /**
@@ -273,7 +273,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     $status = trim($data['status'] ?? 'Created');
     $formData = $data['form_data'] ?? $data;
     $leadId = $data['lead_id'] ?? $formData['lead_id'] ?? null;
-    $documents = $data['documents'] ?? $formData['documents'] ?? [];
+    // Documents are uploaded only through the owner-checked multipart endpoint.
 
     // Extract fallback name / phone from form_data if not top-level
     if (empty($applicantName) && !empty($formData['applicant_name'])) {
@@ -339,10 +339,11 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $checkStmt = $conn->prepare('
                 SELECT id, application_id FROM public.loan_applications
                 WHERE (id::text = ? OR application_id = ?) AND status = \'Draft\'
+                  AND (? = \'admin\' OR created_by = ?)
                 ORDER BY created_at DESC
                 LIMIT 1
             ');
-            $checkStmt->execute([(string)$appId, (string)$appId]);
+            $checkStmt->execute([(string)$appId, (string)$appId, (string)($user->role ?? ''), $createdById]);
             $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
         }
 
@@ -350,10 +351,11 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $checkStmt = $conn->prepare('
                 SELECT id, application_id FROM public.loan_applications
                 WHERE lead_id = ? AND loan_type = ? AND status = \'Draft\'
+                  AND (? = \'admin\' OR created_by = ?)
                 ORDER BY created_at DESC
                 LIMIT 1
             ');
-            $checkStmt->execute([$leadId, $loanType]);
+            $checkStmt->execute([$leadId, $loanType, (string)($user->role ?? ''), $createdById]);
             $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
         }
 
@@ -400,9 +402,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             }
 
             $appId = $application['application_id'] ?: $application['id'];
-            if (is_array($documents) && !empty($documents)) {
-                upsertLoanDocumentsToTable($conn, $appId, $documents);
-            }
+            loanSignApplicationAssets($application['form_data'], $application['signatures']);
             $application['documents'] = getLoanDocumentsFromTable($conn, $appId, $application['id'], $application['lead_id']);
         }
 
@@ -422,7 +422,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         $response->getBody()->write(json_encode(['error' => 'An error occurred while saving to database']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
  * Endpoint to list submitted & draft loan applications.
@@ -480,6 +480,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
             if (isset($row['signatures']) && is_string($row['signatures'])) {
                 $row['signatures'] = json_decode($row['signatures'], true);
             }
+            loanSignApplicationAssets($row['form_data'], $row['signatures']);
             $row['documents'] = resolveLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
         }
         unset($row);
@@ -495,7 +496,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         $response->getBody()->write(json_encode(['error' => 'Error fetching loan applications']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
  * Endpoint to save or update documents for a loan application into dedicated public.loan_documents table.
