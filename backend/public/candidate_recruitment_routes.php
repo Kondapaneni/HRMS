@@ -623,6 +623,37 @@ $app->get('/api/candidate/jobs', function (Request $request, Response $response,
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
+
+// Candidate offer-letter access is limited to the authenticated owner of the application.
+$app->get('/api/candidate/applications/{id}/offer-letter', function (Request $request, Response $response, $args) {
+    $user = $request->getAttribute('user');
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare("
+            SELECT ofl.storage_path
+            FROM candidate_offer_letters ofl
+            JOIN applications a ON a.id = ofl.application_id AND a.candidate_id = ofl.candidate_id
+            WHERE ofl.application_id = ? AND ofl.candidate_id = ?
+              AND a.status IN ('Hired', 'Selected', 'Converted to Employee')
+            LIMIT 1
+        ");
+        $stmt->execute([$args['id'], $user->id]);
+        $storedPath = $stmt->fetchColumn();
+        $objectPath = $storedPath ? offerLetterObjectPath((string)$storedPath) : null;
+        if (!$objectPath) return $response->withStatus(404);
+        if (str_contains($objectPath, '/') && !str_starts_with($objectPath, (string)$user->id . '/')) return $response->withStatus(404);
+
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $signed = offerLetterSignedUrl($objectPath, $serviceKey, $baseUrl);
+        if (!$signed) return $response->withStatus(404);
+        return $response->withHeader('Location', $signed)->withHeader('Cache-Control', 'private, no-store')->withStatus(302);
+    } catch (Throwable $e) {
+        error_log('Candidate offer letter preview failed: ' . $e->getMessage());
+        return $response->withStatus(503);
+    }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
 // Get Candidate Applications
 $app->get('/api/candidate/applications', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
@@ -638,9 +669,11 @@ $app->get('/api/candidate/applications', function (Request $request, Response $r
     try {
         // Fetch applications with job details and timeline
         $stmt = $conn->prepare('
-            SELECT a.*, j.title as job_title, j.department as job_department 
-            FROM applications a 
-            JOIN jobs j ON a.job_id = j.id 
+            SELECT a.*, j.title as job_title, j.department as job_department,
+                   CASE WHEN ofl.id IS NOT NULL THEN 1 ELSE 0 END AS offer_letter_available
+            FROM applications a
+            JOIN jobs j ON a.job_id = j.id
+            LEFT JOIN candidate_offer_letters ofl ON ofl.application_id = a.id
             WHERE a.candidate_id = ? 
             ORDER BY a.applied_date DESC
             LIMIT ? OFFSET ?
