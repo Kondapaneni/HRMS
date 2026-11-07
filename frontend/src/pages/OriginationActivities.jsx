@@ -1048,7 +1048,6 @@ const OriginationActivities = () => {
                         {/* Event Chips List */}
                         <div className="space-y-1 overflow-y-auto max-h-[105px] hide-scrollbar flex-1">
                           {dayEvents.slice(0, 3).map((evt) => {
-                            const isCompleted = evt.status === 'Completed';
                             const pillStyle = getEventPillStyle(evt);
 
                             return (
