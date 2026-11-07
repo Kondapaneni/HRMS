@@ -109,12 +109,7 @@ $app->get('/api/admin/candidates', function (Request $request, Response $respons
 
         $response->getBody()->write(json_encode([
             'candidates' => $candidates,
-            'total' => $totalCount,
-            'stats' => [
-                'totalApplicants' => (int)($statsRow['total_applicants'] ?? 0),
-                'inInterview' => (int)($statsRow['in_interview'] ?? 0),
-                'hiredCount' => (int)($statsRow['hired_count'] ?? 0)
-            ]
+            'total' => $totalCount
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -581,7 +576,12 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
 
         $response->getBody()->write(json_encode([
             'applications' => $applications,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'stats' => [
+                'totalApplicants' => (int)($statsRow['total_applicants'] ?? 0),
+                'inInterview' => (int)($statsRow['in_interview'] ?? 0),
+                'hiredCount' => (int)($statsRow['hired_count'] ?? 0)
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
