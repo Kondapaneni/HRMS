@@ -60,7 +60,7 @@ $app->post('/api/admin/training/videos/upload-url', function (Request $request, 
         [$baseUrl, $serviceKey] = trainingStorageConfig();
         $filename = bin2hex(random_bytes(20)) . '.' . $extensions[$mime];
         $signUrl = $baseUrl . '/storage/v1/object/upload/sign/training_videos/' . rawurlencode($filename);
-        $signed = trainingStorageRequest('POST', $signUrl, $serviceKey, json_encode([' upsert' => false]));
+        $signed = trainingStorageRequest('POST', $signUrl, $serviceKey, json_encode(['upsert' => false]));
         if ($signed['status'] < 200 || $signed['status'] >= 300) {
             error_log('Training signed upload URL request failed with status ' . $signed['status']);
             throw new RuntimeException('Unable to prepare secure video upload.');
@@ -70,6 +70,9 @@ $app->post('/api/admin/training/videos/upload-url', function (Request $request, 
         $token = $payload['token'] ?? null;
         if (!$relativeUrl || !$token) throw new RuntimeException('Storage did not return a valid upload token.');
         $uploadUrl = preg_match('#^https?://#i', $relativeUrl) ? $relativeUrl : $baseUrl . '/' . ltrim($relativeUrl, '/');
+        if (!str_contains($uploadUrl, 'token=')) {
+            $uploadUrl .= (str_contains($uploadUrl, '?') ? '&' : '?') . 'token=' . rawurlencode((string)$token);
+        }
 
         $response->getBody()->write(json_encode([
             'upload_url' => $uploadUrl,
@@ -161,10 +164,12 @@ $app->post('/api/admin/training/videos', function (Request $request, Response $r
     $title = trim($data['title'] ?? '');
     $videoUrl = trim($data['video_url'] ?? '');
 
-    $assignedEmployeeIds = isset($data['assigned_employee_ids']) ? json_encode($data['assigned_employee_ids']) : '[]';
+    $assignedEmployeeIds = isset($data['assigned_employee_ids']) && is_array($data['assigned_employee_ids'])
+        ? json_encode(array_values(array_unique(array_filter($data['assigned_employee_ids'], 'is_string'))))
+        : '[]';
 
-    if (empty($title) || empty($videoUrl)) {
-        $response->getBody()->write(json_encode(['error' => 'Title and video URL are required']));
+    if ($title === '' || !preg_match('#^/Training-Video/[A-Fa-f0-9]{40}\\.(?:mp4|webm|mov)$#', $videoUrl)) {
+        $response->getBody()->write(json_encode(['error' => 'A title and a valid uploaded training video are required.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
@@ -191,16 +196,34 @@ $app->delete('/api/admin/training/videos/{id}', function (Request $request, Resp
     $conn = $db->getConnection();
 
     try {
-        // Optionally, one could delete the file from Supabase storage here,
-        // but for now we just delete the database record.
+        $find = $conn->prepare('SELECT video_url FROM training_videos WHERE id = ? LIMIT 1');
+        $find->execute([$id]);
+        $video = $find->fetch(PDO::FETCH_ASSOC);
+        if (!$video) {
+            $response->getBody()->write(json_encode(['error' => 'Training video was not found.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $objectPath = trainingVideoObjectPath($video['video_url'] ?? '');
+        if ($objectPath) {
+            [$baseUrl, $serviceKey] = trainingStorageConfig();
+            $encodedPath = implode('/', array_map('rawurlencode', explode('/', $objectPath)));
+            $deleted = trainingStorageRequest('DELETE', $baseUrl . '/storage/v1/object/training_videos/' . $encodedPath, $serviceKey);
+            if ($deleted['status'] < 200 || $deleted['status'] >= 300) {
+                error_log('Training video storage delete failed with status ' . $deleted['status']);
+                $response->getBody()->write(json_encode(['error' => 'Unable to delete the stored video. Please try again.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+            }
+        }
+
         $stmt = $conn->prepare('DELETE FROM training_videos WHERE id = ?');
         $stmt->execute([$id]);
-
         $response->getBody()->write(json_encode(['message' => 'Video deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    } catch (\\Throwable $e) {
+        error_log('Training video deletion failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to delete the training video right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 })->add(new AuthMiddleware(['admin'], 'canAdminAssessments'));
 
