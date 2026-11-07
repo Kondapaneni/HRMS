@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
 import { Activity, Users, CalendarDays, Clock, Sparkles, TrendingUp, BarChart2 } from 'lucide-react';
