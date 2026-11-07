@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, Clock, Power, X, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Shield, Clock, Power, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';

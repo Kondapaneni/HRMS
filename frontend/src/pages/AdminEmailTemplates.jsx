@@ -1,31 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/ui/SearchBar';
-import { 
-  Mail, 
-  ArrowLeft, 
-  Archive, 
-  Trash2, 
-  MailOpen, 
-  Clock, 
-  MoreVertical, 
-  CornerUpLeft, 
-  CornerUpRight, 
-  Star, 
-  ShieldCheck, 
-  UserCheck, 
-  CalendarDays, 
-  Briefcase, 
-  CheckCircle2, 
-  XCircle,
-  Search,
-  Users,
-  Sparkles,
-  ChevronDown,
-  FileCheck2,
-  Award,
-  GraduationCap
-} from 'lucide-react';
+import { Mail, ArrowLeft, Archive, Trash2, MailOpen, Clock, MoreVertical, CornerUpLeft, CornerUpRight, Star, ShieldCheck, UserCheck, CalendarDays, Briefcase, CheckCircle2, XCircle, Users, Sparkles, ChevronDown, FileCheck2, Award, GraduationCap } from 'lucide-react';
 import WelcomeEmailTemplate from '../components/emailTemplates/WelcomeEmailTemplate';
 import LeaveEmailTemplate from '../components/emailTemplates/LeaveEmailTemplate';
 import ResetPasswordEmailTemplate from '../components/emailTemplates/ResetPasswordEmailTemplate';

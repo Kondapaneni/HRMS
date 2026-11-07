@@ -2,25 +2,7 @@ import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
-import {
-  Shield,
-  Search,
-  X,
-  Users,
-  Building2,
-  Briefcase,
-  Calendar,
-  CreditCard,
-  DollarSign,
-  GraduationCap,
-  Layers,
-  UserCheck,
-  Package,
-  Clock,
-  UserPlus,
-  Loader2,
-  Receipt
-} from 'lucide-react';
+import { Shield, X, Users, Building2, Briefcase, Calendar, CreditCard, DollarSign, GraduationCap, Layers, UserCheck, Package, Clock, UserPlus, Loader2, Receipt } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
