@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   ArrowLeft, 
   Phone, 
@@ -29,25 +29,29 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
     enabled: !propMember && !location.state?.member
   });
 
-  const member = React.useMemo(() => {
-    if (propMember) return propMember;
-    if (location.state?.member) {
-      try {
-        sessionStorage.setItem('current_loan_member', JSON.stringify(location.state.member));
-      } catch {
-        // The page can still use the in-memory member when session storage is unavailable.
-      }
-      return location.state.member;
-    }
+  const stateMember = propMember || location.state?.member || null;
+  const [cachedMember] = useState(() => {
     try {
       const saved = sessionStorage.getItem('current_loan_member');
-      if (saved) return JSON.parse(saved);
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      // Continue to the API-backed fallback when session storage is unavailable.
+      return null;
     }
+  });
+
+  useEffect(() => {
+    if (!stateMember) return;
+    try {
+      sessionStorage.setItem('current_loan_member', JSON.stringify(stateMember));
+    } catch {
+      // Keep the in-memory member when session storage is blocked.
+    }
+  }, [stateMember]);
+
+  const member = stateMember || cachedMember || (() => {
     if (response?.leads && phone) {
-      const converted = response.leads.filter(l => l.status === 'Converted' && String(l.phone) === String(phone));
-      if (converted.length > 0) {
+      const converted = response.leads.filter((lead) => lead.status === 'Converted' && String(lead.phone) === String(phone));
+      if (converted.length) {
         const lead = converted[0];
         return {
           id: lead.phone,
@@ -57,12 +61,12 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
           address: lead.address,
           created_at: lead.created_at,
           status: 'Converted',
-          loans: converted
+          loans: converted,
         };
       }
     }
     return null;
-  }, [propMember, location.state?.member, response, phone]);
+  })();
 
   const { data: appsResponse, isLoading: isLoadingApps } = useQuery({
     queryKey: ['origination', 'applications', 'list'],
