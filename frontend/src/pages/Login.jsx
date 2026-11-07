@@ -7,7 +7,6 @@ import {
   CheckCircle2, 
   ArrowLeft, 
   RefreshCw, 
-  KeyRound
 } from 'lucide-react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import AuthSideCarousel from '../components/AuthSideCarousel';
