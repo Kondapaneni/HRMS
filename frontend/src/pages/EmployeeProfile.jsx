@@ -3,8 +3,8 @@ import PageLoader from '../components/PageLoader';
 import { 
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
-  Calendar, Clock, UserCheck, Users, Search, Edit3, ChevronDown, ChevronUp, Camera,
-  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2, Sun, Moon
+  Calendar, Clock, UserCheck, Users, Edit3, ChevronDown, ChevronUp, Camera,
+  History, Sun, Moon
 } from 'lucide-react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
