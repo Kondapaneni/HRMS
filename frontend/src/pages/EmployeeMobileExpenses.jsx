@@ -614,7 +614,7 @@ const EmployeeMobileExpenses = () => {
                 dragElastic={{ top: 0, bottom: 0.6 }}
                 onDragEnd={(e, info) => {
                   if (info.offset.y > 100 || info.velocity.y > 400) {
-                    setSelectedBillUrl(null);
+                    closeBillPreview();
                   }
                 }}
                 className="bg-[var(--surface)] rounded-t-[28px] shadow-2xl border-t border-[var(--line)] w-full max-w-md mx-auto max-h-[85vh] h-[80vh] flex flex-col overflow-hidden relative z-10 font-sans antialiased text-[var(--text)]"
@@ -642,7 +642,7 @@ const EmployeeMobileExpenses = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setSelectedBillUrl(null)}
+                    onClick={closeBillPreview}
                     className="w-8 h-8 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
@@ -685,7 +685,7 @@ const EmployeeMobileExpenses = () => {
                 <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] shrink-0">
                   <button
                     type="button"
-                    onClick={() => setSelectedBillUrl(null)}
+                    onClick={closeBillPreview}
                     className="w-full py-2.5 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center"
                   >
                     Close
