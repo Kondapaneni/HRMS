@@ -28,7 +28,7 @@ if (!function_exists('getBranchLoanDocumentsFromTable')) {
                 'slot_key' => $r['slot_key']
             ];
         }
-        return loanSignDocumentMap($docsMap);
+        return loanSignDocumentMap($docsMap, $uuidId, true);
     }
 }
 
@@ -89,7 +89,7 @@ if (!function_exists('resolveBranchLoanDocumentsForRow')) {
                 'slot_key' => $d['slot_key']
             ];
         }
-        return loanSignDocumentMap($docsMap);
+        return loanSignDocumentMap($docsMap, $uuidId, true);
     }
 }
 
@@ -256,7 +256,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             $formData = is_string($row['form_data']) ? json_decode($row['form_data'], true) : ($row['form_data'] ?: []);
             $signatures = is_string($row['signatures']) ? json_decode($row['signatures'], true) : ($row['signatures'] ?: []);
 
-            loanSignApplicationAssets($formData, $signatures);
+            loanSignApplicationAssets($formData, $signatures, (string)$row['id']);
             $timeline = $formData['timeline'] ?? [];
             $currentStage = trim($formData['stage'] ?? ($formData['current_stage'] ?? ''));
 
@@ -293,7 +293,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             // Resolve documents from the batch fetched above
             $docs = resolveBranchLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
             if (isset($formData['documents']) && is_array($formData['documents'])) {
-                $legacyDocs = loanSignDocumentMap($formData['documents']);
+                $legacyDocs = loanSignDocumentMap($formData['documents'], (string)$row['id'], false);
                 foreach ($legacyDocs as $k => $v) {
                     if (!isset($docs[$k])) $docs[$k] = $v;
                 }
@@ -647,7 +647,7 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
             }
             if (!is_array($updatedRecord['form_data'])) $updatedRecord['form_data'] = [];
             if (!is_array($updatedRecord['signatures'])) $updatedRecord['signatures'] = [];
-            loanSignApplicationAssets($updatedRecord['form_data'], $updatedRecord['signatures']);
+            loanSignApplicationAssets($updatedRecord['form_data'], $updatedRecord['signatures'], (string)$updatedRecord['id']);
             $updatedRecord['documents'] = getBranchLoanDocumentsFromTable($conn, $updatedRecord['application_id'], $updatedRecord['id'], $updatedRecord['lead_id']);
 
             // Fetch audit logs from dedicated table
