@@ -184,7 +184,7 @@ const EmployeeDashboard = () => {
           setPunchingAction(null);
         }
       },
-      (error) => {
+      () => {
         toast.error('Unable to read location. Please allow location access in your browser.');
         setPunchingAction(null);
       },
