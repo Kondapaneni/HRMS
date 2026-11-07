@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
