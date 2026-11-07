@@ -138,6 +138,23 @@ const EmployeeExpenses = () => {
     }
   });
 
+  const handleViewBill = async (expenseId) => {
+    const previewWindow = window.open('about:blank', '_blank');
+    if (!previewWindow) {
+      toast.error('Please allow pop-ups to view the receipt.');
+      return;
+    }
+    try {
+      const response = await api.get(`/employee/expenses/${encodeURIComponent(expenseId)}/bill`, { responseType: 'blob' });
+      const objectUrl = URL.createObjectURL(response.data);
+      previewWindow.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      previewWindow.close();
+      toast.error('Unable to open this receipt.');
+    }
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setTitle('');
@@ -319,15 +336,14 @@ const EmployeeExpenses = () => {
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             {exp.bill_url && (
-                              <a 
-                                href={exp.bill_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
+                              <button
+                                type="button"
+                                onClick={() => handleViewBill(exp.id)}
                                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[var(--brand-tint)] hover:bg-[var(--brand-tint)]/80 text-[var(--brand-deep)] transition-all cursor-pointer"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                                 <span>Receipt</span>
-                              </a>
+                              </button>
                             )}
                             {isPending && (
                               <button 
