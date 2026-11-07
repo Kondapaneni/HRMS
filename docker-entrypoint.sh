@@ -8,6 +8,7 @@ ENV_FILE="/var/www/html/.env"
 
 # Only generate if .env doesn't already exist (i.e., we're on Render, not local dev)
 if [ ! -f "$ENV_FILE" ]; then
+  umask 077
   echo "# Auto-generated from environment variables at container startup" > "$ENV_FILE"
 
   ENV_VARS="DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD JWT_SECRET GOOGLE_MAPS_API_KEY GOOGLE_GEOCODING_API_KEY FRONTEND_URL SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY TRUSTED_CLIENT_IP_HEADER TRUSTED_PROXY_IPS VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY"
