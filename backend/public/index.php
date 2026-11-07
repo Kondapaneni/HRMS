@@ -643,6 +643,7 @@ require __DIR__ . '/admin_training_routes.php';
 require __DIR__ . '/admin_reports_routes.php';
 require __DIR__ . '/candidate_auth_routes.php';
 require __DIR__ . '/candidate_recruitment_routes.php';
+require __DIR__ . '/avatar_storage_routes.php';
 require __DIR__ . '/origination_loans_dashboard_routes.php';
 require __DIR__ . '/origination_loans_leads_routes.php';
 require __DIR__ . '/origination_loans_member_routes.php';
