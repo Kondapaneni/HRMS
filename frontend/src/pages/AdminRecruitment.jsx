@@ -207,7 +207,7 @@ const AdminRecruitment = () => {
       const objectUrl = URL.createObjectURL(response.data);
       previewWindow.location.href = objectUrl;
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-    } catch (error) {
+    } catch {
       previewWindow.close();
       toast.error('Unable to open this resume. Please try again.');
     }
@@ -223,7 +223,7 @@ const AdminRecruitment = () => {
       // Queue email notification based on status
       if (userInfo?.email) {
         let subject = `Update on your application for ${app.jobs?.title}`;
-        let emailBody = '';
+        let emailBody;
         const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin;
         const dashboardLink = frontendUrl + "/candidate/applications";
         

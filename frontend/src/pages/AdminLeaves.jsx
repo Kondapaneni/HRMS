@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { Calendar, Check, X, Loader2 } from 'lucide-react';
@@ -8,7 +7,6 @@ import toast from 'react-hot-toast';
 import { StatCard, StatusBadge, Button, Avatar, SearchBar } from '../components/ui';
 
 const AdminLeaves = () => {
-  const { profile } = useAuth();
   const queryClient = useQueryClient();
   
   // Pagination and search

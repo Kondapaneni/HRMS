@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { Shield, X, Users, Building2, Briefcase, Calendar, CreditCard, DollarSign, GraduationCap, Layers, UserCheck, Package, Clock, UserPlus, Loader2, Receipt } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -90,7 +89,6 @@ const featuresList = [
 ];
 
 const AdminFeatureAccess = () => {
-  const { token } = useAuth();
   const queryClient = useQueryClient();
 
   // Modal / Drawer State

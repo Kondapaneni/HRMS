@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, Sparkles, Image as ImageIcon, Archive } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, Sparkles, Archive } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -119,7 +119,7 @@ const AdminHolidays = () => {
       await api.delete(`/admin/holidays/${dateStr}`);
       toast.success('Holiday removed');
       queryClient.invalidateQueries({ queryKey: ['admin', 'holidays'] });
-    } catch (err) {
+    } catch {
       toast.error('Failed to remove holiday');
     }
   };

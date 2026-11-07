@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { IndianRupee, ChevronLeft, ChevronRight, Download, Eye, Calculator, X, Layers, Trash2, TrendingUp, CheckCircle2, Clock, FileText, Sparkles } from 'lucide-react';
@@ -38,7 +37,6 @@ function numberToWords(num) {
 }
 
 const AdminPayroll = () => {
-  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   
