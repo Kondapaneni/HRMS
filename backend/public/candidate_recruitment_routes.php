@@ -60,7 +60,7 @@ function resumeStorageRequest(string $method, string $objectPath, string $servic
 
 function resumeObjectPath(array $resume): ?string
 {
-    $stored = (string)($resume['storagePath'] ?? '');
+    $stored = (string)($resume['storagePath'] ?? $resume['url'] ?? '');
     if (str_starts_with($stored, 'storage:resumes/')) $path = substr($stored, strlen('storage:resumes/'));
     elseif (str_contains($stored, '/Resume/')) $path = substr($stored, strpos($stored, '/Resume/') + strlen('/Resume/'));
     else return null;
@@ -260,6 +260,31 @@ $app->delete('/api/candidate/resumes/{id}', function (Request $request, Response
         $response->getBody()->write(json_encode(['resumes' => $resumes]));
         return $response->withHeader('Content-Type', 'application/json');
     } catch (Throwable $e) { error_log('Resume delete failed: ' . $e->getMessage()); return $response->withStatus(503); }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+
+ // Backward-compatible preview for older resumes stored as proxy URLs in the candidate profile.
+$app->get('/api/candidate/resume-file', function (Request $request, Response $response) {
+    $user = $request->getAttribute('user');
+    $requestedUrl = (string)($request->getQueryParams()['url'] ?? '');
+    try {
+        $db = new Database(); $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ?');
+        $stmt->execute([$user->id]);
+        $stored = $stmt->fetchColumn();
+        $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
+        $selected = null;
+        foreach ($resumes as $resume) {
+            if (!empty($resume['url']) && hash_equals((string)$resume['url'], $requestedUrl)) { $selected = $resume; break; }
+        }
+        if (!$selected) return $response->withStatus(404);
+        $path = resumeObjectPath($selected);
+        if (!$path) return $response->withStatus(404);
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $signed = resumeSignedUrl($path, $serviceKey, $baseUrl);
+        if (!$signed) return $response->withStatus(404);
+        return $response->withHeader('Location', $signed)->withHeader('Cache-Control', 'private, no-store')->withStatus(302);
+    } catch (Throwable $e) { error_log('Legacy candidate resume preview failed: ' . $e->getMessage()); return $response->withStatus(503); }
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
 // Candidate preview: resume ID is resolved only inside the current candidate's profile.
