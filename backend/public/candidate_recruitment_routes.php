@@ -191,6 +191,7 @@ $app->post('/api/candidate/resumes', function (Request $request, Response $respo
         $stored = $profileRow['resume_url'] ?? null;
         $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
         if (count($resumes) >= 3) {
+            $conn->rollBack();
             $response->getBody()->write(json_encode(['error' => 'You can only upload a maximum of 3 resumes.']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
         }
@@ -236,7 +237,7 @@ $app->put('/api/candidate/resumes/{id}/primary', function (Request $request, Res
             $resume['isPrimary'] = (($resume['id'] ?? null) === $args['id']);
         }
         unset($resume);
-        if (!$found) return $response->withStatus(404);
+        if (!$found) { $conn->rollBack(); return $response->withStatus(404); }
         $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
         $save->execute([json_encode($resumes), $user->id]);
         $conn->commit();
@@ -260,7 +261,7 @@ $app->delete('/api/candidate/resumes/{id}', function (Request $request, Response
             if (($resume['id'] ?? null) === $args['id']) { $removed = $resume; return false; }
             return true;
         }));
-        if (!$removed) return $response->withStatus(404);
+        if (!$removed) { $conn->rollBack(); return $response->withStatus(404); }
         $usage = $conn->prepare('SELECT COUNT(*) FROM applications WHERE candidate_id = ? AND resume_url = ?');
         $usage->execute([$user->id, $args['id']]);
         if ((int)$usage->fetchColumn() > 0) {
@@ -283,7 +284,47 @@ $app->delete('/api/candidate/resumes/{id}', function (Request $request, Response
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
 
- // Backward-compatible preview for older resumes stored as proxy URLs in the candidate profile.
+ 
+ // Remove a legacy resume only after verifying that the exact URL belongs to this candidate.
+$app->delete('/api/candidate/resume-legacy', function (Request $request, Response $response) {
+    $user = $request->getAttribute('user');
+    $requestedUrl = (string)($request->getQueryParams()['url'] ?? '');
+    try {
+        $db = new Database(); $conn = $db->getConnection();
+        $conn->beginTransaction();
+        $stmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ? FOR UPDATE');
+        $stmt->execute([$user->id]);
+        $stored = $stmt->fetchColumn();
+        $resumes = is_string($stored) ? (json_decode($stored, true) ?: []) : (is_array($stored) ? $stored : []);
+        $removed = null;
+        $resumes = array_values(array_filter($resumes, function ($resume) use ($requestedUrl, &$removed) {
+            if (!empty($resume['url']) && hash_equals((string)$resume['url'], $requestedUrl)) { $removed = $resume; return false; }
+            return true;
+        }));
+        if (!$removed) { $conn->rollBack(); return $response->withStatus(404); }
+        $usage = $conn->prepare('SELECT COUNT(*) FROM applications WHERE candidate_id = ? AND resume_url = ?');
+        $usage->execute([$user->id, $requestedUrl]);
+        if ((int)$usage->fetchColumn() > 0) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'This resume is attached to an application and cannot be deleted.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+        }
+        if (!empty($removed['isPrimary']) && count($resumes)) $resumes[0]['isPrimary'] = true;
+        $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+        $save->execute([json_encode($resumes), $user->id]);
+        $conn->commit();
+        $path = resumeObjectPath($removed);
+        if ($path) { [$baseUrl, $serviceKey] = attendanceStorageConfig(); resumeStorageRequest('DELETE', $path, $serviceKey, $baseUrl); }
+        $response->getBody()->write(json_encode(['resumes' => $resumes]));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+        error_log('Legacy resume delete failed: ' . $e->getMessage());
+        return $response->withStatus(503);
+    }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+// Backward-compatible preview for older resumes stored as proxy URLs in the candidate profile.
 $app->get('/api/candidate/resume-file', function (Request $request, Response $response) {
     $user = $request->getAttribute('user');
     $requestedUrl = (string)($request->getQueryParams()['url'] ?? '');
