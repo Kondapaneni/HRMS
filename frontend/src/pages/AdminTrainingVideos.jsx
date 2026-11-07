@@ -141,6 +141,7 @@ const AdminTrainingVideos = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+      setPage(1);
       toast.success('Training video deleted');
     },
     onError: () => toast.error('Failed to delete training video')
