@@ -43,6 +43,10 @@ const AdminEmployees = () => {
   const total = Number(employeeResponse.total || 0);
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setDebouncedSearch(search);
