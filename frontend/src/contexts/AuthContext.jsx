@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
       if (error.message === 'No token found' || (error.response && (error.response.status === 401 || error.response.status === 403))) {
         // User is simply not logged in or session expired
         localStorage.removeItem('token');
+        queryClient.clear();
         setProfile(null);
         setUser(null);
       } else {

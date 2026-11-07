@@ -53,7 +53,7 @@ class AuthMiddleware
             }
 
             // Never trust the JWT's role or active flag as current authorization state.
-            $stmt = $conn->prepare('SELECT id, email, role, "isActive" FROM users WHERE id = :uid LIMIT 1');
+            $stmt = $conn->prepare('SELECT id, email, role, "isActive", COALESCE(session_version, 0) AS session_version FROM users WHERE id = :uid LIMIT 1');
             $stmt->execute([':uid' => $decoded->id]);
             $account = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -63,6 +63,12 @@ class AuthMiddleware
             $active = in_array($account['isActive'], [true, 1, '1', 't', 'true'], true);
             if (!$active) {
                 return $this->jsonResponse('Your account has been deactivated. Please contact your administrator.', 403);
+            }
+
+            $currentSessionVersion = (int)($account['session_version'] ?? 0);
+            $tokenSessionVersion = (int)($decoded->sv ?? 0);
+            if ($tokenSessionVersion !== $currentSessionVersion) {
+                return $this->jsonResponse('Session expired. Please sign in again.', 401);
             }
 
             $currentRole = (string)($account['role'] ?? '');

@@ -61,8 +61,8 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
     $activationToken = bin2hex(random_bytes(32));
     
     $stmt = $conn->prepare('
-        INSERT INTO users ("firstName", "lastName", email, password, role, "isActive", reset_token) 
-        VALUES (:first, :last, :email, :pass, :role, :active, :token)
+        INSERT INTO users ("firstName", "lastName", email, password, role, "isActive", reset_token, reset_token_expires) 
+        VALUES (:first, :last, :email, :pass, :role, :active, :token, CURRENT_TIMESTAMP + INTERVAL '24 hours')
         RETURNING id
     ');
     
@@ -73,7 +73,7 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
         'pass' => $passwordHash,
         'role' => 'candidate',
         'active' => 'false', // Requires email confirmation
-        'token' => $activationToken // Repurposing reset_token for activation to avoid schema changes
+        'token' => hash('sha256', $activationToken) // Store only a digest of the activation secret
     ]);
 
     $userId = $stmt->fetchColumn();
@@ -120,8 +120,8 @@ $app->post('/api/candidate/activate', function (Request $request, Response $resp
     $db = new Database();
     $conn = $db->getConnection();
 
-    $stmt = $conn->prepare("SELECT id FROM users WHERE reset_token = :token AND role = 'candidate'");
-    $stmt->execute(['token' => $token]);
+    $stmt = $conn->prepare("SELECT id FROM users WHERE (reset_token = :token OR reset_token = :legacy_token) AND role = 'candidate' AND (reset_token_expires IS NULL OR reset_token_expires > CURRENT_TIMESTAMP)");
+    $stmt->execute(['token' => hash('sha256', $token), 'legacy_token' => $token]);
     $user = $stmt->fetch();
 
     if (!$user) {
@@ -129,7 +129,7 @@ $app->post('/api/candidate/activate', function (Request $request, Response $resp
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    $updateStmt = $conn->prepare("UPDATE users SET \"isActive\" = 'true', reset_token = NULL WHERE id = :id");
+    $updateStmt = $conn->prepare("UPDATE users SET \"isActive\" = 'true', reset_token = NULL, reset_token_expires = NULL WHERE id = :id");
     $updateStmt->execute(['id' => $user['id']]);
 
     $response->getBody()->write(json_encode(['message' => 'Account activated successfully! You can now sign in.']));
@@ -158,7 +158,7 @@ $app->post('/api/candidate/login', function (Request $request, Response $respons
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
-    $stmt = $conn->prepare('SELECT id, email, password, "firstName", "lastName", role, department, position, "isActive", "forcePasswordChange" FROM users WHERE email = ? AND role = \'candidate\'');
+    $stmt = $conn->prepare('SELECT id, email, password, "firstName", "lastName", role, department, position, "isActive", "forcePasswordChange", session_version FROM users WHERE email = ? AND role = \'candidate\'');
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
@@ -182,7 +182,8 @@ $app->post('/api/candidate/login', function (Request $request, Response $respons
             'exp' => time() + (60 * 60 * 24), // 24 hours for candidate
             'id' => $user['id'],
             'email' => $user['email'],
-            'role' => $user['role']
+            'role' => $user['role'],
+            'sv' => (int)($user['session_version'] ?? 0)
         ];
         
         $jwt = JWT::encode($payload, $secret, 'HS256');

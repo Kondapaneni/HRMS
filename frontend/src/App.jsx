@@ -1,8 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient } from '@tanstack/react-query'
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -121,10 +120,6 @@ const queryClient = new QueryClient({
   },
 })
 
-const persister = createSyncStoragePersister({
-  storage: window.localStorage,
-})
-
 /**
  * Route role definitions — must mirror the backend require_role() calls.
  * Role is always sourced from the database via /auth/me; these arrays are
@@ -136,7 +131,7 @@ const CANDIDATE_DASHBOARD_ROLES = ['candidate']
 
 function App() {
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <CapacitorLifecycle />
         <AuthProvider>
@@ -384,7 +379,7 @@ function App() {
           </ThemeProvider>
         </AuthProvider>
       </Router>
-    </PersistQueryClientProvider>
+    </QueryClientProvider>
   )
 }
 

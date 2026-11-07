@@ -147,7 +147,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference"
+        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u.session_version
         FROM users u
         WHERE u.email = ?
     ');
@@ -174,7 +174,8 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60), // Dynamic expiration
             'id' => $user['id'],
             'email' => $user['email'],
-            'role' => $user['role']
+            'role' => $user['role'],
+            'sv' => (int)($user['session_version'] ?? 0)
         ];
         
         $jwt = JWT::encode($payload, $secret, 'HS256');
@@ -269,8 +270,9 @@ $app->post('/api/auth/otp/send', function (Request $request, Response $response,
     $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
     // Save OTP to user record
-    $updateStmt = $conn->prepare('UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE id = ?');
-    $updateStmt->execute([$otp, $expiresAt, $user['id']]);
+    $otpHash = password_hash($otp, PASSWORD_DEFAULT);
+    $updateStmt = $conn->prepare('UPDATE users SET otp_code = NULL, otp_code_hash = ?, otp_expires_at = ? WHERE id = ?');
+    $updateStmt->execute([$otpHash, $expiresAt, $user['id']]);
 
     // Load and render OTP email template
     $templatePath = __DIR__ . '/../src/Templates/otp_login_email.html';
@@ -328,7 +330,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u.otp_code, u.otp_expires_at
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u.otp_code, u.otp_code_hash, u.otp_expires_at, u.session_version
         FROM users u
         WHERE LOWER(u.email) = LOWER(?)
     ');
@@ -347,7 +349,9 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
         return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
     }
 
-    if (empty($user['otp_code']) || empty($user['otp_expires_at'])) {
+    $storedOtpHash = $user['otp_code_hash'] ?? null;
+    $legacyOtp = $user['otp_code'] ?? null;
+    if ((empty($storedOtpHash) && empty($legacyOtp)) || empty($user['otp_expires_at'])) {
         RateLimiter::recordAttempt($conn, $ip, $action);
         $response->getBody()->write(json_encode(['error' => 'No active verification code found. Please request a new code.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
@@ -359,15 +363,20 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    if ($user['otp_code'] !== $otp) {
+    $otpMatches = $storedOtpHash ? password_verify($otp, $storedOtpHash) : (is_string($legacyOtp) && hash_equals($legacyOtp, $otp));
+    if (!$otpMatches) {
         RateLimiter::recordAttempt($conn, $ip, $action);
         $response->getBody()->write(json_encode(['error' => 'Invalid verification code. Please check your email.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
     }
 
     // OTP matched! Clear OTP immediately
-    $clearStmt = $conn->prepare('UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE id = ?');
+    $clearStmt = $conn->prepare('UPDATE users SET otp_code = NULL, otp_code_hash = NULL, otp_expires_at = NULL WHERE id = ?');
     $clearStmt->execute([$user['id']]);
+    if ($clearStmt->rowCount() !== 1) {
+        $response->getBody()->write(json_encode(['error' => 'Verification code has already been used. Please request a new one.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+    }
 
     // Fetch session settings
     $settingsStmt = $conn->query('SELECT session_timeout FROM global_settings ORDER BY id ASC LIMIT 1');
@@ -387,12 +396,13 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
         'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
         'id' => $user['id'],
         'email' => $user['email'],
-        'role' => $user['role']
+        'role' => $user['role'],
+        'sv' => (int)($user['session_version'] ?? 0)
     ];
 
     $jwt = JWT::encode($payload, $secret, 'HS256');
 
-    unset($user['otp_code'], $user['otp_expires_at']);
+    unset($user['otp_code'], $user['otp_code_hash'], $user['otp_expires_at']);
 
     // Fetch feature access
     $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canExpenses", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments" FROM user_feature_access WHERE "userId" = ?');
@@ -425,11 +435,18 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
 });
 
 $app->post('/api/logout', function (Request $request, Response $response, $args) {
+    $user = $request->getAttribute('user');
+    $db = new Database();
+    $conn = $db->getConnection();
+    if (!$conn || !$user || empty($user->id)) {
+        $response->getBody()->write(json_encode(['error' => 'Authentication service temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+    $stmt = $conn->prepare('UPDATE users SET session_version = COALESCE(session_version, 0) + 1 WHERE id = :id');
+    $stmt->execute(['id' => $user->id]);
     $response->getBody()->write(json_encode(['message' => 'Logged out']));
-    return $response
-        ->withHeader('Content-Type', 'application/json')
-        ->withStatus(200);
-});
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+})->add(new AuthMiddleware());
 
 // Get global news headlines & maintenance status (Public)
 $app->get('/api/news', function (Request $request, Response $response, $args) {
@@ -661,9 +678,10 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
         $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
         // Save token to DB
+        $tokenHash = hash('sha256', $token);
         $updateStmt = $conn->prepare("UPDATE users SET reset_token = :token, reset_token_expires = :expires WHERE id = :id");
         $updateStmt->execute([
-            'token' => $token,
+            'token' => $tokenHash,
             'expires' => $expires,
             'id' => $user['id']
         ]);
@@ -712,8 +730,8 @@ $app->post('/api/reset-password', function (Request $request, Response $response
     $conn = $db->getConnection();
 
     // Find valid token
-    $stmt = $conn->prepare("SELECT id, role FROM users WHERE reset_token = :token AND reset_token_expires > CURRENT_TIMESTAMP");
-    $stmt->execute(['token' => $token]);
+    $stmt = $conn->prepare("SELECT id, role FROM users WHERE (reset_token = :token OR reset_token = :legacy_token) AND reset_token_expires > CURRENT_TIMESTAMP");
+    $stmt->execute(['token' => hash('sha256', $token), 'legacy_token' => $token]);
     $user = $stmt->fetch();
 
     if (!$user) {
