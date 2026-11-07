@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { Clock, LogIn, LogOut, Filter, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, CalendarDays, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -21,11 +21,6 @@ const EmployeeMobileAttendance = () => {
     placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
   });
-
-  const hasLoadedOnce = useRef(false);
-  if (!loading && history) {
-    hasLoadedOnce.current = true;
-  }
 
   const error = queryError ? 'Failed to load attendance history.' : null;
   const presentCount = history.filter(r => r.status?.toLowerCase().startsWith('present')).length;
@@ -119,7 +114,7 @@ const EmployeeMobileAttendance = () => {
     }
   };
 
-  if (!hasLoadedOnce.current && loading && !history.length) {
+  if (loading && !history.length) {
     return <PageLoader message="Loading Attendance History..." />;
   }
 
