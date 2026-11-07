@@ -1,15 +1,13 @@
 import { useState, useRef } from 'react';
 import { Calendar as CalendarIcon, Sparkles, AlertCircle, CheckCircle2, PartyPopper } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
 
 const EmployeeMobileHolidays = () => {
-  const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('upcoming'); // 'upcoming' | 'all' | 'past'
 
-  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
+  const { data: holidays = [], isLoading: loading } = useQuery({
     queryKey: ['employee', 'holidays'],
     queryFn: async () => {
       const response = await api.get('/employee/holidays');
