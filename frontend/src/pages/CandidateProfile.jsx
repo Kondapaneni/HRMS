@@ -73,8 +73,7 @@ const CandidateProfile = () => {
         address: updatedData.address,
         currentTitle: updatedData.currentTitle,
         experience: updatedData.experience,
-        resumes: updatedData.resumes,
-        avatar: updatedData.avatarUrl
+        resumes: updatedData.resumes
       });
     },
     onSuccess: () => {
