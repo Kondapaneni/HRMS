@@ -109,7 +109,7 @@ const EmployeeAssessmentCard = React.memo(({ assessment, onStart, todayStr }) =>
 // Lightweight Virtualized Grid for large lists (> 20 items) (Requirement 9)
 const VirtualizedAssessmentGrid = ({ assessments, onStart, todayStr }) => {
   const containerRef = useRef(null);
-  const [scrollState, setScrollState] = useState({ scrollY: 0, height: typeof window !== 'undefined' ? window.innerHeight : 800, cols: 3 });
+  const [scrollState, setScrollState] = useState({ scrollY: 0, height: typeof window !== 'undefined' ? window.innerHeight : 800, cols: 3, containerTop: 0 });
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -118,7 +118,8 @@ const VirtualizedAssessmentGrid = ({ assessments, onStart, todayStr }) => {
       setScrollState({
         scrollY: window.scrollY,
         height: window.innerHeight,
-        cols
+        cols,
+        containerTop: containerRef.current?.offsetTop ?? 0
       });
     };
 
@@ -147,7 +148,7 @@ const VirtualizedAssessmentGrid = ({ assessments, onStart, todayStr }) => {
   const rowCount = Math.ceil(assessments.length / cols);
   const totalHeight = rowCount * ROW_HEIGHT;
 
-  const containerTop = containerRef.current ? containerRef.current.offsetTop : 0;
+  const containerTop = scrollState.containerTop;
   const relativeScroll = Math.max(0, scrollState.scrollY - containerTop);
   
   const firstVisibleRow = Math.floor(relativeScroll / ROW_HEIGHT);
