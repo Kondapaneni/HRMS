@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { FieldContainer } from '../layout/FieldContainer';
-import { Camera, X, Image as ImageIcon } from 'lucide-react';
+import { Camera, X } from 'lucide-react';
 
 export const ImageUploadField = React.memo(({
   name,
