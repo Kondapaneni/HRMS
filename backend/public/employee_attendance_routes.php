@@ -8,8 +8,8 @@ use App\Utils\RateLimiter;
 // Private attendance photo upload/download. The service-role key stays server-side only.
 function attendanceStorageConfig(): array
 {
-    $baseUrl = rtrim($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: '', '/');
-    $serviceKey = $_ENV['SUPABASE_SERVICE_ROLE_KEY'] ?? getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '';
+    $baseUrl = rtrim((string)($_ENV['SUPABASE_URL'] ?? $_ENV['VITE_SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: ''), '/');
+    $serviceKey = (string)($_ENV['SUPABASE_SERVICE_ROLE_KEY'] ?? getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '');
     if (!$baseUrl || !$serviceKey) {
         throw new RuntimeException('Secure file storage is not configured.');
     }
