@@ -261,6 +261,13 @@ $app->delete('/api/candidate/resumes/{id}', function (Request $request, Response
             return true;
         }));
         if (!$removed) return $response->withStatus(404);
+        $usage = $conn->prepare('SELECT COUNT(*) FROM applications WHERE candidate_id = ? AND resume_url = ?');
+        $usage->execute([$user->id, $args['id']]);
+        if ((int)$usage->fetchColumn() > 0) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'This resume is attached to an application and cannot be deleted.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+        }
         if (!empty($removed['isPrimary']) && count($resumes)) $resumes[0]['isPrimary'] = true;
         $save = $conn->prepare('UPDATE candidate_profiles SET resume_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
         $save->execute([json_encode($resumes), $user->id]);
