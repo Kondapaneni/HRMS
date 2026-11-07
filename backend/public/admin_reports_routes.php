@@ -101,7 +101,7 @@ $app->get('/api/admin/reports/employees', function (Request $request, Response $
         return streamCsvOutput($response, $filename, $stmt);
 
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin']));
@@ -179,7 +179,7 @@ $app->get('/api/admin/reports/attendance', function (Request $request, Response 
         return streamCsvOutput($response, $filename, $stmt);
 
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin']));
@@ -260,7 +260,7 @@ $app->get('/api/admin/reports/payroll', function (Request $request, Response $re
         return streamCsvOutput($response, $filename, $stmt);
 
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin']));
