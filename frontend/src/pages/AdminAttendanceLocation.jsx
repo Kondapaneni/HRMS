@@ -151,7 +151,7 @@ const AdminAttendanceLocation = () => {
 
     infoWindow.setContent(content);
     infoWindow.open(map, marker);
-  };
+  }, [data]);
 
   useEffect(() => {
     if (!data || !data.googleMapsApiKey || !mapRef.current) return;
