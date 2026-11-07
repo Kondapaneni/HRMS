@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
