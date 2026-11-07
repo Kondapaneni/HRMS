@@ -47,7 +47,7 @@ const documentTypes = [
   { id: 'relieving_letter', label: 'Relieving letter', isRequired: false, category: 'Past Employment' },
 ];
 
-const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, isUpdating, isConverted }) => {
+const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, onPreview, isUpdating, isConverted }) => {
   const renderBadge = () => {
     if (!currentDoc) {
       if (docType.isRequired) {
@@ -115,15 +115,14 @@ const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, isUpdating, is
 
       {currentDoc && (
         <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[var(--line)]">
-          <a
-            href={currentDoc.file_path}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => onPreview(currentDoc)}
             className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-[var(--text)] hover:bg-[var(--surface-alt)] bg-[var(--surface)] border border-[var(--line)] rounded-full transition-all whitespace-nowrap shrink-0"
           >
             <Eye size={13} className="text-[var(--muted)]" />
             <span>View</span>
-          </a>
+          </button>
 
           <div className="flex items-center gap-1.5 shrink-0">
             {isConverted ? (
@@ -176,6 +175,32 @@ const AdminVerifyDocuments = () => {
 
   const [updatingDocId, setUpdatingDocId] = React.useState(null);
   const [filterTab, setFilterTab] = useState('All');
+  const [previewDoc, setPreviewDoc] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
+  React.useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  const handlePreview = async (doc) => {
+    setPreviewDoc(doc);
+    setIsPreviewLoading(true);
+    try {
+      const res = await api.get(`/admin/candidate-documents/${encodeURIComponent(doc.id)}/file`, { responseType: 'blob' });
+      setPreviewUrl(URL.createObjectURL(res.data));
+    } catch (error) {
+      setPreviewDoc(null);
+      toast.error('Unable to open this document. Please try again.');
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewDoc(null);
+    setPreviewUrl(null);
+  };
 
   const { data: application, isLoading: isAppLoading } = useQuery({
     queryKey: ['application', id],
@@ -486,11 +511,37 @@ const AdminVerifyDocuments = () => {
             docType={doc}
             currentDoc={getDoc(doc.id)}
             onUpdateStatus={handleUpdateStatus}
+            onPreview={handlePreview}
             isUpdating={updatingDocId === getDoc(doc.id)?.id}
             isConverted={isConverted}
           />
         ))}
       </div>
+
+      {previewDoc && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] w-full max-w-4xl h-[88vh] flex flex-col overflow-hidden">
+            <div className="h-14 px-5 border-b border-[var(--line)] flex items-center justify-between shrink-0">
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold text-[var(--text)]">Candidate document</h3>
+                <p className="text-xs text-[var(--muted)] truncate">{previewDoc.file_name}</p>
+              </div>
+              <button type="button" onClick={closePreview} className="w-8 h-8 rounded-full border border-[var(--line)] flex items-center justify-center">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex-1 bg-[#1F1F23]">
+              {previewUrl ? (
+                <iframe src={previewUrl} title={previewDoc.file_name} className="w-full h-full border-0" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white text-sm">
+                  {isPreviewLoading ? 'Loading secure document…' : 'Document preview unavailable'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
