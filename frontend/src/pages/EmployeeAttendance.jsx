@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { 
   Calendar, 
@@ -55,11 +55,6 @@ const EmployeeAttendance = () => {
     placeholderData: (previousData) => previousData,
     staleTime: 30 * 1000
   });
-
-  const hasLoadedOnce = useRef(false);
-  if (!loading && history) {
-    hasLoadedOnce.current = true;
-  }
 
   const { data: leavesData } = useQuery({
     queryKey: ['employee', 'leaves'],
@@ -210,7 +205,7 @@ const EmployeeAttendance = () => {
 
   const displayError = error || (queryError ? 'Failed to load attendance history.' : null);
 
-  if (!hasLoadedOnce.current && loading && !history.length) {
+  if (loading && !history.length) {
     return <PageLoader message="Loading attendance history..." />;
   }
 
