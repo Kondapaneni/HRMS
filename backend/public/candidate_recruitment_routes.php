@@ -124,7 +124,7 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
         if ($exists) {
             $stmtUpdate = $conn->prepare('
                 UPDATE candidate_profiles 
-                SET phone = ?, address = ?, current_title = ?, experience = ?, resume_url = ?, avatar_url = ?, updated_at = CURRENT_TIMESTAMP
+                SET phone = ?, address = ?, current_title = ?, experience = ?, avatar_url = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE user_id = ?
             ');
             $stmtUpdate->execute([
@@ -132,14 +132,13 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
                 $data['address'] ?? null,
                 $data['currentTitle'] ?? null,
                 $data['experience'] ?? null,
-                isset($data['resumes']) ? json_encode($data['resumes']) : null,
                 $data['avatar'] ?? null,
                 $decodedToken->id
             ]);
         } else {
             $stmtInsert = $conn->prepare('
-                INSERT INTO candidate_profiles (user_id, phone, address, current_title, experience, resume_url, avatar_url) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO candidate_profiles (user_id, phone, address, current_title, experience, avatar_url) 
+                VALUES (?, ?, ?, ?, ?, ?)
             ');
             $stmtInsert->execute([
                 $decodedToken->id,
@@ -147,7 +146,6 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
                 $data['address'] ?? null,
                 $data['currentTitle'] ?? null,
                 $data['experience'] ?? null,
-                isset($data['resumes']) ? json_encode($data['resumes']) : null,
                 $data['avatar'] ?? null
             ]);
         }
@@ -613,7 +611,7 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
     $data = $request->getParsedBody();
     
     $jobId = $data['job_id'] ?? null;
-    $resumeUrl = $data['resume_url'] ?? null;
+    $resumeId = trim((string)($data['resume_url'] ?? ''));
     $noticePeriod = $data['notice_period'] ?? null;
     $coverNote = $data['cover_note'] ?? null;
     
@@ -626,13 +624,30 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
     $conn = $db->getConnection();
     
     try {
+        $profileStmt = $conn->prepare('SELECT resume_url FROM candidate_profiles WHERE user_id = ?');
+        $profileStmt->execute([$decodedToken->id]);
+        $storedResumes = $profileStmt->fetchColumn();
+        $candidateResumes = is_string($storedResumes) ? (json_decode($storedResumes, true) ?: []) : (is_array($storedResumes) ? $storedResumes : []);
+        $selectedResume = null;
+        foreach ($candidateResumes as $candidateResume) {
+            if (($candidateResume['id'] ?? null) === $resumeId || (($candidateResume['url'] ?? null) && hash_equals((string)$candidateResume['url'], $resumeId))) {
+                $selectedResume = $candidateResume;
+                break;
+            }
+        }
+        if (!$selectedResume) {
+            $response->getBody()->write(json_encode(['error' => 'Select a resume from your own profile before applying.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+        $applicationResumeRef = $selectedResume['id'] ?? $selectedResume['url'];
+
         $conn->beginTransaction();
 
         $stmtInsertApp = $conn->prepare('
             INSERT INTO applications (job_id, candidate_id, resume_url, status, notice_period, cover_note) 
             VALUES (?, ?, ?, \'Applied\', ?, ?) RETURNING id
         ');
-        $stmtInsertApp->execute([$jobId, $decodedToken->id, $resumeUrl, $noticePeriod, $coverNote]);
+        $stmtInsertApp->execute([$jobId, $decodedToken->id, $applicationResumeRef, $noticePeriod, $coverNote]);
         $newAppId = $stmtInsertApp->fetchColumn();
 
         $stmtTimeline = $conn->prepare('INSERT INTO application_timeline (application_id, status_change, notes) VALUES (?, \'Applied\', \'Application submitted successfully.\')');
