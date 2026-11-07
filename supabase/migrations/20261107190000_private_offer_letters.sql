@@ -82,6 +82,10 @@ WITH CHECK (
     ])
 );
 
+-- Remove the original unrestricted authenticated/service-role policy as well.
+-- The service role bypasses RLS; authenticated clients must not inherit broad access.
+DROP POLICY IF EXISTS "Authenticated users and service role can manage storage objects" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can manage candidate docs" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can manage non-private storage objects" ON storage.objects;
 CREATE POLICY "Authenticated users can manage non-private storage objects"
 ON storage.objects
