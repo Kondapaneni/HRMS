@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
-import api from '../api/axios';
+import api, { REMOTE_ORIGIN } from '../api/axios';
 import { NativeLocationTracker } from '../plugins/NativeLocationTracker';
 
 /**
@@ -82,8 +82,9 @@ export default function BackgroundLocationTracker() {
             const token = localStorage.getItem('token');
             if (token) {
               try {
+                const baseUrl = REMOTE_ORIGIN || (typeof window !== 'undefined' ? window.location.origin : '');
                 await NativeLocationTracker.startTracking({
-                  serverUrl: 'https://hrms-qwv3.onrender.com/api/employee/attendance/punch',
+                  serverUrl: `${baseUrl}/api/employee/attendance/punch`,
                   token: token,
                   intervalMs: targetIntervalMs
                 });

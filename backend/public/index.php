@@ -43,7 +43,7 @@ $app->add(function (Request $request, $handler) {
     $response = $handler->handle($request);
     
     // Ensure origin matches configured FRONTEND_URL or native mobile/local environments
-    $configuredFrontend = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
+    $configuredFrontend = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
     $origin = $request->getHeaderLine('Origin');
     
     $allowedOrigin = $configuredFrontend;
@@ -658,10 +658,9 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
             'id' => $user['id']
         ]);
 
-        // Build reset link
-        // Hardcoded to frontend dev server for now
-        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
-        $resetLink = $frontendUrl . "/reset-password?token=" . $token;
+        // Build reset link from environment variable
+        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
+        $resetLink = !empty($frontendUrl) ? ($frontendUrl . "/reset-password?token=" . $token) : ("/reset-password?token=" . $token);
 
         // Load and prepare email template
         $templatePath = __DIR__ . '/../src/Templates/reset_password.html';

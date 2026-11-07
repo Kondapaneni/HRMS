@@ -29,8 +29,8 @@ function queueAssessmentResultEmail($conn, $attemptId, $userId, $assessmentId, $
         }
         $rawTemplate = file_get_contents($templatePath);
 
-        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
-        $resultLink = $frontendUrl . '/employee/assessments/result?attemptId=' . $attemptId;
+        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
+        $resultLink = !empty($frontendUrl) ? ($frontendUrl . '/employee/assessments/result?attemptId=' . $attemptId) : ('/employee/assessments/result?attemptId=' . $attemptId);
 
         $employeeName = trim(($user['firstName'] ?? '') . ' ' . ($user['lastName'] ?? ''));
         if (empty($employeeName)) $employeeName = 'Employee';

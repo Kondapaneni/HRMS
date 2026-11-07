@@ -56,7 +56,7 @@ public class LocationTrackerService extends Service implements LocationListener 
     private HandlerThread handlerThread;
     private Handler bgHandler;
 
-    private String serverUrl = "https://hrms-qwv3.onrender.com/api/employee/attendance/punch";
+    private String serverUrl = "";
     private String authToken = "";
     private long intervalMs = 15 * 60 * 1000; // default 15 minutes
 

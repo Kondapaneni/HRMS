@@ -16,8 +16,8 @@ function queueLeaveEmail($conn, $empId, $leaveType, $startDate, $endDate, $statu
         $templatePath = __DIR__ . '/../src/Templates/leave_email.html';
         if (file_exists($templatePath)) {
             $emailContent = file_get_contents($templatePath);
-            $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'https://hrms-qwv3.onrender.com', '/');
-            $dashboardLink = $frontendUrl . '/employee/leaves';
+            $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
+            $dashboardLink = !empty($frontendUrl) ? ($frontendUrl . '/employee/leaves') : '/employee/leaves';
 
             $employeeName = trim(($employee['firstName'] ?? '') . ' ' . ($employee['lastName'] ?? ''));
             $emailContent = str_replace('{{employeeName}}', htmlspecialchars($employeeName), $emailContent);

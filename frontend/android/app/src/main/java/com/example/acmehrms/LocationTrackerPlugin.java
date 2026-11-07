@@ -29,7 +29,7 @@ public class LocationTrackerPlugin extends Plugin {
     @PluginMethod
     public void startTracking(PluginCall call) {
         Context context = getContext();
-        String serverUrl = call.getString("serverUrl", "https://hrms-qwv3.onrender.com/api/employee/attendance/punch");
+        String serverUrl = call.getString("serverUrl", "");
         String token = call.getString("token", "");
 
         // Safely extract intervalMs — JS numbers may arrive as Integer, not Long.

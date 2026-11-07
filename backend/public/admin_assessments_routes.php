@@ -254,8 +254,8 @@ function queueAssessmentAssignedEmail($conn, $assessmentId, $employeeIds) {
         }
         $rawTemplate = file_get_contents($templatePath);
 
-        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
-        $assessmentLink = $frontendUrl . '/employee/assessments';
+        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
+        $assessmentLink = !empty($frontendUrl) ? ($frontendUrl . '/employee/assessments') : '/employee/assessments';
 
         $placeholders = implode(',', array_fill(0, count($employeeIds), '?'));
         $stmtUsers = $conn->prepare("SELECT id, \"firstName\", \"lastName\", email FROM users WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''");

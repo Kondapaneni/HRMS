@@ -522,7 +522,8 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         $empPkId = $stmtEmp->fetchColumn();
 
         // 3. Queue Welcome Email
-        $loginLink = $_ENV['FRONTEND_URL'] ?? 'https://hrms-qwv3.onrender.com';
+        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
+        $loginLink = !empty($frontendUrl) ? ($frontendUrl . '/login') : '/login';
         $subject = 'Welcome to Acme HRMS - Your Account Details';
         
         $currentYear = date('Y');

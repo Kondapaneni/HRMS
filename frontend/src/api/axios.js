@@ -12,8 +12,8 @@ export const isIOS = (() => {
   const isIPadOS = (platform === 'MacIntel' || /Macintosh/i.test(ua)) && window.navigator.maxTouchPoints > 1;
   return Boolean(isApple || isIPadOS);
 })();
-export const REMOTE_API_URL = import.meta.env.VITE_API_URL || 'https://hrms-qwv3.onrender.com/api';
-export const REMOTE_ORIGIN = import.meta.env.VITE_BACKEND_URL || 'https://hrms-qwv3.onrender.com';
+export const REMOTE_API_URL = import.meta.env.VITE_API_URL || (import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}/api` : '/api');
+export const REMOTE_ORIGIN = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
 export const getAssetUrl = (path) => {
   if (!path) return '';

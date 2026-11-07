@@ -200,7 +200,7 @@ const OfferLetterPDF = ({ data }) => {
     companyAddress = 'Sri Ramachandra Nagar, Vijayawada',
     companyPhone = '9440230003',
     companyEmail = 'gowthamkondapaneni2003@gmail.com',
-    companyWebsite = 'https://hrms-qwv3.onrender.com'
+    companyWebsite = (data && data.companyWebsite) || import.meta.env.VITE_FRONTEND_URL || (typeof window !== 'undefined' ? window.location.origin : '')
   } = data;
 
   const numericSalary = parseInt((salary || '').toString().replace(/[^0-9]/g, ''), 10);

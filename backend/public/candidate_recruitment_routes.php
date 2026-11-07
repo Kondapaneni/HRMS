@@ -344,8 +344,8 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         $templatePath = __DIR__ . '/../src/Templates/candidate_application_success_email.html';
         if (file_exists($templatePath)) {
             $body = file_get_contents($templatePath);
-            $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'https://hrms-qwv3.onrender.com';
-            $dashboardLink = rtrim($frontendUrl, '/') . '/candidate/applications';
+            $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
+            $dashboardLink = !empty($frontendUrl) ? ($frontendUrl . '/candidate/applications') : '/candidate/applications';
             
             $body = str_replace(
                 ['{{firstName}}', '{{jobTitle}}', '{{dashboardLink}}', '{{currentYear}}'],

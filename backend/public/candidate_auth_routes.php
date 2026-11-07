@@ -79,8 +79,8 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
     $userId = $stmt->fetchColumn();
 
     // Queue confirmation email
-    $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
-    $activationLink = $frontendUrl . "/candidate/activate?token=" . $activationToken;
+    $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
+    $activationLink = !empty($frontendUrl) ? ($frontendUrl . "/candidate/activate?token=" . $activationToken) : ("/candidate/activate?token=" . $activationToken);
     
     // Load and parse HTML template
     $templatePath = __DIR__ . '/../src/Templates/candidate_activate_email.html';
