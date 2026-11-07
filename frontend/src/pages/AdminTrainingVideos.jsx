@@ -3,25 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/ui/SearchBar';
-import { 
-  Plus, 
-  Trash2, 
-  X, 
-  Upload, 
-  Users, 
-  Search, 
-  PlaySquare, 
-  GraduationCap, 
-  CheckCircle2, 
-  Clock, 
-  Sparkles, 
-  Check, 
-  Film, 
-  UserCheck,
-  Zap,
-  HardDrive,
-  Loader2
-} from 'lucide-react';
+import { Plus, Trash2, X, Upload, Users, PlaySquare, GraduationCap, CheckCircle2, Clock, Sparkles, Check, Film, UserCheck, Zap, HardDrive, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';

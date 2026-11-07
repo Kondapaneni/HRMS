@@ -7,23 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
-import { 
-  IndianRupee, 
-  Search, 
-  ChevronLeft, 
-  ChevronRight, 
-  Download, 
-  Eye, 
-  Calculator, 
-  X, 
-  Layers, 
-  Trash2, 
-  TrendingUp, 
-  CheckCircle2, 
-  Clock, 
-  FileText,
-  Sparkles
-} from 'lucide-react';
+import { IndianRupee, ChevronLeft, ChevronRight, Download, Eye, Calculator, X, Layers, Trash2, TrendingUp, CheckCircle2, Clock, FileText, Sparkles } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import PayslipPDF from '../components/PayslipPDF';
 import EmployeeSelect from '../components/EmployeeSelect';

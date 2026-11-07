@@ -2,32 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Search,
-  Loader2,
-  Activity,
-  Users,
-  CalendarDays,
-  Building2,
-  Clock,
-  Check,
-  Award,
-  BarChart3,
-  ChevronRight,
-  Briefcase,
-  Sparkles
-} from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area
-} from 'recharts';
+import { Loader2, Activity, Users, CalendarDays, Building2, Clock, Check, Award, BarChart3, ChevronRight, Briefcase, Sparkles } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import api from '../api/axios';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';

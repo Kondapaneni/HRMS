@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, Plus, Sparkles, Image as ImageIcon, Archive } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, Sparkles, Image as ImageIcon, Archive } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
 import toast from 'react-hot-toast';
