@@ -21,8 +21,8 @@ WHERE id IN ('loan_documents', 'loan_signatures');
 -- The remaining public-facing assets (avatars, holiday posters, and job
 -- descriptions) are uploaded through authenticated PHP endpoints using the
 -- server-side service role. Training videos use signed upload/playback URLs and
--- therefore must remain private. app_builds stays public-read for app downloads,
--- but no browser role may upload, update, or enumerate build artifacts.
+-- therefore must remain private. app_builds is kept private by the later
+-- 20261107230000_lock_unused_app_builds_bucket migration until a release workflow exists.
 UPDATE storage.buckets
 SET public = FALSE
 WHERE id IN ('training_videos', 'attendance', 'candidate_documents', 'resumes',
