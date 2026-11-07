@@ -105,8 +105,10 @@ function loanSignDocumentMap(array $documents): array
     return $documents;
 }
 
-function loanSignApplicationAssets(array &$formData, array &$signatures): void
+function loanSignApplicationAssets(&$formData, &$signatures): void
 {
+    if (!is_array($formData)) $formData = [];
+    if (!is_array($signatures)) $signatures = [];
     foreach ($signatures as $key => $reference) {
         $signed = loanStorageSignedUrlFromReference(is_string($reference) ? $reference : null, 'loan_signatures');
         if ($signed) $signatures[$key] = $signed;
