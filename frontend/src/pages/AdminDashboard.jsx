@@ -1,4 +1,3 @@
-import React from 'react';
 import PageLoader from '../components/PageLoader';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
