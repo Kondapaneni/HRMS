@@ -4,7 +4,7 @@ const ALLOWED_ATTRIBUTES = new Set(["alt","align","border","cellpadding","cellsp
 const ALLOWED_STYLES = new Set(["background-color","border","border-bottom","border-collapse","border-color","border-radius","border-spacing","border-style","border-top","border-width","color","display","font-family","font-size","font-style","font-weight","height","line-height","margin","margin-bottom","margin-left","margin-right","margin-top","max-width","padding","padding-bottom","padding-left","padding-right","padding-top","text-align","text-decoration","vertical-align","white-space","width"]);
 function safeUrl(value, isImage = false) {
   const candidate = String(value || "").trim();
-  if (!candidate || /^[#\\/]|^\\.\\.?\\//.test(candidate)) return candidate;
+  if (!candidate || candidate.startsWith("#") || candidate.startsWith("/") || candidate.startsWith("./") || candidate.startsWith("../")) return candidate;
   try {
     const parsed = new URL(candidate, window.location.href);
     const allowed = isImage ? ["https:","http:"] : ["https:","http:","mailto:","tel:"];
@@ -17,7 +17,7 @@ function cleanStyle(value) {
   const style = holder.style;
   for (const property of Array.from(style)) {
     const cssValue = style.getPropertyValue(property);
-    if (!ALLOWED_STYLES.has(property) || /url\\s*\\(|expression\\s*\\(|javascript:|@import|behavior\\s*:/i.test(cssValue)) style.removeProperty(property);
+    if (!ALLOWED_STYLES.has(property) || /url\s*\(|expression\s*\(|javascript:|@import|behavior\s*:/i.test(cssValue)) style.removeProperty(property);
   }
   return style.cssText;
 }
