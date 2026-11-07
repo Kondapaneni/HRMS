@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { sanitizeEmailHtml } from '../../utils/sanitizeEmailHtml';
 import templateHtml from '../../../../backend/src/Templates/reset_password.html?raw';
 
