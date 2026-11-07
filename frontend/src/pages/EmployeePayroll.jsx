@@ -1,20 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
-import { 
-  Download, 
-  Eye, 
-  IndianRupee, 
-  TrendingDown, 
-  TrendingUp, 
-  Wallet, 
-  X,
-  FileText,
-  CalendarDays,
-  ShieldCheck,
-  CheckCircle2,
-  AlertCircle
-} from 'lucide-react';
+import { Download, Eye, IndianRupee, TrendingDown, TrendingUp, Wallet, X, FileText, CheckCircle2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';

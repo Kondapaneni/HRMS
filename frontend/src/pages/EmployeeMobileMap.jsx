@@ -43,7 +43,7 @@ const EmployeeMobileMap = () => {
   }, [action, navigate]);
 
   // Fetch geofences from backend
-  const { data, isLoading: loadingGeofences, error: geofencesError } = useQuery({
+  const { data, isLoading: loadingGeofences, error: _geofencesError } = useQuery({
     queryKey: ['employee', 'geofences'],
     queryFn: async () => {
       try {
@@ -58,7 +58,7 @@ const EmployeeMobileMap = () => {
             } else {
               setMapLockoutSeconds(600);
             }
-          } catch (e) {
+          } catch {
             setMapLockoutSeconds(600);
           }
         }
@@ -106,7 +106,7 @@ const EmployeeMobileMap = () => {
         }
       },
       (error) => {
-        let msg = 'Unable to retrieve location.';
+        let msg;
         switch (error.code) {
           case error.PERMISSION_DENIED:
             msg = 'Location permission denied. Please enable location services in your device settings.';

@@ -1,18 +1,5 @@
 import { useState, useRef } from 'react';
-import { 
-  ArrowLeft,
-  Calendar as CalendarIcon, 
-  CalendarDays, 
-  Sparkles, 
-  AlertCircle, 
-  Clock, 
-  CheckCircle2, 
-  PartyPopper,
-  Flame,
-  Check,
-  Loader2
-} from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Calendar as CalendarIcon, Sparkles, AlertCircle, CheckCircle2, PartyPopper } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';

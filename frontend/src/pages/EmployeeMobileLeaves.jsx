@@ -1,15 +1,5 @@
 import PageLoader from '../components/PageLoader';
-import { 
-  Calendar as CalendarIcon, 
-  Plus, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  AlertCircle, 
-  CalendarDays,
-  FileText
-} from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Plus, Clock, CheckCircle2, XCircle, AlertCircle, CalendarDays } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';

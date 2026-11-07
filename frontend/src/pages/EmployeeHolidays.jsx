@@ -8,11 +8,8 @@ import {
   CalendarDays,
   Palmtree,
   Sparkles,
-  Clock,
-  Building,
   CheckCircle2
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -58,7 +55,6 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
 };
 
 const EmployeeHolidays = () => {
-  const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStr = format(currentMonth, 'yyyy-MM');
