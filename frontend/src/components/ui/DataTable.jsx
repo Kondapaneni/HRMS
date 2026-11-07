@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import SearchBar from './SearchBar';
-import StatusBadge from './StatusBadge';
 import Button from './Button';
 
 /**

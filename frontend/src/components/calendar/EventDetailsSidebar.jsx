@@ -13,7 +13,6 @@ import {
   Loader2 
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import toast from 'react-hot-toast';
 
 const EventDetailsSidebar = ({ 
   isOpen, 
@@ -64,7 +63,9 @@ const EventDetailsSidebar = ({
         formattedTime = startFormatted;
       }
     }
-  } catch {}
+  } catch {
+    // Keep the default date/time labels when an event contains an invalid date.
+  }
 
   return createPortal(
     <div 

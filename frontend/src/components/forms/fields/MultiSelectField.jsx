@@ -83,7 +83,13 @@ export const MultiSelectField = React.memo(({
       readOnly={readOnly}
       className={className}
     >
-      <div ref={containerRef} className="relative w-full">
+      <div
+        ref={containerRef}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) onBlur?.(event);
+        }}
+        className="relative w-full"
+      >
         <div
           tabIndex={disabled || readOnly ? -1 : 0}
           onClick={() => !disabled && !readOnly && setIsOpen(!isOpen)}
