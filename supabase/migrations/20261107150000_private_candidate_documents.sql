@@ -38,6 +38,11 @@ WITH CHECK (
     ])
 );
 
+-- Remove the legacy anonymous upload path. Candidate uploads must pass through
+-- the authenticated PHP endpoint so MIME, size, ownership, and path checks cannot
+-- be bypassed with the public anon key.
+DROP POLICY IF EXISTS "Anon can upload candidate resumes and documents" ON storage.objects;
+
 DROP POLICY IF EXISTS "Admins can manage candidate docs" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can manage non-attendance storage objects" ON storage.objects;
 CREATE POLICY "Authenticated users can manage non-private storage objects"
