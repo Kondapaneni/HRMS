@@ -64,9 +64,11 @@ const AdminAttendanceRegularize = () => {
   const { data: employees = [] } = useQuery({
     queryKey: ['admin', 'employees-dropdown-regularize'],
     queryFn: async () => {
-      const response = await axios.get('/admin/employees');
+      const response = await axios.get('/admin/employees?limit=500');
       return response.data.employees || [];
     },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Attendance calendar query

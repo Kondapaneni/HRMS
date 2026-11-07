@@ -87,9 +87,11 @@ const AdminPayroll = () => {
   const { data: employees = [] } = useQuery({
     queryKey: ['admin', 'employees-dropdown'],
     queryFn: async () => {
-      const response = await api.get(`/admin/employees?limit=200`);
+      const response = await api.get(`/admin/employees?limit=500`);
       return response.data.employees || [];
     },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Fetch payslips (paginated)

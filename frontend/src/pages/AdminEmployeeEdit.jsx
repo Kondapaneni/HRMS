@@ -29,9 +29,11 @@ const AdminEmployeeEdit = () => {
   const managersQuery = useQuery({
     queryKey: ['admin', 'employees-dropdown'],
     queryFn: async () => {
-      const res = await api.get('/admin/employees');
+      const res = await api.get('/admin/employees?limit=500');
       return res.data.employees || [];
-    }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const branchesQuery = useQuery({
