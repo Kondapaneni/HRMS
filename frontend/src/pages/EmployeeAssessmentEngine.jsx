@@ -21,6 +21,7 @@ const EmployeeAssessmentEngine = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
 
@@ -65,6 +66,7 @@ const EmployeeAssessmentEngine = () => {
   const submitExam = useCallback(async (reason = 'manual') => {
     if (submittedRef.current) return;
     submittedRef.current = true;
+    setIsSubmitted(true);
 
     // Stop regular auto-save timer immediately
     if (autoSaveIntervalRef.current) {
@@ -120,6 +122,7 @@ const EmployeeAssessmentEngine = () => {
       setSubmitting(false);
       setUploadProgress('');
       submittedRef.current = false;
+      setIsSubmitted(false);
     }
   }, [navigate]);
 
@@ -583,7 +586,7 @@ const EmployeeAssessmentEngine = () => {
 
       {/* Fullscreen Requirement Modal */}
       <AnimatePresence>
-        {showFullscreenModal && !submitting && !submittedRef.current && (
+        {showFullscreenModal && !submitting && !isSubmitted && (
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
