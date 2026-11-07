@@ -62,7 +62,7 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
     
     $stmt = $conn->prepare('
         INSERT INTO users ("firstName", "lastName", email, password, role, "isActive", reset_token, reset_token_expires) 
-        VALUES (:first, :last, :email, :pass, :role, :active, :token, CURRENT_TIMESTAMP + INTERVAL '24 hours')
+        VALUES (:first, :last, :email, :pass, :role, :active, :token, :expires)
         RETURNING id
     ');
     
@@ -73,7 +73,8 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
         'pass' => $passwordHash,
         'role' => 'candidate',
         'active' => 'false', // Requires email confirmation
-        'token' => hash('sha256', $activationToken) // Store only a digest of the activation secret
+        'token' => hash('sha256', $activationToken), // Store only a digest of the activation secret
+        'expires' => date('Y-m-d H:i:s', strtotime('+24 hours'))
     ]);
 
     $userId = $stmt->fetchColumn();
