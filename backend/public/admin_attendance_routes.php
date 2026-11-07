@@ -442,7 +442,7 @@ $app->get('/api/admin/attendance', function (Request $request, Response $respons
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -457,7 +457,7 @@ $app->get('/api/admin/geolocations', function (Request $request, Response $respo
         $response->getBody()->write(json_encode($geo));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -484,7 +484,7 @@ $app->post('/api/admin/geolocations', function (Request $request, Response $resp
         $response->getBody()->write(json_encode(['message' => 'Geo location added successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -512,7 +512,7 @@ $app->put('/api/admin/geolocations/{id}', function (Request $request, Response $
         $response->getBody()->write(json_encode(['message' => 'Geo location updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -528,7 +528,7 @@ $app->delete('/api/admin/geolocations/{id}', function (Request $request, Respons
         $response->getBody()->write(json_encode(['message' => 'Geo location deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -543,7 +543,7 @@ $app->get('/api/admin/shifttimes', function (Request $request, Response $respons
         $response->getBody()->write(json_encode($shifts));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], ['attendance', 'employees']));
@@ -569,7 +569,7 @@ $app->post('/api/admin/shifttimes', function (Request $request, Response $respon
         $response->getBody()->write(json_encode(['message' => 'Shift time added successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -596,7 +596,7 @@ $app->put('/api/admin/shifttimes/{id}', function (Request $request, Response $re
         $response->getBody()->write(json_encode(['message' => 'Shift time updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -612,7 +612,7 @@ $app->delete('/api/admin/shifttimes/{id}', function (Request $request, Response 
         $response->getBody()->write(json_encode(['message' => 'Shift time deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -814,7 +814,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
 
     } catch (\Exception $e) {
         $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -1024,7 +1024,7 @@ $app->get('/api/admin/attendance/employee/{id}', function (Request $request, Res
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
@@ -1074,7 +1074,7 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
