@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, CheckCircle2, Eye, FileText, AlertCircle, Send, ArrowLeft, Clock, Lock, Check } from 'lucide-react';
@@ -274,7 +274,7 @@ const AdminVerifyDocuments = () => {
     updateStatusMutation.mutate({ docId, status });
   };
 
-  const getDoc = (typeId) => documents.find((d) => d.document_type === typeId);
+  const getDoc = useCallback((typeId) => documents.find((d) => d.document_type === typeId), [documents]);
 
   const userInfo = candidatesInfo.find((u) => u.id === application?.candidate_id);
 
@@ -299,7 +299,7 @@ const AdminVerifyDocuments = () => {
       if (filterTab === 'Pending') return current && current.status !== 'verified' && current.status !== 'rejected';
       return true;
     });
-  }, [filterTab, documents]);
+  }, [filterTab, getDoc]);
 
   if (isAppLoading || isDocsLoading) return <PageLoader message="Loading documents..." />;
 
