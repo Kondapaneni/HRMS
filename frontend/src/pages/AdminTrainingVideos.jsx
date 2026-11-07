@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
@@ -35,6 +35,8 @@ const AdminTrainingVideos = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filterTab, setFilterTab] = useState('All'); // 'All', 'Assigned', 'Open'
+  const [page, setPage] = useState(1);
+  const limit = 12;
 
   const [title, setTitle] = useState('');
   const [videoFile, setVideoFile] = useState(null);
@@ -57,17 +59,35 @@ const AdminTrainingVideos = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
+      setPage(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: videos = [], isLoading: videosLoading } = useQuery({
-    queryKey: ['admin', 'trainingVideos'],
+  const { data: videoResponse = { videos: [], total: 0, stats: {} }, isLoading: videosLoading } = useQuery({
+    queryKey: ['admin', 'trainingVideos', page, debouncedSearchQuery, filterTab],
     queryFn: async () => {
-      const res = await api.get('/admin/training/videos');
-      return res.data?.videos || res.data?.data || (Array.isArray(res.data) ? res.data : []);
-    }
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        search: debouncedSearchQuery,
+        filter: filterTab.toLowerCase()
+      });
+      const res = await api.get(`/admin/training/videos?${params.toString()}`);
+      return res.data || { videos: [], total: 0, stats: {} };
+    },
+    placeholderData: (previousData) => previousData
   });
+
+  const videos = videoResponse.videos || videoResponse.data || [];
+  const totalVideos = Number(videoResponse.total || 0);
+  const totalPages = Math.max(1, Math.ceil(totalVideos / limit));
+  const stats = videoResponse.stats || {
+    total: totalVideos,
+    assignedCourses: videos.filter((video) => video.assigned_employee_ids?.length > 0).length,
+    enrolledStaff: 0
+  };
+  const filteredVideos = videos;
 
   const { data: employees = [], isLoading: employeesLoading } = useQuery({
     queryKey: ['admin', 'employeesList'],
@@ -77,32 +97,7 @@ const AdminTrainingVideos = () => {
     staleTime: 5 * 60 * 1000
   });
 
-  const stats = useMemo(() => {
-    const total = videos.length;
-    const assignedCourses = videos.filter(v => v.assigned_employee_ids && v.assigned_employee_ids.length > 0).length;
-    const allEnrolledSet = new Set();
-    videos.forEach(v => {
-      if (Array.isArray(v.assigned_employee_ids)) {
-        v.assigned_employee_ids.forEach(id => allEnrolledSet.add(id));
-      }
-    });
-    const enrolledStaff = allEnrolledSet.size;
-    return { total, assignedCourses, enrolledStaff };
-  }, [videos]);
 
-  const filteredVideos = useMemo(() => {
-    return videos.filter(v => {
-      const matchSearch = debouncedSearchQuery === '' ||
-        (v.title && v.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
-
-      let matchTab = true;
-      const hasAssignments = v.assigned_employee_ids && v.assigned_employee_ids.length > 0;
-      if (filterTab === 'Assigned') matchTab = hasAssignments;
-      else if (filterTab === 'Open') matchTab = !hasAssignments;
-
-      return matchSearch && matchTab;
-    });
-  }, [videos, debouncedSearchQuery, filterTab]);
 
   const addVideoMutation = useMutation({
     mutationFn: async (videoData) => {
@@ -234,7 +229,7 @@ const AdminTrainingVideos = () => {
 
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold px-3 py-1.5 rounded-[9px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-            {videos.length} Videos
+            {totalVideos} Videos
           </span>
           <Button
             variant="primary"
@@ -293,7 +288,7 @@ const AdminTrainingVideos = () => {
             <button
               key={tab}
               type="button"
-              onClick={() => setFilterTab(tab)}
+              onClick={() => { setFilterTab(tab); setPage(1); }}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                 filterTab === tab
                   ? 'bg-[var(--ink)] text-white shadow-xs'
@@ -402,6 +397,33 @@ const AdminTrainingVideos = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+          <p className="text-xs text-[var(--muted)]">
+            Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalVideos)} of {totalVideos} training videos
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page <= 1 || videosLoading}
+              className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs font-medium text-[var(--text)] disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="text-xs text-[var(--muted)] tabular-nums">Page {page} of {totalPages}</span>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page >= totalPages || videosLoading}
+              className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs font-medium text-[var(--text)] disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 
