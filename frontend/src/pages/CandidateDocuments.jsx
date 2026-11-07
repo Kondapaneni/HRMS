@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import SearchBar from '../components/ui/SearchBar';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { 
   FileText, 
@@ -47,6 +48,7 @@ const documentTypes = [
 
 const CandidateDocuments = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploadingType, setUploadingType] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');

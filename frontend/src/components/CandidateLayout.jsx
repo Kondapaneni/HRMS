@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import {
   Home,
   Briefcase,
@@ -15,7 +14,6 @@ import AppShell from './AppShell';
 import api from '../api/axios';
 
 const CandidateLayout = () => {
-  const { profile } = useAuth();
 
   const [isDevBypassed, setIsDevBypassed] = useState(
     () => localStorage.getItem('dev_bypass_maintenance_session') === 'true'
