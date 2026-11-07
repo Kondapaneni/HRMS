@@ -95,11 +95,7 @@ $app->get('/api/admin/reports/employees', function (Request $request, Response $
                 COALESCE(e.salary, 0) as "Salary"
             FROM employee e
             ORDER BY e."firstName" ASC
-            LIMIT ? OFFSET ?
         ');
-        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
-        $stmt->bindValue(2, $offset, PDO::PARAM_INT);
-        $stmt->execute();
 
         $filename = "employee_directory_" . date('Y-m-d') . ".csv";
         return streamCsvOutput($response, $filename, $stmt);
@@ -176,13 +172,8 @@ $app->get('/api/admin/reports/attendance', function (Request $request, Response 
             JOIN employee e ON a."employeeId" = e."userId"
             WHERE a.date::text >= ? AND a.date::text <= ?
             ORDER BY a.date DESC, e."firstName" ASC
-            LIMIT ? OFFSET ?
         ');
-        $stmt->bindValue(1, $startDate);
-        $stmt->bindValue(2, $endDate);
-        $stmt->bindValue(3, $limit, PDO::PARAM_INT);
-        $stmt->bindValue(4, $offset, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute([$startDate, $endDate]);
 
         $filename = "attendance_report_" . $month . ".csv";
         return streamCsvOutput($response, $filename, $stmt);
@@ -262,13 +253,8 @@ $app->get('/api/admin/reports/payroll', function (Request $request, Response $re
             JOIN employee e ON p."employeeId" = e."userId"
             WHERE p.month = ? AND p.year = ?
             ORDER BY e."firstName" ASC
-            LIMIT ? OFFSET ?
         ');
-        $stmt->bindValue(1, $reqMonth, PDO::PARAM_INT);
-        $stmt->bindValue(2, $reqYear, PDO::PARAM_INT);
-        $stmt->bindValue(3, $limit, PDO::PARAM_INT);
-        $stmt->bindValue(4, $offset, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute([$reqMonth, $reqYear]);
 
         $filename = "payroll_report_" . $month . ".csv";
         return streamCsvOutput($response, $filename, $stmt);
