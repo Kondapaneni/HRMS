@@ -127,6 +127,26 @@ const CandidateProfile = () => {
     }
   };
 
+  const handlePreviewResume = async (resume) => {
+    const previewWindow = window.open('about:blank', '_blank');
+    if (!previewWindow) {
+      toast.error('Please allow pop-ups to preview your resume.');
+      return;
+    }
+    try {
+      const endpoint = resume?.id
+        ? `/candidate/resumes/${encodeURIComponent(resume.id)}/file`
+        : `/candidate/resume-file?url=${encodeURIComponent(resume?.url || '')}`;
+      const response = await api.get(endpoint, { responseType: 'blob' });
+      const objectUrl = URL.createObjectURL(response.data);
+      previewWindow.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (error) {
+      previewWindow.close();
+      toast.error('Unable to open this resume. Please try again.');
+    }
+  };
+
   const handleSetPrimaryResume = async (index) => {
     const resume = formData.resumes[index];
     try {
@@ -215,6 +235,7 @@ const CandidateProfile = () => {
           handleFileUpload={handleFileUpload}
           handleSetPrimaryResume={handleSetPrimaryResume}
           handleDeleteResume={handleDeleteResume}
+          handlePreviewResume={handlePreviewResume}
         />
       </div>
 
@@ -434,15 +455,15 @@ const CandidateProfile = () => {
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-[var(--text)] truncate">{resume.name}</p>
-                          <a 
-                            href={resume.id ? `/api/candidate/resumes/${encodeURIComponent(resume.id)}/file` : `/api/candidate/resume-file?url=${encodeURIComponent(resume.url || '')}`} 
+                          <button type="button" 
+                            onClick={() => handlePreviewResume(resume)} 
                             target="_blank" 
                             rel="noreferrer" 
                             className="text-[11px] font-semibold text-[var(--brand-deep)] hover:underline inline-flex items-center gap-1 mt-0.5"
                           >
                             <span>Preview document</span>
                             <ExternalLink size={11} />
-                          </a>
+                          </button>
                         </div>
                       </div>
 
