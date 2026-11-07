@@ -46,9 +46,10 @@ class RateLimiter
         $remote = trim($_SERVER['REMOTE_ADDR'] ?? '');
         if (!filter_var($remote, FILTER_VALIDATE_IP)) return '127.0.0.1';
 
-        // Render exposes the originating client address as True-Client-IP.
-        // Do not use X-Forwarded-For: Render appends to that header, so its
-        // leftmost value may be supplied by the caller.
+        // Render routes requests through Cloudflare; CF-Connecting-IP is the
+        // single client-address header Cloudflare supplies to the origin.
+        // True-Client-IP is also supported when explicitly enabled on Enterprise.
+        // Do not trust X-Forwarded-For here because it may contain caller-supplied values.
         $trustedHeader = trim((string)($_ENV['TRUSTED_CLIENT_IP_HEADER'] ?? getenv('TRUSTED_CLIENT_IP_HEADER') ?: ''));
         $headerMap = [
             'True-Client-IP' => 'HTTP_TRUE_CLIENT_IP',
