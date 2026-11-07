@@ -14,7 +14,6 @@ import { pdf } from '@react-pdf/renderer';
 import PayslipPDF from '../components/PayslipPDF';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 import Avatar from '../components/ui/Avatar';
@@ -171,44 +170,23 @@ const AdminEmployeeView = () => {
   };
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
+    const upload = new FormData();
+    upload.append('file', file);
     try {
       setIsUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${employeeId || 'avatar'}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      if (avatar) {
-        const parts = avatar.split('/Avatar/');
-        if (parts.length > 1) {
-          const oldStoragePath = parts[1];
-          await supabase.storage.from('avatars').remove([oldStoragePath]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const avatarUrl = window.location.origin + '/Avatar/' + fileName;
-
-      await api.put(`/admin/employees/${id}`, { avatar: avatarUrl });
-
+      await api.post(`/admin/employees/${id}/avatar`, upload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       queryClient.invalidateQueries(['admin', 'employee', id]);
       toast.success('Profile picture updated successfully!');
     } catch (error) {
-      toast.error(error.message || 'Error uploading image');
+      toast.error(error.response?.data?.error || 'Error uploading image');
     } finally {
       setIsUploading(false);
+      e.target.value = '';
     }
   };
 
