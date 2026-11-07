@@ -77,8 +77,6 @@ export default defineConfig({
         '/Holiday',
         '/Attendance',
         '/Candidate-Document',
-        '/Loan-Document',
-        '/Loan-Signature',
         '/Resume',
         '/Job-Description',
         '/Training-Video'
