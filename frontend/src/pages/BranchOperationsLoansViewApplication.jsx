@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { Lock, Printer, Loader2, X, ArrowLeft, FileEdit } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { getBranchLoanApplications, getBranches } from '../services/loanServices';
 import { preloadAndDecodeImages } from '../utils/imageCompressor';
 import { LoanDetailView } from '../components/forms';
@@ -111,7 +110,7 @@ export default function BranchOperationsLoansViewApplication() {
       setTimeout(() => {
         document.title = originalTitle;
       }, 1000);
-    } catch {
+    } catch (e) {
       console.warn('Print preparation error:', e);
       window.print();
     } finally {

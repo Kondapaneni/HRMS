@@ -63,8 +63,10 @@ export const NumberField = React.memo(({
         <input
           id={fieldId}
           name={name}
-          type="text"
+          type="number"
           inputMode="numeric"
+          min={min}
+          max={max}
           value={value ?? ''}
           onChange={handleChange}
           onBlur={onBlur}

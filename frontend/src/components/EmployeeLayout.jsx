@@ -57,7 +57,7 @@ const EmployeeLayout = () => {
       try {
         const res = await api.get('/employee/training/videos');
         return res.data || [];
-      } catch (e) {
+      } catch {
         return [];
       }
     },

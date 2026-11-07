@@ -87,7 +87,7 @@ export default function TrackerPermissionGate() {
     try {
       await NativeLocationTracker.requestNotificationPermission();
       setTimeout(checkPermissions, 1000);
-    } catch {
+    } catch (e) {
       console.error(e);
     }
   };

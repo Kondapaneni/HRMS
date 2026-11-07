@@ -78,7 +78,7 @@ const EmployeeChatbot = () => {
     if (messages.length > 0) {
       try {
         sessionStorage.setItem('hrms_employee_chat_history', JSON.stringify(messages));
-      } catch (_) {}
+      } catch { /* Session storage is optional; the in-memory chat remains available. */ }
     }
   }, [messages]);
 
