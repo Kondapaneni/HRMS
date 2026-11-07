@@ -251,12 +251,14 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
         $docsByAppId = getBranchLoanDocumentsBatch($conn, $rows);
         $auditLogsByKey = getBranchLoanAuditLogsBatch($conn, $rows);
 
+        // Sign every private loan asset in bounded bucket-level batches instead
+        // of issuing synchronous Storage requests from inside the row loop.
+        loanBatchSignApplicationRows($rows, $docsByAppId);
+
         $applications = [];
         foreach ($rows as $row) {
-            $formData = is_string($row['form_data']) ? json_decode($row['form_data'], true) : ($row['form_data'] ?: []);
-            $signatures = is_string($row['signatures']) ? json_decode($row['signatures'], true) : ($row['signatures'] ?: []);
-
-            loanSignApplicationAssets($formData, $signatures, (string)$row['id']);
+            $formData = is_array($row['form_data'] ?? null) ? $row['form_data'] : [];
+            $signatures = is_array($row['signatures'] ?? null) ? $row['signatures'] : [];
             $timeline = $formData['timeline'] ?? [];
             $currentStage = trim($formData['stage'] ?? ($formData['current_stage'] ?? ''));
 
@@ -290,14 +292,8 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 continue;
             }
 
-            // Resolve documents from the batch fetched above
-            $docs = resolveBranchLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
-            if (isset($formData['documents']) && is_array($formData['documents'])) {
-                $legacyDocs = loanSignDocumentMap($formData['documents'], (string)$row['id'], false);
-                foreach ($legacyDocs as $k => $v) {
-                    if (!isset($docs[$k])) $docs[$k] = $v;
-                }
-            }
+            // Documents were resolved and signed in the list-level batch above.
+            $docs = is_array($row['documents'] ?? null) ? $row['documents'] : [];
             $formData['documents'] = $docs;
 
             $applicantName = $formData['applicant_name'] ?? $formData['name'] ?? 'N/A';
