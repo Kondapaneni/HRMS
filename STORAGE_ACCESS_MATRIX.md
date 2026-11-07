@@ -21,9 +21,9 @@ This document records the intended storage access model for Acme HRMS. The brows
 
 ## Security rules
 
-- Do not upload, replace, or delete sensitive objects directly from the browser's Supabase anon client.
+- Do not upload, replace, or delete objects directly from the browser's Supabase anon or authenticated client.
 - Do not expose `SUPABASE_SERVICE_ROLE_KEY` through any `VITE_*` variable or frontend bundle.
-- Public buckets are intentionally read-only to anonymous/authenticated browser clients. Public bucket visibility is for reads only; it is not permission to write.
+- Only avatars, holidays, and job descriptions are publicly readable. No anonymous or authenticated browser client receives direct write access to any bucket; uploads and deletes use authenticated PHP endpoints or one-time signed training-video upload URLs.
 - Private-bucket previews must be issued only after checking the relevant employee, candidate, application, expense, or branch ownership/permission.
 - Use random object names and validate actual file MIME/content and size on the backend.
 - Do not use `owner_id = auth.uid()` policies for this application: the browser does not authenticate with Supabase Auth.
@@ -42,6 +42,7 @@ Apply all migrations in timestamp order before deploying the matching PHP backen
 8. `20261107210000_secure_avatar_uploads.sql`
 9. `20261107220000_configure_public_asset_storage.sql`
 10. `20261107230000_lock_unused_app_builds_bucket.sql`
+11. `20261107240000_enforce_storage_policy_allowlist.sql`
 
 The migrations are committed to the audit branch but must not be assumed applied to the connected Supabase project until the migration history confirms it.
 
