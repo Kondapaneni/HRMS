@@ -14,29 +14,39 @@ import SearchBar from '../components/ui/SearchBar';
 const AdminEmployees = () => {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const limit = 50;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: employees = [], isLoading: initialLoading, isFetching } = useQuery({
-    queryKey: ['admin', 'employees', debouncedSearch],
+  const { data: employeeResponse = { employees: [], total: 0 }, isLoading: initialLoading, isFetching } = useQuery({
+    queryKey: ['admin', 'employees', debouncedSearch, page],
     queryFn: async () => {
-      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`);
-      return res.data.employees || [];
+      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}&page=${page}&limit=${limit}`);
+      return res.data || { employees: [], total: 0 };
     },
     placeholderData: (previousData) => previousData,
     staleTime: 30 * 1000,
     onError: () => toast.error('Failed to load employees'),
   });
 
+  const employees = employeeResponse.employees || [];
+  const total = Number(employeeResponse.total || 0);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setDebouncedSearch(search);
+    setPage(1);
   };
 
   const formatDate = (dateString) => {
@@ -79,7 +89,7 @@ const AdminEmployees = () => {
               Employees directory
             </h1>
             <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-              {employees.length} total
+              {total} total
             </span>
           </div>
           <p className="text-xs text-[var(--muted)] mt-0.5">
@@ -259,6 +269,33 @@ const AdminEmployees = () => {
           )}
         </div>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+          <p className="text-xs text-[var(--muted)]">
+            Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total} employees
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page <= 1 || isFetching}
+              className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs font-medium text-[var(--text)] disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="text-xs text-[var(--muted)] tabular-nums">Page {page} of {totalPages}</span>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page >= totalPages || isFetching}
+              className="px-3 py-1.5 rounded-full border border-[var(--line)] text-xs font-medium text-[var(--text)] disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       <AddEmployeeModal
         isOpen={isModalOpen}
