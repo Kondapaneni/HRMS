@@ -1,17 +1,11 @@
 import PageLoader from '../components/PageLoader';
-import { motion } from 'framer-motion';
+
 import { formatDistanceToNow } from 'date-fns';
-import {
-  Users, Activity, Calendar, Clock,
-  ArrowUpRight, IndianRupee, UserCheck, ChevronRight
-} from 'lucide-react';
+import { Users, Activity, Calendar, Clock, ArrowUpRight, IndianRupee, UserCheck, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import StatCard from '../components/ui/StatCard';
 import ChartCard from '../components/ui/ChartCard';

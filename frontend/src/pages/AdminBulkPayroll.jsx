@@ -3,16 +3,7 @@ import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
-import { 
-  Users, 
-  Search, 
-  ArrowLeft, 
-  Loader2, 
-  AlertCircle,
-  Sparkles,
-  Building2,
-  CheckCircle2
-} from 'lucide-react';
+import { Users, ArrowLeft, Loader2, AlertCircle, Sparkles, Building2, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button, Avatar } from '../components/ui';
 

@@ -2,29 +2,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
-import {
-  FileText,
-  Search,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Eye,
-  Activity,
-  User,
-  Monitor,
-  ShieldCheck,
-  Trash2,
-  ShieldAlert,
-  Loader2
-} from 'lucide-react';
+import { FileText, ChevronLeft, ChevronRight, X, Eye, Activity, User, Monitor, Trash2, ShieldAlert, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
-import Button from '../components/ui/Button';
 
 const AdminAuditLogs = () => {
   const [page, setPage] = useState(1);

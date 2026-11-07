@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { ArrowLeft, Search, Calendar, MapPin, AlertCircle, X, CalendarCheck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Search, Calendar, MapPin, AlertCircle, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';

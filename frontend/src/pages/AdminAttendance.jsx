@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  MapPin,
-  Loader2,
-  Clock,
-  CalendarCheck
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, MapPin, Loader2, Clock, CalendarCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
