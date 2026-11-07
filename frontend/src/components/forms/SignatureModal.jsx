@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { X, RotateCcw, Send, PenTool } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
