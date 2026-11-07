@@ -16,60 +16,28 @@ UPDATE storage.buckets
 SET public = FALSE
 WHERE id IN ('loan_documents', 'loan_signatures');
 
--- Preserve public access only for the remaining intentionally public buckets.
+-- The remaining public-facing assets (avatars, holiday posters, and job
+-- descriptions) are uploaded through authenticated PHP endpoints using the
+-- server-side service role. Training videos use signed upload/playback URLs and
+-- therefore must remain private. app_builds stays public-read for app downloads,
+-- but no browser role may upload, update, or enumerate build artifacts.
+UPDATE storage.buckets
+SET public = FALSE
+WHERE id IN ('training_videos', 'attendance', 'candidate_documents', 'resumes',
+             'expenses', 'offer_letters', 'loan_documents', 'loan_signatures');
+
+-- Remove every broad legacy Storage policy. The backend service role bypasses
+-- RLS; browser clients must not inherit unrestricted object access.
 DROP POLICY IF EXISTS "Allow anon upload and access to storage buckets" ON storage.objects;
-CREATE POLICY "Allow anon upload and access to storage buckets"
-ON storage.objects
-FOR ALL
-TO public
-USING (
-    bucket_id = ANY (ARRAY[
-        'avatars'::text,
-        'holidays'::text,
-        'job_descriptions'::text,
-        'training_videos'::text
-    ])
-)
-WITH CHECK (
-    bucket_id = ANY (ARRAY[
-        'avatars'::text,
-        'holidays'::text,
-        'job_descriptions'::text,
-        'training_videos'::text
-    ])
-);
-
--- Remove the legacy unrestricted policy. The service role bypasses RLS and
--- remains usable by the backend; authenticated browser clients do not.
+DROP POLICY IF EXISTS "Allow anon upload and access to helpdesk" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users and service role can manage storage objects" ON storage.objects;
-DROP POLICY IF EXISTS "Admins can manage candidate docs" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can manage non-private storage objects" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can manage candidate docs" ON storage.objects;
+DROP POLICY IF EXISTS "Anon can upload candidate resumes and documents" ON storage.objects;
 
-CREATE POLICY "Authenticated users can manage non-private storage objects"
-ON storage.objects
-FOR ALL
-TO authenticated
-USING (
-    bucket_id NOT IN (
-        'attendance',
-        'candidate_documents',
-        'resumes',
-        'expenses',
-        'offer_letters',
-        'loan_documents',
-        'loan_signatures'
-    )
-)
-WITH CHECK (
-    bucket_id NOT IN (
-        'attendance',
-        'candidate_documents',
-        'resumes',
-        'expenses',
-        'offer_letters',
-        'loan_documents',
-        'loan_signatures'
-    )
-);
-
+-- app_builds is intentionally public-read for download-by-known-URL only.
+-- Public bucket URLs remain readable, but listing and all anonymous writes are denied.
+DROP POLICY IF EXISTS "Public Access app_builds" ON storage.objects;
+DROP POLICY IF EXISTS "Public Update app_builds" ON storage.objects;
+DROP POLICY IF EXISTS "Public Upload app_builds" ON storage.objects;
 COMMIT;
