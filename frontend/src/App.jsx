@@ -52,7 +52,6 @@ import BranchOperationsLeads from './pages/BranchOperationsLeads'
 import BranchOperationsLoansApplicationsList from './pages/BranchOperationsLoansApplicationsList'
 import BranchOperationsLoansViewApplication from './pages/BranchOperationsLoansViewApplication'
 import BranchOperationsLoansEditApplication from './pages/BranchOperationsLoansEditApplication'
-import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagement from './pages/AssessmentManagement'
 import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
 import AssessmentCreate from './pages/AssessmentCreate'
@@ -213,25 +212,16 @@ function App() {
               <Route path="performance" element={<AdminPerformance />} />
               <Route path="recruitment" element={<AdminRecruitment />} />
               <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
-            </Route>
 
-            {/* Acme Assessment Hub Workspace (Admin Only) */}
-            <Route
-              path="/admin/assessments"
-              element={
-                <ProtectedRoute allowedRoles={[...ADMIN_DASHBOARD_ROLES, ...EMPLOYEE_DASHBOARD_ROLES]}>
-                  <AssessmentWorkspaceLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="questions" replace />} />
-              <Route path="questions" element={<DepartmentQuestionBank />} />
-              <Route path="management" element={<AssessmentManagement />} />
-              <Route path="rules" element={<Navigate to="management" replace />} />
-              <Route path="create" element={<AssessmentCreate />} />
-              <Route path="edit/:id" element={<AssessmentCreate />} />
-              <Route path="results" element={<AssessmentResults />} />
-              <Route path="training" element={<AdminTrainingVideos />} />
+              {/* Assessment Hub Routes */}
+              <Route path="assessments" element={<Navigate to="/admin/assessments/questions" replace />} />
+              <Route path="assessments/questions" element={<DepartmentQuestionBank />} />
+              <Route path="assessments/management" element={<AssessmentManagement />} />
+              <Route path="assessments/rules" element={<Navigate to="/admin/assessments/management" replace />} />
+              <Route path="assessments/create" element={<AssessmentCreate />} />
+              <Route path="assessments/edit/:id" element={<AssessmentCreate />} />
+              <Route path="assessments/results" element={<AssessmentResults />} />
+              <Route path="assessments/training" element={<AdminTrainingVideos />} />
             </Route>
             <Route
               path="/employee"

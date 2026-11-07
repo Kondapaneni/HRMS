@@ -9,7 +9,8 @@ import {
   Shield, 
   Sliders, 
   Monitor,
-  LogOut
+  LogOut,
+  GraduationCap
 } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -108,18 +109,36 @@ const AdminLayout = () => {
     {
       id: 'hiring',
       icon: Briefcase,
-      label: 'Hiring & learning',
+      label: 'Recruitment',
       path: '/admin/recruitment',
       badge: pendingDocsCount > 0 ? String(pendingDocsCount) : null,
       chips: [
         { label: 'Recruitment', path: '/admin/recruitment', badge: pendingDocsCount > 0 ? pendingDocsCount : undefined },
-        { label: 'Assessment & Training', path: '/admin/assessments' },
         { label: 'Email Templates', path: '/admin/email-templates' },
       ],
       activeMatch: (pathname) =>
         pathname.startsWith('/admin/recruitment') ||
-        pathname.startsWith('/admin/assessments') ||
         pathname.startsWith('/admin/email-templates'),
+    },
+    {
+      id: 'assessments',
+      icon: GraduationCap,
+      label: 'Assessments',
+      path: '/admin/assessments/questions',
+      chips: [
+        { label: 'Question Bank', path: '/admin/assessments/questions' },
+        { 
+          label: 'Assessments', 
+          path: '/admin/assessments/management',
+          activeMatch: (pathname) =>
+            pathname.startsWith('/admin/assessments/management') ||
+            pathname.startsWith('/admin/assessments/create') ||
+            pathname.startsWith('/admin/assessments/edit'),
+        },
+        { label: 'Results & Attempts', path: '/admin/assessments/results' },
+        { label: 'Training Modules', path: '/admin/assessments/training' },
+      ],
+      activeMatch: (pathname) => pathname.startsWith('/admin/assessments'),
     },
     {
       id: 'governance',

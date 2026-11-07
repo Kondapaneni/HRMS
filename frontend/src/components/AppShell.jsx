@@ -108,7 +108,13 @@ export const AppShell = ({
   // Active title
   const computedTitle =
     headerTitle ||
-    pageChips.find((c) => location.pathname === c.path || location.pathname.startsWith(`${c.path}/`))?.label ||
+    pageChips.find((c) =>
+      c.exact
+        ? location.pathname === c.path
+        : c.activeMatch
+        ? c.activeMatch(location.pathname)
+        : location.pathname === c.path || location.pathname.startsWith(`${c.path}/`)
+    )?.label ||
     activeGroup?.label ||
     portalName;
 
@@ -327,6 +333,8 @@ export const AppShell = ({
               {pageChips.map((chip) => {
                 const isActive = chip.exact
                   ? location.pathname === chip.path
+                  : chip.activeMatch
+                  ? chip.activeMatch(location.pathname)
                   : location.pathname === chip.path || location.pathname.startsWith(`${chip.path}/`);
 
                 return (

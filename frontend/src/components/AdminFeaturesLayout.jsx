@@ -95,8 +95,20 @@ const AdminFeaturesLayout = () => {
         id: 'assessments',
         icon: GraduationCap,
         label: 'Assessments',
-        path: '/admin/assessments',
-        chips: [{ label: 'Assessment & Training', path: '/admin/assessments' }],
+        path: '/admin/assessments/questions',
+        chips: [
+          { label: 'Question Bank', path: '/admin/assessments/questions' },
+          { 
+            label: 'Assessments', 
+            path: '/admin/assessments/management',
+            activeMatch: (pathname) =>
+              pathname.startsWith('/admin/assessments/management') ||
+              pathname.startsWith('/admin/assessments/create') ||
+              pathname.startsWith('/admin/assessments/edit'),
+          },
+          { label: 'Results & Attempts', path: '/admin/assessments/results' },
+          { label: 'Training Modules', path: '/admin/assessments/training' },
+        ],
         activeMatch: (pathname) => pathname.startsWith('/admin/assessments'),
       });
     }

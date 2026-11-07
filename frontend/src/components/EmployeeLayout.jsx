@@ -221,7 +221,7 @@ const EmployeeLayout = () => {
         (fa.canLeave && '/admin/leaves') ||
         (fa.canPayroll && '/admin/payroll') ||
         (fa.canAssets && '/admin/assets') ||
-        (fa.canAdminAssessments && '/admin/assessments');
+        (fa.canAdminAssessments && '/admin/assessments/questions');
 
       groups.push({
         id: 'admin-features',
