@@ -649,6 +649,7 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
             if (!is_array($updatedRecord['signatures'])) $updatedRecord['signatures'] = [];
             loanSignApplicationAssets($updatedRecord['form_data'], $updatedRecord['signatures'], (string)$updatedRecord['id']);
             $updatedRecord['documents'] = getBranchLoanDocumentsFromTable($conn, $updatedRecord['application_id'], $updatedRecord['id'], $updatedRecord['lead_id']);
+            $updatedRecord['form_data']['documents'] = $updatedRecord['documents'];
 
             // Fetch audit logs from dedicated table
             $auditLogs = [];
