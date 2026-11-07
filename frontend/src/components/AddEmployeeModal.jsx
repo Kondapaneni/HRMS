@@ -21,6 +21,21 @@ const initialFormState = {
     manager_id: ''
 };
 
+const generateRandomPassword = () => {
+  const uppers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowers = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const specials = '!@#$%^&*()';
+  const all = uppers + lowers + numbers + specials;
+  let pass = '';
+  pass += uppers.charAt(Math.floor(Math.random() * uppers.length));
+  pass += lowers.charAt(Math.floor(Math.random() * lowers.length));
+  pass += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  pass += specials.charAt(Math.floor(Math.random() * specials.length));
+  for (let i = 0; i < 8; i++) pass += all.charAt(Math.floor(Math.random() * all.length));
+  return pass.split('').sort(() => 0.5 - Math.random()).join('');
+};
+
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   const navigate = useNavigate();
   const [branches, setBranches] = useState([]);
@@ -32,26 +47,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
 
 
   const [formData, setFormData] = useState(initialFormState);
-
-  const generateRandomPassword = () => {
-    const uppers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const lowers = 'abcdefghijklmnopqrstuvwxyz';
-    const numbers = '0123456789';
-    const specials = '!@#$%^&*()';
-    const all = uppers + lowers + numbers + specials;
-    
-    let pass = '';
-    pass += uppers.charAt(Math.floor(Math.random() * uppers.length));
-    pass += lowers.charAt(Math.floor(Math.random() * lowers.length));
-    pass += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    pass += specials.charAt(Math.floor(Math.random() * specials.length));
-    
-    for (let i = 0; i < 8; i++) {
-      pass += all.charAt(Math.floor(Math.random() * all.length));
-    }
-    
-    return pass.split('').sort(() => 0.5 - Math.random()).join('');
-  };
 
   const fetchBranches = useCallback(async () => {
     try {
