@@ -40,7 +40,7 @@ const EmployeeLeaves = () => {
   }, [isModalOpen]);
 
   // Form State
-  const [leaveType, setLeaveType] = useState('unpaid');
+  const [leaveType, setLeaveType] = useState('paid');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
@@ -74,17 +74,6 @@ const EmployeeLeaves = () => {
   const balance = leavesData?.balance || { paidTotal: 12, paidUsed: 0, unpaidUsed: 0, totalApproved: 0 };
   const history = leavesData?.history || [];
 
-  useEffect(() => {
-    if (leavesData) {
-      const paidRemaining = leavesData.balance.paidTotal - leavesData.balance.paidUsed;
-      if (paidRemaining > 0) {
-        setLeaveType('paid');
-      } else {
-        setLeaveType('unpaid');
-      }
-    }
-  }, [leavesData]);
-
   const handleApplyLeave = async (e) => {
     e.preventDefault();
     if (!startDate) {
@@ -100,7 +89,7 @@ const EmployeeLeaves = () => {
 
     try {
       await api.post('/employee/leaves/apply', {
-        leaveType,
+        leaveType: selectedLeaveType,
         startDate,
         endDate: endDate || startDate,
         reason
@@ -140,11 +129,7 @@ const EmployeeLeaves = () => {
     });
   };
 
-  useEffect(() => {
-    if (hasPaidLeaveThisMonth() && leaveType === 'paid') {
-      setLeaveType('unpaid');
-    }
-  }, [startDate, calendarDate, history, leaveType]);
+  const selectedLeaveType = paidRemaining > 0 && !hasPaidLeaveThisMonth() ? leaveType : 'unpaid';
 
   const renderCalendar = () => {
     const month = calendarDate.getMonth();
@@ -434,7 +419,7 @@ const EmployeeLeaves = () => {
                       </div>
                       <select 
                         name="leaveType" 
-                        value={leaveType} 
+                        value={selectedLeaveType} 
                         onChange={e => setLeaveType(e.target.value)} 
                         required 
                         className="w-full h-10 rounded-[12px] border border-[var(--line)] bg-[var(--surface-alt)] px-3 text-[13px] text-[var(--text)] focus:border-[var(--brand)] focus:outline-none"
