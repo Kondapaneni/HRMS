@@ -86,31 +86,31 @@ $app->get('/api/storage/attendance/{filename:[A-Za-z0-9._-]+}', function (Reques
         if (!$conn) throw new RuntimeException('Database unavailable.');
         $isAdmin = (($user->role ?? '') === 'admin');
         $pathPattern = '%/Attendance/' . $filename;
-        $stmt = $conn->prepare('
-            SELECT 1 FROM attendance
-            WHERE (:is_admin = TRUE OR "employeeId" = :uid)
-              AND ("checkInPhoto" LIKE :checkin_path OR "checkOutPhoto" LIKE :checkout_path)
-            LIMIT 1
-        ');
-        $stmt->execute([
-            ':is_admin' => $isAdmin,
-            ':uid' => $user->id,
+        $ownerCondition = $isAdmin ? 'TRUE' : '"employeeId" = :uid';
+        $attendanceParams = [
             ':checkin_path' => $pathPattern,
             ':checkout_path' => $pathPattern
-        ]);
+        ];
+        if (!$isAdmin) $attendanceParams[':uid'] = $user->id;
+        $stmt = $conn->prepare("
+            SELECT 1 FROM attendance
+            WHERE {$ownerCondition}
+              AND (\"checkInPhoto\" LIKE :checkin_path OR \"checkOutPhoto\" LIKE :checkout_path)
+            LIMIT 1
+        ");
+        $stmt->execute($attendanceParams);
         $authorized = (bool)$stmt->fetchColumn();
 
         if (!$authorized) {
-            $punchStmt = $conn->prepare('
+            $punchOwnerCondition = $isAdmin ? 'TRUE' : '"employeeId" = :uid';
+            $punchParams = [':photo_path' => $pathPattern];
+            if (!$isAdmin) $punchParams[':uid'] = $user->id;
+            $punchStmt = $conn->prepare("
                 SELECT 1 FROM attendance_punches
-                WHERE (:is_admin = TRUE OR "employeeId" = :uid) AND photo LIKE :photo_path
+                WHERE {$punchOwnerCondition} AND photo LIKE :photo_path
                 LIMIT 1
-            ');
-            $punchStmt->execute([
-                ':is_admin' => $isAdmin,
-                ':uid' => $user->id,
-                ':photo_path' => $pathPattern
-            ]);
+            ");
+            $punchStmt->execute($punchParams);
             $authorized = (bool)$punchStmt->fetchColumn();
         }
 
