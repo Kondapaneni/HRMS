@@ -29,6 +29,9 @@ jobs:
           tools: composer:v2
           coverage: none
 
+      - name: Validate container entrypoint shell syntax
+        run: bash -n docker-entrypoint.sh
+
       - name: Validate Composer lock
         working-directory: backend
         run: composer validate --no-check-publish
