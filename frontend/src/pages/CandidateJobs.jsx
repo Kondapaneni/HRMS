@@ -73,6 +73,8 @@ const CandidateJobs = () => {
   });
 
   const resumes = Array.isArray(profileData?.resume_url) ? profileData.resume_url : [];
+  const defaultResume = resumes.find(resume => resume.isPrimary) || resumes[0];
+  const activeResumeUrl = selectedResumeUrl || (defaultResume ? (defaultResume.id || defaultResume.url) : '');
   
   // Calculate completion percentage
   let isProfileComplete = false;
@@ -86,13 +88,6 @@ const CandidateJobs = () => {
   }
 
   const isLoading = isLoadingJobs || isLoadingProfile;
-
-  React.useEffect(() => {
-    if (resumes.length > 0 && !selectedResumeUrl) {
-      const primary = resumes.find(r => r.isPrimary);
-      setSelectedResumeUrl(primary ? (primary.id || primary.url) : (resumes[0].id || resumes[0].url));
-    }
-  }, [resumes, selectedResumeUrl]);
 
   const handlePreviewResume = async (resume) => {
     const previewWindow = window.open('about:blank', '_blank');
@@ -202,13 +197,13 @@ const CandidateJobs = () => {
 
   const handleApplySubmit = (e) => {
     e.preventDefault();
-    if (!selectedResumeUrl) {
+    if (!activeResumeUrl) {
       toast.error('Please select a resume to apply.');
       return;
     }
     applyMutation.mutate({ 
       job: selectedJob, 
-      resumeUrl: selectedResumeUrl,
+      resumeUrl: activeResumeUrl,
       noticePeriod,
       coverNote
     });
@@ -625,7 +620,7 @@ const CandidateJobs = () => {
                         <label 
                           key={index} 
                           className={`flex items-center justify-between p-3.5 rounded-[14px] border cursor-pointer transition-all ${
-                            selectedResumeUrl === (resume.id || resume.url) 
+                            activeResumeUrl === (resume.id || resume.url) 
                               ? 'border-[var(--brand)] bg-[var(--brand-tint)]/60 shadow-xs' 
                               : 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)]'
                           }`}
@@ -635,7 +630,7 @@ const CandidateJobs = () => {
                               type="radio" 
                               name="resumeSelection" 
                               value={resume.id || resume.url}
-                              checked={selectedResumeUrl === (resume.id || resume.url)}
+                              checked={activeResumeUrl === (resume.id || resume.url)}
                               onChange={(e) => setSelectedResumeUrl(e.target.value)}
                               className="w-4 h-4 text-[var(--brand)] focus:ring-[var(--brand)] border-[var(--line)]"
                             />
@@ -659,7 +654,7 @@ const CandidateJobs = () => {
                             >
                               Preview
                             </button>
-                            <FileText className={`w-4 h-4 ${selectedResumeUrl === resume.url ? 'text-[var(--brand-deep)]' : 'text-[var(--muted)]'}`} />
+                            <FileText className={`w-4 h-4 ${activeResumeUrl === resume.url ? 'text-[var(--brand-deep)]' : 'text-[var(--muted)]'}`} />
                           </div>
                         </label>
                       ))}
