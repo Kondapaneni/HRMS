@@ -3,7 +3,47 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
+
 use App\Config\Database;
+
+// Candidate document storage is accessed only through authenticated API routes.
+function candidateStorageRequest(string $method, string $objectPath, string $serviceKey, string $baseUrl, ?string $body = null, string $contentType = 'application/octet-stream')
+{
+    $segments = array_map('rawurlencode', explode('/', ltrim($objectPath, '/')));
+    $url = $baseUrl . '/storage/v1/object/candidate_documents/' . implode('/', $segments);
+    $headers = [
+        'Authorization: Bearer ' . $serviceKey,
+        'apikey: ' . $serviceKey,
+        'Content-Type: ' . $contentType,
+        'Cache-Control: no-store'
+    ];
+    $context = stream_context_create(['http' => [
+        'method' => $method,
+        'header' => implode("\r\n", $headers),
+        'content' => $body ?? '',
+        'timeout' => 25,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    preg_match('/\\s(\\d{3})\\s/', $statusLine, $matches);
+    return ['status' => (int)($matches[1] ?? 0), 'body' => $result === false ? '' : $result];
+}
+
+function candidateDocumentObjectPath(string $storedPath): ?string
+{
+    if (str_starts_with($storedPath, 'storage:candidate_documents/')) {
+        $path = substr($storedPath, strlen('storage:candidate_documents/'));
+    } elseif (str_contains($storedPath, '/Candidate-Document/')) {
+        $path = substr($storedPath, strpos($storedPath, '/Candidate-Document/') + strlen('/Candidate-Document/'));
+    } elseif (str_starts_with($storedPath, '/Candidate-Document/')) {
+        $path = substr($storedPath, strlen('/Candidate-Document/'));
+    } else {
+        return null;
+    }
+    if ($path === '' || str_contains($path, '..') || preg_match('/[^A-Za-z0-9_./-]/', $path)) return null;
+    return $path;
+}
 
 // Get Candidate Profile
 /** @var \Slim\App $app */
@@ -124,6 +164,95 @@ $app->get('/api/candidate/documents', function (Request $request, Response $resp
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+
+ // Upload/replace a candidate document through the authenticated backend.
+$app->post('/api/candidate/documents/upload', function (Request $request, Response $response) {
+    $user = $request->getAttribute('user');
+    $data = $request->getParsedBody() ?? [];
+    $docTypeId = trim((string)($data['document_type'] ?? ''));
+    $files = $request->getUploadedFiles();
+    $file = $files['file'] ?? null;
+
+    if (!preg_match('/^[a-z0-9_]{1,80}$/', $docTypeId) || !$file || $file->getError() !== UPLOAD_ERR_OK || !$file->getSize() || $file->getSize() > 5 * 1024 * 1024) {
+        $response->getBody()->write(json_encode(['error' => 'Choose a valid PDF document smaller than 5 MB.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $contents = $file->getStream()->getContents();
+    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+    if ($finfo->buffer($contents) !== 'application/pdf' || !str_ends_with(strtolower((string)$file->getClientFilename()), '.pdf')) {
+        $response->getBody()->write(json_encode(['error' => 'Only genuine PDF documents are accepted.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+    }
+
+    try {
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $objectPath = (string)$user->id . '/' . bin2hex(random_bytes(20)) . '.pdf';
+        $upload = candidateStorageRequest('POST', $objectPath, $serviceKey, $baseUrl, $contents, 'application/pdf');
+        if ($upload['status'] < 200 || $upload['status'] >= 300) {
+            error_log('Candidate document upload failed with status ' . $upload['status']);
+            throw new RuntimeException('Storage upload failed.');
+        }
+
+        $db = new Database();
+        $conn = $db->getConnection();
+        $conn->beginTransaction();
+        $existingStmt = $conn->prepare('SELECT file_path FROM candidate_documents WHERE candidate_id = ? AND document_type = ? FOR UPDATE');
+        $existingStmt->execute([$user->id, $docTypeId]);
+        $existingPath = $existingStmt->fetchColumn();
+
+        $deleteStmt = $conn->prepare('DELETE FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
+        $deleteStmt->execute([$user->id, $docTypeId]);
+        $insertStmt = $conn->prepare('INSERT INTO candidate_documents (candidate_id, document_type, file_name, file_path) VALUES (?, ?, ?, ?) RETURNING id');
+        $insertStmt->execute([$user->id, $docTypeId, basename((string)$file->getClientFilename()), 'storage:candidate_documents/' . $objectPath]);
+        $newId = $insertStmt->fetchColumn();
+        $conn->commit();
+
+        if ($existingPath) {
+            $oldObjectPath = candidateDocumentObjectPath((string)$existingPath);
+            if ($oldObjectPath) candidateStorageRequest('DELETE', $oldObjectPath, $serviceKey, $baseUrl);
+        }
+
+        $getStmt = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents WHERE id = ?');
+        $getStmt->execute([$newId]);
+        $document = $getStmt->fetch(PDO::FETCH_ASSOC);
+        $response->getBody()->write(json_encode(['message' => 'Document uploaded', 'document' => $document]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+        if (isset($objectPath, $serviceKey, $baseUrl)) candidateStorageRequest('DELETE', $objectPath, $serviceKey, $baseUrl);
+        error_log('Candidate document upload failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to upload the document right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
+// Download a candidate's own document. Admin review uses the separate admin route.
+$app->get('/api/candidate/documents/{id}/file', function (Request $request, Response $response, $args) {
+    $user = $request->getAttribute('user');
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT file_path, file_name FROM candidate_documents WHERE id = ? AND candidate_id = ? LIMIT 1');
+        $stmt->execute([$args['id'], $user->id]);
+        $doc = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$doc) return $response->withStatus(404);
+        $objectPath = candidateDocumentObjectPath((string)$doc['file_path']);
+        if (!$objectPath) return $response->withStatus(404);
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $download = candidateStorageRequest('GET', $objectPath, $serviceKey, $baseUrl);
+        if ($download['status'] !== 200) return $response->withStatus(404);
+        $response->getBody()->write($download['body']);
+        return $response->withHeader('Content-Type', 'application/pdf')
+            ->withHeader('Content-Disposition', 'inline; filename="' . str_replace('"', '', basename($doc['file_name'])) . '"')
+            ->withHeader('Cache-Control', 'private, no-store, max-age=0')
+            ->withHeader('X-Content-Type-Options', 'nosniff');
+    } catch (Throwable $e) {
+        error_log('Candidate document download failed: ' . $e->getMessage());
+        return $response->withStatus(503);
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
