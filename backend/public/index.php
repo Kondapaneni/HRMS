@@ -27,7 +27,8 @@ $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
 
 // Add error middleware
-$app->addErrorMiddleware(true, true, true);
+$isDevelopment = (($_ENV['APP_ENV'] ?? getenv('APP_ENV') ?? 'production') === 'development');
+$app->addErrorMiddleware($isDevelopment, true, true);
 
 // Add custom audit middleware
 $app->add(new AuditMiddleware());

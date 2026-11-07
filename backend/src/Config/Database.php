@@ -26,8 +26,8 @@ class Database
                 self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
                 self::$conn->setAttribute(PDO::ATTR_STATEMENT_CLASS, [LoggingPDOStatement::class, []]);
             } catch (PDOException $exception) {
-                // In a production environment, log this instead of echoing it directly.
-                echo "Connection error: " . $exception->getMessage();
+                // Never expose connection details or credentials to API clients.
+                error_log('Database connection failed: ' . $exception->getMessage());
                 return null;
             }
         }
