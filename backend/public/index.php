@@ -865,15 +865,6 @@ $app->get('/Holiday/{filename:.+}', function (Request $request, Response $respon
 
 // Loan documents and signatures are served through owner-checked authenticated APIs.
 
-// Training Video proxy route (redirect to Supabase for native video caching and range requests)
-$app->get('/Training-Video/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/training_videos/" . $encodedFilename;
-    return $response->withHeader('Location', $supabaseUrl)->withStatus(302);
-});
-
-
 // Run app
 $app->run();
 
