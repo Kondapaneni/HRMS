@@ -4,6 +4,147 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
 
+use App\Middleware\AuthMiddleware;
+
+// Server-side Storage helpers. The browser never receives the service-role key.
+function loanStorageObjectPath(string $reference, string $bucket): ?string
+{
+    $reference = trim($reference);
+    $storagePrefix = 'storage:' . $bucket . '/';
+    if (str_starts_with($reference, $storagePrefix)) {
+        $path = substr($reference, strlen($storagePrefix));
+    } else {
+        $marker = $bucket === 'loan_documents' ? '/Loan-Document/' : '/Loan-Signature/';
+        $position = strpos($reference, $marker);
+        if ($position !== false) {
+            $path = substr($reference, $position + strlen($marker));
+        } else {
+            $publicMarker = '/storage/v1/object/public/' . $bucket . '/';
+            $position = strpos($reference, $publicMarker);
+            if ($position === false) return null;
+            $path = substr($reference, $position + strlen($publicMarker));
+        }
+    }
+
+    if ($path === '' || str_starts_with($path, '/') || str_contains($path, '..') || preg_match('/[^A-Za-z0-9_./-]/', $path)) return null;
+    if (preg_match('#(^|/)\.{1,2}(/|$)#', $path)) return null;
+    return $path;
+}
+
+function loanStorageRequest(string $method, string $bucket, string $objectPath, string $serviceKey, string $baseUrl, ?string $body = null, string $contentType = 'application/octet-stream'): array
+{
+    if (!in_array($bucket, ['loan_documents', 'loan_signatures'], true)) {
+        return ['status' => 400, 'body' => ''];
+    }
+    $segments = array_map('rawurlencode', explode('/', ltrim($objectPath, '/')));
+    $url = rtrim($baseUrl, '/') . '/storage/v1/object/' . $bucket . '/' . implode('/', $segments);
+    $headers = [
+        'Authorization: Bearer ' . $serviceKey,
+        'apikey: ' . $serviceKey,
+        'Content-Type: ' . $contentType,
+        'Cache-Control: no-store'
+    ];
+    $context = stream_context_create(['http' => [
+        'method' => $method,
+        'header' => implode("\r\n", $headers),
+        'content' => $body ?? '',
+        'timeout' => 25,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    preg_match('/\s(\d{3})\s/', $statusLine, $matches);
+    return ['status' => (int)($matches[1] ?? 0), 'body' => $result === false ? '' : $result];
+}
+
+function loanStorageSignedUrl(string $bucket, string $objectPath, int $expiresIn = 900): ?string
+{
+    if (!in_array($bucket, ['loan_documents', 'loan_signatures'], true)) return null;
+    [$baseUrl, $serviceKey] = attendanceStorageConfig();
+    $segments = array_map('rawurlencode', explode('/', ltrim($objectPath, '/')));
+    $url = rtrim($baseUrl, '/') . '/storage/v1/object/sign/' . $bucket . '/' . implode('/', $segments);
+    $context = stream_context_create(['http' => [
+        'method' => 'POST',
+        'header' => "Authorization: Bearer {$serviceKey}\r\n" . "apikey: {$serviceKey}\r\nContent-Type: application/json\r\n",
+        'content' => json_encode(['expiresIn' => $expiresIn]),
+        'timeout' => 15,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    if ($result === false) return null;
+    $data = json_decode($result, true);
+    $signed = $data['signedURL'] ?? $data['signedUrl'] ?? null;
+    if (!$signed) return null;
+    return str_starts_with($signed, 'http')
+        ? $signed
+        : rtrim($baseUrl, '/') . '/storage/v1' . (str_starts_with($signed, '/') ? $signed : '/' . $signed);
+}
+
+function loanStorageSignedUrlFromReference(?string $reference, string $bucket): ?string
+{
+    if (!$reference) return null;
+    $path = loanStorageObjectPath($reference, $bucket);
+    return $path ? loanStorageSignedUrl($bucket, $path) : null;
+}
+
+function loanSignDocumentMap(array $documents): array
+{
+    foreach ($documents as $key => $document) {
+        $reference = is_array($document) ? ($document['url'] ?? $document['proxy_url'] ?? null) : $document;
+        $signed = loanStorageSignedUrlFromReference(is_string($reference) ? $reference : null, 'loan_documents');
+        if (!$signed) {
+            unset($documents[$key]);
+            continue;
+        }
+        $documents[$key] = array_merge(is_array($document) ? $document : [], [
+            'url' => $signed,
+            'slot_key' => is_array($document) ? ($document['slot_key'] ?? $key) : $key
+        ]);
+        unset($documents[$key]['proxy_url']);
+    }
+    return $documents;
+}
+
+function loanSignApplicationAssets(array &$formData, array &$signatures): void
+{
+    foreach ($signatures as $key => $reference) {
+        $signed = loanStorageSignedUrlFromReference(is_string($reference) ? $reference : null, 'loan_signatures');
+        if ($signed) $signatures[$key] = $signed;
+        else unset($signatures[$key]);
+    }
+    if (!empty($formData['timeline']) && is_array($formData['timeline'])) {
+        foreach ($formData['timeline'] as &$event) {
+            if (!is_array($event) || empty($event['signature'])) continue;
+            $signed = loanStorageSignedUrlFromReference(is_string($event['signature']) ? $event['signature'] : null, 'loan_signatures');
+            if ($signed) $event['signature'] = $signed;
+            else unset($event['signature']);
+        }
+        unset($event);
+    }
+}
+
+function loanFindOwnedApplication($conn, string $identifier, $user, bool $forUpdate = false): ?array
+{
+    $userId = is_object($user) ? (string)($user->id ?? '') : (string)($user['id'] ?? '');
+    $role = is_object($user) ? (string)($user->role ?? '') : (string)($user['role'] ?? '');
+    if ($userId === '') return null;
+    $sql = '
+        SELECT id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_by
+        FROM public.loan_applications
+        WHERE (id::text = ? OR application_id = ? OR lead_id = ?)
+          AND (? = \'admin\' OR created_by = ?)
+        ORDER BY created_at DESC
+        LIMIT 1
+    ';
+    if ($forUpdate) $sql .= ' FOR UPDATE';
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$identifier, $identifier, $identifier, $role, $userId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
+}
+
+
+
 /**
  * Helper function to fetch all documents for a loan application from public.loan_documents table.
  */
