@@ -480,6 +480,34 @@ $app->get('/api/admin/candidate-documents', function (Request $request, Response
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
 
+
+ // Admin-only document preview/download. The file path is resolved from the database record.
+$app->get('/api/admin/candidate-documents/{id}/file', function (Request $request, Response $response, $args) {
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT file_path, file_name FROM candidate_documents WHERE id = ? LIMIT 1');
+        $stmt->execute([$args['id']]);
+        $doc = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$doc) return $response->withStatus(404);
+
+        $objectPath = candidateDocumentObjectPath((string)$doc['file_path']);
+        if (!$objectPath) return $response->withStatus(404);
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $download = candidateStorageRequest('GET', $objectPath, $serviceKey, $baseUrl);
+        if ($download['status'] !== 200) return $response->withStatus(404);
+
+        $response->getBody()->write($download['body']);
+        return $response->withHeader('Content-Type', 'application/pdf')
+            ->withHeader('Content-Disposition', 'inline; filename="' . str_replace('"', '', basename($doc['file_name'])) . '"')
+            ->withHeader('Cache-Control', 'private, no-store, max-age=0')
+            ->withHeader('X-Content-Type-Options', 'nosniff');
+    } catch (Throwable $e) {
+        error_log('Admin candidate document download failed: ' . $e->getMessage());
+        return $response->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'recruitment'));
+
 // Update candidate document status
 $app->put('/api/admin/candidate-documents/{id}/status', function (Request $request, Response $response, $args) {
     $docId = $args['id'];
