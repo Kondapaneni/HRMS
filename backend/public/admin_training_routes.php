@@ -292,16 +292,39 @@ $app->delete('/api/admin/training/videos/{id}', function (Request $request, Resp
 // PUT /api/admin/training/videos/{id}/assign - Assign employees to a video
 $app->put('/api/admin/training/videos/{id}/assign', function (Request $request, Response $response, $args) {
     $id = $args['id'];
-    $data = json_decode($request->getBody()->getContents(), true);
+    $data = json_decode($request->getBody()->getContents(), true) ?: [];
+    $rawIds = $data['assigned_employee_ids'] ?? [];
+    if (!is_array($rawIds)) {
+        $response->getBody()->write(json_encode(['error' => 'Choose valid employees for this training video.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
 
-    $assignedEmployeeIds = isset($data['assigned_employee_ids']) ? json_encode($data['assigned_employee_ids']) : '[]';
+    $employeeIds = array_values(array_unique(array_filter(
+        array_map(static fn($value) => is_string($value) || is_int($value) ? trim((string)$value) : '', $rawIds),
+        static fn($value) => $value !== ''
+    )));
 
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare('UPDATE training_videos SET assigned_employee_ids = ? WHERE id = ?');
-        $stmt->execute([$assignedEmployeeIds, $id]);
+        if ($employeeIds) {
+            $placeholders = implode(',', array_fill(0, count($employeeIds), '?'));
+            $validStmt = $conn->prepare("SELECT id::text FROM employee WHERE id::text IN ($placeholders)");
+            $validStmt->execute($employeeIds);
+            $validIds = array_map('strval', $validStmt->fetchAll(PDO::FETCH_COLUMN));
+            if (count($validIds) !== count($employeeIds)) {
+                $response->getBody()->write(json_encode(['error' => 'One or more selected employees no longer exist.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+        }
+
+        $stmt = $conn->prepare('UPDATE training_videos SET assigned_employee_ids = ? WHERE id = ? RETURNING id');
+        $stmt->execute([json_encode($employeeIds), $id]);
+        if (!$stmt->fetchColumn()) {
+            $response->getBody()->write(json_encode(['error' => 'Training video was not found.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
 
         $response->getBody()->write(json_encode(['message' => 'Employees assigned successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
