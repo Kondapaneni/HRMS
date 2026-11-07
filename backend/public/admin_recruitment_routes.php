@@ -159,7 +159,7 @@ $app->post('/api/admin/applications/{id}/offer-letter', function (Request $reque
 
     $originalName = basename((string)$file->getClientFilename());
     $contents = $file->getStream()->getContents();
-    $mime = (new \\finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+    $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents);
     if ($mime !== 'application/pdf' || strtolower(pathinfo($originalName, PATHINFO_EXTENSION)) !== 'pdf') {
         $response->getBody()->write(json_encode(['error' => 'Only genuine PDF offer letters are accepted.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
