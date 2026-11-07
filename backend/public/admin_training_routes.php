@@ -50,7 +50,7 @@ function trainingVideoObjectPath(?string $videoUrl): ?string
 function trainingVideoSignedUrl(?string $videoUrl, int $expiresIn = 3600): ?string
 {
     $objectPath = trainingVideoObjectPath($videoUrl);
-    if (!$objectPath) return $videoUrl;
+    if (!$objectPath) return null;
 
     [$baseUrl, $serviceKey] = trainingStorageConfig();
     $encodedPath = implode('/', array_map('rawurlencode', explode('/', $objectPath)));
