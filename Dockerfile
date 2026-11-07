@@ -22,6 +22,9 @@ RUN npm run build
 # Stage 2: Setup Backend and Combine
 FROM php:8.4-apache
 
+# Allow authenticated multipart uploads up to the 5 MB application limit.
+RUN printf 'upload_max_filesize=6M\\npost_max_size=7M\\nmax_execution_time=60\\n' > /usr/local/etc/php/conf.d/uploads.ini
+
 # Install dependencies for PostgreSQL
 RUN apt-get update && apt-get install -y \
     libpq-dev \
