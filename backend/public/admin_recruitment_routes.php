@@ -5,6 +5,70 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
+ // Offer letters are stored privately and accessed only after application ownership checks.
+function offerLetterStorageRequest(string $method, string $objectPath, string $serviceKey, string $baseUrl, ?string $body = null, string $contentType = 'application/octet-stream')
+{
+    $segments = array_map('rawurlencode', explode('/', ltrim($objectPath, '/')));
+    $url = rtrim($baseUrl, '/') . '/storage/v1/object/offer_letters/' . implode('/', $segments);
+    $headers = [
+        'Authorization: Bearer ' . $serviceKey,
+        'apikey: ' . $serviceKey,
+        'Content-Type: ' . $contentType,
+        'Cache-Control: no-store'
+    ];
+    $context = stream_context_create(['http' => [
+        'method' => $method,
+        'header' => implode("\r\n", $headers),
+        'content' => $body ?? '',
+        'timeout' => 25,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    preg_match('/\s(\d{3})\s/', $statusLine, $matches);
+    return ['status' => (int)($matches[1] ?? 0), 'body' => $result === false ? '' : $result];
+}
+
+function offerLetterObjectPath(string $storedPath): ?string
+{
+    $storedPath = trim($storedPath);
+    if (str_starts_with($storedPath, 'storage:offer_letters/')) {
+        $path = substr($storedPath, strlen('storage:offer_letters/'));
+    } elseif (str_contains($storedPath, '/Offer-Letter/')) {
+        $path = substr($storedPath, strpos($storedPath, '/Offer-Letter/') + strlen('/Offer-Letter/'));
+    } elseif (str_starts_with($storedPath, '/Offer-Letter/')) {
+        $path = substr($storedPath, strlen('/Offer-Letter/'));
+    } else {
+        $path = $storedPath; // Verified legacy object name from candidate_offer_letters.
+    }
+    if ($path === '' || str_starts_with($path, '/') || str_contains($path, '..') || preg_match('/[^A-Za-z0-9_./-]/', $path)) return null;
+    if (preg_match('#(^|/)\.{1,2}(/|$)#', $path)) return null;
+    return $path;
+}
+
+function offerLetterSignedUrl(string $objectPath, string $serviceKey, string $baseUrl): ?string
+{
+    $segments = array_map('rawurlencode', explode('/', ltrim($objectPath, '/')));
+    $url = rtrim($baseUrl, '/') . '/storage/v1/object/sign/offer_letters/' . implode('/', $segments);
+    $body = json_encode(['expiresIn' => 60]);
+    $context = stream_context_create(['http' => [
+        'method' => 'POST',
+        'header' => "Authorization: Bearer {$serviceKey}\r\n" . "apikey: {$serviceKey}\r\nContent-Type: application/json\r\n",
+        'content' => $body,
+        'timeout' => 15,
+        'ignore_errors' => true
+    ]]);
+    $result = @file_get_contents($url, false, $context);
+    if ($result === false) return null;
+    $data = json_decode($result, true);
+    $signed = $data['signedURL'] ?? $data['signedUrl'] ?? null;
+    if (!$signed) return null;
+    return str_starts_with($signed, 'http')
+        ? $signed
+        : rtrim($baseUrl, '/') . '/storage/v1' . (str_starts_with($signed, '/') ? $signed : '/' . $signed);
+}
+
+
 // Get all candidate users
 /** @var \Slim\App $app */
 $app->get('/api/admin/candidates', function (Request $request, Response $response, $args) {
@@ -80,6 +144,108 @@ $app->get('/api/admin/applications/{id}/resume', function (Request $request, Res
         return $response->withHeader('Location', $signed)->withHeader('Cache-Control', 'private, no-store')->withStatus(302);
     } catch (Throwable $e) {
         error_log('Admin application resume preview failed: ' . $e->getMessage());
+        return $response->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'recruitment'));
+
+
+// Upload or replace the offer letter for an application using a random candidate-scoped object path.
+$app->post('/api/admin/applications/{id}/offer-letter', function (Request $request, Response $response, $args) {
+    $file = $request->getUploadedFiles()['file'] ?? null;
+    if (!$file || $file->getError() !== UPLOAD_ERR_OK || !$file->getSize() || $file->getSize() > 5 * 1024 * 1024) {
+        $response->getBody()->write(json_encode(['error' => 'Choose an offer letter PDF smaller than 5 MB.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $originalName = basename((string)$file->getClientFilename());
+    $contents = $file->getStream()->getContents();
+    $mime = (new \\finfo(FILEINFO_MIME_TYPE))->buffer($contents);
+    if ($mime !== 'application/pdf' || strtolower(pathinfo($originalName, PATHINFO_EXTENSION)) !== 'pdf') {
+        $response->getBody()->write(json_encode(['error' => 'Only genuine PDF offer letters are accepted.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(415);
+    }
+
+    $uploadedPath = null;
+    $serviceKey = null;
+    $baseUrl = null;
+    try {
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        $appStmt = $conn->prepare('SELECT candidate_id FROM applications WHERE id = ?');
+        $appStmt->execute([$args['id']]);
+        $candidateId = $appStmt->fetchColumn();
+        if (!$candidateId) return $response->withStatus(404);
+
+        $uploadedPath = (string)$candidateId . '/' . bin2hex(random_bytes(20)) . '.pdf';
+        $upload = offerLetterStorageRequest('POST', $uploadedPath, $serviceKey, $baseUrl, $contents, 'application/pdf');
+        if ($upload['status'] < 200 || $upload['status'] >= 300) {
+            error_log('Offer letter storage upload failed with status ' . $upload['status']);
+            throw new RuntimeException('Offer letter storage upload failed.');
+        }
+
+        $conn->beginTransaction();
+        $lockApp = $conn->prepare('SELECT candidate_id FROM applications WHERE id = ? FOR UPDATE');
+        $lockApp->execute([$args['id']]);
+        $lockedCandidateId = $lockApp->fetchColumn();
+        if (!$lockedCandidateId || (string)$lockedCandidateId !== (string)$candidateId) {
+            $conn->rollBack();
+            offerLetterStorageRequest('DELETE', $uploadedPath, $serviceKey, $baseUrl);
+            return $response->withStatus(404);
+        }
+
+        $existingStmt = $conn->prepare('SELECT storage_path FROM candidate_offer_letters WHERE application_id = ? FOR UPDATE');
+        $existingStmt->execute([$args['id']]);
+        $oldPath = $existingStmt->fetchColumn();
+
+        $save = $conn->prepare('
+            INSERT INTO candidate_offer_letters (application_id, candidate_id, storage_path, file_name, uploaded_by)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (application_id) DO UPDATE SET
+                candidate_id = EXCLUDED.candidate_id,
+                storage_path = EXCLUDED.storage_path,
+                file_name = EXCLUDED.file_name,
+                uploaded_by = EXCLUDED.uploaded_by,
+                created_at = CURRENT_TIMESTAMP
+            RETURNING id
+        ');
+        $save->execute([$args['id'], $candidateId, $uploadedPath, $originalName, $request->getAttribute('user')->id]);
+        $offerLetterId = $save->fetchColumn();
+        $conn->commit();
+
+        if ($oldPath && $oldPath !== $uploadedPath) {
+            $oldObjectPath = offerLetterObjectPath((string)$oldPath);
+            if ($oldObjectPath) offerLetterStorageRequest('DELETE', $oldObjectPath, $serviceKey, $baseUrl);
+        }
+
+        $response->getBody()->write(json_encode(['message' => 'Offer letter uploaded', 'id' => $offerLetterId]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+        if ($uploadedPath && $serviceKey && $baseUrl) offerLetterStorageRequest('DELETE', $uploadedPath, $serviceKey, $baseUrl);
+        error_log('Offer letter upload failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Unable to upload the offer letter right now.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin'], 'recruitment'));
+
+// Admin preview is authorized against the application-linked offer-letter record.
+$app->get('/api/admin/applications/{id}/offer-letter', function (Request $request, Response $response, $args) {
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        $stmt = $conn->prepare('SELECT storage_path FROM candidate_offer_letters WHERE application_id = ? LIMIT 1');
+        $stmt->execute([$args['id']]);
+        $storedPath = $stmt->fetchColumn();
+        $objectPath = $storedPath ? offerLetterObjectPath((string)$storedPath) : null;
+        if (!$objectPath) return $response->withStatus(404);
+        [$baseUrl, $serviceKey] = attendanceStorageConfig();
+        $signed = offerLetterSignedUrl($objectPath, $serviceKey, $baseUrl);
+        if (!$signed) return $response->withStatus(404);
+        return $response->withHeader('Location', $signed)->withHeader('Cache-Control', 'private, no-store')->withStatus(302);
+    } catch (Throwable $e) {
+        error_log('Admin offer letter preview failed: ' . $e->getMessage());
         return $response->withStatus(503);
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
