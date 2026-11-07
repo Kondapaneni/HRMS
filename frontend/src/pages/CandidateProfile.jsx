@@ -109,30 +109,15 @@ const CandidateProfile = () => {
       setIsUploadingResume(true);
 
       try {
-        const fileExt = file.name.split('.').pop();
-        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-');
-        const fileName = `Resume-${Date.now()}-${safeName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('resumes')
-          .upload(fileName, file);
-
-        if (uploadError) throw uploadError;
-
-        const proxyUrl = window.location.origin + "/Resume/" + fileName;
-
-        const newResume = {
-          name: file.name,
-          url: proxyUrl,
-          isPrimary: formData.resumes.length === 0
-        };
-
-        const newResumes = [...formData.resumes, newResume];
-        setFormData(prev => {
-          const newData = { ...prev, resumes: newResumes };
-          saveMutation.mutate(newData);
-          return newData;
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        const uploadResponse = await api.post('/candidate/resumes', formDataUpload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
+        const newResume = uploadResponse.data.resume;
+        setFormData(prev => ({ ...prev, resumes: [...prev.resumes, newResume] }));
+        queryClient.invalidateQueries(['candidate', 'profile']);
+        queryClient.invalidateQueries(['candidate', 'profile_for_jobs']);
       } catch (error) {
         console.error('Upload error:', error);
         toast.error('Failed to upload resume file.');
@@ -142,19 +127,31 @@ const CandidateProfile = () => {
     }
   };
 
-  const handleSetPrimaryResume = (index) => {
-    const updated = formData.resumes.map((r, i) => ({ ...r, isPrimary: i === index }));
-    setFormData(prev => ({ ...prev, resumes: updated }));
-    saveMutation.mutate({ ...formData, resumes: updated });
+  const handleSetPrimaryResume = async (index) => {
+    const resume = formData.resumes[index];
+    if (!resume?.id) return;
+    try {
+      const res = await api.put(`/candidate/resumes/${encodeURIComponent(resume.id)}/primary`);
+      setFormData(prev => ({ ...prev, resumes: res.data.resumes || prev.resumes }));
+    } catch (error) {
+      toast.error('Unable to update the primary resume.');
+    }
   };
 
-  const handleDeleteResume = (index) => {
-    const updatedResumes = formData.resumes.filter((_, i) => i !== index);
-    if (updatedResumes.length > 0 && formData.resumes[index].isPrimary) {
-      updatedResumes[0].isPrimary = true;
+  const handleDeleteResume = async (index) => {
+    const resume = formData.resumes[index];
+    if (!resume?.id) {
+      toast.error('This older resume needs to be re-uploaded before it can be securely deleted.');
+      return;
     }
-    setFormData(prev => ({ ...prev, resumes: updatedResumes }));
-    saveMutation.mutate({ ...formData, resumes: updatedResumes });
+    try {
+      const res = await api.delete(`/candidate/resumes/${encodeURIComponent(resume.id)}`);
+      setFormData(prev => ({ ...prev, resumes: res.data.resumes || [] }));
+      queryClient.invalidateQueries(['candidate', 'profile']);
+      queryClient.invalidateQueries(['candidate', 'profile_for_jobs']);
+    } catch (error) {
+      toast.error('Unable to delete this resume.');
+    }
   };
 
   const handleAvatarUpload = async (e) => {
@@ -439,7 +436,7 @@ const CandidateProfile = () => {
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-[var(--text)] truncate">{resume.name}</p>
                           <a 
-                            href={resume.url} 
+                            href={resume.id ? `/api/candidate/resumes/${encodeURIComponent(resume.id)}/file` : resume.url} 
                             target="_blank" 
                             rel="noreferrer" 
                             className="text-[11px] font-semibold text-[var(--brand-deep)] hover:underline inline-flex items-center gap-1 mt-0.5"
