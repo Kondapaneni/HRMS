@@ -7,6 +7,7 @@ import { Search, Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../components/ui/Avatar';
 import SearchBar from '../components/ui/SearchBar';
+import { fetchAllAdminEmployees } from '../utils/fetchAllAdminEmployees';
 
 const AdminDirectory = () => {
   const [search, setSearch] = useState('');
@@ -27,8 +28,7 @@ const AdminDirectory = () => {
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ['admin', 'employees', 'directory'],
     queryFn: async () => {
-      const res = await api.get('/admin/employees?limit=1000');
-      return res.data.employees || [];
+      return fetchAllAdminEmployees();
     },
   });
 
