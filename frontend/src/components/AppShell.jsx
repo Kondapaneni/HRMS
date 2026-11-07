@@ -140,16 +140,15 @@ export const AppShell = ({
             {/* Logo */}
             <Link
               to={railGroups[0]?.path || '/'}
-              className="w-[42px] h-[42px] rounded-full bg-[#1F1F23] hover:bg-white/10 text-white flex items-center justify-center transition-all cursor-pointer group shrink-0"
+              className="w-[42px] h-[42px] rounded-[13px] overflow-hidden flex items-center justify-center transition-transform hover:scale-105 active:scale-95 cursor-pointer group shrink-0"
               title={portalName}
               aria-label={portalName}
             >
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs"
-                style={{ backgroundColor: accentColor, color: '#131315' }}
-              >
-                A
-              </div>
+              <img
+                src="/logo.png"
+                alt="Acme HRMS"
+                className="w-full h-full object-contain"
+              />
             </Link>
 
             {/* Rail Groups (Scrollable middle container) */}
@@ -462,12 +461,11 @@ export const AppShell = ({
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#1F1F23]">
                   <div className="flex items-center gap-2.5">
-                    <div
-                      className="w-8 h-8 rounded-[10px] flex items-center justify-center font-bold text-xs shadow-xs"
-                      style={{ backgroundColor: accentColor, color: '#131315' }}
-                    >
-                      A
-                    </div>
+                    <img
+                      src="/logo.png"
+                      alt="Acme HRMS"
+                      className="w-8 h-8 rounded-[10px] object-contain shadow-xs shrink-0"
+                    />
                     <div>
                       <h3 className="text-[15px] font-medium text-white">{portalName}</h3>
                       <p className="text-[11px] text-[#8B8B95]">{portalSubtitle}</p>

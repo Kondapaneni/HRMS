@@ -112,9 +112,11 @@ const ResetPassword = () => {
 
             {/* Acme HRMS Brand Badge */}
             <div className="flex items-center gap-2.5 mb-5 sm:mb-6">
-              <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                A
-              </div>
+              <img
+                src="/logo.png"
+                alt="Acme HRMS"
+                className="w-8 h-8 rounded-xl object-contain shadow-xs"
+              />
               <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
                 Acme HRMS
               </span>

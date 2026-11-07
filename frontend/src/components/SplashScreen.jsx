@@ -30,10 +30,12 @@ const SplashScreen = () => {
         transition={{ duration: 0.4, ease: 'easeOut' }}
         className="relative z-10 flex flex-col items-center text-center px-6 max-w-sm"
       >
-        {/* Brand Logo / Monogram Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center mb-6 shadow-xl">
-          <span className="font-bold text-2xl tracking-tight">A</span>
-        </div>
+        {/* Brand Logo */}
+        <img
+          src="/logo.png"
+          alt="Acme HRMS"
+          className="w-16 h-16 rounded-2xl object-contain mb-6 shadow-xl"
+        />
 
         {/* Wordmark */}
         <h1 className="text-3xl font-bold tracking-tight text-[#131315] mb-1">

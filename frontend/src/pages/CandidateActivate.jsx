@@ -55,9 +55,11 @@ const CandidateActivate = () => {
         <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full text-center">
           <div>
             <div className="flex items-center justify-center gap-2.5 mb-6">
-              <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                A
-              </div>
+              <img
+                src="/logo.png"
+                alt="Acme HRMS"
+                className="w-8 h-8 rounded-xl object-contain shadow-xs"
+              />
               <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
                 Candidate Portal
               </span>
