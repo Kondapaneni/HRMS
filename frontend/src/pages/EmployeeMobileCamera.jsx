@@ -185,7 +185,9 @@ const EmployeeMobileCamera = () => {
       const blob = b64toBlob(photoDataUrl, 'image/jpeg');
       const uploadForm = new FormData();
       uploadForm.append('photo', blob, 'attendance.jpg');
-      const uploadRes = await api.post('/employee/attendance/photo', uploadForm);
+      const uploadRes = await api.post('/employee/attendance/photo', uploadForm, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       const photoPath = uploadRes.data?.photo;
       if (!photoPath) throw new Error('Attendance photo upload did not return a file path.');
 
