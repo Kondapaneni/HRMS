@@ -46,6 +46,29 @@ function trainingVideoObjectPath(?string $videoUrl): ?string
     return $path;
 }
 
+
+function trainingVideoSignedUrl(?string $videoUrl, int $expiresIn = 3600): ?string
+{
+    $objectPath = trainingVideoObjectPath($videoUrl);
+    if (!$objectPath) return $videoUrl;
+
+    [$baseUrl, $serviceKey] = trainingStorageConfig();
+    $encodedPath = implode('/', array_map('rawurlencode', explode('/', $objectPath)));
+    $signUrl = $baseUrl . '/storage/v1/object/sign/training_videos/' . $encodedPath;
+    $signed = trainingStorageRequest('POST', $signUrl, $serviceKey, json_encode(['expiresIn' => $expiresIn]));
+    if ($signed['status'] < 200 || $signed['status'] >= 300) {
+        error_log('Training video signed playback URL failed with status ' . $signed['status']);
+        throw new RuntimeException('Unable to authorize training video playback.');
+    }
+
+    $payload = json_decode($signed['body'], true) ?: [];
+    $relativeUrl = $payload['signedURL'] ?? $payload['signedUrl'] ?? null;
+    if (!$relativeUrl) throw new RuntimeException('Storage did not return a valid playback URL.');
+    return preg_match('#^https?://#i', $relativeUrl)
+        ? $relativeUrl
+        : $baseUrl . '/storage/v1/' . ltrim($relativeUrl, '/');
+}
+
 // Admins receive a short-lived signed upload URL; the service-role key never reaches the browser.
 $app->post('/api/admin/training/videos/upload-url', function (Request $request, Response $response) {
     try {
@@ -69,7 +92,8 @@ $app->post('/api/admin/training/videos/upload-url', function (Request $request, 
         $relativeUrl = $payload['url'] ?? $payload['signedURL'] ?? null;
         $token = $payload['token'] ?? null;
         if (!$relativeUrl || !$token) throw new RuntimeException('Storage did not return a valid upload token.');
-        $uploadUrl = preg_match('#^https?://#i', $relativeUrl) ? $relativeUrl : $baseUrl . '/' . ltrim($relativeUrl, '/');
+        $storageBaseUrl = $baseUrl . '/storage/v1';
+        $uploadUrl = preg_match('#^https?://#i', $relativeUrl) ? $relativeUrl : $storageBaseUrl . '/' . ltrim($relativeUrl, '/');
         if (!str_contains($uploadUrl, 'token=')) {
             $uploadUrl .= (str_contains($uploadUrl, '?') ? '&' : '?') . 'token=' . rawurlencode((string)$token);
         }
@@ -141,6 +165,7 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
             } else {
                 $video['assigned_employee_ids'] = [];
             }
+            $video['video_url'] = trainingVideoSignedUrl($video['video_url'] ?? null);
         }
         unset($video);
 
@@ -220,7 +245,7 @@ $app->delete('/api/admin/training/videos/{id}', function (Request $request, Resp
         $stmt->execute([$id]);
         $response->getBody()->write(json_encode(['message' => 'Video deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (\\Throwable $e) {
+    } catch (\Throwable $e) {
         error_log('Training video deletion failed: ' . $e->getMessage());
         $response->getBody()->write(json_encode(['error' => 'Unable to delete the training video right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
