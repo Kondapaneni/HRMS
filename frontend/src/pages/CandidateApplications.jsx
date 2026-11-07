@@ -32,10 +32,14 @@ const CandidateApplications = () => {
         const timeline = Array.isArray(app.application_timeline) ? app.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];
         let resumeName = 'Primary Resume';
         if (app.resume_url) {
-           try {
-             const urlParts = app.resume_url.split('/');
-             resumeName = urlParts[urlParts.length - 1];
-           } catch(e) {}
+          if (/^[a-f0-9]{40}$/i.test(String(app.resume_url))) {
+            resumeName = 'Selected Resume';
+          } else {
+            try {
+              const urlParts = String(app.resume_url).split('/');
+              resumeName = urlParts[urlParts.length - 1];
+            } catch (e) {}
+          }
         }
         
         return {
