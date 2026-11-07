@@ -2,53 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { 
-  Calendar as CalendarIcon, 
-  Search, 
-  X, 
-  Plus, 
-  Clock, 
-  CheckCircle2, 
-  Circle, 
-  AlertCircle, 
-  MapPin,
-  User,
-  Building2,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  Check,
-  Calendar,
-  Layers,
-  ArrowUpRight,
-  SlidersHorizontal,
-  PanelLeftClose,
-  PanelLeftOpen,
-  List,
-  Grid
-} from 'lucide-react';
-import { 
-  format, 
-  parseISO, 
-  isToday, 
-  isTomorrow, 
-  startOfDay, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isSameDay, 
-  isBefore,
-  addMonths, 
-  subMonths, 
-  addWeeks, 
-  subWeeks, 
-  addDays, 
-  subDays 
-} from 'date-fns';
+import { Calendar as CalendarIcon, Search, X, Plus, Clock, CheckCircle2, Circle, MapPin, User, CalendarDays, ChevronLeft, ChevronRight, Calendar, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { format, parseISO, isToday, startOfDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isBefore, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
 import api from '../api/axios';
 import ActivitySidebar from '../components/calendar/ActivitySidebar';
 import EventDetailsSidebar from '../components/calendar/EventDetailsSidebar';
@@ -64,8 +19,6 @@ const QuickCreateModal = ({
   onSave,
   assignableEmployees = [],
   isBranchOperations = false,
-  isSales = false,
-  theme
 }) => {
   const getSmartInitialTimes = (dateStr) => {
     const now = new Date();

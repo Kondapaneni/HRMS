@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import SearchBar from '../components/ui/SearchBar';
 import { getLeads, getLoanApplications } from '../services/loanServices';
-import { Search, Loader2, Eye, Phone, MapPin } from 'lucide-react';
+import { Loader2, Eye, Phone, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import MemberDetailsSidebar from '../components/MemberDetailsSidebar';
 import OriginationMobileLoanMemberList from './OriginationMobileLoanMemberList';

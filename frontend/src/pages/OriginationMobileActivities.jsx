@@ -3,49 +3,12 @@ import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import SearchBar from '../components/ui/SearchBar';
-import { 
-  Calendar as CalendarIcon, 
-  Search, 
-  X, 
-  Plus, 
-  Clock, 
-  CheckCircle2, 
-  MapPin,
-  Check,
-  CalendarDays,
-  Loader2,
-  Calendar,
-  AlertCircle,
-  User,
-  ChevronLeft,
-  ChevronRight,
-  Circle,
-  List,
-  Grid
-} from 'lucide-react';
-import { 
-  format, 
-  parseISO, 
-  isToday, 
-  isTomorrow, 
-  startOfDay, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isSameDay,
-  isBefore, 
-  addMonths, 
-  subMonths 
-} from 'date-fns';
+import { Plus, Clock, Check, ChevronLeft, ChevronRight, Circle } from 'lucide-react';
+import { format, isToday, startOfDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isBefore, addMonths, subMonths } from 'date-fns';
 import api from '../api/axios';
-import { useAuth } from '../contexts/AuthContext';
 import { MobileActivityCreatePage, MobileActivityDetailsModal } from '../components/calendar/MobileActivityModals';
 
 const OriginationMobileActivities = () => {
-  const { profile } = useAuth();
   const location = useLocation();
   const queryClient = useQueryClient();
 
@@ -85,7 +48,7 @@ const OriginationMobileActivities = () => {
   }, [selectedEvent, viewMode]);
 
   // Fetch activities
-  const { data = {}, isLoading, error } = useQuery({
+  const { data = {} } = useQuery({
     queryKey: ['origination', 'activities', workspaceScope],
     queryFn: async () => {
       const response = await api.get('/origination/activities', {

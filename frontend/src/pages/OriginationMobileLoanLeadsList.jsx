@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
 import { 
-  Search, 
   Phone, 
   MapPin, 
   Calendar, 
@@ -13,7 +12,6 @@ import {
   Plus, 
   XCircle, 
   RefreshCw,
-  X,
   Users
 } from 'lucide-react';
 import { format } from 'date-fns';

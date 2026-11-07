@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import SearchBar from '../components/ui/SearchBar';
 import { getLeads } from '../services/loanServices';
 import { 
-  Search, 
   Phone, 
   MapPin, 
   CheckCircle2, 
