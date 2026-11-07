@@ -56,22 +56,13 @@ const EmployeeChatbot = () => {
     }
     list.push({ label: 'My Business Apps', query: 'What business apps do I have access to?' });
     return list;
-  }, [profile, messages.length]);
-
-  // Initialize greeting on first load if empty (clean text, no emojis)
-  useEffect(() => {
-    if (messages.length === 0) {
-      const firstName = profile?.firstName || 'there';
-      const welcomeMsg = {
-        role: 'assistant',
-        content: `Hi **${firstName}**!\n\nI am your **HR Assistant**. I can answer all questions regarding your personal and employment records:\n* **Your Name & Employee ID** (e.g. "What is my name?")\n* **Your Profile & Role** (Designation, Department, Branch)\n* **Reporting Manager** & Contact info\n* **Leave balances** & leave requests\n* **Attendance**, check-in/out & logged hours\n* **Salary** & latest payslip breakdown\n* **Shift timings** & weekly off\n* **Assigned company assets**\n* **Business Apps** (Loans, Sales, Branch Operations)\n\nAsk me anything about your records or select one of the suggestions below.`
-      };
-      setMessages([welcomeMsg]);
-      try {
-        sessionStorage.setItem('hrms_employee_chat_history', JSON.stringify([welcomeMsg]));
-      } catch { /* Session storage is optional; the in-memory chat remains available. */ }
-    }
   }, [profile]);
+
+  const welcomeMessage = useMemo(() => ({
+    role: 'assistant',
+    content: `Hi **${profile?.firstName || 'there'}**! I am your HR Assistant. Ask me about your profile, attendance, leave, salary, assets, and business apps.`
+  }), [profile?.firstName]);
+  const displayMessages = useMemo(() => messages.length > 0 ? messages : [welcomeMessage], [messages, welcomeMessage]);
 
   // Persist messages to sessionStorage
   useEffect(() => {
@@ -87,13 +78,12 @@ const EmployeeChatbot = () => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOpen, loading]);
+  }, [displayMessages, isOpen, loading]);
 
   // Focus input on open
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 250);
-      setUnreadCount(0);
     }
   }, [isOpen]);
 
@@ -102,7 +92,7 @@ const EmployeeChatbot = () => {
     if (!text || loading) return;
 
     const userMessage = { role: 'user', content: text };
-    const updatedMessages = [...messages, userMessage];
+    const updatedMessages = [...displayMessages, userMessage];
     setMessages(updatedMessages);
     setInputMessage('');
     setShowSuggestionsMenu(false);
@@ -222,7 +212,7 @@ const EmployeeChatbot = () => {
       {/* 1. Floating Circular Action Button (FAB) */}
       <div className="fixed bottom-[var(--chatbot-bottom)] right-5 md:right-6 z-40 select-none">
         <motion.button
-          onClick={() => setIsOpen(prev => !prev)}
+          onClick={() => { if (!isOpen) setUnreadCount(0); setIsOpen(!isOpen); }}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
           aria-label={isOpen ? 'Close chat' : 'Open HR Assistant'}
@@ -308,7 +298,7 @@ const EmployeeChatbot = () => {
 
             {/* Conversation Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[var(--bg)] scrollbar-thin">
-              {messages.map((msg, index) => {
+              {displayMessages.map((msg, index) => {
                 const isUser = msg.role === 'user';
                 return (
                   <motion.div
