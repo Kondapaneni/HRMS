@@ -35,20 +35,11 @@ export const ThemeProvider = ({ children }) => {
     return 'system';
   });
 
-  const [systemTheme, setSystemTheme] = useState(getSystemTheme);
+  const [hasUserOverride, setHasUserOverride] = useState(false);
+  const profileThemePreference = ['light', 'dark', 'system'].includes(profile?.themePreference) ? profile.themePreference : null;
+  const resolvedThemePreference = hasUserOverride ? themePreference : (profileThemePreference || themePreference);
 
-  // Sync preference from DB profile if available
-  useEffect(() => {
-    if (profile?.themePreference && ['light', 'dark', 'system'].includes(profile.themePreference)) {
-      setThemePreferenceState((prev) => {
-        if (prev !== profile.themePreference) {
-          localStorage.setItem('themePreference', profile.themePreference);
-          return profile.themePreference;
-        }
-        return prev;
-      });
-    }
-  }, [profile?.themePreference]);
+  const [systemTheme, setSystemTheme] = useState(getSystemTheme);
 
   // Listen to OS system color-scheme changes
   useEffect(() => {
@@ -75,22 +66,23 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   // Compute effective theme
-  const effectiveTheme = themePreference === 'system' ? systemTheme : themePreference;
+  const effectiveTheme = resolvedThemePreference === 'system' ? systemTheme : resolvedThemePreference;
 
   // Apply effective theme to HTML root element
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute('data-theme', effectiveTheme);
-    root.setAttribute('data-theme-preference', themePreference);
+    root.setAttribute('data-theme-preference', resolvedThemePreference);
     localStorage.setItem('theme', effectiveTheme);
-    localStorage.setItem('themePreference', themePreference);
-  }, [effectiveTheme, themePreference]);
+    localStorage.setItem('themePreference', resolvedThemePreference);
+  }, [effectiveTheme, resolvedThemePreference]);
 
   // Handler to update theme preference (and persist to DB)
   const setThemePreference = useCallback(async (newPref) => {
     if (!['light', 'dark', 'system'].includes(newPref)) return;
     
     setThemePreferenceState(newPref);
+    setHasUserOverride(true);
     localStorage.setItem('themePreference', newPref);
 
     const token = localStorage.getItem('token');
@@ -104,7 +96,7 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ themePreference, effectiveTheme, setThemePreference }}>
+    <ThemeContext.Provider value={{ themePreference: resolvedThemePreference, effectiveTheme, setThemePreference }}>
       {children}
     </ThemeContext.Provider>
   );
