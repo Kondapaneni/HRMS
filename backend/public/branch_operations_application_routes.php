@@ -343,11 +343,11 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
 
     } catch (\PDOException $e) {
         error_log("Database error fetching branch operations applications: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Database error while fetching branch applications: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Database error while fetching branch applications: ' . 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     } catch (\Exception $e) {
         error_log("Error fetching branch operations applications: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch applications: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch applications: ' . 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'branchOperations'));
@@ -684,11 +684,11 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
 
     } catch (\PDOException $e) {
         error_log("Database error updating loan application: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Database error while updating application: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Database error while updating application: ' . 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     } catch (\Exception $e) {
         error_log("Error updating loan application: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'An error occurred while updating application: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while updating application: ' . 'An unexpected error occurred. Please try again.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'branchOperations'));
