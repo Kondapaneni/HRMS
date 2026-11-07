@@ -16,7 +16,7 @@ SET public = TRUE,
 WHERE id = 'job_descriptions';
 
 UPDATE storage.buckets
-SET public = TRUE,
+SET public = FALSE,
     file_size_limit = 524288000,
     allowed_mime_types = ARRAY['video/mp4', 'video/webm', 'video/quicktime']::text[]
 WHERE id = 'training_videos';
