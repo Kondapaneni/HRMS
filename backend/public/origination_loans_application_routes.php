@@ -240,32 +240,6 @@ function resolveLoanDocumentsForRow(array $docsByAppId, $appId, $uuidId = null, 
 }
 
 /**
- * Helper function to upsert documents into public.loan_documents table.
- */
-function upsertLoanDocumentsToTable($conn, $appId, array $documents) {
-    if (empty($documents) || empty($appId)) return;
-
-    $upsertStmt = $conn->prepare('
-        INSERT INTO public.loan_documents (application_id, slot_key, url, updated_at)
-        VALUES (?, ?, ?, NOW())
-        ON CONFLICT (application_id, slot_key) DO UPDATE SET
-            url = EXCLUDED.url,
-            updated_at = NOW()
-    ');
-
-    foreach ($documents as $slotKey => $doc) {
-        $url = is_array($doc) ? ($doc['url'] ?? $doc['proxy_url'] ?? '') : (is_string($doc) ? $doc : '');
-        if (empty($url)) continue;
-
-        $upsertStmt->execute([
-            (string)$appId,
-            (string)$slotKey,
-            (string)$url
-        ]);
-    }
-}
-
-/**
  * Endpoint to submit or save draft for a loan application in DB table public.loan_applications.
  */
 $app->post('/api/loans/applications', function (Request $request, Response $response, $args) {
