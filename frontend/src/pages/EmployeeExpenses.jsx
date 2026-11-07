@@ -19,7 +19,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
 import EmployeeMobileExpenses from './EmployeeMobileExpenses';
 import Button from '../components/ui/Button';
 
@@ -98,14 +97,12 @@ const EmployeeExpenses = () => {
     mutationFn: async () => {
       let bill_url = null;
       if (billFile) {
-        const fileExt = billFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from('expenses')
-          .upload(fileName, billFile);
-          
-        if (uploadError) throw new Error('Failed to upload bill');
-        bill_url = window.location.origin + "/Bills/" + fileName;
+        const uploadForm = new FormData();
+        uploadForm.append('file', billFile);
+        const uploadResponse = await api.post('/employee/expenses/bill', uploadForm, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        bill_url = uploadResponse.data.bill_url;
       }
       
       const res = await api.post('/employee/expenses', {
