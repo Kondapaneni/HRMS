@@ -52,7 +52,7 @@ export default function CapacitorLifecycle() {
             navigate(-1);
           }
         });
-      } catch (e) {
+      } catch {
         // Ignored on web
       }
     };
