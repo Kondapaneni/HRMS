@@ -1,17 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  Search, 
-  Phone, 
-  MapPin, 
-  CheckCircle2, 
-  Clock, 
-  Loader2, 
-  XCircle, 
-  RefreshCw, 
-  Eye,
-  ChevronDown 
-} from 'lucide-react';
+import { Phone, MapPin, CheckCircle2, Clock, Loader2, XCircle, RefreshCw, Eye, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import SearchBar from '../components/ui/SearchBar';
 import BranchOperationsMobileLeads from './BranchOperationsMobileLeads';

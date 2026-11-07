@@ -2,34 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchDashboardData } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
-import { 
-  Users,
-  Calendar, 
-  TrendingUp, 
-  CheckCircle2, 
-  Clock, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Building2, 
-  FileText, 
-  Briefcase,
-  ChevronDown,
-  Layers,
-  Award,
-  UserCheck
-} from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend
-} from 'recharts';
+import { Users, Calendar, TrendingUp, CheckCircle2, Clock, ArrowUpRight, ArrowDownRight, Building2, ChevronDown, Award } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format } from 'date-fns';
 import { useNavigate, Link } from 'react-router-dom';
 import BranchOperationsMobileDashboard from './BranchOperationsMobileDashboard';

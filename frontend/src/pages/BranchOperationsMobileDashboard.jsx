@@ -1,39 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+
 import { getBranchDashboardData } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
-import { 
-  Users, 
-  TrendingUp, 
-  CheckCircle2, 
-  Clock, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  Briefcase, 
-  Building2, 
-  ChevronDown,
-  Calendar,
-  Layers,
-  Award,
-  Phone,
-  ChevronRight,
-  UserCheck,
-  FileText
-} from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  Area,
-  AreaChart
-} from 'recharts';
+import { Users, TrendingUp, CheckCircle2, Clock, ArrowUpRight, ArrowDownRight, Building2, ChevronDown, Calendar, Layers, Award, Phone, ChevronRight, UserCheck } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
 import { maskPhoneNumber } from '../utils/phoneUtils';
