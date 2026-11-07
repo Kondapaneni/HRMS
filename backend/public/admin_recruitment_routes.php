@@ -511,7 +511,7 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
 
         $sql = "
             SELECT a.*, j.title as job_title, j.department as job_department, j.location as job_location,
-                   u."firstName" AS candidate_first_name, u."lastName" AS candidate_last_name, u.email AS candidate_email,
+                   u.\"firstName\" AS candidate_first_name, u.\"lastName\" AS candidate_last_name, u.email AS candidate_email,
                    cp.phone AS candidate_phone, cp.experience AS candidate_experience,
                    (SELECT COUNT(*) FROM candidate_documents cd WHERE cd.candidate_id = a.candidate_id AND (cd.status = 'pending' OR cd.status IS NULL)) as pending_documents_count
             FROM applications a 
@@ -572,7 +572,8 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
             // Format to match Supabase structure expectations
             $app['jobs'] = [
                 'title' => $app['job_title'],
-                'department' => $app['job_department']
+                'department' => $app['job_department'],
+                'location' => $app['job_location']
             ];
             unset($app['job_title'], $app['job_department']);
         }
