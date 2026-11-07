@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, CheckCircle2, Eye, EyeOff, RefreshCw, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import AuthSideCarousel from '../components/AuthSideCarousel';
@@ -13,17 +13,10 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState('');
-
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-
-  useEffect(() => {
-    if (!token) {
-      setError('No reset token provided. Please use the link sent to your email.');
-    }
-  }, [token]);
+  const [error, setError] = useState('');
+  const displayError = error || (!token ? 'No reset token provided. Please use the link sent to your email.' : '');
 
   const passwordRequirements = [
     { id: 'length', text: 'At least 8 characters', regex: /.{8,}/ },
@@ -136,7 +129,7 @@ const ResetPassword = () => {
 
             {/* Error alert */}
             <AnimatePresence>
-              {error && (
+              {displayError && (
                 <motion.div
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -144,7 +137,7 @@ const ResetPassword = () => {
                   className="mb-5 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5 shadow-2xs font-medium"
                 >
                   <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-500" />
-                  <span>{error}</span>
+                  <span>{displayError}</span>
                 </motion.div>
               )}
             </AnimatePresence>
