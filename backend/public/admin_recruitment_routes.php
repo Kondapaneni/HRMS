@@ -512,7 +512,13 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
             FROM applications a 
             JOIN jobs j ON a.job_id = j.id
             LEFT JOIN users u ON a.candidate_id = u.id
-            LEFT JOIN candidate_profiles cp ON cp.user_id = a.candidate_id
+            LEFT JOIN LATERAL (
+                SELECT phone, experience
+                FROM candidate_profiles
+                WHERE user_id = a.candidate_id
+                ORDER BY updated_at DESC NULLS LAST
+                LIMIT 1
+            ) cp ON TRUE
             {$where}
             ORDER BY a.applied_date DESC
             LIMIT ? OFFSET ?
