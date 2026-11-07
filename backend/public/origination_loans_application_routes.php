@@ -615,16 +615,18 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
             if (str_contains($objectPath, '/') && !str_starts_with($objectPath, (string)$appRow['id'] . '/')) {
                 return $response->withStatus(404);
             }
-            $deleted = loanStorageRequest('DELETE', 'loan_documents', $objectPath, $serviceKey, $baseUrl);
-            if ($deleted['status'] >= 300 && $deleted['status'] !== 404) {
-                error_log('Loan document Storage delete failed with status ' . $deleted['status']);
-                return $response->withStatus(503);
-            }
         }
 
         $deleteSql = 'DELETE FROM public.loan_documents WHERE application_id IN (' . implode(',', array_fill(0, count($identifiers), '?')) . ') AND slot_key = ?';
         $delete = $conn->prepare($deleteSql);
         $delete->execute(array_merge($identifiers, [(string)$args['docKey']]));
+
+        if ($objectPath) {
+            $deleted = loanStorageRequest('DELETE', 'loan_documents', $objectPath, $serviceKey, $baseUrl);
+            if ($deleted['status'] >= 300 && $deleted['status'] !== 404) {
+                error_log('Loan document Storage cleanup failed after metadata deletion; status ' . $deleted['status']);
+            }
+        }
 
         $appKey = (string)($appRow['application_id'] ?: $appRow['id']);
         $remainingDocs = getLoanDocumentsFromTable($conn, $appKey, $appRow['id'], $appRow['lead_id']);
@@ -779,24 +781,25 @@ $app->delete('/api/loans/applications/{id}', function (Request $request, Respons
         $docSql = 'SELECT url FROM public.loan_documents WHERE application_id IN (' . implode(',', array_fill(0, count($identifiers), '?')) . ')';
         $docStmt = $conn->prepare($docSql);
         $docStmt->execute($identifiers);
+        $documentPaths = [];
         foreach ($docStmt->fetchAll(PDO::FETCH_COLUMN) as $reference) {
             $objectPath = loanStorageObjectPath((string)$reference, 'loan_documents');
             if ($objectPath && (!str_contains($objectPath, '/') || str_starts_with($objectPath, (string)$appRow['id'] . '/'))) {
-                loanStorageRequest('DELETE', 'loan_documents', $objectPath, $serviceKey, $baseUrl);
+                $documentPaths[] = $objectPath;
             }
         }
 
         $formData = is_string($appRow['form_data']) ? (json_decode($appRow['form_data'], true) ?: []) : ($appRow['form_data'] ?: []);
         $signatures = is_string($appRow['signatures']) ? (json_decode($appRow['signatures'], true) ?: []) : ($appRow['signatures'] ?: []);
         $signatureRefs = array_values(array_filter($signatures, 'is_string'));
-        foreach (($formData['timeline'] ?? []) as $event) {
+        $timeline = is_array($formData['timeline'] ?? null) ? $formData['timeline'] : [];
+        foreach ($timeline as $event) {
             if (is_array($event) && !empty($event['signature']) && is_string($event['signature'])) $signatureRefs[] = $event['signature'];
         }
+        $signaturePaths = [];
         foreach (array_unique($signatureRefs) as $reference) {
             $objectPath = loanStorageObjectPath($reference, 'loan_signatures');
-            if ($objectPath && str_starts_with($objectPath, (string)$appRow['id'] . '/')) {
-                loanStorageRequest('DELETE', 'loan_signatures', $objectPath, $serviceKey, $baseUrl);
-            }
+            if ($objectPath && str_starts_with($objectPath, (string)$appRow['id'] . '/')) $signaturePaths[] = $objectPath;
         }
 
         $conn->beginTransaction();
@@ -805,6 +808,17 @@ $app->delete('/api/loans/applications/{id}', function (Request $request, Respons
         $deleteApp = $conn->prepare('DELETE FROM public.loan_applications WHERE id = ?');
         $deleteApp->execute([$appRow['id']]);
         $conn->commit();
+
+        // Delete objects after the database transaction commits. A failed Storage
+        // cleanup leaves only a private orphan, not a live record with a missing file.
+        foreach (array_unique($documentPaths) as $objectPath) {
+            $result = loanStorageRequest('DELETE', 'loan_documents', $objectPath, $serviceKey, $baseUrl);
+            if ($result['status'] >= 300 && $result['status'] !== 404) error_log('Loan document cleanup failed with status ' . $result['status']);
+        }
+        foreach (array_unique($signaturePaths) as $objectPath) {
+            $result = loanStorageRequest('DELETE', 'loan_signatures', $objectPath, $serviceKey, $baseUrl);
+            if ($result['status'] >= 300 && $result['status'] !== 404) error_log('Loan signature cleanup failed with status ' . $result['status']);
+        }
 
         $response->getBody()->write(json_encode(['success' => true, 'message' => 'Loan application deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
