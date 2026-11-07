@@ -867,13 +867,7 @@ $app->get('/Holiday/{filename:.+}', function (Request $request, Response $respon
 
 // Attendance photos are served only by the authenticated route in employee_attendance_routes.php.
 
-// Candidate Document proxy route
-$app->get('/Candidate-Document/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/candidate_documents/" . $encodedFilename;
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
-});
+// Candidate documents are served only by authenticated candidate/admin API endpoints.
 
 // Bills proxy route
 $app->get('/Bills/{filename:.+}', function (Request $request, Response $response, $args) {
