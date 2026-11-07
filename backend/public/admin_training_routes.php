@@ -123,12 +123,19 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
     if ($offset < 0) $offset = 0;
     $search = trim($params['search'] ?? '');
 
-    $where = '';
+    $conditions = [];
     $queryParams = [];
-    if (!empty($search)) {
-        $where = 'WHERE tv.title ILIKE ?';
-        $queryParams = ['%' . $search . '%'];
+    if ($search !== '') {
+        $conditions[] = 'tv.title ILIKE ?';
+        $queryParams[] = '%' . $search . '%';
     }
+    $filter = strtolower(trim((string)($params['filter'] ?? 'all')));
+    if ($filter === 'assigned') {
+        $conditions[] = "jsonb_array_length(COALESCE(tv.assigned_employee_ids, '[]'::jsonb)) > 0";
+    } elseif ($filter === 'open') {
+        $conditions[] = "jsonb_array_length(COALESCE(tv.assigned_employee_ids, '[]'::jsonb)) = 0";
+    }
+    $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
 
     try {
         $sql = "
@@ -158,6 +165,20 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
 
+        $statsStmt = $conn->query("
+            SELECT
+                COUNT(DISTINCT tv.id) AS total,
+                COUNT(DISTINCT tv.id) FILTER (
+                    WHERE jsonb_array_length(COALESCE(tv.assigned_employee_ids, '[]'::jsonb)) > 0
+                ) AS assigned_courses,
+                COUNT(DISTINCT assigned.employee_id) AS enrolled_staff
+            FROM training_videos tv
+            LEFT JOIN LATERAL jsonb_array_elements_text(
+                COALESCE(tv.assigned_employee_ids, '[]'::jsonb)
+            ) AS assigned(employee_id) ON TRUE
+        ");
+        $statsRow = $statsStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
         foreach ($videos as &$video) {
             if (!empty($video['assigned_employee_ids']) && is_string($video['assigned_employee_ids'])) {
                 $video['assigned_employee_ids'] = json_decode($video['assigned_employee_ids'], true);
@@ -171,7 +192,12 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
         $response->getBody()->write(json_encode([
             'data' => $videos,
             'videos' => $videos,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'stats' => [
+                'total' => (int)($statsRow['total'] ?? 0),
+                'assignedCourses' => (int)($statsRow['assigned_courses'] ?? 0),
+                'enrolledStaff' => (int)($statsRow['enrolled_staff'] ?? 0)
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
