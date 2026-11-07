@@ -449,7 +449,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
 
     } catch (\Exception $e) {
         $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => 'An error occurred while converting the candidate: ' . 'An unexpected error occurred. Please try again.']));
+        $response->getBody()->write(json_encode(['error' => 'Unable to convert the candidate right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
@@ -828,7 +828,7 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
         if ($conn->inTransaction()) {
             $conn->rollBack();
         }
-        $response->getBody()->write(json_encode(['error' => 'Failed to promote employee: ' . 'An unexpected error occurred. Please try again.']));
+        $response->getBody()->write(json_encode(['error' => 'Unable to promote the employee right now.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
