@@ -4,29 +4,26 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import SearchBar from '../components/ui/SearchBar';
 import { 
   Play, 
-  ArrowLeft, 
   CheckCircle2, 
   Circle, 
   Search, 
   GraduationCap, 
   Clock, 
   Check, 
-  ChevronRight,
-  ChevronLeft,
-  Film,
-  Sparkles,
-  Award,
-  RotateCcw,
-  X
+  ChevronRight, 
+  ChevronLeft, 
+  Film, 
+  Sparkles, 
+  Award, 
+  RotateCcw, 
+  X 
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
 import toast from 'react-hot-toast';
 
 const EmployeeMobileTrainingVideos = () => {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -145,20 +142,9 @@ const EmployeeMobileTrainingVideos = () => {
           <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Learning &amp; Development
           </p>
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Training <span className="text-[var(--brand-deep)]">Videos</span>
-            </h2>
-
-            <button
-              type="button"
-              onClick={() => navigate('/employee')}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
-            >
-              <ArrowLeft size={14} className="text-[var(--muted)]" />
-              <span>Back</span>
-            </button>
-          </div>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+            Training <span className="text-[var(--brand-deep)]">Videos</span>
+          </h2>
           <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-1">
             {completedCount} of {videos.length} Modules Completed ({progressPercent}%)
           </p>

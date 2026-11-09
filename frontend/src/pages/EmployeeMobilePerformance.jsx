@@ -25,7 +25,6 @@ import {
   Line
 } from 'recharts';
 import api from '../api/axios';
-import EmployeeMobileSearchBar from '../components/EmployeeMobileSearchBar';
 
 const EmployeeMobilePerformance = () => {
   const [trendTab, setTrendTab] = useState('attendance'); // 'attendance' | 'leaves'
@@ -55,7 +54,6 @@ const EmployeeMobilePerformance = () => {
   if (!perfData) {
     return (
       <div className="space-y-6 pb-8 font-sans antialiased text-[var(--text)]">
-        <EmployeeMobileSearchBar />
         <div className="p-8 text-center bg-[var(--surface)] rounded-[24px] border border-[var(--line)] shadow-xs">
           <p className="text-sm font-medium text-[var(--muted)]">No performance records available for this account.</p>
         </div>
@@ -68,10 +66,8 @@ const EmployeeMobilePerformance = () => {
 
   return (
     <div className="space-y-6 pb-12 font-sans antialiased text-[var(--text)]">
-      {/* Header & Search */}
-      <section className="relative z-30 pt-1 pb-1 space-y-4">
-        <EmployeeMobileSearchBar />
-
+      {/* Header */}
+      <section className="relative z-30 pt-1 pb-1">
         <div className="flex items-center justify-between pt-0.5">
           <div>
             <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
