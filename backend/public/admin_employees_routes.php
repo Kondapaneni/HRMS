@@ -353,12 +353,15 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
             
             if (isset($data['mfaEnabled'])) {
                 $conn->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS "mfaEnabled" BOOLEAN DEFAULT false');
+                $mfaBool = filter_var($data['mfaEnabled'], FILTER_VALIDATE_BOOLEAN);
                 $userUpdates[] = '"mfaEnabled" = ?';
-                $userValues[] = $data['mfaEnabled'] ? 'true' : 'false';
+                $userValues[] = $mfaBool ? 'true' : 'false';
 
-                // On every toggle of MFA (whether enabled or disabled), completely reset all MFA secrets and backup codes so the user starts fresh
-                $conn->prepare('DELETE FROM mfa_secrets WHERE user_id = ?')->execute([$userId]);
-                $conn->prepare('DELETE FROM mfa_backup_codes WHERE user_id = ?')->execute([$userId]);
+                // Reset all MFA secrets and backup codes ONLY when toggled OFF
+                if (!$mfaBool) {
+                    $conn->prepare('DELETE FROM mfa_secrets WHERE user_id = ?')->execute([$userId]);
+                    $conn->prepare('DELETE FROM mfa_backup_codes WHERE user_id = ?')->execute([$userId]);
+                }
             }
             
             if (!empty($userUpdates)) {
