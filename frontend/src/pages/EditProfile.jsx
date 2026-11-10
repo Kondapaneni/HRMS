@@ -23,7 +23,6 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import EditMobileProfile from './EditMobileProfile';
-import MfaSecurityCard from '../components/MfaSecurityCard';
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -386,9 +385,6 @@ const EditProfile = () => {
               </div>
             </div>
           </div>
-
-          {/* Account Security & Two-Factor Authentication Card */}
-          <MfaSecurityCard />
 
           {/* Bottom Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">

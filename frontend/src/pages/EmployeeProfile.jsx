@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
@@ -6,7 +6,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Search, Edit3, ChevronDown, ChevronUp, Camera,
-  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2, Lock, ShieldCheck
+  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2, Lock, ShieldCheck, X
 } from 'lucide-react';
 import MfaSecurityCard from '../components/MfaSecurityCard';
 import { Tree, TreeNode } from 'react-organizational-chart';
@@ -25,6 +25,7 @@ const EmployeeProfile = () => {
   const { fetchProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('personal');
   const [isUploading, setIsUploading] = useState(false);
+  const [isMfaModalOpen, setIsMfaModalOpen] = useState(false);
 
   const { data: profileResponse, isLoading: loading } = useQuery({
     queryKey: ['employee', 'profile'],
@@ -42,12 +43,6 @@ const EmployeeProfile = () => {
       return res.data;
     },
   });
-
-  useEffect(() => {
-    if (activeTab === 'security' && mfaStatus && !mfaStatus.authorized) {
-      setActiveTab('personal');
-    }
-  }, [activeTab, mfaStatus]);
 
   const profileData = profileResponse?.profile || null;
   const teamData = profileResponse?.team || null;
@@ -71,7 +66,6 @@ const EmployeeProfile = () => {
     { id: 'my-team', label: 'My Team', icon: Users },
     { id: 'my-assets', label: 'My Assets', icon: Laptop },
     { id: 'timeline', label: 'Timeline', icon: History },
-    ...(mfaStatus?.authorized ? [{ id: 'security', label: 'Security & 2FA', icon: Lock }] : []),
   ];
 
   const formatEnum = (val) => {
@@ -389,7 +383,22 @@ const EmployeeProfile = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {mfaStatus?.authorized && (
+              <button 
+                type="button"
+                onClick={() => setIsMfaModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--text)] transition-all cursor-pointer shadow-xs"
+              >
+                <ShieldCheck className={`w-3.5 h-3.5 ${mfaStatus?.enabled ? 'text-emerald-500' : 'text-[var(--brand-deep)]'}`} />
+                <span>Two-Factor Auth</span>
+                <span className={`inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-semibold ${
+                  mfaStatus?.enabled ? 'bg-emerald-500/10 text-emerald-600' : 'bg-neutral-500/10 text-neutral-500'
+                }`}>
+                  {mfaStatus?.enabled ? 'Active' : 'Off'}
+                </span>
+              </button>
+            )}
             <button 
               type="button"
               onClick={() => navigate('/employee/profile/edit')}
@@ -862,17 +871,42 @@ const EmployeeProfile = () => {
             </div>
           )}
 
-          {/* SECURITY & 2FA */}
-          {activeTab === 'security' && (
-            <div className="space-y-6">
-              <MfaSecurityCard />
-            </div>
-          )}
-
         </div>
 
-
       </div>
+
+      {/* 2FA Security Modal Dialog */}
+      {isMfaModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity cursor-pointer"
+            onClick={() => setIsMfaModalOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--surface)] rounded-[24px] border border-[var(--line)] shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-[var(--text)]">Two-Factor Authentication (2FA)</h3>
+                  <p className="text-xs text-[var(--muted)]">Manage your TOTP authenticator app and emergency backup recovery codes</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMfaModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="pt-2">
+              <MfaSecurityCard />
+            </div>
+          </div>
+        </div>
+      )}
 
     </>
   );

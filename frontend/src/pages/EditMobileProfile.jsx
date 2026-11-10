@@ -23,7 +23,6 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import MfaSecurityCard from '../components/MfaSecurityCard';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other', 'Prefer not to say'];
 const MARITAL_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
@@ -326,9 +325,6 @@ const EditMobileProfile = () => {
             />
           </div>
         </div>
-
-        {/* Two-Factor Authentication (MFA) */}
-        <MfaSecurityCard />
 
         {/* Submit Actions */}
         <div className="pt-2">

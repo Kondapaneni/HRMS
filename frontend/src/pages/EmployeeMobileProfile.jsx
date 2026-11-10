@@ -6,8 +6,9 @@ import {
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Camera, ChevronRight, FileText,
   X, Edit2, Sparkles, Building, CheckCircle2, AlertCircle,
-  Download, RefreshCw
+  Download, RefreshCw, ShieldCheck
 } from 'lucide-react';
+import MfaSecurityCard from '../components/MfaSecurityCard';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { isNativeApp, isIOS, getAssetUrl } from '../api/axios';
@@ -23,6 +24,14 @@ const EmployeeMobileProfile = () => {
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const controls = useDragControls();
+
+  const { data: mfaStatus } = useQuery({
+    queryKey: ['mfa', 'status'],
+    queryFn: async () => {
+      const res = await api.get('/mfa/status');
+      return res.data;
+    },
+  });
 
   useEffect(() => {
     if (activeSection) {
@@ -119,7 +128,16 @@ const EmployeeMobileProfile = () => {
     { id: 'emergency', label: 'Emergency Contact', icon: Shield, color: 'text-[var(--status-danger-text)]', bg: 'bg-[var(--status-danger-bg)]' },
     { id: 'my-team', label: 'My Team & Manager', icon: Users, color: 'text-[var(--status-success-text)]', bg: 'bg-[var(--status-success-bg)]' },
     { id: 'assets', label: 'Assigned Assets', icon: Laptop, color: 'text-[var(--brand-deep)]', bg: 'bg-[var(--brand-tint)]' },
-    { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-[var(--text-2)]', bg: 'bg-[var(--surface-alt)]' }
+    { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-[var(--text-2)]', bg: 'bg-[var(--surface-alt)]' },
+    ...(mfaStatus?.authorized ? [{
+      id: 'security',
+      label: 'Two-Factor Auth (2FA)',
+      icon: ShieldCheck,
+      color: mfaStatus?.enabled ? 'text-emerald-600' : 'text-[var(--brand-deep)]',
+      bg: mfaStatus?.enabled ? 'bg-emerald-500/10' : 'bg-[var(--brand-tint)]',
+      badge: mfaStatus?.enabled ? 'Active' : 'Off',
+      badgeColor: mfaStatus?.enabled ? 'bg-emerald-500/10 text-emerald-600' : 'bg-neutral-500/10 text-neutral-500'
+    }] : [])
   ];
 
   const DetailItem = ({ icon: Icon, label, value }) => {
@@ -315,6 +333,12 @@ const EmployeeMobileProfile = () => {
             {renderTimeline()}
           </div>
         );
+      case 'security':
+        return (
+          <div className="space-y-4">
+            <MfaSecurityCard />
+          </div>
+        );
       default: return null;
     }
   };
@@ -335,14 +359,28 @@ const EmployeeMobileProfile = () => {
               Account & <span className="text-[var(--brand-deep)]">Profile</span>
             </h2>
 
-            <button
-              type="button"
-              onClick={handleEditClick}
-              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
-            >
-              <Edit2 className="w-3.5 h-3.5 text-white" />
-              <span>Edit Profile</span>
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {mfaStatus?.authorized && (
+                <button
+                  type="button"
+                  onClick={() => setActiveSection('security')}
+                  className="h-9 px-3 inline-flex items-center justify-center gap-1.5 border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--text)] rounded-full text-xs font-semibold tracking-wide shadow-2xs transition-all cursor-pointer whitespace-nowrap"
+                  title="Two-Factor Authentication"
+                >
+                  <ShieldCheck className={`w-3.5 h-3.5 ${mfaStatus?.enabled ? 'text-emerald-500' : 'text-[var(--brand-deep)]'}`} />
+                  <span>2FA</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${mfaStatus?.enabled ? 'bg-emerald-500' : 'bg-neutral-400'}`} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleEditClick}
+                className="shrink-0 h-9 px-3.5 sm:px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              >
+                <Edit2 className="w-3.5 h-3.5 text-white" />
+                <span>Edit Profile</span>
+              </button>
+            </div>
           </div>
           <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-1">
             Personal credentials, settings & assets
@@ -420,8 +458,13 @@ const EmployeeMobileProfile = () => {
                   <div className={`w-10 h-10 rounded-[12px] ${section.bg} ${section.color} flex items-center justify-center shrink-0`}>
                     <Icon className="w-5 h-5" />
                   </div>
-                  <div>
+                  <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-[var(--text)]">{section.label}</span>
+                    {section.badge && (
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${section.badgeColor}`}>
+                        {section.badge}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[var(--muted)]" />
