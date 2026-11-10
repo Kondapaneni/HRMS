@@ -332,6 +332,48 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         // one query per row (was N+1 — a list of 50 applications meant 51 queries).
         $docsByAppId = getLoanDocumentsBatch($conn, $rows);
 
+        $applicationIds = [];
+        $rowIds = [];
+        foreach ($rows as $row) {
+            $applicationIds[(string)($row['application_id'] ?: $row['id'])] = true;
+            $rowIds[(string)$row['id']] = true;
+        }
+
+        $auditLogsByKey = [];
+        if ($applicationIds || $rowIds) {
+            $applicationIds = array_keys($applicationIds);
+            $rowIds = array_keys($rowIds);
+            $auditConditions = [];
+            $auditParams = [];
+
+            if ($applicationIds) {
+                $auditConditions[] = 'application_id IN (' . implode(',', array_fill(0, count($applicationIds), '?')) . ')';
+                $auditParams = array_merge($auditParams, $applicationIds);
+            }
+            if ($rowIds) {
+                $auditConditions[] = 'loan_application_id IN (' . implode(',', array_fill(0, count($rowIds), '?')) . ')';
+                $auditParams = array_merge($auditParams, $rowIds);
+            }
+
+            $auditStmt = $conn->prepare('
+                SELECT id, application_id, loan_application_id, editor_name, editor_user_id,
+                       changes, changes_count, created_at
+                FROM public.loan_application_audit_logs
+                WHERE ' . implode(' OR ', $auditConditions) . '
+                ORDER BY created_at ASC
+            ');
+            $auditStmt->execute($auditParams);
+
+            foreach ($auditStmt->fetchAll(PDO::FETCH_ASSOC) as $auditLog) {
+                if (!empty($auditLog['application_id'])) {
+                    $auditLogsByKey['app:' . $auditLog['application_id']][] = $auditLog;
+                }
+                if (!empty($auditLog['loan_application_id'])) {
+                    $auditLogsByKey['row:' . $auditLog['loan_application_id']][] = $auditLog;
+                }
+            }
+        }
+
         foreach ($rows as &$row) {
             if (isset($row['form_data']) && is_string($row['form_data'])) {
                 $row['form_data'] = json_decode($row['form_data'], true);
@@ -340,6 +382,25 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
                 $row['signatures'] = json_decode($row['signatures'], true);
             }
             $row['documents'] = resolveLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
+
+            $auditLogs = [];
+            $seenAuditLogIds = [];
+            $auditKeys = [
+                'app:' . ($row['application_id'] ?: (string)$row['id']),
+                'row:' . $row['id'],
+            ];
+            foreach ($auditKeys as $auditKey) {
+                foreach ($auditLogsByKey[$auditKey] ?? [] as $auditLog) {
+                    if (isset($seenAuditLogIds[$auditLog['id']])) continue;
+                    $seenAuditLogIds[$auditLog['id']] = true;
+                    if (is_string($auditLog['changes'])) {
+                        $auditLog['changes'] = json_decode($auditLog['changes'], true) ?: [];
+                    }
+                    $auditLogs[] = $auditLog;
+                }
+            }
+            usort($auditLogs, fn($a, $b) => strtotime($a['created_at']) <=> strtotime($b['created_at']));
+            $row['audit_logs'] = $auditLogs;
         }
         unset($row);
 
