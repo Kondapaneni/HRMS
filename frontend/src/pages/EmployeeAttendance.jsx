@@ -26,7 +26,21 @@ const EmployeeAttendance = () => {
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const isWebAttendanceEnabled = profile?.webAttendanceEnabled == 1 || profile?.webAttendanceEnabled === true || profile?.webAttendanceEnabled === '1' || profile?.webAttendanceEnabled === 'true';
+  const { data: employeeProfileResponse } = useQuery({
+    queryKey: ['employee', 'profile'],
+    queryFn: async () => {
+      const res = await api.get('/employee/profile');
+      return res.data;
+    },
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
+  });
+  const attendanceProfile = employeeProfileResponse?.profile || profile;
+  const isWebAttendanceEnabled =
+    attendanceProfile?.webAttendanceEnabled == 1 ||
+    attendanceProfile?.webAttendanceEnabled === true ||
+    attendanceProfile?.webAttendanceEnabled === '1' ||
+    attendanceProfile?.webAttendanceEnabled === 'true';
 
   // Filters
   const [selectedMonth, setSelectedMonth] = useState(() => {
