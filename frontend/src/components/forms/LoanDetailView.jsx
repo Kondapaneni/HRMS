@@ -319,10 +319,9 @@ function MobileDetailView({
     application.form_data?.documents ||
     {};
   const resolveTimeline = () => {
-    if (externalTimeline && Array.isArray(externalTimeline) && externalTimeline.length > 0) {
-      return externalTimeline;
-    }
-    const raw = formData.timeline || application.form_data?.timeline || application.stage_history || [];
+    const raw = Array.isArray(externalTimeline)
+      ? externalTimeline
+      : formData.timeline || application.form_data?.timeline || application.stage_history || [];
     const base = raw.filter(
       (ev) => ev.stage !== 'Application Updated' && !String(ev.action || '').includes('Modified')
     );
@@ -879,10 +878,9 @@ function DesktopPaperView({
     application.form_data?.documents ||
     {};
   const resolveTimeline = () => {
-    if (externalTimeline && Array.isArray(externalTimeline) && externalTimeline.length > 0) {
-      return externalTimeline;
-    }
-    const raw = formData.timeline || application.form_data?.timeline || application.stage_history || [];
+    const raw = Array.isArray(externalTimeline)
+      ? externalTimeline
+      : formData.timeline || application.form_data?.timeline || application.stage_history || [];
     const base = raw.filter(
       (ev) => ev.stage !== 'Application Updated' && !String(ev.action || '').includes('Modified')
     );

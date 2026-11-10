@@ -4,11 +4,24 @@ import { RefreshCw, Download, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import api, { REMOTE_ORIGIN, isNativeApp } from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
+
+const PUBLIC_ROUTES = [
+  '/',
+  '/login',
+  '/candidate/login',
+  '/candidate/activate',
+  '/forgot-password',
+  '/reset-password',
+];
 
 export default function UpdateOverlay() {
   const location = useLocation();
+  const { user, profile } = useAuth();
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const isAuthenticated = Boolean(user && profile);
+  const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
 
   // Suppress update overlay if employee is writing an assessment or in exam instructions/session
   const isAssessmentActive = 
@@ -29,6 +42,7 @@ export default function UpdateOverlay() {
         return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
       }
     },
+    enabled: isAuthenticated && !isPublicRoute,
     refetchInterval: 15000,
     staleTime: 10000,
     refetchOnWindowFocus: false,
@@ -40,6 +54,11 @@ export default function UpdateOverlay() {
 
   useEffect(() => {
     const checkVersion = async () => {
+      if (!isAuthenticated || isPublicRoute) {
+        setUpdateAvailable(false);
+        return;
+      }
+
       if (import.meta.env.DEV) {
         setUpdateAvailable(false);
         return;
@@ -93,7 +112,7 @@ export default function UpdateOverlay() {
       window.removeEventListener('storage', handleCheck);
       clearInterval(interval);
     };
-  }, [newsData, isAssessmentActive]);
+  }, [newsData, isAssessmentActive, isAuthenticated, isPublicRoute]);
 
   const handleUpdate = () => {
     setIsUpdating(true);
@@ -112,7 +131,8 @@ export default function UpdateOverlay() {
   };
 
   const isDevBypassedNow = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
-  const shouldShowUpdate = updateAvailable && (!isMaintenanceMode || isDevBypassedNow) && !isAssessmentActive;
+  const shouldShowUpdate = isAuthenticated && !isPublicRoute &&
+    updateAvailable && (!isMaintenanceMode || isDevBypassedNow) && !isAssessmentActive;
 
   return (
     <AnimatePresence>
