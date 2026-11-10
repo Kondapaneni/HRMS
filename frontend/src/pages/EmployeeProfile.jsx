@@ -383,16 +383,16 @@ const EmployeeProfile = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 shrink-0">
             {mfaStatus?.authorized && (
               <button 
                 type="button"
                 onClick={() => setIsMfaModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--text)] transition-all cursor-pointer shadow-xs"
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--text)] transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
               >
-                <ShieldCheck className={`w-3.5 h-3.5 ${mfaStatus?.enabled ? 'text-emerald-500' : 'text-[var(--brand-deep)]'}`} />
-                <span>Two-Factor Auth</span>
-                <span className={`inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-semibold ${
+                <ShieldCheck className={`w-4 h-4 shrink-0 ${mfaStatus?.enabled ? 'text-emerald-500' : 'text-[var(--brand-deep)]'}`} />
+                <span className="whitespace-nowrap">Two-Factor Auth</span>
+                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap shrink-0 ${
                   mfaStatus?.enabled ? 'bg-emerald-500/10 text-emerald-600' : 'bg-neutral-500/10 text-neutral-500'
                 }`}>
                   {mfaStatus?.enabled ? 'Active' : 'Off'}
@@ -402,10 +402,10 @@ const EmployeeProfile = () => {
             <button 
               type="button"
               onClick={() => navigate('/employee/profile/edit')}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white transition-all cursor-pointer shadow-none"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white transition-all cursor-pointer shadow-none whitespace-nowrap shrink-0"
             >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>Edit profile</span>
+              <Edit3 className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">Edit profile</span>
             </button>
           </div>
         </div>
@@ -882,28 +882,16 @@ const EmployeeProfile = () => {
             className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity cursor-pointer"
             onClick={() => setIsMfaModalOpen(false)}
           />
-          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--surface)] rounded-[24px] border border-[var(--line)] shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-[var(--text)]">Two-Factor Authentication (2FA)</h3>
-                  <p className="text-xs text-[var(--muted)]">Manage your TOTP authenticator app and emergency backup recovery codes</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsMfaModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="pt-2">
-              <MfaSecurityCard />
-            </div>
+          <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-[var(--surface)] rounded-[28px] border border-[var(--line)] shadow-2xl p-6 sm:p-7">
+            <button
+              type="button"
+              onClick={() => setIsMfaModalOpen(false)}
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer z-20 shrink-0"
+              title="Close"
+            >
+              <X className="w-4 h-4 shrink-0" />
+            </button>
+            <MfaSecurityCard />
           </div>
         </div>
       )}

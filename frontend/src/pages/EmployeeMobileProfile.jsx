@@ -364,12 +364,12 @@ const EmployeeMobileProfile = () => {
                 <button
                   type="button"
                   onClick={() => setActiveSection('security')}
-                  className="h-9 px-3 inline-flex items-center justify-center gap-1.5 border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--text)] rounded-full text-xs font-semibold tracking-wide shadow-2xs transition-all cursor-pointer whitespace-nowrap"
+                  className="h-9 px-3 inline-flex items-center justify-center gap-1.5 border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--text)] rounded-full text-xs font-semibold tracking-wide shadow-2xs transition-all cursor-pointer whitespace-nowrap shrink-0"
                   title="Two-Factor Authentication"
                 >
-                  <ShieldCheck className={`w-3.5 h-3.5 ${mfaStatus?.enabled ? 'text-emerald-500' : 'text-[var(--brand-deep)]'}`} />
-                  <span>2FA</span>
-                  <span className={`w-1.5 h-1.5 rounded-full ${mfaStatus?.enabled ? 'bg-emerald-500' : 'bg-neutral-400'}`} />
+                  <ShieldCheck className={`w-4 h-4 shrink-0 ${mfaStatus?.enabled ? 'text-emerald-500' : 'text-[var(--brand-deep)]'}`} />
+                  <span className="whitespace-nowrap">2FA</span>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${mfaStatus?.enabled ? 'bg-emerald-500' : 'bg-neutral-400'}`} />
                 </button>
               )}
               <button
@@ -377,8 +377,8 @@ const EmployeeMobileProfile = () => {
                 onClick={handleEditClick}
                 className="shrink-0 h-9 px-3.5 sm:px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
               >
-                <Edit2 className="w-3.5 h-3.5 text-white" />
-                <span>Edit Profile</span>
+                <Edit2 className="w-4 h-4 shrink-0 text-white" />
+                <span className="whitespace-nowrap">Edit Profile</span>
               </button>
             </div>
           </div>

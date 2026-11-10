@@ -164,22 +164,22 @@ export default function MfaSecurityCard() {
   return (
     <>
       {/* Main Security Card */}
-      <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-5 antialiased">
+      <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-5 antialiased font-sans">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--line)]">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="flex items-start sm:items-center gap-3 min-w-0">
+            <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] shrink-0">
+              <ShieldCheck className="w-5 h-5 shrink-0" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-[var(--text)]">Two-Factor Authentication (MFA)</h3>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold text-[var(--text)] whitespace-nowrap">Two-Factor Authentication (MFA)</h3>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap shrink-0 ${
                   isEnabled 
                     ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' 
                     : 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)]'
                 }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isEnabled ? 'bg-emerald-500' : 'bg-neutral-400'}`} />
-                  {isEnabled ? 'Active & Enforced' : 'Not Configured'}
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${isEnabled ? 'bg-emerald-500' : 'bg-neutral-400'}`} />
+                  <span className="whitespace-nowrap">{isEnabled ? 'Active & Enforced' : 'Not Configured'}</span>
                 </span>
               </div>
               <p className="text-xs text-[var(--muted)] mt-0.5">
@@ -188,9 +188,9 @@ export default function MfaSecurityCard() {
             </div>
           </div>
 
-          <div>
+          <div className="shrink-0 flex items-center">
             {isEnabled ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 whitespace-nowrap shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -198,7 +198,7 @@ export default function MfaSecurityCard() {
                     setNewRegenCodes([]);
                     setIsRegenOpen(true);
                   }}
-                  className="px-3.5 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
+                  className="px-3.5 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer whitespace-nowrap shrink-0"
                 >
                   Regenerate Backup Codes
                 </button>
@@ -209,7 +209,7 @@ export default function MfaSecurityCard() {
                     setDisableCode('');
                     setIsDisableOpen(true);
                   }}
-                  className="px-3.5 py-2 rounded-full text-xs font-semibold border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 transition-all cursor-pointer"
+                  className="px-3.5 py-2 rounded-full text-xs font-semibold border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 transition-all cursor-pointer whitespace-nowrap shrink-0"
                 >
                   Disable 2FA
                 </button>
@@ -219,10 +219,14 @@ export default function MfaSecurityCard() {
                 type="button"
                 onClick={() => startSetupMutation.mutate()}
                 disabled={startSetupMutation.isPending}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-black hover:bg-neutral-800 text-white transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white transition-all cursor-pointer shadow-xs disabled:opacity-50 whitespace-nowrap shrink-0 active:scale-95"
               >
-                {startSetupMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Smartphone className="w-3.5 h-3.5" />}
-                <span>Configure Authenticator</span>
+                {startSetupMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0 text-white" />
+                ) : (
+                  <Smartphone className="w-4.5 h-4.5 shrink-0 text-white stroke-[2.2]" />
+                )}
+                <span className="whitespace-nowrap">Configure Authenticator</span>
               </button>
             )}
           </div>
@@ -243,7 +247,7 @@ export default function MfaSecurityCard() {
               </div>
             </div>
             <div className="text-left sm:text-right shrink-0">
-              <span className="text-xs font-medium text-emerald-800 dark:text-emerald-300 px-3 py-1 bg-white/70 dark:bg-black/30 rounded-full border border-emerald-500/20 inline-flex items-center gap-1">
+              <span className="text-xs font-medium text-emerald-800 dark:text-emerald-300 px-3 py-1 bg-white/70 dark:bg-black/30 rounded-full border border-emerald-500/20 inline-flex items-center gap-1 whitespace-nowrap shrink-0">
                 <strong className="font-semibold">{mfaStatus?.remainingBackupCodes ?? 0}</strong> of 8 backup codes remaining
               </span>
             </div>
@@ -252,8 +256,8 @@ export default function MfaSecurityCard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] border border-[var(--line)] space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)]">
-                <Smartphone className="w-4 h-4 text-[#2F6B38]" />
-                <span>Standard TOTP</span>
+                <Smartphone className="w-4.5 h-4.5 shrink-0 text-[#2F6B38]" />
+                <span className="whitespace-nowrap">Standard TOTP</span>
               </div>
               <p className="text-[11px] text-[var(--muted)] leading-relaxed">
                 Works with any standard app: Google Authenticator, Microsoft Authenticator, Authy, or 1Password.
@@ -261,8 +265,8 @@ export default function MfaSecurityCard() {
             </div>
             <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] border border-[var(--line)] space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)]">
-                <Lock className="w-4 h-4 text-[#2F6B38]" />
-                <span>Zero Trust Login</span>
+                <Lock className="w-4.5 h-4.5 shrink-0 text-[#2F6B38]" />
+                <span className="whitespace-nowrap">Zero Trust Login</span>
               </div>
               <p className="text-[11px] text-[var(--muted)] leading-relaxed">
                 Prevents unauthorized access even if your password is breached or accidentally exposed.
@@ -270,8 +274,8 @@ export default function MfaSecurityCard() {
             </div>
             <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] border border-[var(--line)] space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text)]">
-                <KeyRound className="w-4 h-4 text-[#2F6B38]" />
-                <span>Emergency Backup</span>
+                <KeyRound className="w-4.5 h-4.5 shrink-0 text-[#2F6B38]" />
+                <span className="whitespace-nowrap">Emergency Backup</span>
               </div>
               <p className="text-[11px] text-[var(--muted)] leading-relaxed">
                 Includes 8 single-use recovery codes so you never lose account access if your device is unavailable.
@@ -334,19 +338,19 @@ export default function MfaSecurityCard() {
                   </div>
 
                   {/* Manual Key Fallback */}
-                  <div className="p-3 rounded-xl bg-[var(--surface-alt)] border border-[var(--line)] space-y-1.5">
+                  <div className="p-3.5 rounded-2xl bg-[var(--surface-alt)] border border-[var(--line)] space-y-1.5 font-sans">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-[var(--muted)]">Manual Secret Key</span>
+                      <span className="text-[11px] font-semibold text-[var(--muted)]">Manual Secret Key</span>
                       <button
                         type="button"
                         onClick={handleCopySecret}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--brand)] hover:underline cursor-pointer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer"
                       >
-                        {hasCopiedSecret ? <Check size={12} /> : <Copy size={12} />}
+                        {hasCopiedSecret ? <Check size={14} className="shrink-0" /> : <Copy size={14} className="shrink-0" />}
                         <span>{hasCopiedSecret ? 'Copied' : 'Copy key'}</span>
                       </button>
                     </div>
-                    <p className="font-mono text-xs tracking-wider font-semibold break-all text-[var(--text)] select-all">
+                    <p className="font-sans text-xs sm:text-sm tracking-wider font-semibold break-all text-[var(--text)] select-all leading-relaxed">
                       {setupData.secret}
                     </p>
                   </div>
@@ -355,14 +359,14 @@ export default function MfaSecurityCard() {
                     <button
                       type="button"
                       onClick={() => setIsSetupOpen(false)}
-                      className="px-4 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] transition-all cursor-pointer whitespace-nowrap"
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={() => setSetupStep(2)}
-                      className="px-5 py-2 rounded-full text-xs font-semibold bg-black hover:bg-neutral-800 text-white transition-all cursor-pointer shadow-xs"
+                      className="px-5 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white transition-all cursor-pointer shadow-xs whitespace-nowrap active:scale-95"
                     >
                       Next: Verify Code
                     </button>
@@ -389,7 +393,7 @@ export default function MfaSecurityCard() {
                       placeholder="000000"
                       value={verifyCode}
                       onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className="w-48 h-12 text-center font-mono text-xl tracking-[0.4em] font-bold rounded-2xl border border-[var(--line)] bg-[var(--surface-alt)] text-[var(--text)] outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-inner"
+                      className="w-48 h-12 text-center font-sans text-xl tracking-[0.35em] font-bold rounded-2xl border border-[var(--line)] bg-[var(--surface-alt)] text-[var(--text)] outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-inner"
                     />
                   </div>
 
@@ -397,7 +401,7 @@ export default function MfaSecurityCard() {
                     <button
                       type="button"
                       onClick={() => setSetupStep(1)}
-                      className="px-4 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] transition-all cursor-pointer whitespace-nowrap"
                     >
                       Back to QR Code
                     </button>
@@ -405,9 +409,9 @@ export default function MfaSecurityCard() {
                       type="button"
                       disabled={verifyCode.length < 6 || confirmSetupMutation.isPending}
                       onClick={() => confirmSetupMutation.mutate(verifyCode)}
-                      className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold bg-black hover:bg-neutral-800 text-white disabled:opacity-50 transition-all cursor-pointer shadow-xs"
+                      className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white disabled:opacity-50 transition-all cursor-pointer shadow-xs whitespace-nowrap active:scale-95"
                     >
-                      {confirmSetupMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                      {confirmSetupMutation.isPending && <Loader2 className="w-4 h-4 animate-spin shrink-0" />}
                       <span>Verify &amp; Enable</span>
                     </button>
                   </div>
@@ -416,9 +420,9 @@ export default function MfaSecurityCard() {
 
               {/* STEP 3: BACKUP CODES */}
               {setupStep === 3 && (
-                <div className="space-y-4">
+                <div className="space-y-4 font-sans">
                   <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5">
-                    <AlertTriangle size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                     <div>
                       <p className="font-semibold">Save your emergency backup recovery codes!</p>
                       <p className="text-[11px] opacity-90 mt-0.5">
@@ -432,7 +436,7 @@ export default function MfaSecurityCard() {
                     {backupCodes.map((code, idx) => (
                       <div
                         key={idx}
-                        className="py-1.5 px-3 rounded-lg bg-white dark:bg-neutral-800 text-center font-mono text-xs font-bold text-[var(--text)] border border-[var(--line)] select-all shadow-2xs"
+                        className="py-2 px-3 rounded-xl bg-white dark:bg-neutral-800 text-center font-sans text-xs font-semibold tracking-wider text-[var(--text)] border border-[var(--line)] select-all shadow-2xs whitespace-nowrap"
                       >
                         {code}
                       </div>
@@ -445,17 +449,17 @@ export default function MfaSecurityCard() {
                       <button
                         type="button"
                         onClick={() => handleCopyBackupCodes(backupCodes)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer whitespace-nowrap"
                       >
-                        {hasCopiedCodes ? <Check size={12} /> : <Copy size={12} />}
+                        {hasCopiedCodes ? <Check size={14} className="shrink-0" /> : <Copy size={14} className="shrink-0" />}
                         <span>{hasCopiedCodes ? 'Copied' : 'Copy All'}</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDownloadBackupCodes(backupCodes)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer whitespace-nowrap"
                       >
-                        <Download size={12} />
+                        <Download size={14} className="shrink-0" />
                         <span>Download .txt</span>
                       </button>
                     </div>
@@ -463,7 +467,7 @@ export default function MfaSecurityCard() {
                     <button
                       type="button"
                       onClick={() => setIsSetupOpen(false)}
-                      className="px-6 py-2 rounded-full text-xs font-semibold bg-black hover:bg-neutral-800 text-white transition-all cursor-pointer shadow-xs"
+                      className="px-6 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white transition-all cursor-pointer shadow-xs whitespace-nowrap active:scale-95"
                     >
                       Done
                     </button>
@@ -511,7 +515,7 @@ export default function MfaSecurityCard() {
                       placeholder="6-digit authenticator code"
                       value={regenCode}
                       onChange={(e) => setRegenCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className="w-full h-11 px-4 rounded-xl border border-[var(--line)] bg-[var(--surface-alt)] font-mono text-center tracking-widest text-sm font-bold text-[var(--text)] outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                      className="w-full h-11 px-4 rounded-xl border border-[var(--line)] bg-[var(--surface-alt)] font-sans text-center tracking-widest text-sm font-semibold text-[var(--text)] outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
                     />
                   </div>
 
@@ -519,7 +523,7 @@ export default function MfaSecurityCard() {
                     <button
                       type="button"
                       onClick={() => setIsRegenOpen(false)}
-                      className="px-4 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] transition-all cursor-pointer whitespace-nowrap"
                     >
                       Cancel
                     </button>
@@ -527,7 +531,7 @@ export default function MfaSecurityCard() {
                       type="button"
                       disabled={regenCode.length < 6 || regenCodesMutation.isPending}
                       onClick={() => regenCodesMutation.mutate(regenCode)}
-                      className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-black hover:bg-neutral-800 text-white disabled:opacity-50 transition-all cursor-pointer shadow-xs"
+                      className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white disabled:opacity-50 transition-all cursor-pointer shadow-xs whitespace-nowrap active:scale-95"
                     >
                       {regenCodesMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                       <span>Generate New Codes</span>
@@ -535,13 +539,13 @@ export default function MfaSecurityCard() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 font-sans">
                   <p className="text-xs font-semibold text-emerald-600">New backup codes generated!</p>
                   <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-[var(--surface-alt)] border border-[var(--line)]">
                     {newRegenCodes.map((code, idx) => (
                       <div
                         key={idx}
-                        className="py-1 px-2.5 rounded-lg bg-white dark:bg-neutral-800 text-center font-mono text-xs font-bold text-[var(--text)] border border-[var(--line)] select-all"
+                        className="py-1.5 px-2.5 rounded-lg bg-white dark:bg-neutral-800 text-center font-sans text-xs font-semibold tracking-wider text-[var(--text)] border border-[var(--line)] select-all whitespace-nowrap shadow-2xs"
                       >
                         {code}
                       </div>
@@ -552,15 +556,15 @@ export default function MfaSecurityCard() {
                     <button
                       type="button"
                       onClick={() => handleCopyBackupCodes(newRegenCodes)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] transition-all cursor-pointer whitespace-nowrap"
                     >
-                      <Copy size={12} />
+                      <Copy size={14} className="shrink-0" />
                       <span>Copy All</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsRegenOpen(false)}
-                      className="px-5 py-1.5 rounded-full text-xs font-semibold bg-black text-white hover:bg-neutral-800 transition-all cursor-pointer"
+                      className="px-5 py-1.5 rounded-full text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink)]/90 transition-all cursor-pointer whitespace-nowrap active:scale-95"
                     >
                       Done
                     </button>
@@ -628,7 +632,7 @@ export default function MfaSecurityCard() {
                     placeholder="e.g. 123456"
                     value={disableCode}
                     onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full h-10 px-3.5 rounded-xl border border-[var(--line)] bg-[var(--surface-alt)] font-mono text-xs text-[var(--text)] outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
+                    className="w-full h-10 px-3.5 rounded-xl border border-[var(--line)] bg-[var(--surface-alt)] font-sans text-xs font-medium text-[var(--text)] outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
                   />
                 </div>
               </div>
@@ -637,7 +641,7 @@ export default function MfaSecurityCard() {
                 <button
                   type="button"
                   onClick={() => setIsDisableOpen(false)}
-                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] transition-all cursor-pointer whitespace-nowrap"
                 >
                   Keep 2FA Enabled
                 </button>
@@ -645,7 +649,7 @@ export default function MfaSecurityCard() {
                   type="button"
                   disabled={(!disablePassword && !disableCode) || disableMfaMutation.isPending}
                   onClick={() => disableMfaMutation.mutate({ password: disablePassword, code: disableCode })}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 transition-all cursor-pointer shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 transition-all cursor-pointer shadow-xs whitespace-nowrap active:scale-95"
                 >
                   {disableMfaMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Disable 2FA</span>
