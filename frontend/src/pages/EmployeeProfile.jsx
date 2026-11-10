@@ -6,7 +6,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Search, Edit3, ChevronDown, ChevronUp, Camera,
-  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2, Sun, Moon, Lock, ShieldCheck
+  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2, Lock, ShieldCheck
 } from 'lucide-react';
 import MfaSecurityCard from '../components/MfaSecurityCard';
 import { Tree, TreeNode } from 'react-organizational-chart';
@@ -18,13 +18,11 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import EmployeeMobileProfile from './EmployeeMobileProfile';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 
 const EmployeeProfile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { fetchProfile } = useAuth();
-  const { themePreference, setThemePreference } = useTheme();
   const [activeTab, setActiveTab] = useState('personal');
   const [isUploading, setIsUploading] = useState(false);
 
@@ -553,73 +551,6 @@ const EmployeeProfile = () => {
                   <div>
                     <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Permanent Address</p>
                     <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{address || 'Not set'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Interface & Theme Preferences */}
-              <div className="pt-4 border-t border-[var(--line)]">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
-                  <div>
-                    <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
-                      WORKSPACE APPEARANCE
-                    </span>
-                    <h4 className="text-sm font-semibold text-[var(--text)] mt-0.5">
-                      Theme Preference
-                    </h4>
-                    <p className="text-xs text-[var(--muted)] mt-0.5">
-                      Set your default workspace mode: Light, Dark, or automatically match your device.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 p-1 bg-[var(--surface)] border border-[var(--line)] rounded-full shrink-0">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await setThemePreference('light');
-                        toast.success('Theme preference saved: Light');
-                      }}
-                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                        themePreference === 'light'
-                          ? 'bg-[var(--ink)] text-white shadow-xs'
-                          : 'text-[var(--muted)] hover:text-[var(--text)]'
-                      }`}
-                    >
-                      <Sun size={13} className={themePreference === 'light' ? 'text-[#E6B350]' : ''} />
-                      <span>Light</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await setThemePreference('dark');
-                        toast.success('Theme preference saved: Dark');
-                      }}
-                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                        themePreference === 'dark'
-                          ? 'bg-[var(--ink)] text-white shadow-xs'
-                          : 'text-[var(--muted)] hover:text-[var(--text)]'
-                      }`}
-                    >
-                      <Moon size={13} />
-                      <span>Dark</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await setThemePreference('system');
-                        toast.success('Theme preference saved: System');
-                      }}
-                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                        themePreference === 'system'
-                          ? 'bg-[var(--brand-deep)] text-white shadow-xs'
-                          : 'text-[var(--muted)] hover:text-[var(--text)]'
-                      }`}
-                    >
-                      <Laptop size={13} />
-                      <span>System</span>
-                    </button>
                   </div>
                 </div>
               </div>
