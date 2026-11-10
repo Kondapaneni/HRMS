@@ -7,13 +7,16 @@ import {
   CheckCircle2, 
   ArrowLeft, 
   RefreshCw, 
-  KeyRound
+  KeyRound,
+  ShieldCheck,
+  Shield
 } from 'lucide-react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import AuthSideCarousel from '../components/AuthSideCarousel';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -25,6 +28,15 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
+
+  // MFA Challenge State
+  const [mfaPending, setMfaPending] = useState(false);
+  const [mfaToken, setMfaToken] = useState('');
+  const [mfaCode, setMfaCode] = useState(['', '', '', '', '', '']);
+  const [mfaMethod, setMfaMethod] = useState('totp'); // 'totp' or 'backup'
+  const [backupCode, setBackupCode] = useState('');
+  const mfaInputsRef = useRef([]);
+  const otpInputsRef = useRef([]);
 
   
 
@@ -72,7 +84,7 @@ const Login = () => {
     };
   }, [loginMethod]);
 
-  const { user, profile, profileLoading, signIn, sendLoginOtp, signInWithOtp, signOut } = useAuth();
+  const { user, profile, profileLoading, signIn, verifyMfa, sendLoginOtp, signInWithOtp, signOut } = useAuth();
   const ADMIN_ROLES = ['admin'];
 
   // Redirect if already authenticated
@@ -101,7 +113,20 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const userData = await signIn(email, password);
+      const res = await signIn(email, password);
+
+      if (res?.mfaRequired) {
+        setMfaPending(true);
+        setMfaToken(res.mfaToken);
+        setMfaCode(['', '', '', '', '', '']);
+        setBackupCode('');
+        setMfaMethod('totp');
+        setSuccessMessage('Two-Factor Authentication is required. Enter the 6-digit code from your Authenticator app.');
+        setTimeout(() => mfaInputsRef.current[0]?.focus(), 150);
+        return;
+      }
+
+      const userData = res;
 
       if (userData.forcePasswordChange) {
         navigate('/change-password');
@@ -127,6 +152,83 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleMfaSubmit = async (e) => {
+    e.preventDefault();
+    const isBackup = mfaMethod === 'backup';
+    const code = isBackup ? backupCode.trim() : mfaCode.join('');
+
+    if (!code) {
+      setError(isBackup ? 'Please enter your emergency backup code' : 'Please enter the 6-digit verification code');
+      return;
+    }
+
+    if (!isBackup && code.length < 6) {
+      setError('Please enter all 6 digits');
+      return;
+    }
+
+    setError('');
+    setSuccessMessage('');
+    setIsLoading(true);
+
+    try {
+      const verifiedUser = await verifyMfa(mfaToken, code, isBackup);
+
+      if (verifiedUser.forcePasswordChange) {
+        navigate('/change-password');
+      } else if (ADMIN_ROLES.includes(verifiedUser.role)) {
+        navigate('/admin');
+      } else if (verifiedUser.role === 'employee') {
+        navigate('/employee');
+      } else if (verifiedUser.role === 'candidate') {
+        if (signOut) await signOut();
+        throw new Error('Please use the Candidate Portal to sign in.');
+      } else {
+        navigate('/');
+      }
+    } catch (err) {
+      if (err.response?.status === 429) {
+        if (err.response.data?.secondsRemaining) {
+          setLockoutSeconds(err.response.data.secondsRemaining);
+        }
+        setError(err.response.data?.error || 'Too many verification attempts. Please wait.');
+        return;
+      }
+      setError(err.response?.data?.error || err.message || 'Verification failed. Please check the code.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMfaCodeChange = (index, value) => {
+    const digit = value.replace(/\D/g, '').slice(-1);
+    const newCode = [...mfaCode];
+    newCode[index] = digit;
+    setMfaCode(newCode);
+    if (digit && index < 5) {
+      mfaInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleMfaKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !mfaCode[index] && index > 0) {
+      mfaInputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handleMfaPaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pasted) return;
+    const newCode = [...mfaCode];
+    for (let i = 0; i < pasted.length; i++) {
+      newCode[i] = pasted[i];
+    }
+    setMfaCode(newCode);
+    const nextIndex = Math.min(pasted.length, 5);
+    mfaInputsRef.current[nextIndex]?.focus();
   };
 
   const handleSendOtp = async (e) => {
@@ -299,59 +401,62 @@ const Login = () => {
               )}
             </AnimatePresence>
 
-            {/* PASSWORD SIGN-IN FORM */}
-            {loginMethod === 'password' && (
-              <form onSubmit={handlePasswordLogin} className="space-y-4">
-                {/* Username / Email Pill Input */}
-                <div>
-                  <input
-                    id="login-email"
-                    type="email"
-                    placeholder="Username"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
-                  />
+            {/* MFA VERIFICATION FORM */}
+            {mfaPending ? (
+              <form onSubmit={handleMfaSubmit} className="space-y-4">
+                <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200/80 mb-2">
+                  <div className="flex items-center gap-2 text-neutral-800 font-medium text-xs mb-1">
+                    <ShieldCheck size={16} className="text-[#2F6B38]" />
+                    <span>Two-Factor Authentication</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                    {mfaMethod === 'totp'
+                      ? `Enter the 6-digit verification code generated by your Authenticator app for ${email}.`
+                      : 'Enter one of your emergency 8-character single-use backup recovery codes.'}
+                  </p>
                 </div>
 
-                {/* Password Pill Input with Eye toggle */}
-                <div className="relative">
-                  <input
-                    id="login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                    className="w-full h-12 pl-5 pr-12 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors p-1 cursor-pointer"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
+                {mfaMethod === 'totp' ? (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-neutral-600 text-center">
+                      6-Digit Security Code
+                    </label>
+                    <div className="flex items-center justify-between gap-1.5 sm:gap-2" onPaste={handleMfaPaste}>
+                      {mfaCode.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => (mfaInputsRef.current[idx] = el)}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleMfaCodeChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleMfaKeyDown(idx, e)}
+                          className="flex-1 min-w-0 max-w-11 h-11 sm:h-12 rounded-xl bg-neutral-50 text-neutral-900 text-center text-base sm:text-lg font-mono font-semibold border border-neutral-300 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1.5">
+                      Emergency Backup Code
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 4B8A-9F2C"
+                      value={backupCode}
+                      onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
+                      required
+                      autoFocus
+                      className="w-full h-12 px-5 py-3 rounded-xl border border-neutral-300 bg-white text-sm text-[#131315] font-mono uppercase tracking-wider placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                    />
+                  </div>
+                )}
 
-                {/* Forgot Password link */}
-                <div className="text-right pt-0.5">
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs font-medium text-neutral-500 hover:text-black transition-colors"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
-
-                {/* Full-width Black Pill Login Button */}
                 <button
                   type="submit"
-                  disabled={isLoading || lockoutSeconds > 0}
+                  disabled={isLoading || (mfaMethod === 'totp' && mfaCode.join('').length < 6) || (mfaMethod === 'backup' && !backupCode.trim()) || lockoutSeconds > 0}
                   className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
                 >
                   {isLoading ? (
@@ -359,119 +464,216 @@ const Login = () => {
                   ) : lockoutSeconds > 0 ? (
                     `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
                   ) : (
-                    'Login'
-                  )}
-                </button>
-              </form>
-            )}
-
-            {/* OTP SIGN-IN FORM */}
-            {loginMethod === 'otp' && (
-              <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-4">
-                {/* Email Pill Input */}
-                <div>
-                  <input
-                    id="otp-email"
-                    type="email"
-                    placeholder="Enter email address"
-                    value={email}
-                    disabled={otpSent}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs disabled:opacity-60"
-                  />
-                </div>
-
-                {/* OTP 6-box input */}
-                {otpSent && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-2.5 pt-1"
-                  >
-                    <label className="block text-xs font-medium text-neutral-600 text-center">
-                      Enter 6-digit verification code
-                    </label>
-
-                    <div className="flex items-center justify-between gap-1.5 sm:gap-2" onPaste={handleOtpPaste}>
-                      {otp.map((digit, idx) => (
-                        <input
-                          key={idx}
-                          ref={(el) => (otpInputsRef.current[idx] = el)}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={1}
-                          value={digit}
-                          onChange={(e) => handleOtpChange(idx, e.target.value)}
-                          onKeyDown={(e) => handleOtpKeyDown(idx, e.key)}
-                          className="flex-1 min-w-0 max-w-11 h-11 sm:h-12 rounded-xl bg-neutral-50 text-neutral-900 text-center text-base sm:text-lg font-mono font-semibold border border-neutral-300 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
-                        />
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-neutral-500 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOtpSent(false);
-                          setOtp(['', '', '', '', '', '']);
-                          setError('');
-                        }}
-                        className="inline-flex items-center gap-1 text-neutral-500 hover:text-black cursor-pointer"
-                      >
-                        <ArrowLeft size={13} />
-                        <span>Change email</span>
-                      </button>
-
-                      {otpCountdown > 0 ? (
-                        <span>Resend in <strong>{otpCountdown}s</strong></span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleSendOtp}
-                          disabled={isLoading}
-                          className="text-black font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <RefreshCw size={12} />
-                          <span>Resend code</span>
-                        </button>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isLoading || (otpSent && otp.join('').length < 6) || lockoutSeconds > 0}
-                  className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
-                >
-                  {isLoading ? (
-                    <RefreshCw size={16} className="animate-spin" />
-                  ) : !otpSent ? (
-                    'Send verification code'
-                  ) : (
                     'Verify & Sign In'
                   )}
                 </button>
-              </form>
-            )}
 
-            {/* Toggle between Password and OTP Login */}
-            <div className="text-center pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
-                  setError('');
-                  setSuccessMessage('');
-                }}
-                className="text-xs text-neutral-400 hover:text-neutral-700 font-medium transition-colors cursor-pointer"
-              >
-                {loginMethod === 'password' ? 'Sign in with Email OTP instead' : 'Sign in with Password instead'}
-              </button>
-            </div>
+                <div className="flex flex-col items-center gap-2 pt-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMfaMethod(mfaMethod === 'totp' ? 'backup' : 'totp');
+                      setError('');
+                    }}
+                    className="text-neutral-600 hover:text-black font-medium transition-colors cursor-pointer"
+                  >
+                    {mfaMethod === 'totp' ? 'Lost access to Authenticator? Use a backup code' : 'Use Authenticator app code instead'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMfaPending(false);
+                      setMfaToken('');
+                      setMfaCode(['', '', '', '', '', '']);
+                      setBackupCode('');
+                      setError('');
+                      setSuccessMessage('');
+                    }}
+                    className="inline-flex items-center gap-1 text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer mt-1"
+                  >
+                    <ArrowLeft size={13} />
+                    <span>Back to login</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                {/* PASSWORD SIGN-IN FORM */}
+                {loginMethod === 'password' && (
+                  <form onSubmit={handlePasswordLogin} className="space-y-4">
+                    {/* Username / Email Pill Input */}
+                    <div>
+                      <input
+                        id="login-email"
+                        type="email"
+                        placeholder="Username"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                        className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                      />
+                    </div>
+
+                    {/* Password Pill Input with Eye toggle */}
+                    <div className="relative">
+                      <input
+                        id="login-password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        autoComplete="current-password"
+                        className="w-full h-12 pl-5 pr-12 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors p-1 cursor-pointer"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+
+                    {/* Forgot Password link */}
+                    <div className="text-right pt-0.5">
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs font-medium text-neutral-500 hover:text-black transition-colors"
+                      >
+                        Forgot Password?
+                      </Link>
+                    </div>
+
+                    {/* Full-width Black Pill Login Button */}
+                    <button
+                      type="submit"
+                      disabled={isLoading || lockoutSeconds > 0}
+                      className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
+                    >
+                      {isLoading ? (
+                        <RefreshCw size={16} className="animate-spin" />
+                      ) : lockoutSeconds > 0 ? (
+                        `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
+                      ) : (
+                        'Login'
+                      )}
+                    </button>
+                  </form>
+                )}
+
+                {/* OTP SIGN-IN FORM */}
+                {loginMethod === 'otp' && (
+                  <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-4">
+                    {/* Email Pill Input */}
+                    <div>
+                      <input
+                        id="otp-email"
+                        type="email"
+                        placeholder="Enter email address"
+                        value={email}
+                        disabled={otpSent}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                        className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs disabled:opacity-60"
+                      />
+                    </div>
+
+                    {/* OTP 6-box input */}
+                    {otpSent && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-2.5 pt-1"
+                      >
+                        <label className="block text-xs font-medium text-neutral-600 text-center">
+                          Enter 6-digit verification code
+                        </label>
+
+                        <div className="flex items-center justify-between gap-1.5 sm:gap-2" onPaste={handleOtpPaste}>
+                          {otp.map((digit, idx) => (
+                            <input
+                              key={idx}
+                              ref={(el) => (otpInputsRef.current[idx] = el)}
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={1}
+                              value={digit}
+                              onChange={(e) => handleOtpChange(idx, e.target.value)}
+                              onKeyDown={(e) => handleOtpKeyDown(idx, e.key)}
+                              className="flex-1 min-w-0 max-w-11 h-11 sm:h-12 rounded-xl bg-neutral-50 text-neutral-900 text-center text-base sm:text-lg font-mono font-semibold border border-neutral-300 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                            />
+                          ))}
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs text-neutral-500 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOtpSent(false);
+                              setOtp(['', '', '', '', '', '']);
+                              setError('');
+                            }}
+                            className="inline-flex items-center gap-1 text-neutral-500 hover:text-black cursor-pointer"
+                          >
+                            <ArrowLeft size={13} />
+                            <span>Change email</span>
+                          </button>
+
+                          {otpCountdown > 0 ? (
+                            <span>Resend in <strong>{otpCountdown}s</strong></span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleSendOtp}
+                              disabled={isLoading}
+                              className="text-black font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <RefreshCw size={12} />
+                              <span>Resend code</span>
+                            </button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={isLoading || (otpSent && otp.join('').length < 6) || lockoutSeconds > 0}
+                      className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
+                    >
+                      {isLoading ? (
+                        <RefreshCw size={16} className="animate-spin" />
+                      ) : !otpSent ? (
+                        'Send verification code'
+                      ) : (
+                        'Verify & Sign In'
+                      )}
+                    </button>
+                  </form>
+                )}
+
+                {/* Toggle between Password and OTP Login */}
+                <div className="text-center pt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
+                      setError('');
+                      setSuccessMessage('');
+                    }}
+                    className="text-xs text-neutral-400 hover:text-neutral-700 font-medium transition-colors cursor-pointer"
+                  >
+                    {loginMethod === 'password' ? 'Sign in with Email OTP instead' : 'Sign in with Password instead'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Footer Information & Credits */}

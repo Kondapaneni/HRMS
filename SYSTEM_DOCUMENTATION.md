@@ -1040,7 +1040,7 @@ Dynamic column references in feature access queries are validated against a fixe
 
 ### Known Security Considerations
 
-Based on the security audit conducted in July 2026, the following areas require attention: JWT tokens are stored in local storage, making them vulnerable to XSS attacks — migration to HttpOnly cookies is recommended. Several components use `dangerouslySetInnerHTML` without DOMPurify sanitization, creating potential XSS vectors. CSRF token validation is not implemented for state-changing operations. The MFA infrastructure exists in the database schema but is not enforced during the login flow.
+Based on the security audit conducted in July 2026, the following areas require attention: JWT tokens are stored in local storage, making them vulnerable to XSS attacks — migration to HttpOnly cookies is recommended. Several components use `dangerouslySetInnerHTML` without DOMPurify sanitization, creating potential XSS vectors. CSRF token validation is not implemented for state-changing operations. Two-Factor Authentication (MFA / TOTP) with emergency single-use backup recovery codes is fully implemented, verified, and enforced during the sign-in flow.
 
 ---
 

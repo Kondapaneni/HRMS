@@ -93,6 +93,23 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     const response = await api.post('/login', { email, password });
+    if (response.data?.mfaRequired) {
+      return {
+        mfaRequired: true,
+        mfaToken: response.data.mfaToken,
+        email: response.data.email,
+      };
+    }
+    const { token, user: userData } = response.data;
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+    await fetchProfile();
+    return userData;
+  };
+
+  const verifyMfa = async (mfaToken, code, isBackupCode = false) => {
+    const response = await api.post('/auth/mfa/verify', { mfaToken, code, isBackupCode });
     const { token, user: userData } = response.data;
     if (token) {
       localStorage.setItem('token', token);
@@ -135,6 +152,7 @@ export const AuthProvider = ({ children }) => {
     profileLoading,
     isInitialized,
     signIn,
+    verifyMfa,
     sendLoginOtp,
     signInWithOtp,
     signOut,

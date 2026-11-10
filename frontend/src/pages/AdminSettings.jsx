@@ -22,6 +22,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
+import MfaSecurityCard from '../components/MfaSecurityCard';
 
 const AdminSettings = () => {
   const queryClient = useQueryClient();
@@ -215,6 +216,9 @@ const AdminSettings = () => {
               </div>
             </div>
           </div>
+
+          {/* Card: Administrator Two-Factor Authentication */}
+          <MfaSecurityCard />
 
           {/* Card: Mobile Attendance & Background Location Tracking */}
           <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-4">

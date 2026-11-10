@@ -6,8 +6,9 @@ import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Search, Edit3, ChevronDown, ChevronUp, Camera,
-  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2, Sun, Moon
+  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2, Sun, Moon, Lock, ShieldCheck
 } from 'lucide-react';
+import MfaSecurityCard from '../components/MfaSecurityCard';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -58,6 +59,7 @@ const EmployeeProfile = () => {
     { id: 'my-team', label: 'My Team', icon: Users },
     { id: 'my-assets', label: 'My Assets', icon: Laptop },
     { id: 'timeline', label: 'Timeline', icon: History },
+    { id: 'security', label: 'Security & 2FA', icon: Lock },
   ];
 
   const formatEnum = (val) => {
@@ -912,6 +914,13 @@ const EmployeeProfile = () => {
               <div className="pt-2">
                 {renderTimeline()}
               </div>
+            </div>
+          )}
+
+          {/* SECURITY & 2FA */}
+          {activeTab === 'security' && (
+            <div className="space-y-6">
+              <MfaSecurityCard />
             </div>
           )}
 

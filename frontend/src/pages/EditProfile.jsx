@@ -25,6 +25,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import EditMobileProfile from './EditMobileProfile';
+import MfaSecurityCard from '../components/MfaSecurityCard';
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -391,6 +392,9 @@ const EditProfile = () => {
               </div>
             </div>
           </div>
+
+          {/* Account Security & Two-Factor Authentication Card */}
+          <MfaSecurityCard />
 
           {/* Workspace Appearance Card */}
           <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-4">

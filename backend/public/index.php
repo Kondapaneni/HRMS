@@ -147,7 +147,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference"
+        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u."mfaEnabled"
         FROM users u
         WHERE u.email = ?
     ');
@@ -159,6 +159,36 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         if (!$isActive) {
             $response->getBody()->write(json_encode(['error' => 'Your account has been deactivated. Please contact your administrator.']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+
+        // Check if MFA is enabled and confirmed for this account
+        $mfaEnabled = ($user['mfaEnabled'] === true || $user['mfaEnabled'] === 'true' || $user['mfaEnabled'] === 't' || $user['mfaEnabled'] == 1);
+        if ($mfaEnabled) {
+            $mfaStmt = $conn->prepare('SELECT confirmed FROM mfa_secrets WHERE user_id = ? AND confirmed = true');
+            $mfaStmt->execute([$user['id']]);
+            $hasConfirmedMfa = (bool)$mfaStmt->fetchColumn();
+
+            if ($hasConfirmedMfa) {
+                $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+                $mfaPayload = [
+                    'iss' => 'acme_hrms',
+                    'iat' => time(),
+                    'exp' => time() + 300, // 5 minutes
+                    'type' => 'mfa_pending',
+                    'id' => $user['id'],
+                    'email' => $user['email']
+                ];
+                $mfaToken = JWT::encode($mfaPayload, $secret, 'HS256');
+
+                $response->getBody()->write(json_encode([
+                    'mfaRequired' => true,
+                    'mfaToken' => $mfaToken,
+                    'email' => $user['email']
+                ]));
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(200);
+            }
         }
         
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
@@ -578,6 +608,7 @@ require __DIR__ . '/employee_assessments_routes.php';
 require __DIR__ . '/employee_training_routes.php';
 require __DIR__ . '/employee_chatbot_routes.php';
 require __DIR__ . '/admin_chatbot_routes.php';
+require __DIR__ . '/mfa_routes.php';
 
 require __DIR__ . '/admin_dashboard_routes.php';
 require __DIR__ . '/admin_employees_routes.php';
