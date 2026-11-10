@@ -2,6 +2,9 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Capacitor } from '@capacitor/core';
 
+const DEACTIVATED_ACCOUNT_MESSAGE = 'Your account has been deactivated. Please contact your administrator.';
+let deactivationRedirectScheduled = false;
+
 export const isNativeApp = Capacitor.isNativePlatform();
 export const isIOS = (() => {
   if (typeof window === 'undefined') return false;
@@ -80,9 +83,13 @@ api.interceptors.response.use(
       // so AuthContext can handle it silently without generic error logging.
       return Promise.reject(error);
     } else if (error.response && error.response.status === 403) {
-      if (error.response.data?.error === 'Your account has been deactivated. Please contact your administrator.') {
-        if (window.location.pathname !== '/') {
-          toast.error(error.response.data.error, { duration: 5000 });
+      if (error.response.data?.error === DEACTIVATED_ACCOUNT_MESSAGE) {
+        if (window.location.pathname !== '/' && !deactivationRedirectScheduled) {
+          deactivationRedirectScheduled = true;
+          toast.error(DEACTIVATED_ACCOUNT_MESSAGE, {
+            id: 'account-deactivated',
+            duration: 5000,
+          });
           setTimeout(() => {
             window.location.href = '/';
           }, 1500);
