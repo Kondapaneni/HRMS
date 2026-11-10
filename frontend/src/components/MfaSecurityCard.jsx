@@ -154,6 +154,11 @@ export default function MfaSecurityCard() {
     toast.success('Backup codes downloaded');
   };
 
+  // If loading or not authorized by admin, do NOT show to employee!
+  if (isLoading || !mfaStatus?.authorized) {
+    return null;
+  }
+
   const isEnabled = mfaStatus?.enabled;
 
   return (

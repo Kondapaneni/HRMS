@@ -35,6 +35,20 @@ const EmployeeProfile = () => {
     onError: () => toast.error('Failed to load profile data.'),
   });
 
+  const { data: mfaStatus } = useQuery({
+    queryKey: ['mfa', 'status'],
+    queryFn: async () => {
+      const res = await api.get('/mfa/status');
+      return res.data;
+    },
+  });
+
+  useEffect(() => {
+    if (activeTab === 'security' && mfaStatus && !mfaStatus.authorized) {
+      setActiveTab('personal');
+    }
+  }, [activeTab, mfaStatus]);
+
   const profileData = profileResponse?.profile || null;
   const teamData = profileResponse?.team || null;
   const assetsData = profileResponse?.assets || [];
@@ -57,7 +71,7 @@ const EmployeeProfile = () => {
     { id: 'my-team', label: 'My Team', icon: Users },
     { id: 'my-assets', label: 'My Assets', icon: Laptop },
     { id: 'timeline', label: 'Timeline', icon: History },
-    { id: 'security', label: 'Security & 2FA', icon: Lock },
+    ...(mfaStatus?.authorized ? [{ id: 'security', label: 'Security & 2FA', icon: Lock }] : []),
   ];
 
   const formatEnum = (val) => {

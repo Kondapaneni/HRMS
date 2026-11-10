@@ -189,7 +189,7 @@ $app->get('/api/mfa/status', function (Request $request, Response $response, $ar
     $conn = $db->getConnection();
 
     $stmt = $conn->prepare('
-        SELECT u."mfaEnabled", s.confirmed as mfa_configured, s.updated_at
+        SELECT u."mfaEnabled", u.role, s.confirmed as mfa_configured, s.updated_at
         FROM users u
         LEFT JOIN mfa_secrets s ON u.id = s.user_id
         WHERE u.id = ?
@@ -197,8 +197,12 @@ $app->get('/api/mfa/status', function (Request $request, Response $response, $ar
     $stmt->execute([$userId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    $userRole = $row['role'] ?? $decodedToken->role ?? '';
     $mfaEnabled = ($row && ($row['mfaEnabled'] === true || $row['mfaEnabled'] === 'true' || $row['mfaEnabled'] === 't' || $row['mfaEnabled'] == 1));
     $configured = ($row && ($row['mfa_configured'] === true || $row['mfa_configured'] === 'true' || $row['mfa_configured'] === 't' || $row['mfa_configured'] == 1));
+
+    // Admin is always authorized for their own account; employees require admin to have toggled mfaEnabled ON
+    $isAuthorized = ($userRole === 'admin') || $mfaEnabled;
 
     // Get remaining unused backup codes count
     $stmtCount = $conn->prepare('SELECT COUNT(*) FROM mfa_backup_codes WHERE user_id = ? AND used = false');
@@ -206,7 +210,8 @@ $app->get('/api/mfa/status', function (Request $request, Response $response, $ar
     $remainingCodes = (int)$stmtCount->fetchColumn();
 
     $response->getBody()->write(json_encode([
-        'enabled' => $mfaEnabled && $configured,
+        'authorized' => $isAuthorized,
+        'enabled' => $isAuthorized && $configured,
         'authorizedByAdmin' => $mfaEnabled,
         'configured' => $configured,
         'remainingBackupCodes' => $remainingCodes,
@@ -226,13 +231,21 @@ $app->post('/api/mfa/setup', function (Request $request, Response $response, $ar
     $db = new Database();
     $conn = $db->getConnection();
 
-    $stmtUser = $conn->prepare('SELECT email FROM users WHERE id = ?');
+    $stmtUser = $conn->prepare('SELECT email, role, "mfaEnabled" FROM users WHERE id = ?');
     $stmtUser->execute([$userId]);
     $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
         $response->getBody()->write(json_encode(['error' => 'User not found']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+    }
+
+    $mfaEnabled = ($user['mfaEnabled'] === true || $user['mfaEnabled'] === 'true' || $user['mfaEnabled'] === 't' || $user['mfaEnabled'] == 1);
+    $isAuthorized = ($user['role'] === 'admin') || $mfaEnabled;
+
+    if (!$isAuthorized) {
+        $response->getBody()->write(json_encode(['error' => 'Multi-factor authentication is not authorized for your account. Please contact an administrator.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
     }
 
     $secret = TotpHelper::generateSecret(20);
@@ -273,6 +286,19 @@ $app->post('/api/mfa/confirm', function (Request $request, Response $response, $
     }
 
     $db = new Database();
+    $conn = $db->getConnection();
+
+    $stmtUser = $conn->prepare('SELECT role, "mfaEnabled" FROM users WHERE id = ?');
+    $stmtUser->execute([$userId]);
+    $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+    $mfaEnabled = ($user && ($user['mfaEnabled'] === true || $user['mfaEnabled'] === 'true' || $user['mfaEnabled'] === 't' || $user['mfaEnabled'] == 1));
+    $isAuthorized = ($user && $user['role'] === 'admin') || $mfaEnabled;
+
+    if (!$isAuthorized) {
+        $response->getBody()->write(json_encode(['error' => 'Multi-factor authentication is not authorized for your account by an administrator.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+    }
     $conn = $db->getConnection();
 
     $stmt = $conn->prepare('SELECT secret FROM mfa_secrets WHERE user_id = ?');

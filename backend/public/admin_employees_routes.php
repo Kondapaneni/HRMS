@@ -301,8 +301,6 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
         $updateFields = [];
         $updateValues = [];
         $allowedFields = ['webAttendanceEnabled', 'geoFenceEnabled', 'status', 'employmentStatus', 'employmentStatusDate', 'employmentStatusReason'];
-        
-        $disableMfa = false;
 
         // Force business logic for employment status
         if (isset($data['employmentStatus'])) {
@@ -316,11 +314,6 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
                 $data['employmentStatusDate'] = null;
                 $data['employmentStatusReason'] = null;
             }
-        }
-
-        // Flag to delete MFA configuration if it's being turned off
-        if (isset($data['mfaEnabled']) && $data['mfaEnabled'] === false) {
-            $disableMfa = true;
         }
 
         foreach ($allowedFields as $field) {
@@ -362,17 +355,16 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
                 $conn->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS "mfaEnabled" BOOLEAN DEFAULT false');
                 $userUpdates[] = '"mfaEnabled" = ?';
                 $userValues[] = $data['mfaEnabled'] ? 'true' : 'false';
+
+                // On every toggle of MFA (whether enabled or disabled), completely reset all MFA secrets and backup codes so the user starts fresh
+                $conn->prepare('DELETE FROM mfa_secrets WHERE user_id = ?')->execute([$userId]);
+                $conn->prepare('DELETE FROM mfa_backup_codes WHERE user_id = ?')->execute([$userId]);
             }
             
             if (!empty($userUpdates)) {
                 $userValues[] = $userId;
                 $sqlUser = 'UPDATE users SET ' . implode(', ', $userUpdates) . ' WHERE id = ?';
                 $conn->prepare($sqlUser)->execute($userValues);
-            }
-            
-            if ($disableMfa) {
-                $conn->prepare('DELETE FROM mfa_secrets WHERE user_id = ?')->execute([$userId]);
-                $conn->prepare('DELETE FROM mfa_backup_codes WHERE user_id = ?')->execute([$userId]);
             }
         }
         
