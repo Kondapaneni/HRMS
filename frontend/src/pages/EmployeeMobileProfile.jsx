@@ -6,7 +6,7 @@ import {
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Camera, ChevronRight, FileText,
   X, Edit2, Sparkles, Building, CheckCircle2, AlertCircle,
-  Download, RefreshCw, Sun, Moon
+  Download, RefreshCw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,13 +15,11 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 
 const EmployeeMobileProfile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { fetchProfile } = useAuth();
-  const { themePreference, effectiveTheme, setThemePreference } = useTheme();
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const controls = useDragControls();
@@ -399,73 +397,6 @@ const EmployeeMobileProfile = () => {
             </div>
           </div>
 
-        </div>
-      </section>
-
-      {/* Workspace Theme Preference */}
-      <section className="bg-[var(--surface)] p-4 rounded-[20px] border border-[var(--line)] shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase font-semibold text-[var(--muted)] tracking-wider">
-              DISPLAY SETTING
-            </p>
-            <h3 className="text-sm font-semibold text-[var(--text)] mt-0.5">
-              Theme Preference
-            </h3>
-          </div>
-          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--muted)] capitalize">
-            {themePreference === 'system' ? `System (${effectiveTheme})` : themePreference}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 pt-1">
-          <button
-            type="button"
-            onClick={async () => {
-              await setThemePreference('light');
-              toast.success('Theme preference saved: Light');
-            }}
-            className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-[16px] border transition-all cursor-pointer ${
-              themePreference === 'light'
-                ? 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-xs'
-                : 'bg-[var(--surface-alt)] border-[var(--line)] text-[var(--text)] hover:bg-[var(--line)]/50'
-            }`}
-          >
-            <Sun size={18} className={themePreference === 'light' ? 'text-[#E6B350]' : 'text-[var(--muted)]'} />
-            <span className="text-xs font-semibold">Light</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={async () => {
-              await setThemePreference('dark');
-              toast.success('Theme preference saved: Dark');
-            }}
-            className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-[16px] border transition-all cursor-pointer ${
-              themePreference === 'dark'
-                ? 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-xs'
-                : 'bg-[var(--surface-alt)] border-[var(--line)] text-[var(--text)] hover:bg-[var(--line)]/50'
-            }`}
-          >
-            <Moon size={18} className={themePreference === 'dark' ? 'text-white' : 'text-[var(--muted)]'} />
-            <span className="text-xs font-semibold">Dark</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={async () => {
-              await setThemePreference('system');
-              toast.success('Theme preference saved: System');
-            }}
-            className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-[16px] border transition-all cursor-pointer ${
-              themePreference === 'system'
-                ? 'bg-[var(--brand-deep)] text-white border-[var(--brand-deep)] shadow-xs'
-                : 'bg-[var(--surface-alt)] border-[var(--line)] text-[var(--text)] hover:bg-[var(--line)]/50'
-            }`}
-          >
-            <Laptop size={18} className={themePreference === 'system' ? 'text-white' : 'text-[var(--muted)]'} />
-            <span className="text-xs font-semibold">System</span>
-          </button>
         </div>
       </section>
 
