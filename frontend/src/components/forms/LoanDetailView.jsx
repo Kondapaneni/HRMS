@@ -47,9 +47,52 @@ const SYSTEM_IGNORED_FIELDS = [
   'from'
 ];
 
+const getChangedFieldPerson = (field) => {
+  const key = String(field || '').toLowerCase();
+  const guarantorMatch = key.match(/^guarantor_(\d+)_/);
+
+  if (guarantorMatch) return `Guarantor ${guarantorMatch[1]}`;
+  if (key.startsWith('co_')) return 'Co-Applicant';
+  if (
+    [
+      'applicant_name',
+      'phone_number',
+      'age',
+      'gender',
+      'marital_status',
+      'father_name',
+      'mother_name',
+      'husband_name',
+      'aadhaar_number',
+      'own_house',
+      'current_address',
+      'current_street',
+      'current_city',
+      'current_state',
+      'current_postal_code',
+      'permanent_address',
+      'permanent_street',
+      'permanent_city',
+      'permanent_state',
+      'permanent_postal_code',
+      'employment',
+      'job_name',
+      'job_address',
+      'job_income_per_month',
+      'business_name',
+      'business_address',
+      'business_income_per_month'
+    ].includes(key)
+  ) {
+    return 'Applicant';
+  }
+
+  return 'Application';
+};
+
 /**
  * Compact Google Workspace Style Audit Log Diff Viewer
- * Displays only the modified fields (old value vs new value) and editor details.
+ * Displays modified fields, the associated applicant, and editor details.
  */
 const AuditLogChangesViewer = ({ event }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -86,17 +129,21 @@ const AuditLogChangesViewer = ({ event }) => {
 
       {isOpen && changes.length > 0 && (
         <div className="rounded-[10px] border border-[var(--line)] overflow-x-auto bg-[var(--surface)] shadow-xs">
-          <table className="w-full text-xs text-left table-fixed min-w-[500px]">
+          <table className="w-full text-xs text-left table-fixed min-w-[560px]">
             <thead className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[var(--muted)] font-semibold whitespace-nowrap">
               <tr>
-                <th className="p-2.5 font-bold text-[var(--text)] w-[40%]">Modified Field</th>
-                <th className="p-2.5 font-bold text-[var(--muted)] w-[30%]">Previous Value</th>
-                <th className="p-2.5 font-bold text-[var(--brand-deep)] w-[30%]">Updated Value</th>
+                <th className="p-2.5 font-bold text-[var(--text)] w-[20%]">Person</th>
+                <th className="p-2.5 font-bold text-[var(--text)] w-[30%]">Modified Field</th>
+                <th className="p-2.5 font-bold text-[var(--muted)] w-[25%]">Previous Value</th>
+                <th className="p-2.5 font-bold text-[var(--brand-deep)] w-[25%]">Updated Value</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--line)]">
               {changes.map((ch, cIdx) => (
                 <tr key={cIdx} className="hover:bg-[var(--surface-alt)] transition-colors">
+                  <td className="p-2.5 font-semibold text-[var(--brand-deep)] break-words">
+                    {ch.person || getChangedFieldPerson(ch.field)}
+                  </td>
                   <td className="p-2.5 font-medium text-[#1f1f1f] break-words">
                     {ch.label || ch.field}
                   </td>
@@ -230,9 +277,11 @@ const FieldDivider = () => <div className="border-b border-[var(--line)]" />;
 const SectionCard = ({ number, title, icon: Icon, children }) => (
   <div className="bg-[var(--surface)] rounded-[20px] shadow-xs border border-[var(--line)] overflow-hidden">
     <div className="flex items-center gap-2.5 px-5 pt-4 pb-3 border-b border-[var(--line)] bg-[var(--surface-alt)]">
-      <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
-        {number}
-      </div>
+      {number !== null && number !== undefined && (
+        <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
+          {number}
+        </div>
+      )}
       {Icon && <Icon className="w-4 h-4 text-[var(--brand-deep)]" />}
       <h3 className="text-xs font-semibold text-[var(--text)] uppercase tracking-wide">
         {title}
@@ -391,7 +440,7 @@ function MobileDetailView({
       </SectionCard>
 
       {/* ── 2. Residential Addresses ── */}
-      <SectionCard number="2" title="Residential Addresses" icon={MapPin}>
+      <SectionCard number={null} title="Residential Addresses" icon={MapPin}>
         <SubSectionHeader label="Current Address" />
         <DetailField label="Address" value={formData.current_address} />
         <FieldDivider />
@@ -418,7 +467,7 @@ function MobileDetailView({
       </SectionCard>
 
       {/* ── 3. Employment / Business Details ── */}
-      <SectionCard number="3" title="Occupation & Income Details" icon={Briefcase}>
+      <SectionCard number={null} title="Occupation & Income Details" icon={Briefcase}>
         <DetailField
           label="Employment Type"
           value={
@@ -452,7 +501,7 @@ function MobileDetailView({
       </SectionCard>
 
       {/* ── 4. Co-Applicant Details ── */}
-      <SectionCard number="4" title="Co-Applicant Profile" icon={Users}>
+      <SectionCard number={hasCoApplicant ? '2' : null} title="Co-Applicant Personal Details" icon={Users}>
         <DetailField
           label="Has Co-Applicant?"
           value={hasCoApplicant ? 'Yes' : 'No'}
@@ -570,7 +619,7 @@ function MobileDetailView({
       </SectionCard>
 
       {/* ── 5. Guarantors Verification (3 Required) ── */}
-      <SectionCard number="5" title="Guarantors Verification (3 Required)" icon={ShieldCheck}>
+      <SectionCard number={hasCoApplicant ? '3' : '2'} title="Guarantors Verification (3 Required)" icon={ShieldCheck}>
         {/* Guarantor Tab Buttons */}
         <div 
           className="flex items-center gap-1.5 p-1.5 bg-[#f8fafd] rounded-full border border-[#dadce0] mb-4 shadow-2xs overflow-x-auto no-scrollbar hide-scrollbar scrollbar-none"
@@ -743,7 +792,7 @@ function MobileDetailView({
       </SectionCard>
 
       {/* ── 6. Application Timeline ── */}
-      <SectionCard number="6" title="Application Timeline & History" icon={History}>
+      <SectionCard number={hasCoApplicant ? '4' : '3'} title="Application Timeline & History" icon={History}>
         <div className="relative border-l-2 border-[var(--line)] ml-3 space-y-5 pb-2 pt-1">
           {/* Created Event */}
           <div className="relative pl-5">
@@ -1055,142 +1104,139 @@ function DesktopPaperView({
 
       {/* Paper Sheet Form Fields Body */}
       <div className="p-6 sm:p-8 space-y-8 print:space-y-4 print:p-4 bg-white text-[#1f1f1f]">
-        {/* ================= 1. APPLICANT PERSONAL DETAILS ================= */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 border-b border-[var(--line)] print:border-[#ccc] pb-2">
-            <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
+        {/* ================= 1. APPLICANT DETAILS ================= */}
+        <section className="space-y-6 print:space-y-3 print-avoid-break">
+          <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+            <div className="print:hidden w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
               1
             </div>
-            <h2 className="text-sm sm:text-base font-semibold text-[var(--text)] uppercase tracking-wide">
-              Applicant Personal Details
+            <span className="hidden print:inline text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">1.</span>
+            <h2 className="text-sm sm:text-base font-semibold text-[var(--text)] uppercase tracking-wide print:hidden">
+              Applicant Details
+            </h2>
+            <h2 className="hidden print:block text-base sm:text-lg font-bold text-[#1f1f1f] uppercase tracking-wide">
+              Applicant Details
             </h2>
           </div>
 
-          <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start pt-1">
-            <div className="flex-1 space-y-1 w-full">
-              <PaperLine label="Applicant Name" value={formData.applicant_name} />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
-                <PaperLine label="Phone Number" value={formData.phone_number} />
-                <PaperLine label="Aadhaar Number" value={formData.aadhaar_number} />
+          <div className="space-y-6 print:space-y-3 print-avoid-break">
+            {/* Personal Details */}
+            <div className="space-y-2 print:space-y-1">
+              <div className="text-xs font-semibold text-[var(--brand-deep)] uppercase tracking-wider border-b border-[var(--line)] print:border-[#ccc] pb-1 mb-2 print:mb-1 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
+                A. Applicant Personal Details
               </div>
+              <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start">
+                <div className="flex-1 space-y-1 w-full">
+                  <PaperLine label="Applicant Name" value={formData.applicant_name} />
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
+                    <PaperLine label="Phone Number" value={formData.phone_number} />
+                    <PaperLine label="Aadhaar Number" value={formData.aadhaar_number} />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
+                    <PaperLine label="Age" value={formData.age ? `${formData.age} Years` : ''} labelWidth="min-w-[70px]" />
+                    <PaperLine label="Gender" value={formData.gender} labelWidth="min-w-[70px]" />
+                    <PaperLine label="Marital Status" value={maritalDisplay} labelWidth="min-w-[100px]" />
+                  </div>
+
+                  {formData.father_name && <PaperLine label="Father's Name" value={formData.father_name} />}
+                  {formData.mother_name && <PaperLine label="Mother's Name" value={formData.mother_name} />}
+                  {formData.husband_name && <PaperLine label="Husband's Name" value={formData.husband_name} />}
+                  <PaperLine label="Own House" value={formData.own_house} />
+                </div>
+
+                {/* Passport Photo Box */}
+                <PassportPhotoBox
+                  doc={currentDocs.applicant_photo}
+                  label="Applicant"
+                  icon={User}
+                  onPreview={onPreviewDoc}
+                />
+              </div>
+            </div>
+
+            {/* Residential Address */}
+            <div className="space-y-2 print:space-y-1">
+              <div className="text-xs font-semibold text-[var(--brand-deep)] uppercase tracking-wider border-b border-[var(--line)] print:border-[#ccc] pb-1 mb-2 print:mb-1 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
+                B. Applicant Current Residential Address
+              </div>
+              <PaperLine label="Current Address" value={formData.current_address} />
+              <PaperLine label="Street / Locality" value={formData.current_street} />
               <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
-                <PaperLine label="Age" value={formData.age ? `${formData.age} Years` : ''} labelWidth="min-w-[70px]" />
-                <PaperLine label="Gender" value={formData.gender} labelWidth="min-w-[70px]" />
-                <PaperLine label="Marital Status" value={maritalDisplay} labelWidth="min-w-[100px]" />
+                <PaperLine label="City" value={formData.current_city} labelWidth="min-w-[60px]" />
+                <PaperLine label="State" value={formData.current_state} labelWidth="min-w-[60px]" />
+                <PaperLine label="Postal Code" value={formData.current_postal_code} labelWidth="min-w-[90px]" />
               </div>
 
-              {formData.father_name && <PaperLine label="Father's Name" value={formData.father_name} />}
-              {formData.mother_name && <PaperLine label="Mother's Name" value={formData.mother_name} />}
-              {formData.husband_name && <PaperLine label="Husband's Name" value={formData.husband_name} />}
-              <PaperLine label="Own House" value={formData.own_house} />
+              <div className="text-xs font-semibold text-[var(--brand-deep)] uppercase tracking-wider border-b border-[var(--line)] print:border-[#ccc] pb-1 mb-2 print:mb-1 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
+                C. Applicant Permanent Residential Address
+              </div>
+              <PaperLine label="Permanent Address" value={formData.permanent_address} />
+              <PaperLine label="Street / Locality" value={formData.permanent_street} />
+              <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
+                <PaperLine label="City" value={formData.permanent_city} labelWidth="min-w-[60px]" />
+                <PaperLine label="State" value={formData.permanent_state} labelWidth="min-w-[60px]" />
+                <PaperLine label="Postal Code" value={formData.permanent_postal_code} labelWidth="min-w-[90px]" />
+              </div>
             </div>
 
-            {/* Passport Photo Box */}
-            <PassportPhotoBox
-              doc={currentDocs.applicant_photo}
-              label="Applicant"
-              icon={User}
-              onPreview={onPreviewDoc}
-            />
-          </div>
-        </section>
+            {/* Employment & Income */}
+            <div className="space-y-2 print:space-y-1">
+              <div className="text-xs font-semibold text-[var(--brand-deep)] uppercase tracking-wider border-b border-[var(--line)] print:border-[#ccc] pb-1 mb-2 print:mb-1 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
+                D. Applicant Occupation & Income Details
+              </div>
+              <PaperLine
+                label="Employment Type"
+                value={
+                  formData.employment === 'Job'
+                    ? 'Job (Salaried)'
+                    : formData.employment === 'Business'
+                      ? 'Business (Self-Employed)'
+                      : formData.employment
+                }
+              />
 
-        {/* ================= 2. APPLICANT RESIDENTIAL ADDRESS DETAILS ================= */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-[var(--line)] print:border-[#ccc] pb-2">
-            <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
-              2
+              {formData.employment === 'Job' && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
+                    <PaperLine label="Job / Employer Name" value={formData.job_name} />
+                    <PaperLine label="Job Monthly Income" value={formatCurrency(formData.job_income_per_month)} labelWidth="min-w-[170px]" />
+                  </div>
+                  <PaperLine label="Workplace Address" value={formData.job_address} />
+                </>
+              )}
+
+              {formData.employment === 'Business' && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
+                    <PaperLine label="Business Name" value={formData.business_name} />
+                    <PaperLine label="Business Monthly Income" value={formatCurrency(formData.business_income_per_month)} labelWidth="min-w-[175px]" />
+                  </div>
+                  <PaperLine label="Business Address" value={formData.business_address} />
+                </>
+              )}
             </div>
-            <h2 className="text-sm sm:text-base font-semibold text-[var(--text)] uppercase tracking-wide">
-              Applicant Residential Address Details
-            </h2>
-          </div>
-
-          {/* Current Address */}
-          <div className="space-y-2">
-            <div className="text-xs font-semibold text-[var(--brand-deep)] uppercase tracking-wider border-b border-[var(--line)] print:border-[#ccc] pb-1 mb-2 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
-              A. Current Address
-            </div>
-            <PaperLine label="Current Address" value={formData.current_address} />
-            <PaperLine label="Street / Locality" value={formData.current_street} />
-            <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
-              <PaperLine label="City" value={formData.current_city} labelWidth="min-w-[60px]" />
-              <PaperLine label="State" value={formData.current_state} labelWidth="min-w-[60px]" />
-              <PaperLine label="Postal Code" value={formData.current_postal_code} labelWidth="min-w-[90px]" />
-            </div>
-          </div>
-
-          {/* Permanent Address */}
-          <div className="space-y-2">
-            <div className="text-xs font-semibold text-[var(--brand-deep)] uppercase tracking-wider border-b border-[var(--line)] print:border-[#ccc] pb-1 mb-2 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
-              B. Permanent Address
-            </div>
-            <PaperLine label="Permanent Address" value={formData.permanent_address} />
-            <PaperLine label="Street / Locality" value={formData.permanent_street} />
-            <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
-              <PaperLine label="City" value={formData.permanent_city} labelWidth="min-w-[60px]" />
-              <PaperLine label="State" value={formData.permanent_state} labelWidth="min-w-[60px]" />
-              <PaperLine label="Postal Code" value={formData.permanent_postal_code} labelWidth="min-w-[90px]" />
-            </div>
-          </div>
-        </section>
-
-        {/* ================= 3. APPLICANT OCCUPATION & INCOME ================= */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 border-b border-[var(--line)] print:border-[#ccc] pb-2">
-            <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
-              3
-            </div>
-            <h2 className="text-sm sm:text-base font-semibold text-[var(--text)] uppercase tracking-wide">
-              Applicant Occupation & Income Details
-            </h2>
-          </div>
-
-          <div className="space-y-2">
-            <PaperLine
-              label="Employment Type"
-              value={
-                formData.employment === 'Job'
-                  ? 'Job (Salaried)'
-                  : formData.employment === 'Business'
-                    ? 'Business (Self-Employed)'
-                    : formData.employment
-              }
-            />
-
-            {formData.employment === 'Job' && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
-                  <PaperLine label="Job / Employer Name" value={formData.job_name} />
-                  <PaperLine label="Job Monthly Income" value={formatCurrency(formData.job_income_per_month)} labelWidth="min-w-[170px]" />
-                </div>
-                <PaperLine label="Workplace Address" value={formData.job_address} />
-              </>
-            )}
-
-            {formData.employment === 'Business' && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
-                  <PaperLine label="Business Name" value={formData.business_name} />
-                  <PaperLine label="Business Monthly Income" value={formatCurrency(formData.business_income_per_month)} labelWidth="min-w-[175px]" />
-                </div>
-                <PaperLine label="Business Address" value={formData.business_address} />
-              </>
-            )}
           </div>
         </section>
 
         {/* ================= 4. CO-APPLICANT DETAILS ================= */}
         <section className={`space-y-4 ${hasCoApplicant ? 'print-break-before print:space-y-2 print:p-0 print:m-0' : 'print:hidden'}`}>
-          <div className="flex items-center gap-2 border-b border-[var(--line)] print:border-[#ccc] pb-2">
-            <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
-              4
-            </div>
-            <h2 className="text-sm sm:text-base font-semibold text-[var(--text)] uppercase tracking-wide">
+          <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+            {hasCoApplicant && (
+              <div className="print:hidden w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
+                2
+              </div>
+            )}
+            <span className="hidden print:inline text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">2.</span>
+            <h2 className="text-sm sm:text-base font-semibold text-[var(--text)] uppercase tracking-wide print:hidden">
+              Co-Applicant Details
+            </h2>
+            <h2 className="hidden print:block text-base sm:text-lg font-bold text-[#1f1f1f] uppercase tracking-wide">
               Co-Applicant Details
             </h2>
           </div>
@@ -1315,7 +1361,7 @@ function DesktopPaperView({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--line)] print:border-[#ccc] pb-2 print:hidden">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
-                5
+                {hasCoApplicant ? '3' : '2'}
               </div>
               <h2 className="text-sm sm:text-base font-semibold text-[var(--text)] uppercase tracking-wide">
                 Guarantors Details (3 Required)
@@ -1359,7 +1405,7 @@ function DesktopPaperView({
           <div className="hidden print:block">
             <div className="space-y-4 print-break-before">
               <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
-                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">5.</span>
+                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">{hasCoApplicant ? '3.' : '2.'}</span>
                 <h2 className="text-base sm:text-lg font-bold text-[#1f1f1f] uppercase tracking-wide">Guarantor 1 Details</h2>
               </div>
               {renderGuarantorPaper(1)}
@@ -1367,7 +1413,7 @@ function DesktopPaperView({
 
             <div className="space-y-4 print-break-before">
               <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
-                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">6.</span>
+                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">{hasCoApplicant ? '4.' : '3.'}</span>
                 <h2 className="text-base sm:text-lg font-bold text-[#1f1f1f] uppercase tracking-wide">Guarantor 2 Details</h2>
               </div>
               {renderGuarantorPaper(2)}
@@ -1375,7 +1421,7 @@ function DesktopPaperView({
 
             <div className="space-y-4 print-break-before">
               <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
-                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">7.</span>
+                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">{hasCoApplicant ? '5.' : '4.'}</span>
                 <h2 className="text-base sm:text-lg font-bold text-[#1f1f1f] uppercase tracking-wide">Guarantor 3 Details</h2>
               </div>
               {renderGuarantorPaper(3)}
@@ -1387,7 +1433,7 @@ function DesktopPaperView({
         <section className="space-y-4 print:hidden">
           <div className="flex items-center gap-2 border-b border-[var(--line)] pb-2">
             <div className="w-6 h-6 rounded-[8px] bg-[var(--ink)] text-white flex items-center justify-center text-xs font-semibold shrink-0">
-              6
+              {hasCoApplicant ? '4' : '3'}
             </div>
             <h2 className="text-sm sm:text-base font-semibold text-[var(--text)] uppercase tracking-wide">
               Application Timeline & Edit Logs

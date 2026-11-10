@@ -31,6 +31,11 @@ import { format } from 'date-fns';
 import { getBranchLoanApplications } from '../services/loanServices';
 import BranchOperationsMobileLoansApplicationsList from './BranchOperationsMobileLoansApplicationsList';
 import { maskPhoneNumber } from '../utils/phoneUtils';
+import {
+  getBranchOperationsReceivedAt,
+  isNewBranchOperationsApplication
+} from '../utils/branchOperationsApplicationReadState';
+import { useBranchOperationsApplicationReadState } from '../hooks/useBranchOperationsApplicationReadState';
 
 // Helper: Safe date formatter
 const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
@@ -105,6 +110,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'teal' }) =
 
 const BranchOperationsLoansApplicationsList = () => {
   const navigate = useNavigate();
+  const markAsSeen = useBranchOperationsApplicationReadState();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -179,6 +185,8 @@ const BranchOperationsLoansApplicationsList = () => {
       const matchesStatus = 
         statusFilter === 'All' 
           ? true 
+          : statusFilter === 'New'
+          ? isNewBranchOperationsApplication(app)
           : statusFilter === 'Under Review'
           ? (status === 'Under Review' || status === 'under_review')
           : status === statusFilter;
@@ -190,6 +198,9 @@ const BranchOperationsLoansApplicationsList = () => {
 
     // Sorting
     filtered.sort((a, b) => {
+      if (statusFilter === 'New') {
+        return new Date(getBranchOperationsReceivedAt(b) || 0) - new Date(getBranchOperationsReceivedAt(a) || 0);
+      }
       if (sortBy === 'newest') {
         return new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0);
       }
@@ -222,6 +233,7 @@ const BranchOperationsLoansApplicationsList = () => {
 
   // Direct Application Studio Navigator
   const handleOpenStudio = (app) => {
+    markAsSeen(app);
     navigate('/employee/branch-operations/loans-view-applications', {
       state: {
         application: app,
@@ -236,6 +248,7 @@ const BranchOperationsLoansApplicationsList = () => {
 
   // Direct Application Editor (for drafts or modifications)
   const handleEditApplication = (app) => {
+    markAsSeen(app);
     navigate('/employee/branch-operations/loans-edit-application', {
       state: {
         application: app,
@@ -304,6 +317,7 @@ const BranchOperationsLoansApplicationsList = () => {
   // Status Filter options with counts
   const statusTabs = [
     { key: 'All', label: 'All Applications', count: applications.length },
+    { key: 'New', label: 'New', count: applications.filter((app) => isNewBranchOperationsApplication(app)).length },
     { key: 'Created', label: 'Created', count: applications.filter(a => (a.status || '').toLowerCase() === 'created').length },
     { key: 'Under Review', label: 'Under Review', count: applications.filter(a => (a.status || '').toLowerCase() === 'under review' || (a.status || '').toLowerCase() === 'under_review').length },
     { key: 'Approved', label: 'Approved', count: applications.filter(a => (a.status || '').toLowerCase() === 'approved').length },
@@ -460,7 +474,7 @@ const BranchOperationsLoansApplicationsList = () => {
                     <th className="py-3.5 px-4 whitespace-nowrap">Applicant</th>
                     <th className="py-3.5 px-4 whitespace-nowrap text-center">Loan Product</th>
                     <th className="py-3.5 px-4 whitespace-nowrap text-center">Status</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Submitted On</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap">Received / Submitted</th>
                     <th className="py-3.5 px-4 whitespace-nowrap text-right">Actions</th>
                   </tr>
                 </thead>
@@ -490,12 +504,17 @@ const BranchOperationsLoansApplicationsList = () => {
                       const phone = app.phone_number || app.form_data?.phone_number || app.form_data?.phone;
                       const appId = app.application_id || 'LA-DRAFT';
                       const loanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
-                      const createdAt = app.created_at || app.updated_at;
+                      const receivedAt = getBranchOperationsReceivedAt(app);
+                      const isNew = isNewBranchOperationsApplication(app);
+                      const submittedAt = receivedAt || app.created_at || app.updated_at;
 
                       return (
                         <tr
                           key={app.id || app.application_id}
-                          onClick={() => setSelectedApp(app)}
+                          onClick={() => {
+                            markAsSeen(app);
+                            setSelectedApp(app);
+                          }}
                           className="hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                         >
                           {/* Application ID */}
@@ -512,7 +531,14 @@ const BranchOperationsLoansApplicationsList = () => {
                                 {name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-semibold text-xs text-[var(--text)]">{name}</p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="font-semibold text-xs text-[var(--text)]">{name}</p>
+                                  {isNew && (
+                                    <span className="rounded-full bg-[var(--badge-success-bg)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[var(--badge-success-text)]">
+                                      New
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-[11px] text-[var(--muted)] flex items-center gap-1">
                                   <Phone className="w-3 h-3 text-[var(--icon-muted)]" />
                                   {maskPhoneNumber(phone)}
@@ -535,7 +561,7 @@ const BranchOperationsLoansApplicationsList = () => {
                           <td className="py-3.5 px-4 whitespace-nowrap text-[var(--muted)]">
                             <span className="flex items-center gap-1.5">
                               <Calendar className="w-3 h-3 text-[var(--icon-muted)]" />
-                              {formatDateSafe(createdAt, 'MMM d, yyyy')}
+                              {formatDateSafe(submittedAt, receivedAt ? 'MMM d, yyyy h:mm a' : 'MMM d, yyyy')}
                             </span>
                           </td>
 
@@ -556,7 +582,10 @@ const BranchOperationsLoansApplicationsList = () => {
 
                                   <button
                                     type="button"
-                                    onClick={() => setSelectedApp(app)}
+                                    onClick={() => {
+                                      markAsSeen(app);
+                                      setSelectedApp(app);
+                                    }}
                                     className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--text)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--line)] rounded-full transition-colors cursor-pointer"
                                     title="Quick Overview"
                                   >
@@ -568,7 +597,10 @@ const BranchOperationsLoansApplicationsList = () => {
                                 <>
                                   <button
                                     type="button"
-                                    onClick={() => setSelectedApp(app)}
+                                    onClick={() => {
+                                      markAsSeen(app);
+                                      setSelectedApp(app);
+                                    }}
                                     className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--text)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--line)] rounded-full transition-colors cursor-pointer"
                                     title="Quick Overview"
                                   >

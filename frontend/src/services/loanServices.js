@@ -1,5 +1,6 @@
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
+import { getBranchOperationsReceivedAt } from '../utils/branchOperationsApplicationReadState';
 
 /**
  * Creates a new loan lead.
@@ -160,6 +161,19 @@ export const getBranchDashboardData = async ({ queryKey } = {}) => {
  */
 export const getBranchLoanApplications = async () => {
   const response = await api.get('/branch-operations/applications');
+  return response.data;
+};
+
+export const markBranchOperationsApplicationAsSeen = async (application) => {
+  const receivedAt = getBranchOperationsReceivedAt(application);
+  if (!application?.id || !receivedAt) {
+    throw new Error('Cannot mark this application as seen without its Branch Operations transfer timestamp.');
+  }
+
+  const response = await api.post(
+    `/branch-operations/applications/${encodeURIComponent(application.id)}/seen`,
+    { received_at: receivedAt }
+  );
   return response.data;
 };
 

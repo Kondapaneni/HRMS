@@ -20,9 +20,15 @@ import {
 import { format } from 'date-fns';
 import { getBranchLoanApplications } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
+import {
+  getBranchOperationsReceivedAt,
+  isNewBranchOperationsApplication
+} from '../utils/branchOperationsApplicationReadState';
+import { useBranchOperationsApplicationReadState } from '../hooks/useBranchOperationsApplicationReadState';
 
 const BranchOperationsMobileLoansApplicationsList = () => {
   const navigate = useNavigate();
+  const markAsSeen = useBranchOperationsApplicationReadState();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [loanTypeFilter, setLoanTypeFilter] = useState('All');
@@ -36,17 +42,20 @@ const BranchOperationsMobileLoansApplicationsList = () => {
   const applications = response?.applications || [];
 
   const statusCounts = useMemo(() => {
-    const counts = { All: applications.length, Created: 0, 'Under Review': 0, Approved: 0, Draft: 0, Rejected: 0 };
+    const counts = { All: applications.length, New: 0, Created: 0, 'Under Review': 0, Approved: 0, Draft: 0, Rejected: 0 };
     applications.forEach((app) => {
       if (counts[app.status] !== undefined) {
         counts[app.status] += 1;
+      }
+      if (isNewBranchOperationsApplication(app)) {
+        counts.New += 1;
       }
     });
     return counts;
   }, [applications]);
 
   const filteredApps = useMemo(() => {
-    return applications.filter((app) => {
+    const filtered = applications.filter((app) => {
       const name = app.applicant_name || app.form_data?.applicant_name || '';
       const phone = app.phone_number || app.form_data?.phone_number || '';
       const appId = app.application_id || '';
@@ -59,18 +68,26 @@ const BranchOperationsMobileLoansApplicationsList = () => {
         appId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         String(leadId).includes(searchTerm);
 
-      const matchesStatus = statusFilter === 'All' ? true : app.status === statusFilter;
+      const matchesStatus = statusFilter === 'All'
+        ? true
+        : statusFilter === 'New'
+          ? isNewBranchOperationsApplication(app)
+          : app.status === statusFilter;
       const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
 
       return matchesSearch && matchesStatus && matchesLoanType;
     });
+    if (statusFilter === 'New') {
+      filtered.sort((a, b) => new Date(getBranchOperationsReceivedAt(b) || 0) - new Date(getBranchOperationsReceivedAt(a) || 0));
+    }
+    return filtered;
   }, [applications, searchTerm, statusFilter, loanTypeFilter]);
 
-  const formatDateSafe = (dateStr) => {
+  const formatDateSafe = (dateStr, pattern = 'dd MMM yyyy') => {
     if (!dateStr) return '—';
     try {
       const d = new Date(dateStr);
-      return isNaN(d.getTime()) ? '—' : format(d, 'dd MMM yyyy');
+      return isNaN(d.getTime()) ? '—' : format(d, pattern);
     } catch (e) {
       return '—';
     }
@@ -118,6 +135,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
   };
 
   const handleViewDetails = (app) => {
+    markAsSeen(app);
     navigate('/employee/branch-operations/loans-view-applications', {
       state: {
         application: app,
@@ -132,6 +150,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
 
   const filterTabs = [
     { key: 'All', label: 'All', count: statusCounts.All },
+    { key: 'New', label: 'New', count: statusCounts.New },
     { key: 'Created', label: 'Created', count: statusCounts.Created },
     { key: 'Under Review', label: 'Under Review', count: statusCounts['Under Review'] },
     { key: 'Approved', label: 'Approved', count: statusCounts.Approved },
@@ -255,6 +274,8 @@ const BranchOperationsMobileLoansApplicationsList = () => {
               const loanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
               const loanAmount = app.form_data?.loan_amount || app.form_data?.required_loan_amount || app.loan_amount;
               const initials = name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'A';
+              const receivedAt = getBranchOperationsReceivedAt(app);
+              const isNew = isNewBranchOperationsApplication(app);
 
               return (
                 <div 
@@ -269,8 +290,13 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1 space-y-0.5">
-                        <h3 className="font-semibold text-[var(--text)] text-sm truncate group-hover:text-[var(--branch-deep)] transition-colors">
-                          {name}
+                        <h3 className="flex items-center gap-1.5 font-semibold text-[var(--text)] text-sm min-w-0 group-hover:text-[var(--branch-deep)] transition-colors">
+                          <span className="truncate">{name}</span>
+                          {isNew && (
+                            <span className="shrink-0 rounded-full bg-[var(--badge-success-bg)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[var(--badge-success-text)]">
+                              New
+                            </span>
+                          )}
                         </h3>
                         <div className="flex items-center gap-1 font-medium text-[11px] text-[var(--muted)]">
                           <Phone size={10} className="text-[var(--icon-muted)] shrink-0" />
@@ -292,7 +318,11 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                     </div>
                     <div className="flex items-center justify-end gap-1.5 text-right min-w-0 text-[var(--muted)]">
                       <Calendar size={11} className="text-[var(--icon-muted)] shrink-0" />
-                      <span>{formatDateSafe(app.created_at || app.updated_at)}</span>
+                      <span className="truncate">
+                        {receivedAt
+                          ? `Received ${formatDateSafe(receivedAt, 'dd MMM, hh:mm a')}`
+                          : formatDateSafe(app.created_at || app.updated_at)}
+                      </span>
                     </div>
                   </div>
 

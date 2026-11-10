@@ -166,6 +166,54 @@ if (!function_exists('resolveBranchLoanAuditLogsForRow')) {
     }
 }
 
+if (!function_exists('getBranchOperationsTransferTimestamp')) {
+    function getBranchOperationsTransferTimestamp($timeline) {
+        if (!is_array($timeline)) return null;
+
+        $latestTransfer = null;
+        foreach ($timeline as $event) {
+            $stage = trim((string)($event['stage'] ?? ($event['title'] ?? '')));
+            if (stripos($stage, 'branch operations') !== false) {
+                $latestTransfer = $event;
+            }
+        }
+
+        $timestamp = $latestTransfer['timestamp'] ?? ($latestTransfer['created_at'] ?? null);
+        if (!is_string($timestamp) || trim($timestamp) === '') return null;
+
+        try {
+            return (new DateTimeImmutable($timestamp))->format('Y-m-d H:i:s.uP');
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+}
+
+if (!function_exists('getBranchOperationsTimestampKey')) {
+    function getBranchOperationsTimestampKey($timestamp) {
+        if (!is_string($timestamp) || trim($timestamp) === '') return null;
+
+        try {
+            return (new DateTimeImmutable($timestamp))->format('U.u');
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+}
+
+if (!function_exists('isBranchOperationsTransferUnseen')) {
+    function isBranchOperationsTransferUnseen($receivedAt, $lastSeenAt) {
+        if (getBranchOperationsTimestampKey($receivedAt) === null) return false;
+        if (getBranchOperationsTimestampKey($lastSeenAt) === null) return true;
+
+        try {
+            return new DateTimeImmutable($lastSeenAt) < new DateTimeImmutable($receivedAt);
+        } catch (\Exception $e) {
+            return true;
+        }
+    }
+}
+
 /**
  * Branch Operations Loan Applications Routes
  * Scoped strictly to the logged-in employee's branch.
@@ -245,6 +293,24 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
         $stmt->execute([':branch' => $userBranch]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $applicationIds = array_values(array_filter(array_column($rows, 'id')));
+        $seenTransferByApplication = [];
+        if (!empty($applicationIds)) {
+            $placeholders = implode(',', array_fill(0, count($applicationIds), '?'));
+            $readStmt = $conn->prepare("
+                SELECT item_id, last_seen_at
+                FROM public.portal_item_reads
+                WHERE user_id = ? AND portal_key = 'branch_operations'
+                  AND item_type = 'loan_application'
+                  AND item_id IN ($placeholders)
+            ");
+            $readStmt->execute(array_merge([$userId], $applicationIds));
+            foreach ($readStmt->fetchAll(PDO::FETCH_ASSOC) as $readState) {
+                $seenTransferByApplication[(string)$readState['item_id']] =
+                    $readState['last_seen_at'];
+            }
+        }
+
         // OPTIMIZATION: batch-fetch documents and audit logs for every row in
         // this branch's result set up front (2 queries total) instead of doing
         // it inside the per-row loop below (was up to 2 queries per row).
@@ -289,6 +355,10 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 continue;
             }
 
+            $receivedAt = getBranchOperationsTransferTimestamp($timeline);
+            $lastSeenTransferKey = $seenTransferByApplication[(string)$row['id']] ?? null;
+            $isNew = isBranchOperationsTransferUnseen($receivedAt, $lastSeenTransferKey);
+
             // Resolve documents from the batch fetched above
             $docs = resolveBranchLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
             if (isset($formData['documents']) && is_array($formData['documents'])) {
@@ -326,6 +396,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 'signatures' => $signatures,
                 'documents' => $docs,
                 'stage_history' => $timeline,
+                'is_new' => $isNew,
                 'audit_logs' => $auditLogs
             ];
         }
@@ -348,6 +419,112 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
     } catch (\Exception $e) {
         error_log("Error fetching branch operations applications: " . $e->getMessage());
         $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch applications: ' . $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware());
+
+$app->post('/api/branch-operations/applications/{id}/seen', function (Request $request, Response $response, $args) {
+    $decodedToken = $request->getAttribute('user');
+    $userId = is_object($decodedToken)
+        ? ($decodedToken->id ?? $decodedToken->user_id ?? null)
+        : ($decodedToken['id'] ?? $decodedToken['user_id'] ?? null);
+
+    if (!$userId) {
+        $response->getBody()->write(json_encode(['error' => 'Unauthorized user']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+    }
+
+    $applicationId = (string)($args['id'] ?? '');
+    if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $applicationId)) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid application ID']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        if (!$conn) {
+            throw new Exception('Database connection failed');
+        }
+
+        $employeeStmt = $conn->prepare('
+            SELECT branch
+            FROM public.employee
+            WHERE "userId" = ?
+            LIMIT 1
+        ');
+        $employeeStmt->execute([$userId]);
+        $userBranch = $employeeStmt->fetchColumn();
+
+        if (!$userBranch) {
+            $response->getBody()->write(json_encode(['error' => 'No branch assigned to this user']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $applicationStmt = $conn->prepare('
+            SELECT id, form_data
+            FROM public.loan_applications
+            WHERE id = ? AND branch = ?
+            LIMIT 1
+        ');
+        $applicationStmt->execute([$applicationId, $userBranch]);
+        $application = $applicationStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$application) {
+            $response->getBody()->write(json_encode(['error' => 'Application not found in your branch']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $formData = is_string($application['form_data'])
+            ? json_decode($application['form_data'], true)
+            : ($application['form_data'] ?: []);
+        if (!is_array($formData)) $formData = [];
+        $latestTransferAt = getBranchOperationsTransferTimestamp($formData['timeline'] ?? []);
+        $latestTransferKey = getBranchOperationsTimestampKey($latestTransferAt);
+        $body = $request->getParsedBody();
+        $requestedTransferKey = getBranchOperationsTimestampKey(
+            is_array($body) ? ($body['received_at'] ?? null) : null
+        );
+
+        if ($latestTransferKey === null || $requestedTransferKey === null) {
+            $response->getBody()->write(json_encode(['error' => 'A valid Branch Operations transfer timestamp is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        if ($requestedTransferKey !== $latestTransferKey) {
+            $response->getBody()->write(json_encode(['error' => 'The application transfer has changed. Refresh the application list.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+        }
+
+        $readStmt = $conn->prepare('
+            INSERT INTO public.portal_item_reads AS current_read
+                (user_id, portal_key, item_type, item_id, last_seen_at, seen_at)
+            VALUES (?, ?, ?, ?, ?::timestamptz, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, portal_key, item_type, item_id)
+            DO UPDATE SET
+                last_seen_at = GREATEST(
+                    current_read.last_seen_at,
+                    EXCLUDED.last_seen_at
+                ),
+                seen_at = CURRENT_TIMESTAMP
+        ');
+        $readStmt->execute([
+            $userId,
+            'branch_operations',
+            'loan_application',
+            $applicationId,
+            $latestTransferAt
+        ]);
+
+        $response->getBody()->write(json_encode(['success' => true]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\PDOException $e) {
+        error_log('Database error saving Branch Operations application read state: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Database error while saving application read state']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    } catch (\Exception $e) {
+        error_log('Error saving Branch Operations application read state: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while saving application read state']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware());
@@ -455,6 +632,31 @@ if (!function_exists('getLoanFieldFriendlyLabel')) {
     }
 }
 
+if (!function_exists('getLoanFieldPerson')) {
+    function getLoanFieldPerson($key) {
+        if (preg_match('/^guarantor_(\d+)_/', $key, $matches)) {
+            return "Guarantor {$matches[1]}";
+        }
+
+        if (strpos($key, 'co_') === 0) {
+            return 'Co-Applicant';
+        }
+
+        $applicantFields = [
+            'applicant_name', 'phone_number', 'age', 'gender', 'marital_status',
+            'father_name', 'mother_name', 'husband_name', 'aadhaar_number',
+            'own_house', 'current_address', 'current_street', 'current_city',
+            'current_state', 'current_postal_code', 'permanent_address',
+            'permanent_street', 'permanent_city', 'permanent_state',
+            'permanent_postal_code', 'employment', 'job_name', 'job_address',
+            'job_income_per_month', 'business_name', 'business_address',
+            'business_income_per_month'
+        ];
+
+        return in_array($key, $applicantFields, true) ? 'Applicant' : 'Application';
+    }
+}
+
 /**
  * PUT /api/branch-operations/applications/{id}
  * Update an existing application's details in Branch Operations and generate an Audit Log of changes.
@@ -554,6 +756,7 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
                 $changes[] = [
                     'field' => $key,
                     'label' => getLoanFieldFriendlyLabel($key),
+                    'person' => getLoanFieldPerson($key),
                     'old_value' => $oldTrim !== '' ? $oldTrim : '—',
                     'new_value' => $newTrim !== '' ? $newTrim : '—'
                 ];

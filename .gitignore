@@ -5,6 +5,7 @@ vendor/
 !.env.example
 dist/
 build/
+.vscode/tasks.json
 .DS_Store
 ngrok.log
 *.zip

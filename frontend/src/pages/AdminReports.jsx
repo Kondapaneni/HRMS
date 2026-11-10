@@ -13,7 +13,7 @@ import {
   PieChart, Pie, Cell, Legend, AreaChart, Area, ComposedChart
 } from 'recharts';
 
-const CHART_PALETTE = ['#8AADDB', '#E3B9DF', '#131315', '#B9CDE8', '#C98BC2', '#5B86C2'];
+const CHART_PALETTE = ['#8AADDB', '#E3B9DF', '#A6C989', '#B9CDE8', '#C98BC2', '#5B86C2'];
 
 const AdminReports = () => {
   const { token } = useAuth();
