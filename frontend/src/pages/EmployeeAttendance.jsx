@@ -18,6 +18,12 @@ import EmployeeMobileAttendance from './EmployeeMobileAttendance';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
+import {
+  APPROVED_LEAVE_TOAST_ID,
+  APPROVED_LEAVE_TOAST_MESSAGE,
+  findTodayAttendanceRecord,
+  isEmployeeOnLeaveToday,
+} from '../utils/attendanceUtils';
 
 const EmployeeAttendance = () => {
   const { profile } = useAuth();
@@ -85,11 +91,8 @@ const EmployeeAttendance = () => {
   });
 
   const leavesHistory = leavesData?.history || [];
-  const todayDateStr = new Date().toLocaleDateString('en-CA');
-  const isOnLeaveToday = leavesHistory.some(leave => {
-    if (leave.status?.toLowerCase() !== 'approved') return false;
-    return todayDateStr >= leave.startDate && todayDateStr <= leave.endDate;
-  });
+  const todayRecord = findTodayAttendanceRecord(history);
+  const isOnLeaveToday = isEmployeeOnLeaveToday(leavesHistory, todayRecord);
 
   const punchMutation = useMutation({
     mutationFn: async (payload) => {
@@ -112,6 +115,11 @@ const EmployeeAttendance = () => {
   };
 
   const handlePunch = async (action) => {
+    if (isOnLeaveToday) {
+      toast.error(APPROVED_LEAVE_TOAST_MESSAGE, { id: APPROVED_LEAVE_TOAST_ID });
+      return;
+    }
+
     if (!navigator.geolocation) {
       const errorMsg = 'Geolocation is not supported by your browser.';
       setError(errorMsg);
@@ -138,7 +146,9 @@ const EmployeeAttendance = () => {
         } catch (err) {
           console.error(err);
           const errorMsg = err.response?.data?.error || `Failed to ${action}.`;
-          setError(errorMsg);
+          if (!errorMsg.toLowerCase().includes('approved leave')) {
+            setError(errorMsg);
+          }
           toast.error(errorMsg);
         } finally {
           setPunchingAction(null);
@@ -193,11 +203,8 @@ const EmployeeAttendance = () => {
     return true;
   });
 
-  const todayStr = new Date().toLocaleDateString('en-CA');
   const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
   const isViewingCurrentMonth = selectedMonth === currentMonthStr;
-
-  const todayRecord = history.find(r => r.date?.split('T')[0] === todayStr) || history.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
 
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
@@ -275,13 +282,6 @@ const EmployeeAttendance = () => {
           </div>
         )}
 
-        {isOnLeaveToday && (
-          <div className="rounded-[16px] bg-[var(--brand-tint)] p-4 text-[13px] font-medium text-[var(--brand-deep)] flex items-center gap-2.5">
-            <Calendar className="w-4 h-4 shrink-0" />
-            <span>You have an approved leave scheduled for today. Automated attendance recording is paused.</span>
-          </div>
-        )}
-
         {/* Check-in / Check-out Terminal Card */}
         <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
@@ -341,7 +341,7 @@ const EmployeeAttendance = () => {
                     type="button"
                     variant="primary"
                     onClick={() => handlePunch('check-in')}
-                    disabled={!isViewingCurrentMonth || punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
+                    disabled={!isViewingCurrentMonth || punchingAction || checkedIn || checkOutTime}
                   >
                     <LogIn className="w-4 h-4 mr-1.5" />
                     <span>{punchingAction === 'check-in' ? 'Checking in...' : 'Check in'}</span>
@@ -351,7 +351,8 @@ const EmployeeAttendance = () => {
                     type="button"
                     variant="secondary"
                     onClick={() => handlePunch('punch')}
-                    disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                    disabled={!isViewingCurrentMonth || punchingAction || (!isOnLeaveToday && !checkedIn) || checkOutTime}
+                    className={isOnLeaveToday && !checkedIn ? 'opacity-50' : ''}
                   >
                     <Clock className="w-4 h-4 mr-1.5 text-[var(--muted)]" />
                     <span>{punchingAction === 'punch' ? 'Punching...' : 'Interval punch'}</span>
@@ -361,7 +362,8 @@ const EmployeeAttendance = () => {
                     type="button"
                     variant="danger"
                     onClick={() => handlePunch('check-out')}
-                    disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                    disabled={!isViewingCurrentMonth || punchingAction || (!isOnLeaveToday && !checkedIn) || checkOutTime}
+                    className={isOnLeaveToday && !checkedIn ? 'opacity-50' : ''}
                   >
                     <LogOut className="w-4 h-4 mr-1.5" />
                     <span>{punchingAction === 'check-out' ? 'Checking out...' : 'Check out'}</span>

@@ -28,6 +28,12 @@ import EmployeeMobileDashboard from './EmployeeMobileDashboard';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
+import {
+  APPROVED_LEAVE_TOAST_ID,
+  APPROVED_LEAVE_TOAST_MESSAGE,
+  findTodayAttendanceRecord,
+  isEmployeeOnLeaveToday,
+} from '../utils/attendanceUtils';
 
 const EmployeeDashboard = () => {
   const { profile } = useAuth();
@@ -69,6 +75,10 @@ const EmployeeDashboard = () => {
   const performance = dashboardData?.performance || null;
   const fullProfile = dashboardData?.fullProfile || profile;
   const latestPayslip = dashboardData?.latestPayslip || null;
+  const todayRecord = findTodayAttendanceRecord(attendance);
+  const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
+  const checkOutTime = todayRecord && todayRecord.checkOut;
+  const isOnLeaveToday = isEmployeeOnLeaveToday(leaves?.history || [], todayRecord);
 
   useEffect(() => {
     if (dashboardData?.mapsRateLimit?.locked && dashboardData.mapsRateLimit.secondsRemaining > 0) {
@@ -107,6 +117,11 @@ const EmployeeDashboard = () => {
   };
 
   const handlePunch = async (action) => {
+    if (isOnLeaveToday) {
+      toast.error(APPROVED_LEAVE_TOAST_MESSAGE, { id: APPROVED_LEAVE_TOAST_ID });
+      return;
+    }
+
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by your browser.');
       return;
@@ -198,11 +213,6 @@ const EmployeeDashboard = () => {
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
   };
-
-  const todayStr = new Date().toLocaleDateString('en-CA');
-  const todayRecord = attendance.find(r => r.date?.split('T')[0] === todayStr) || attendance.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
-  const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
-  const checkOutTime = todayRecord && todayRecord.checkOut;
 
   // Stats calculation
   const availablePaidLeaves = leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--';
@@ -368,7 +378,8 @@ const EmployeeDashboard = () => {
                         type="button"
                         variant="secondary"
                         onClick={() => handlePunch('punch')}
-                        disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
+                        disabled={punchingAction || (!isOnLeaveToday && !checkedIn) || checkOutTime || isLocked}
+                        className={isOnLeaveToday && !checkedIn ? 'opacity-50' : ''}
                       >
                         <Clock className="w-4 h-4 mr-1.5 text-[var(--muted)]" />
                         <span>{punchingAction === 'punch' ? 'Punching...' : 'Interval punch'}</span>
@@ -378,7 +389,8 @@ const EmployeeDashboard = () => {
                         type="button"
                         variant="danger"
                         onClick={() => handlePunch('check-out')}
-                        disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
+                        disabled={punchingAction || (!isOnLeaveToday && !checkedIn) || checkOutTime || isLocked}
+                        className={isOnLeaveToday && !checkedIn ? 'opacity-50' : ''}
                       >
                         <LogOut className="w-4 h-4 mr-1.5" />
                         <span>{punchingAction === 'check-out' ? 'Checking out...' : 'Check out'}</span>

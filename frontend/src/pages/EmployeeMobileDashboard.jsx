@@ -4,7 +4,6 @@ import {
   LogIn, 
   LogOut, 
   Clock, 
-  Calendar, 
   Shield, 
   ChevronRight, 
   Briefcase, 
@@ -23,9 +22,16 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import EmployeeMobileSearchBar from '../components/EmployeeMobileSearchBar';
+import {
+  APPROVED_LEAVE_TOAST_ID,
+  APPROVED_LEAVE_TOAST_MESSAGE,
+  findTodayAttendanceRecord,
+  isEmployeeOnLeaveToday,
+} from '../utils/attendanceUtils';
 
 const EmployeeMobileDashboard = () => {
   const { profile } = useAuth();
@@ -150,18 +156,18 @@ const EmployeeMobileDashboard = () => {
     return 'Good Evening';
   };
 
-  const todayStr = new Date().toLocaleDateString('en-CA');
-  const todayRecord = attendance.find(r => r.date?.split('T')[0] === todayStr) || attendance.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
+  const todayRecord = findTodayAttendanceRecord(attendance);
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
 
   const leavesHistory = leaves?.history || [];
-  const isOnLeaveToday = leavesHistory.some(leave => {
-    if (leave.status?.toLowerCase() !== 'approved') return false;
-    return todayStr >= leave.startDate && todayStr <= leave.endDate;
-  });
+  const isOnLeaveToday = isEmployeeOnLeaveToday(leavesHistory, todayRecord);
 
   const handlePunch = async (action) => {
+    if (isOnLeaveToday) {
+      toast.error(APPROVED_LEAVE_TOAST_MESSAGE, { id: APPROVED_LEAVE_TOAST_ID });
+      return;
+    }
     navigate('/employee/attendance/map', { state: { action } });
   };
 
@@ -326,17 +332,9 @@ const EmployeeMobileDashboard = () => {
           </div>
 
           <div className="w-full flex flex-col gap-3">
-            {isOnLeaveToday ? (
-              <div className="w-full rounded-[14px] bg-[var(--status-info-bg)] text-[var(--status-info-text)] font-semibold py-3 text-center text-sm border border-[var(--status-info-text)]/20 flex flex-col items-center gap-1.5">
-                <Calendar className="w-5 h-5" />
-                <span>You Are On An Approved Leave Today.</span>
-              </div>
-            ) : todayRecord?.status === 'Leave' ? (
-              <div className="w-full rounded-[14px] bg-[var(--surface-alt)] text-[var(--muted)] font-semibold py-2.5 text-center text-sm">
-                Attendance Blocked - Approved Leave Today
-              </div>
-            ) : !checkedIn && !checkOutTime ? (
+            {!checkedIn && !checkOutTime ? (
               <button
+                type="button"
                 onClick={() => handlePunch('check-in')}
                 disabled={isLocked}
                 className="w-full flex items-center justify-center gap-2 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.99] text-white rounded-full py-3.5 text-sm font-semibold tracking-wide shadow-xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
