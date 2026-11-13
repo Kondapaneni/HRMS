@@ -139,6 +139,12 @@ jobs:
             fi
           fi
 
+          # New sb_secret_ API keys belong in apikey only, not Bearer JWT headers.
+          SUPABASE_HEADERS=(--header "apikey: $SUPABASE_RELEASE_KEY")
+          if [[ "$SUPABASE_RELEASE_KEY" != sb_secret_* ]]; then
+            SUPABASE_HEADERS+=(--header "Authorization: Bearer $SUPABASE_RELEASE_KEY")
+          fi
+
           RELEASE_PATH="android/releases/$HRMS_ANDROID_VERSION_CODE/acme-hrms.apk"
           APK_SHA256="$(sha256sum "$SIGNED" | cut -d ' ' -f 1)"
           export RELEASE_PATH APK_SHA256
@@ -154,8 +160,7 @@ jobs:
           # Upload immutable versioned APK first. Latest pointer changes only after success.
           curl --fail-with-body --silent --show-error --retry 3 \
             --request POST \
-            --header "apikey: $SUPABASE_RELEASE_KEY" \
-            --header "Authorization: Bearer $SUPABASE_RELEASE_KEY" \
+            "${SUPABASE_HEADERS[@]}" \
             --header "Content-Type: application/vnd.android.package-archive" \
             --data-binary "@$SIGNED" \
             "$SUPABASE_RELEASE_URL/storage/v1/object/app_builds/$RELEASE_PATH"
@@ -175,8 +180,7 @@ jobs:
 
           curl --fail-with-body --silent --show-error --retry 3 \
             --request POST \
-            --header "apikey: $SUPABASE_RELEASE_KEY" \
-            --header "Authorization: Bearer $SUPABASE_RELEASE_KEY" \
+            "${SUPABASE_HEADERS[@]}" \
             --header "Content-Type: application/json" \
             --header "x-upsert: true" \
             --data-binary "@android-release-latest.json" \
