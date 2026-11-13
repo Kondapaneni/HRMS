@@ -7,6 +7,7 @@ import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.security.KeyStore;
 
 import javax.crypto.Cipher;
@@ -28,6 +29,26 @@ final class TrackerTokenStore {
     private static final String CIPHER = "AES/GCM/NoPadding";
 
     private TrackerTokenStore() { }
+
+    /**
+     * The shipped native tracker must send bearer tokens only to the
+     * designated HTTPS HRMS endpoint. No caller-provided HTTP/foreign URLs.
+     */
+    static boolean trustedEndpoint(String candidate) {
+        try {
+            URI uri = new URI(candidate);
+            return "https".equalsIgnoreCase(uri.getScheme())
+                    && "hrms-qwv3.onrender.com".equalsIgnoreCase(uri.getHost())
+                    && (uri.getPort() == -1 || uri.getPort() == 443)
+                    && "/api/employee/attendance/punch".equals(uri.getPath())
+                    && uri.getRawQuery() == null
+                    && uri.getRawFragment() == null
+                    && uri.getUserInfo() == null;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
 
     static void save(Context context, String token) throws Exception {
         if (token == null || token.isEmpty()) throw new IllegalArgumentException("Missing tracker credential");
