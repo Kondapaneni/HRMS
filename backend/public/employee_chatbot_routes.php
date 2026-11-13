@@ -341,6 +341,12 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
         $aiResponseText = sec004CallGeminiPublicFaq($geminiApiKey, $message);
     }
 
+    // SEC-004: A general HR FAQ must remain a definition even if Gemini is
+    // disabled or unavailable; personal questions continue to the local engine.
+    if (empty($aiResponseText)) {
+        $aiResponseText = sec004LocalFaqResponse($message);
+    }
+
     // If Gemini wasn't called or failed, fall back to our rich local rule-based intent engine
     if (empty($aiResponseText)) {
         $aiResponseText = fallbackLocalRuleEngine(

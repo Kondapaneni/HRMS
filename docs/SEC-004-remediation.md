@@ -15,6 +15,7 @@ phone numbers, loan applicants and full chat history to a third-party model.
   payroll, PAN, employee records and applicant records are never forwarded.
 - All other requests use the existing authenticated PHP local rule engines,
   preserving personal/admin answers without disclosing them externally.
+- If Gemini is unavailable, exact public FAQ questions use a **static, private-data-free local response** before the personal-data keyword engine. For example, `What is paid leave?` explains the term instead of showing an employee's leave balance.
 - cURL requires TLS certificate validation (`CURLOPT_SSL_VERIFYPEER=true`)
   and hostname validation (`CURLOPT_SSL_VERIFYHOST=2`). Redirects are
   disabled and all transport errors fall back to the local rule engines.
@@ -50,8 +51,8 @@ On a live server, verify:
    answer even when Gemini is configured.
 2. An admin can ask "Show salaries overview" and receive the local
    authorized answer without exposing workforce records to Gemini.
-3. "What is paid leave?" can use Gemini when `GEMINI_API_KEY` is
-   available; otherwise the local fallback responds.
+3. "What is paid leave?" must give a **general definition**, whether Gemini is configured or not. It must **not** display `Your Leave Summary` or any employee balances.
+   "How many paid leaves do I have?" must still return the employee-specific local answer.
 4. Without a trusted TLS certificate, an outbound request fails closed
    and uses the local fallback; do not disable verification to fix TLS.
 
