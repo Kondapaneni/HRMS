@@ -75,3 +75,10 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
           "$AAPT" dump badging app/build/outputs/apk/release/app-release-unsigned.apk | head -n 8
           find app/build/outputs/mapping/release -name mapping.txt -size +0c | grep -q mapping.txt
+      - name: Upload Android debug APK for device verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: hrms-sec006-debug-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
