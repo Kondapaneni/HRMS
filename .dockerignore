@@ -1,0 +1,53 @@
+# SEC-005: protect secrets and private development artifacts from Docker build contexts.
+# Applies to all COPY directives in both the Node builder and PHP runtime stages.
+.git
+.git/**
+**/.git
+**/.git/**
+.github
+.idea
+.vscode
+
+# Never bake runtime environment files or private keys into an image.
+.env
+.env.*
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.kdbx
+**/id_rsa
+**/id_ed25519
+
+# No backups, logs, SQL dumps, or developer scratch data in images.
+chat_backup
+**/chat_backup
+scratch_queries.txt
+**/scratch_queries.txt
+**/*.sql
+**/*.sql.gz
+**/*.log
+**/*.dump
+**/*.bak
+**/*.sqlite
+**/*.sqlite3
+**/*.db
+
+# Never copy local dependencies, intermediates, or repository-only files.
+**/node_modules
+**/vendor
+frontend/android
+frontend/dist
+frontend/build
+frontend/coverage
+backend/composer.phar
+backend/tests
+tests
+docs
+AUDIT_REPORT.md
+
+# IMPORTANT: frontend/public/downloads/Acme HRMS.apk is an intentional
+# public download referenced by EmployeeMobileProfile.jsx. Keep it in
+# production until migrated to a separate release-asset hosting mechanism.
