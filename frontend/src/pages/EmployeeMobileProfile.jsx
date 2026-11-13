@@ -491,7 +491,7 @@ const EmployeeMobileProfile = () => {
         {!isNativeApp && !isIOS && (
           <div className="pt-1">
             <a
-              href={getAssetUrl('/downloads/Acme%20HRMS.apk')}
+              href={`${getAssetUrl('/downloads/Acme%20HRMS.apk')}?v=${import.meta.env.VITE_APP_VERSION || '1'}`}
               download="Acme HRMS.apk"
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer active:scale-95 transition-all"
             >
