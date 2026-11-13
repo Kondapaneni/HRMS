@@ -32,6 +32,8 @@ foreach ($privateQuestions as $message) {
     assertSec004(sec004GeminiFaqPayload($message) === null, 'private/custom query blocked');
     assertSec004(sec004CallGeminiPublicFaq('dummy-key', $message) === null,
         'no outgoing request for private query');
+    assertSec004(sec004LocalFaqResponse($message) === null,
+        'no public FAQ fallback for private question');
 }
 
 $publicQuestions = [
@@ -55,12 +57,53 @@ foreach ($publicQuestions as $message) {
     assertSec004(!str_contains($serialized, 'ABCDE1234F'), 'no PAN in payload');
 }
 
+// Regression: generic FAQ must never become a private leave/salary summary
+// when Gemini is unavailable, unconfigured, or returns an error.
+$allPublicFaqs = [
+    'What is paid leave?', 'What is unpaid leave?', 'What is sick leave?',
+    'How do I apply for leave?', 'How to apply for leave?',
+    'How do I request leave?', 'How do I mark attendance?',
+    'How do I check in?', 'How do I submit an expense claim?',
+    'How to submit an expense claim?', 'What is a payslip?',
+    'What is gross salary?', 'What is net salary?',
+    'What is employee onboarding?', 'What is a performance review?',
+];
+foreach ($allPublicFaqs as $faq) {
+    $answer = sec004LocalFaqResponse($faq);
+    assertSec004(is_string($answer) && strlen($answer) > 35,
+        'all approved FAQs have substantive, static offline answers');
+}
+$paidDefinition = sec004LocalFaqResponse('What is paid leave?');
+assertSec004(str_contains($paidDefinition, 'Paid leave is approved time away from work'),
+    'paid leave provides an explanation');
+assertSec004(!str_contains($paidDefinition, 'Remaining Paid Leaves'),
+    'paid leave does not leak personalized leave balances');
+assertSec004(sec004LocalFaqResponse('HOW DO I APPLY FOR LEAVE?') !== null,
+    'case-insensitive FAQ handling');
+assertSec004(sec004LocalFaqResponse('How   do I  apply for leave!') !== null,
+    'FAQ whitespace normalization');
+foreach ([
+    'How many paid leaves do I have?', 'What is my leave balance?',
+    'My salary', 'Show salaries overview', 'What is my PAN number?',
+    'What is paid leave? My email is alice@example.com'
+] as $privateQuestion) {
+    assertSec004(sec004LocalFaqResponse($privateQuestion) === null,
+        'personal or modified question stays in authenticated local engine');
+}
+
 $employee = file_get_contents(__DIR__ . '/../backend/public/employee_chatbot_routes.php');
 $admin = file_get_contents(__DIR__ . '/../backend/public/admin_chatbot_routes.php');
 $helper = file_get_contents(__DIR__ . '/../backend/public/sec004_gemini_security.php');
 foreach ([$employee, $admin] as $code) {
     assertSec004(str_contains($code, 'sec004CallGeminiPublicFaq($geminiApiKey, $message)'),
         'route uses private-safe Gemini gate');
+    assertSec004(str_contains($code, '$aiResponseText = sec004LocalFaqResponse($message);'),
+        'route uses privacy-safe general FAQ fallback');
+    assertSec004(strpos($code, '$aiResponseText = sec004LocalFaqResponse($message);') <
+        strpos($code, 'fallbackLocalRuleEngine(') ||
+        strpos($code, '$aiResponseText = sec004LocalFaqResponse($message);') <
+        strpos($code, 'fallbackAdminLocalRuleEngine('),
+        'FAQ fallback runs before personal-data keyword engine');
     assertSec004(!str_contains($code, '$contextText'), 'no private outbound prompt construction');
     assertSec004(!str_contains($code, 'CURLOPT_SSL_VERIFYPEER, false'), 'no TLS override');
     assertSec004(!str_contains($code, 'generateContent?key='), 'no API key in query string');
