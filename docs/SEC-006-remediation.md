@@ -1,0 +1,34 @@
+# SEC-006 — Android native backup, TLS, token storage, and logging
+
+**Audit severity:** High. **Status:** Code fix staged; must pass CI and actual Android-device verification before closing. This change is specific to the native Android APK, not the web application.
+
+## Threats remediated
+
+- `AndroidManifest.xml` now sets `android:allowBackup="false"` and `android:usesCleartextTraffic="false"`. Android 12+ `dataExtractionRules` explicitly exclude app data from cloud backup and device-to-device transfer.
+- Capacitor `server.cleartext` is false and the packaged app loads `https://hrms-qwv3.onrender.com`.
+- Foreground tracking accepts only the HTTPS `hrms-qwv3.onrender.com/api/employee/attendance/punch` endpoint (no query/user info/redirects). This deliberate host allowlist must be updated when the app moves to a custom domain.
+- The service no longer writes a plaintext `auth_token` preference. `TrackerTokenStore` uses Android Keystore non-exportable AES-GCM credentials with a random 96-bit IV and authentication tag. First use migrates an existing plaintext preference; on cryptographic error it fails closed and requires a new session. Stop tracking deletes encrypted and old plaintext preferences.
+- Native GPS coordinate and raw HTTP response Logcat lines are removed. Other diagnostic Log calls are gated on `BuildConfig.DEBUG`, with `buildFeatures.buildConfig` explicitly enabled (AGP 8+).
+- Release build uses R8 optimization (`minifyEnabled true`, `shrinkResources true`) and retains the reflection-discovered Capacitor plugin.
+- The new `tests/sec006_android_security_test.mjs` checks policy and token/logging safeguards. `.github/workflows/sec006.yml` synchronizes Capacitor, compiles debug and release APKs, and verifies release minification mapping.
+
+## How to verify on an Android test device
+
+1. Rebuild and **install a new APK from the patched source**. The APK currently committed at `frontend/public/downloads/Acme HRMS.apk` is an older binary and is **not automatically updated** by these source changes.
+2. Sign in with a development employee test account, check in, and permit foreground/background location as required. Confirm the tracking notification appears and the backend receives expected telemetry at the configured interval.
+3. Force close/restart the UI without stopping the foreground service; confirm tracking resumes correctly after Android restarts the service. Reinstall an updated APK over a pre-SEC-006 installation and confirm any old plain token migrates and is no longer present in `hrms_tracker_prefs.xml`.
+4. Check out or stop the tracker; confirm background tracking stops and both token preferences are cleared.
+5. With a **release** APK, inspect `adb logcat` while tracking: no GPS coordinates, HTTP response bodies or JWTs should appear from the tracker. Debug logs are not a substitute for production verification.
+6. Inspect the rebuilt release manifest and APK using Android Studio / `apkanalyzer` / MobSF. Confirm backup is disabled, no cleartext allowed, and DEX code is R8-minified. Check for cleartext or embedded secrets in third-party plugins.
+7. Check that the rest of the mobile app's login, attendance, downloads, and camera functions continue to work.
+
+## Limitations and rollout requirements
+
+- This work protects the **native location service's persisted token**. The React WebView still uses `localStorage` for HRMS JWT, which is tracked separately as **SEC-021**. Full app token protection requires that separate change.
+- Some third-party Capacitor plugins might require extra R8 keep rules; compilation alone does not guarantee runtime reflection works.
+- Credential migration after Android Keystore loss intentionally fails closed. The user must authenticate again rather than restore an unreadable token.
+- The mobile APK hosted in the web app has **not** been rebuilt, re-signed or replaced. Do not distribute it as if SEC-006 were fixed. Publish a new signed APK after device tests; update the existing link or release distribution process without breaking compatibility.
+- If the production API host changes, update both the Capacitor URL and the native HTTPS host allowlist and rebuild the APK.
+- No production database, Supabase buckets, or Render configuration is modified by this native fix.
+
+**Closure gate:** CI green + rebuilt APK installed and tested on Android (including resumed service, Logcat, and cleartext/backup checks) + publication of updated APK before actual users.
