@@ -402,9 +402,8 @@ const AdminRecruitment = () => {
 
       const blob = await pdf(<OfferLetterPDF data={pdfData} />).toBlob();
       
-      const safeFirstName = pdfData.firstName.trim().replace(/\s+/g, '-');
-      const safeLastName = pdfData.lastName.trim().replace(/\s+/g, '-');
-      const fileName = `${safeFirstName}-${safeLastName}-${Date.now()}.pdf`;
+      // SEC-003: do not embed candidate names or predictable timestamps in file paths.
+      const fileName = `offer-${crypto.randomUUID()}.pdf`;
       
       const { error: uploadError } = await supabase.storage.from('offer_letters').upload(fileName, blob, {
         contentType: 'application/pdf',
