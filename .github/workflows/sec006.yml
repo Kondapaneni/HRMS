@@ -42,7 +42,12 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - uses: android-actions/setup-android@v3
+      # GitHub's hosted Ubuntu runners already include Android SDK command-line
+      # tools. Avoid setup-android@v3, which tries to install removed 'tools'.
+      - name: Use preinstalled Android SDK
+        run: |
+          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --version
       - name: Install Android SDK platform and build tools
         run: |
           sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
