@@ -11,7 +11,8 @@ import {
 import MfaSecurityCard from '../components/MfaSecurityCard';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import api, { isNativeApp, isIOS, getAssetUrl } from '../api/axios';
+import api, { isNativeApp, isIOS } from '../api/axios';
+import { ANDROID_RELEASE_MANIFEST_URL, parseAndroidRelease } from '../utils/androidRelease';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
@@ -24,6 +25,20 @@ const EmployeeMobileProfile = () => {
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const controls = useDragControls();
+
+  const isAndroidBrowser = !isNativeApp && !isIOS && typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+  const { data: androidRelease, isLoading: androidReleaseLoading } = useQuery({
+    queryKey: ['android', 'latest-release'],
+    enabled: isAndroidBrowser,
+    queryFn: async () => {
+      const response = await fetch(ANDROID_RELEASE_MANIFEST_URL + '?t=' + Date.now(), { cache: 'no-store' });
+      if (!response.ok) throw new Error('Android release is not yet published');
+      return parseAndroidRelease(await response.json());
+    },
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    retry: false,
+  });
 
   const { data: mfaStatus } = useQuery({
     queryKey: ['mfa', 'status'],
@@ -488,16 +503,28 @@ const EmployeeMobileProfile = () => {
           Build {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
         </p>
 
-        {!isNativeApp && !isIOS && (
-          <div className="pt-1">
-            <a
-              href={getAssetUrl('/downloads/Acme%20HRMS.apk')}
-              download="Acme HRMS.apk"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer active:scale-95 transition-all"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Mobile App (APK)</span>
-            </a>
+        {isAndroidBrowser && (
+          <div className="pt-1 space-y-1.5">
+            {androidRelease ? (
+              <>
+                <a
+                  href={androidRelease.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer active:scale-95 transition-all"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download / Update Android App (v{androidRelease.versionName})</span>
+                </a>
+                <p className="text-[10px] text-[var(--muted)]">
+                  Open the downloaded APK to install. Android will ask you to confirm the update.
+                </p>
+              </>
+            ) : (
+              <p role="status" className="text-[10px] text-[var(--muted)]">
+                {androidReleaseLoading ? 'Checking latest Android release...' : 'Android APK download is not yet available.'}
+              </p>
+            )}
           </div>
         )}
       </div>
