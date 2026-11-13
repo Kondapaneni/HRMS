@@ -37,6 +37,34 @@ claim a successful native login until that test passes. Do not use the previous
 APK; its Capacitor configuration is packaged and will remain unchanged by a
 backend-only deployment.
 
+## Android 14 tracker interval regression (13 Nov 2026)
+
+A real Android 14 device continued submitting location punches even after
+HRMS was removed from recent apps and its notification was swiped away.
+However, with the test interval set to two minutes, a punch at **10:47**
+was followed by a punch at **10:50** after the user reopened HRMS at
+**10:48**. The next punch would ordinarily have been due at about **10:49**.
+
+Cause: after the WebView remounted, `BackgroundLocationTracker.jsx` sent
+another `NativeLocationTracker.startTracking()` call. The Android service
+unconditionally cancelled its existing `punchTickRunnable` and scheduled
+a full interval from that second call, even though the interval was
+unchanged.
+
+Fix: in `LocationTrackerService.onStartCommand`, compare the newly
+requested interval with the interval already running. If unchanged,
+preserve the pending Handler tick and AlarmManager watchdog, and do not
+repost a notification merely because the UI reopened. If the admin
+actually changes the interval, update the notification and reschedule.
+
+**Device retest required:** install a rebuilt debug APK, set a two-minute
+interval, check in, observe a recorded punch, reopen the app between
+scheduled punches, and confirm the following punch remains close to the
+original due time. Android OS scheduling, GPS availability, and server
+response time can still produce small timing variation. Confirm tracker
+entries using the authorized Admin Attendance location view. Then check
+out and ensure no further punches are recorded.
+
 ## How to verify on an Android test device
 
 1. Rebuild and **install a new APK from the patched source**. The APK currently committed at `frontend/public/downloads/Acme HRMS.apk` is an older binary and is **not automatically updated** by these source changes.
