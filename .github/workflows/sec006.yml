@@ -1,0 +1,72 @@
+name: SEC-006 Android native security regression
+on:
+  push:
+    branches: ['main', 'fix/sec-006-android-security']
+    paths:
+      - 'frontend/android/**'
+      - 'frontend/capacitor.config.json'
+      - 'tests/sec006_android_security_test.mjs'
+      - '.github/workflows/sec006.yml'
+  pull_request:
+    paths:
+      - 'frontend/android/**'
+      - 'frontend/capacitor.config.json'
+      - 'tests/sec006_android_security_test.mjs'
+      - '.github/workflows/sec006.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: SEC-006 Android security configuration regression
+        run: node --test tests/sec006_android_security_test.mjs
+
+  android-native-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK platform and build tools
+        run: |
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+          yes | sdkmanager --licenses || true
+      - name: Sync native Capacitor configuration
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+      - name: Confirm Capacitor-generated Android configuration remains HTTPS only
+        run: |
+          node --test tests/sec006_android_security_test.mjs
+          test -f frontend/android/app/src/main/assets/capacitor.config.json
+          node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('frontend/android/app/src/main/assets/capacitor.config.json','utf8'));if(c.server?.cleartext!==false)process.exit(1)"
+      - name: Compile Android debug and optimized release APKs
+        working-directory: frontend/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease
+      - name: Inspect merged release manifest
+        working-directory: frontend/android
+        run: |
+          test -f app/build/outputs/apk/release/app-release-unsigned.apk
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          "$AAPT" dump badging app/build/outputs/apk/release/app-release-unsigned.apk | head -n 8
+          find app/build/outputs/mapping/release -name mapping.txt -size +0c | grep -q mapping.txt
