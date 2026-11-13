@@ -111,7 +111,7 @@ const CandidateProfile = () => {
       try {
         const fileExt = file.name.split('.').pop();
         const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-');
-        const fileName = `Resume-${Date.now()}-${safeName}`;
+        const fileName = `Resume-${profile.id}-${Date.now()}-${safeName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('resumes')

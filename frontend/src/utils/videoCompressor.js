@@ -1,3 +1,5 @@
+import api, { getAssetUrl } from '../api/axios';
+
 /**
  * In-Browser Client-Side Video Compressor & Upload Utility
  * Uses HTML5 Canvas, Web Audio API, and MediaRecorder to transcode & compress
@@ -219,82 +221,26 @@ export const compressVideo = async (file, {
 };
 
 /**
- * Uploads a file to Supabase Storage with XMLHttpRequest to provide real-time progress callbacks.
+ * Upload video through authenticated HRMS PHP API, preserving progress.
  */
-export const uploadToSupabaseWithProgress = ({
-  bucket,
-  fileName,
-  fileBlob,
-  onProgress = () => {}
+export const uploadToSupabaseWithProgress = async ({
+  bucket, fileName, fileBlob, onProgress = () => {}
 }) => {
-  return new Promise((resolve, reject) => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return reject(new Error('Missing Supabase environment variables'));
+  const startedAt = Date.now();
+  const response = await api.post('/storage/upload', fileBlob, {
+    params: { bucket, path: fileName },
+    headers: { 'Content-Type': fileBlob.type || 'application/octet-stream' },
+    onUploadProgress: ({ loaded, total }) => {
+      const size = total || fileBlob.size;
+      const elapsed = Math.max((Date.now() - startedAt) / 1000, 0.01);
+      onProgress({
+        loaded, total: size,
+        percent: Math.min(100, Math.round(loaded * 100 / size)),
+        speedMBps: (loaded / elapsed / (1024 * 1024)).toFixed(1)
+      });
     }
-
-    const xhr = new XMLHttpRequest();
-    const url = `${supabaseUrl}/storage/v1/object/${bucket}/${fileName}`;
-    
-    // Prepare standard multipart FormData payload for Supabase Storage REST API
-    const formData = new FormData();
-    formData.append('cacheControl', '3600');
-    formData.append('', fileBlob, fileName);
-
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('apikey', supabaseAnonKey);
-    xhr.setRequestHeader('Authorization', `Bearer ${supabaseAnonKey}`);
-    xhr.setRequestHeader('x-upsert', 'false');
-    // Note: Do NOT set Content-Type header; browser automatically sets multipart/form-data with boundary
-
-    let startTime = Date.now();
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percent = Math.min(Math.round((event.loaded / event.total) * 100), 100);
-        const elapsedTime = (Date.now() - startTime) / 1000; // seconds
-        const speedBytesPerSec = elapsedTime > 0 ? event.loaded / elapsedTime : 0;
-        const speedMBps = (speedBytesPerSec / (1024 * 1024)).toFixed(1);
-
-        onProgress({
-          loaded: event.loaded,
-          total: event.total,
-          percent,
-          speedMBps
-        });
-      }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const response = JSON.parse(xhr.responseText || '{}');
-          resolve(response);
-        } catch {
-          resolve({ Key: `${bucket}/${fileName}` });
-        }
-      } else {
-        let errorMsg = `Upload failed (${xhr.status})`;
-        try {
-          const errRes = JSON.parse(xhr.responseText);
-          errorMsg = errRes.message || errRes.error || errRes.msg || errorMsg;
-        } catch {}
-        reject(new Error(errorMsg));
-      }
-    };
-
-    xhr.onerror = () => {
-      reject(new Error('Network connection error during file upload'));
-    };
-
-    xhr.onabort = () => {
-      reject(new Error('Upload was cancelled'));
-    };
-
-    xhr.send(formData);
   });
+  return { ...response.data, publicUrl: getAssetUrl('/Training-Video/' + fileName) };
 };
 
 export const formatBytes = (bytes, decimals = 1) => {

@@ -1,0 +1,56 @@
+name: SEC-001 focused regression
+on:
+  push:
+    branches: ['fix/sec-001-supabase-rls-storage']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sec001-php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, fileinfo, pdo_pgsql
+      - name: Check SEC-001 PHP syntax
+        run: |
+          php -l backend/public/storage_routes.php
+          php -l backend/public/index.php
+          php -l tests/sec001_storage_test.php
+      - name: Run focused SEC-001 authorization regression checks
+        run: php tests/sec001_storage_test.php
+      - name: Install PHP API dependencies for HTTP route smoke
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Exercise live PHP HTTP route without credentials
+        shell: bash
+        run: |
+          php -S 127.0.0.1:8765 -t backend/public backend/public/index.php > /tmp/sec001-php-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in 1 2 3 4 5; do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep 1
+          done
+          code=$(curl -sS -o /tmp/sec001-unauthorized-body.txt -w '%{http_code}' -X POST 'http://127.0.0.1:8765/api/storage/upload?bucket=avatars&path=untrusted.jpg' -H 'Content-Type: image/jpeg' --data-binary 'fake')
+          echo "Unauthenticated upload status: $code"
+          if [ "$code" != "401" ]; then cat /tmp/sec001-php-server.log; exit 1; fi
+          code=$(curl -sS -o /tmp/sec001-unauthorized-delete-body.txt -w '%{http_code}' -X DELETE 'http://127.0.0.1:8765/api/storage/object?bucket=avatars&path=untrusted.jpg')
+          echo "Unauthenticated delete status: $code"
+          if [ "$code" != "401" ]; then cat /tmp/sec001-php-server.log; exit 1; fi
+  sec001-react:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
