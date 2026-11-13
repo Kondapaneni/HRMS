@@ -44,25 +44,25 @@ function sec004LocalFaqResponse(string $message): ?string
 {
     if (sec004PublicFaqPrompt($message) === null) return null;
 
-    $normalized = strtolower(trim((string) (preg_replace('/\\s+/', ' ', $message) ?? '')));
-    $normalized = rtrim($normalized, " \\t\\r\\n.!?");
+    $normalized = strtolower(trim((string) (preg_replace('/\s+/', ' ', $message) ?? '')));
+    $normalized = rtrim($normalized, " \t\r\n.!?");
 
     $answers = [
-        'what is paid leave' => "### Paid Leave\\nPaid leave is approved time away from work during which an employee continues to receive pay, subject to the employer's leave policy. The amount available depends on the applicable policy and individual leave entitlement.",
-        'what is unpaid leave' => "### Unpaid Leave\\nUnpaid leave is approved time away from work for which the employee does not receive regular pay. Eligibility and approval depend on the employer's policy.",
-        'what is sick leave' => "### Sick Leave\\nSick leave is time away from work because of illness, injury, or a health-related need, according to the employer's policy. Whether it is paid depends on the policy and applicable law.",
-        'how do i apply for leave' => "### Requesting Leave\\nOpen the Leaves section in your HR portal, choose Apply Leave, select the leave type and dates, enter the reason if required, and submit for approval. Exact steps depend on your company's workflow.",
-        'how to apply for leave' => "### Requesting Leave\\nOpen the Leaves section in your HR portal, choose Apply Leave, select the leave type and dates, enter the reason if required, and submit for approval. Exact steps depend on your company's workflow.",
-        'how do i request leave' => "### Requesting Leave\\nOpen the Leaves section in your HR portal, choose Apply Leave, select the leave type and dates, enter the reason if required, and submit for approval. Exact steps depend on your company's workflow.",
-        'how do i mark attendance' => "### Marking Attendance\\nIn a typical HR portal, open Attendance, check in when you start work, and check out when your shift ends. Follow your organization's attendance rules.",
-        'how do i check in' => "### Checking In\\nIn a typical HR portal, open Attendance and select Check In at the start of your shift. Your organization may require location or other verification.",
-        'how do i submit an expense claim' => "### Expense Claims\\nOpen Expenses, choose a new claim, enter the expense details, attach the supporting receipt, and submit it for review according to your organization's policy.",
-        'how to submit an expense claim' => "### Expense Claims\\nOpen Expenses, choose a new claim, enter the expense details, attach the supporting receipt, and submit it for review according to your organization's policy.",
-        'what is a payslip' => "### Payslip\\nA payslip is a record of pay for a particular pay period. It commonly shows gross earnings, deductions, and net pay.",
-        'what is gross salary' => "### Gross Salary\\nGross salary is total pay before deductions such as tax or other payroll withholdings. Its exact components depend on the employment agreement and payroll system.",
-        'what is net salary' => "### Net Salary\\nNet salary is the amount received after applicable taxes and other deductions are taken from gross pay.",
-        'what is employee onboarding' => "### Employee Onboarding\\nEmployee onboarding introduces a new employee to the organization, role, policies, tools, and team.",
-        'what is a performance review' => "### Performance Review\\nA performance review is a discussion and assessment of an employee's work, achievements, goals, and areas for development.",
+        'what is paid leave' => "### Paid Leave\nPaid leave is approved time away from work during which an employee continues to receive pay, subject to the employer's leave policy. The amount available depends on the applicable policy and individual leave entitlement.",
+        'what is unpaid leave' => "### Unpaid Leave\nUnpaid leave is approved time away from work for which the employee does not receive regular pay. Eligibility and approval depend on the employer's policy.",
+        'what is sick leave' => "### Sick Leave\nSick leave is time away from work because of illness, injury, or a health-related need, according to the employer's policy. Whether it is paid depends on the policy and applicable law.",
+        'how do i apply for leave' => "### Requesting Leave\nOpen the Leaves section in your HR portal, choose Apply Leave, select the leave type and dates, enter the reason if required, and submit for approval. Exact steps depend on your company's workflow.",
+        'how to apply for leave' => "### Requesting Leave\nOpen the Leaves section in your HR portal, choose Apply Leave, select the leave type and dates, enter the reason if required, and submit for approval. Exact steps depend on your company's workflow.",
+        'how do i request leave' => "### Requesting Leave\nOpen the Leaves section in your HR portal, choose Apply Leave, select the leave type and dates, enter the reason if required, and submit for approval. Exact steps depend on your company's workflow.",
+        'how do i mark attendance' => "### Marking Attendance\nIn a typical HR portal, open Attendance, check in when you start work, and check out when your shift ends. Follow your organization's attendance rules.",
+        'how do i check in' => "### Checking In\nIn a typical HR portal, open Attendance and select Check In at the start of your shift. Your organization may require location or other verification.",
+        'how do i submit an expense claim' => "### Expense Claims\nOpen Expenses, choose a new claim, enter the expense details, attach the supporting receipt, and submit it for review according to your organization's policy.",
+        'how to submit an expense claim' => "### Expense Claims\nOpen Expenses, choose a new claim, enter the expense details, attach the supporting receipt, and submit it for review according to your organization's policy.",
+        'what is a payslip' => "### Payslip\nA payslip is a record of pay for a particular pay period. It commonly shows gross earnings, deductions, and net pay.",
+        'what is gross salary' => "### Gross Salary\nGross salary is total pay before deductions such as tax or other payroll withholdings. Its exact components depend on the employment agreement and payroll system.",
+        'what is net salary' => "### Net Salary\nNet salary is the amount received after applicable taxes and other deductions are taken from gross pay.",
+        'what is employee onboarding' => "### Employee Onboarding\nEmployee onboarding introduces a new employee to the organization, role, policies, tools, and team.",
+        'what is a performance review' => "### Performance Review\nA performance review is a discussion and assessment of an employee's work, achievements, goals, and areas for development.",
     ];
 
     return $answers[$normalized] ?? null;
