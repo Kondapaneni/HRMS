@@ -31,6 +31,22 @@ test('SEC-006 Android Axios login uses the standard WebView XMLHttpRequest', () 
   assert.equal(capacitor.server.cleartext, false);
 });
 
+test('reopening HRMS cannot postpone an already-scheduled native tracker punch', () => {
+  // WebView lifecycle restarts can call startTracking repeatedly. The native
+  // service must not cancel the pending Handler tick for the same interval.
+  const start = service.slice(
+    service.indexOf('public int onStartCommand('),
+    service.indexOf('private void startForegroundServiceNotification()')
+  );
+  assert.match(start, /final long previousIntervalMs = intervalMs;/);
+  const duplicate = start.slice(start.indexOf('// Idempotent START:'));
+  assert.match(duplicate, /if \(intervalMs != previousIntervalMs\) \{/);
+  assert.match(duplicate, /if \(intervalMs != previousIntervalMs\) \{[\s\S]*?bgHandler\.removeCallbacks\(punchTickRunnable\);[\s\S]*?bgHandler\.postDelayed\(punchTickRunnable, intervalMs\);[\s\S]*?scheduleNextPunchAlarm\(\);/);
+  const sameInterval = duplicate.slice(duplicate.indexOf('// Also avoid needlessly'));
+  assert.doesNotMatch(sameInterval, /postDelayed\(punchTickRunnable/);
+  assert.doesNotMatch(sameInterval, /updateNotification\(/);
+});
+
 test('all native cleartext HTTP transports are disabled', () => {
   assert.match(manifest, /android:usesCleartextTraffic="false"/);
   assert.equal(capacitor.server.cleartext, false);

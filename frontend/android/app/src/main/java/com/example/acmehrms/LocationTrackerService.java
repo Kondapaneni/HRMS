@@ -129,6 +129,10 @@ public class LocationTrackerService extends Service implements LocationListener 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // A React WebView reload can send ACTION_START again while the native
+        // service is already running. Preserve the existing punch deadline
+        // unless the configured interval actually changes.
+        final long previousIntervalMs = intervalMs;
         if (intent != null) {
             String action = intent.getAction();
             if (ACTION_STOP.equals(action)) {
@@ -218,15 +222,21 @@ public class LocationTrackerService extends Service implements LocationListener 
             startForegroundServiceNotification();
             startLocationTracking();
         } else {
-            // Service already running: dynamically refresh notification text and reschedule next tick immediately
-            int mins = Math.max(1, (int)(intervalMs / 60000));
-            updateNotification("Duty Active • Tracking every " + mins + " min(s)");
-            if (bgHandler != null) {
-                bgHandler.removeCallbacks(punchTickRunnable);
-                bgHandler.postDelayed(punchTickRunnable, intervalMs);
+            // Idempotent START: reopening HRMS must not postpone the next punch.
+            // Only an actual interval change reschedules Handler and watchdog.
+            if (intervalMs != previousIntervalMs) {
+                int mins = Math.max(1, (int)(intervalMs / 60000));
+                updateNotification("Duty Active • Tracking every " + mins + " min(s)");
+                if (bgHandler != null) {
+                    bgHandler.removeCallbacks(punchTickRunnable);
+                    bgHandler.postDelayed(punchTickRunnable, intervalMs);
+                }
+                scheduleNextPunchAlarm();
+                if (BuildConfig.DEBUG) Log.i(TAG, "Tracking interval changed to " + mins + " min(s); next punch rescheduled.");
+            } else {
+                // Also avoid needlessly reposting a dismissed notification.
+                if (BuildConfig.DEBUG) Log.d(TAG, "Duplicate START ignored; existing punch deadline preserved.");
             }
-            scheduleNextPunchAlarm();
-            if (BuildConfig.DEBUG) Log.i(TAG, "Service already running. Interval dynamically updated to " + mins + " min(s) and tick rescheduled.");
         }
 
         return START_STICKY;
