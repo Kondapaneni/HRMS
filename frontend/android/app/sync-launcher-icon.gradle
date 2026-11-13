@@ -1,0 +1,79 @@
+// Keep Android launcher icons aligned with the Acme brand icon used by the web/PWA.
+// This task runs during every native Android build, including GitHub Actions.
+// It regenerates all density-specific launcher images from one committed source.
+import java.awt.RenderingHints
+import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
+
+def hrmsWebIcon = file('../../public/pwa-512x512.png')
+def hrmsResourceDirectory = file('src/main/res')
+def hrmsLauncherSizes = [mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192]
+
+tasks.register('syncHrmsLauncherIcon') {
+    group = 'build setup'
+    description = 'Generate Android launcher icons from the current HRMS PWA icon'
+    inputs.file(hrmsWebIcon)
+    outputs.files(hrmsLauncherSizes.collectMany { density, size ->
+        ['ic_launcher.png', 'ic_launcher_round.png', 'ic_launcher_foreground.png'].collect { name ->
+            file("src/main/res/mipmap-${density}/${name}")
+        }
+    })
+
+    doLast {
+        if (!hrmsWebIcon.isFile()) {
+            throw new GradleException("HRMS website icon not found: ${hrmsWebIcon}")
+        }
+        BufferedImage source = ImageIO.read(hrmsWebIcon)
+        if (source == null || source.width != source.height) {
+            throw new GradleException('HRMS PWA launcher icon must be a valid square PNG')
+        }
+
+        def writeIcon = { File destination, int canvasSize, int imageSize ->
+            BufferedImage output = new BufferedImage(
+                canvasSize, canvasSize, BufferedImage.TYPE_INT_ARGB
+            )
+            def graphics = output.createGraphics()
+            try {
+                graphics.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BICUBIC
+                )
+                graphics.setRenderingHint(
+                    RenderingHints.KEY_RENDERING,
+                    RenderingHints.VALUE_RENDER_QUALITY
+                )
+                int offset = (canvasSize - imageSize).intdiv(2)
+                graphics.drawImage(source, offset, offset, imageSize, imageSize, null)
+            } finally {
+                graphics.dispose()
+            }
+            destination.parentFile.mkdirs()
+            if (!ImageIO.write(output, 'png', destination)) {
+                throw new GradleException("Unable to write Android icon: ${destination}")
+            }
+        }
+
+        hrmsLauncherSizes.each { density, size ->
+            File mipmap = new File(hrmsResourceDirectory, "mipmap-${density}")
+            // Classic Android launchers use the full web icon.
+            writeIcon(new File(mipmap, 'ic_launcher.png'), size, size)
+            writeIcon(new File(mipmap, 'ic_launcher_round.png'), size, size)
+
+            // Android 8+ adaptive icons need a 108dp canvas with all
+            // important artwork inside the central 72dp safe region.
+            int foregroundSize = Math.round(size * 2.25f)
+            int safeArtworkSize = Math.round(foregroundSize * (2.0f / 3.0f))
+            writeIcon(
+                new File(mipmap, 'ic_launcher_foreground.png'),
+                foregroundSize,
+                safeArtworkSize
+            )
+        }
+        logger.lifecycle('Android launcher icons refreshed from frontend/public/pwa-512x512.png')
+    }
+}
+
+// Capacitor sync copies web assets, but not these native launcher icons.
+tasks.matching { it.name == 'preBuild' }.configureEach {
+    dependsOn tasks.named('syncHrmsLauncherIcon')
+}
