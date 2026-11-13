@@ -59,14 +59,16 @@ tasks.register('syncHrmsLauncherIcon') {
             writeIcon(new File(mipmap, 'ic_launcher.png'), size, size)
             writeIcon(new File(mipmap, 'ic_launcher_round.png'), size, size)
 
-            // Android 8+ adaptive icons need a 108dp canvas with all
-            // important artwork inside the central 72dp safe region.
+            // Android 8+ adaptive icons use a 108dp canvas. The
+            // PWA asset already has its white logo/text inset from the
+            // blue border, so keeping the tile at 85% preserves a
+            // legible wordmark inside common launcher masks.
             int foregroundSize = Math.round(size * 2.25f)
-            int safeArtworkSize = Math.round(foregroundSize * (2.0f / 3.0f))
+            int artworkSize = Math.round(foregroundSize * 0.85f)
             writeIcon(
                 new File(mipmap, 'ic_launcher_foreground.png'),
                 foregroundSize,
-                safeArtworkSize
+                artworkSize
             )
         }
         logger.lifecycle('Android launcher icons refreshed from frontend/public/pwa-512x512.png')
