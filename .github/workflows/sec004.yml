@@ -1,0 +1,41 @@
+name: SEC-004 Gemini TLS and PII protection
+on:
+  push:
+    branches: ['main', 'fix/sec-004-gemini-privacy-tls']
+    paths:
+      - 'backend/public/employee_chatbot_routes.php'
+      - 'backend/public/admin_chatbot_routes.php'
+      - 'backend/public/sec004_gemini_security.php'
+      - 'tests/sec004_gemini_security_test.php'
+      - 'Dockerfile'
+      - '.github/workflows/sec004.yml'
+  pull_request:
+    paths:
+      - 'backend/public/employee_chatbot_routes.php'
+      - 'backend/public/admin_chatbot_routes.php'
+      - 'backend/public/sec004_gemini_security.php'
+      - 'tests/sec004_gemini_security_test.php'
+      - 'Dockerfile'
+      - '.github/workflows/sec004.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-sec004:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl
+      - name: Check PHP syntax
+        run: |
+          php -l backend/public/employee_chatbot_routes.php
+          php -l backend/public/admin_chatbot_routes.php
+          php -l backend/public/sec004_gemini_security.php
+          php -l tests/sec004_gemini_security_test.php
+      - name: Verify PII stays local and TLS is enforced
+        run: php tests/sec004_gemini_security_test.php
