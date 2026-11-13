@@ -514,10 +514,6 @@ const AdminExpenses = () => {
                   <span className="font-semibold text-[var(--text)]">{selectedExpense.category}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-[var(--line)]">
-                  <span className="text-[var(--muted)]">Expense Date</span>
-                  <span className="font-semibold text-[var(--text)]">{new Date(selectedExpense.expense_date).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-[var(--line)]">
                   <span className="text-[var(--muted)]">Submission Date</span>
                   <span className="font-semibold text-[var(--text)]">{new Date(selectedExpense.created_at).toLocaleDateString()}</span>
                 </div>
