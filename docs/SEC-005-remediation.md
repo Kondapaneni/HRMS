@@ -1,5 +1,19 @@
 # SEC-005 — Git artifact hygiene and Docker build secret exclusion
 
+**Development closure decision (13 November 2026): CLOSED — fixed for development, with residual risk accepted by the project owner.**
+
+The project owner confirmed that the currently configured credentials are temporary development keys and committed to rotating credentials before real users are onboarded. The code/build mitigations were deployed on Render in commit `d01c506`, and the focused CI checks passed.
+
+**Residual risk accepted only for the development phase:** the previously committed SQL backup may remain in older Git history, clones and caches; old Docker images may remain; the distributable APK has not been independently inspected for embedded secrets. Temporary-key status is reported by the owner, not independently verified. This is **not a declaration that historical records are erased or that real personal data, if any, was never exposed**.
+
+**Mandatory pre-production gate (before real users or real employee/candidate data):**
+- Rotate development credentials that could have been exposed, including database, Supabase secret/API, SMTP, Google/API, and JWT signing secrets as applicable; update backend/mobile integrations and test authentication after rotation.
+- Review historical backups and old Docker images for any real PII/secrets. If real data or still-valid secrets were exposed, escalate and remediate immediately rather than defer to launch; arrange history cleanup/copy handling as necessary.
+- Review the publicly distributed Android APK for embedded keys and migrate release artifacts out of Git when practical.
+- Re-run Docker-secret exclusion checks and verify deployment after key rotation. Do not release until these checks pass.
+
+**Status scope:** SEC-005 audit issue is **closed in development by owner risk acceptance**; its historical-exposure review and key rotation remain tracked here as pre-launch obligations, not as completed security work.
+
 **Finding:** HIGH — Git-tracked SQL/chat backups and locally generated artifacts, combined with a missing root `.dockerignore`, can expose HRMS records and environment credentials in Git history or Docker image layers.
 
 ## Changes in this remediation
@@ -39,4 +53,4 @@ The runtime `docker-entrypoint.sh` still creates a permission-restricted `/var/w
 
 The GitHub history was **not** rewritten, no credentials were read or rotated, no database or Supabase Storage settings were changed, and the mobile APK asset remains deployed until a release-hosted replacement is designed.
 
-**Status after CI/deployment:** current-tree and Docker secret exposure mitigated; overall SEC-005 **partially fixed**, pending coordinated historical data/credential and old-image handling.
+**Implementation status after CI/deployment:** current-tree and Docker build exposure mitigated. **Audit tracking status:** Closed for development under owner-accepted residual risk, as recorded above. Historical data/credential and prior-image reviews remain pre-production obligations.
