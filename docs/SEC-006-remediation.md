@@ -12,6 +12,31 @@
 - Release build uses R8 optimization (`minifyEnabled true`, `shrinkResources true`) and retains the reflection-discovered Capacitor plugin.
 - The new `tests/sec006_android_security_test.mjs` checks policy and token/logging safeguards. `.github/workflows/sec006.yml` synchronizes Capacitor, compiles debug and release APKs, and verifies release minification mapping.
 
+## Android-only login regression (13 Nov 2026)
+
+On a freshly installed SEC-006 debug APK, the user confirmed that the HRMS
+website login works in Chrome on the **same Android phone**, but the APK's login
+failed with:
+
+`Failed to execute 'setRequestHeader' on 'XMLHttpRequest': The object's state must be OPENED.`
+
+The native Capacitor config had `plugins.CapacitorHttp.enabled=true`, which
+overrides WebView `XMLHttpRequest` and `fetch` in Capacitor. The HRMS login
+uses Axios XHR, so the unnecessary native override was disabled by setting
+`CapacitorHttp.enabled=false`; standard WebView HTTPS XHR remains enabled.
+The secure `server.url`, `server.cleartext=false`, Android TLS restrictions,
+AndroidKeyStore token encryption and native location tracking are unchanged.
+A regression assertion checks both the source config and the config generated
+by `npx cap sync android`.
+
+**Device validation is still required.** The user must run
+`npm.cmd run cap:sync` from `frontend/`, then
+`.\\gradlew.bat assembleDebug` from `frontend/android/`, install/update
+`app-debug.apk` on the test phone and verify password login works. Do not
+claim a successful native login until that test passes. Do not use the previous
+APK; its Capacitor configuration is packaged and will remain unchanged by a
+backend-only deployment.
+
 ## How to verify on an Android test device
 
 1. Rebuild and **install a new APK from the patched source**. The APK currently committed at `frontend/public/downloads/Acme HRMS.apk` is an older binary and is **not automatically updated** by these source changes.

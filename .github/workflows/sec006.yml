@@ -62,7 +62,7 @@ jobs:
         run: |
           node --test tests/sec006_android_security_test.mjs
           test -f frontend/android/app/src/main/assets/capacitor.config.json
-          node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('frontend/android/app/src/main/assets/capacitor.config.json','utf8'));if(c.server?.cleartext!==false)process.exit(1)"
+          node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('frontend/android/app/src/main/assets/capacitor.config.json','utf8'));if(c.server?.cleartext!==false || c.plugins?.CapacitorHttp?.enabled!==false || !c.server?.url?.startsWith('https://'))process.exit(1)"
       - name: Compile Android debug and optimized release APKs
         working-directory: frontend/android
         run: |

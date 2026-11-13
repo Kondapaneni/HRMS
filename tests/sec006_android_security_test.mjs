@@ -18,6 +18,19 @@ test('disable Android app backup including Android 12+ transfers', () => {
   assert.match(extraction, /<device-transfer>[\s\S]*?<exclude domain="root" path="\."/);
 });
 
+test('SEC-006 Android Axios login uses the standard WebView XMLHttpRequest', () => {
+  // Browser login succeeds; the optional CapacitorHttp XHR override caused
+  // the Android-only setRequestHeader InvalidStateError.
+  assert.equal(capacitor.plugins.CapacitorHttp.enabled, false);
+  assert.equal(capacitor.server.url, 'https://hrms-qwv3.onrender.com');
+  const axios = read('frontend/src/api/axios.js');
+  const auth = read('frontend/src/contexts/AuthContext.jsx');
+  assert.match(axios, /axios\.create\(/);
+  assert.match(auth, /api\.post\('\/login'/);
+  assert.match(capacitor.server.url, /^https:\/\//);
+  assert.equal(capacitor.server.cleartext, false);
+});
+
 test('all native cleartext HTTP transports are disabled', () => {
   assert.match(manifest, /android:usesCleartextTraffic="false"/);
   assert.equal(capacitor.server.cleartext, false);
