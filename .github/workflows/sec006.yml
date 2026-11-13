@@ -31,6 +31,9 @@ jobs:
 
   android-native-build:
     runs-on: ubuntu-latest
+    env:
+      HRMS_ANDROID_VERSION_CODE: ${{ github.run_number }}
+      HRMS_ANDROID_VERSION_NAME: 1.0.${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -75,3 +78,72 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
           "$AAPT" dump badging app/build/outputs/apk/release/app-release-unsigned.apk | head -n 8
           find app/build/outputs/mapping/release -name mapping.txt -size +0c | grep -q mapping.txt
+
+      - name: Save test APK in GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: hrms-android-debug-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-website-apk:
+    name: Update HRMS website APK download (only when compatible)
+    needs: [static-security, android-native-build]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v4
+        with:
+          name: hrms-android-debug-apk
+          path: downloaded-apk
+
+      # In-place Android upgrades require the same certificate used to sign the
+      # currently downloadable APK. GitHub runner debug keys are not stable.
+      # Never replace a working APK with a binary that users cannot install.
+      - name: Check compatibility with existing HRMS APK
+        id: compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing="frontend/public/downloads/Acme HRMS.apk"
+          proposed="downloaded-apk/app-debug.apk"
+          test -s "$existing"
+          test -s "$proposed"
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          "$sdkmanager" --install "build-tools;36.0.0"
+          apksigner="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          old_cert="$("$apksigner" verify --print-certs "$existing" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1)"
+          new_cert="$("$apksigner" verify --print-certs "$proposed" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1)"
+          if [[ -z "$old_cert" || -z "$new_cert" || "$old_cert" != "$new_cert" ]]; then
+            echo "::warning::APK signatures differ. Keeping existing employee download unchanged. A compatible signing key is required for updates."
+            echo "compatible=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          old_version="$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$existing" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -n 1)"
+          new_version="$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$proposed" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -n 1)"
+          if [[ -z "$old_version" || -z "$new_version" || "$new_version" -le "$old_version" ]]; then
+            echo "::warning::APK versionCode is not increasing. Keeping existing employee download unchanged."
+            echo "compatible=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "compatible=true" >> "$GITHUB_OUTPUT"
+
+      - name: Update APK in frontend public downloads folder
+        if: steps.compatibility.outputs.compatible == 'true'
+        run: |
+          cp downloaded-apk/app-debug.apk "frontend/public/downloads/Acme HRMS.apk"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "frontend/public/downloads/Acme HRMS.apk"
+          if ! git diff --cached --quiet; then
+            git commit -m "build(android): update employee APK download [skip ci]"
+            git push origin HEAD:main
+          fi
