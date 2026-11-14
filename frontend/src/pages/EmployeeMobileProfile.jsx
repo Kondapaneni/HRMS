@@ -6,7 +6,7 @@ import {
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Camera, ChevronRight, FileText,
   X, Edit2, Sparkles, Building, CheckCircle2, AlertCircle,
-  Download, RefreshCw, ShieldCheck
+  Download, RefreshCw, ShieldCheck, Lock
 } from 'lucide-react';
 import MfaSecurityCard from '../components/MfaSecurityCard';
 import { useNavigate } from 'react-router-dom';
@@ -129,6 +129,7 @@ const EmployeeMobileProfile = () => {
     { id: 'my-team', label: 'My Team & Manager', icon: Users, color: 'text-[var(--status-success-text)]', bg: 'bg-[var(--status-success-bg)]' },
     { id: 'assets', label: 'Assigned Assets', icon: Laptop, color: 'text-[var(--brand-deep)]', bg: 'bg-[var(--brand-tint)]' },
     { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-[var(--text-2)]', bg: 'bg-[var(--surface-alt)]' },
+    { id: 'password', label: 'Change Password', icon: Lock, color: 'text-[var(--brand-deep)]', bg: 'bg-[var(--brand-tint)]' },
     ...(mfaStatus?.authorized ? [{
       id: 'security',
       label: 'Two-Factor Auth (2FA)',
@@ -451,7 +452,7 @@ const EmployeeMobileProfile = () => {
               <button
                 key={section.id}
                 type="button"
-                onClick={() => setActiveSection(section.id)}
+                onClick={() => section.id === 'password' ? navigate('/change-password') : setActiveSection(section.id)}
                 className="w-full bg-[var(--surface)] p-4 rounded-[20px] border border-[var(--line)] shadow-xs flex items-center justify-between hover:bg-[var(--surface-alt)] active:scale-[0.98] transition-all cursor-pointer text-left"
               >
                 <div className="flex items-center gap-3">
