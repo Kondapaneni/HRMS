@@ -68,7 +68,7 @@ $app->get('/api/employee/training/videos', function (Request $request, Response 
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 // POST /api/employee/training/progress - Mark a video as completed or uncompleted
 $app->post('/api/employee/training/progress', function (Request $request, Response $response, $args) {
@@ -134,7 +134,7 @@ $app->post('/api/employee/training/progress', function (Request $request, Respon
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 // GET /api/employee/training/progress - Get all progress records for current employee
 $app->get('/api/employee/training/progress', function (Request $request, Response $response, $args) {
@@ -174,4 +174,4 @@ $app->get('/api/employee/training/progress', function (Request $request, Respons
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
