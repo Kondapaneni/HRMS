@@ -748,6 +748,26 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         $oldFormData = is_string($existingApp['form_data'])
             ? json_decode($existingApp['form_data'], true)
             : ($existingApp['form_data'] ?: []);
+        if (!is_array($oldFormData)) $oldFormData = [];
+
+        // A branch employee may only edit records that have actually reached
+        // Branch Operations, not any draft that happens to share their branch.
+        // Enforce this server-side even if the UI normally hides other stages.
+        $currentStage = trim((string)($oldFormData['stage'] ?? $oldFormData['current_stage'] ?? ''));
+        $reachedBranchOps = stripos($currentStage, 'Branch Operations') !== false;
+        foreach (($oldFormData['timeline'] ?? []) as $event) {
+            if ($reachedBranchOps) break;
+            if (is_array($event)) {
+                $stageName = trim((string)($event['stage'] ?? $event['title'] ?? ''));
+                if (stripos($stageName, 'Branch Operations') !== false) {
+                    $reachedBranchOps = true;
+                }
+            }
+        }
+        if (!$reachedBranchOps) {
+            $response->getBody()->write(json_encode(['error' => 'Application has not reached Branch Operations']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
 
         // Compute field-by-field diff between old and new form data
         $changes = [];
