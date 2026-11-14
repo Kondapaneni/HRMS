@@ -84,7 +84,7 @@ $app->add(function (Request $request, $handler) {
     if (!str_starts_with($path, '/api/') || $response->getStatusCode() >= 400) return $response;
     $auth = trim($request->getHeaderLine('Authorization'));
     if (!preg_match('/\ABearer\s+([A-Za-z0-9._-]+)\z/i', $auth, $matches)) return $response;
-    $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+    $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
     if ($secret === '') return $response;
     try {
         $claims = JWT::decode($matches[1], new \Firebase\JWT\Key($secret, 'HS256'));
@@ -175,32 +175,10 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 
         // SEC-008: Password and email-OTP login use one confirmed-MFA policy.
         if (sec008MfaRequired($conn, $user)) {
-            $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+            $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
             return sec008MfaChallenge($response, $user, $secret);
         }
 
-        $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
-                $mfaPayload = [
-                    'iss' => 'acme_hrms',
-                    'iat' => time(),
-                    'exp' => time() + 300, // 5 minutes
-                    'type' => 'mfa_pending',
-                    'id' => $user['id'],
-                    'email' => $user['email']
-                ];
-                $mfaToken = JWT::encode($mfaPayload, $secret, 'HS256');
-
-                $response->getBody()->write(json_encode([
-                    'mfaRequired' => true,
-                    'mfaToken' => $mfaToken,
-                    'email' => $user['email']
-                ]));
-                return $response
-                    ->withHeader('Content-Type', 'application/json')
-                    ->withStatus(200);
-            }
-        }
-        
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
         
         $payload = [
@@ -408,7 +386,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     // Do not return a privileged session when confirmed authenticator MFA is active.
     if (sec008MfaRequired($conn, $user)) {
         RateLimiter::clearAttempts($conn, $ip, $action);
-        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
         return sec008MfaChallenge($response, $user, $secret);
     }
 
