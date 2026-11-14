@@ -60,6 +60,7 @@ SQL);
 $users = [
     ['sec008-admin@example.invalid', 'admin', 'true', '654321'],
     ['sec008-employee@example.invalid', 'employee', 'false', '123456'],
+    ['sec008-granted@example.invalid', 'employee', 'true', '789012'],
 ];
 $stmt = $pdo->prepare(<<<'SQL'
 INSERT INTO users (
@@ -77,5 +78,6 @@ foreach ($users as $i => [$email, $role, $mfaEnabled, $otp]) {
         ->execute(['sec008-user-' . $i]);
 }
 $pdo->exec("INSERT INTO mfa_secrets (user_id, secret, confirmed)
-    VALUES ('sec008-user-0', 'JBSWY3DPEHPK3PXP', true)");
+    VALUES ('sec008-user-0', 'JBSWY3DPEHPK3PXP', true),
+           ('sec008-user-2', 'JBSWY3DPEHPK3PXP', false)");
 echo "Isolated SEC-008 integration fixtures seeded\n";
