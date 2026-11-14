@@ -25,7 +25,7 @@ $definitions = implode(', ', array_map(
     static fn(string $column): string => "\"{$column}\" BOOLEAN NOT NULL DEFAULT FALSE",
     $featureColumns
 ));
-$pdo->exec('CREATE TABLE users (id TEXT PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL DEFAULT TRUE)');
+$pdo->exec('CREATE TABLE users (id TEXT PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL DEFAULT TRUE, token_version INTEGER NOT NULL DEFAULT 0)');
 $pdo->exec("CREATE TABLE user_feature_access (\"userId\" TEXT PRIMARY KEY, {$definitions})");
 
 $users = [
