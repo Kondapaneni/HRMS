@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in backend/src/Security/OriginationAccess.php backend/public/origination_loans_application_routes.php backend/public/origination_activities_routes.php backend/public/branch_operations_application_routes.php tests/sec011_seed.php; do
+          for file in backend/src/Security/OriginationAccess.php backend/public/origination_loans_application_routes.php backend/public/origination_activities_routes.php backend/public/branch_operations_application_routes.php tests/sec011_seed.php tests/sec011_assert.php; do
             php -l "$file"
           done
           node --check tests/sec011_http_test.mjs
@@ -101,3 +101,4 @@ jobs:
             tail -n 150 /tmp/sec011-server.log
             exit 1
           }
+          php tests/sec011_assert.php
