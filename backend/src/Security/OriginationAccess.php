@@ -64,7 +64,7 @@ final class OriginationAccess
      * Lookup never exposes another staff member's or another branch's row.
      * id/application_id/lead_id aliases remain supported for existing clients.
      */
-    public static function findLoan(PDO $conn, string $identifier, $identity, ?string $branch, bool $draftOnly = false): ?array
+    public static function findLoan(PDO $conn, string $identifier, $identity, ?string $branch, bool $draftOnly = false, bool $allowLeadId = true): ?array
     {
         if ($identifier === '') {
             return null;
@@ -74,12 +74,14 @@ final class OriginationAccess
             SELECT id, application_id, lead_id, loan_type, status, form_data,
                    branch, signatures, created_by, created_at, updated_at
             FROM public.loan_applications
-            WHERE (id::text = ? OR application_id = ? OR lead_id = ?)'
+            WHERE (id::text = ? OR application_id = ?'
+            . ($allowLeadId ? ' OR lead_id = ?' : '') . ')'
             . ($draftOnly ? " AND status = 'Draft'" : '')
             . $scopeSql
             . ' ORDER BY created_at DESC LIMIT 1';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$identifier, $identifier, $identifier], $scopeArgs));
+        $ids = $allowLeadId ? [$identifier, $identifier, $identifier] : [$identifier, $identifier];
+        $stmt->execute(array_merge($ids, $scopeArgs));
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
