@@ -204,7 +204,7 @@ const AdminEmployees = () => {
 
                       {/* Salary */}
                       <td className="px-5 py-3.5 align-middle font-medium text-[var(--text)]">
-                        {formatCurrency(emp.salary)}
+                        {emp.salary == null ? 'Restricted' : formatCurrency(emp.salary)}
                       </td>
 
                       {/* Status Badge */}
