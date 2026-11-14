@@ -22,10 +22,28 @@ for (let i = 0; i < paths.length; i++) {
 }
 assert(!/type="password"|Developer authentication|Developer bypass|localStorage\.setItem/.test(contents[0]),
   'maintenance dialog must contain refresh only, not a password or secret click sequence');
-assert(contents[1].includes('const showMaintenanceOverlay = isMaintenanceMode;'),
-  'employee cannot dismiss maintenance via a browser bypass flag');
-assert(contents[2].includes('const showMaintenanceOverlay = isMaintenanceMode;'),
-  'candidate cannot dismiss maintenance via a browser bypass flag');
+const root = readFileSync('frontend/src/App.jsx', 'utf8');
+const gate = readFileSync('frontend/src/components/MaintenanceGate.jsx', 'utf8');
+const policy = readFileSync('frontend/src/components/maintenancePolicy.js', 'utf8');
+assert(root.includes('import MaintenanceGate from'), 'central maintenance UI must be mounted');
+assert(root.indexOf('<MaintenanceGate>') < root.indexOf('<Routes>'),
+  'maintenance gate must wrap every protected employee, candidate and feature route');
+assert(root.indexOf('</Routes>') < root.indexOf('</MaintenanceGate>'),
+  'maintenance gate must not close before business routes');
+assert(gate.includes('shouldShowMaintenanceNotice('),
+  'central gate must use an explicit all-route maintenance decision');
+assert(gate.includes('await fetchProfile()'),
+  'valid session must be rehydrated before showing protected routes when maintenance is OFF');
+assert(gate.includes("api.get('/news'"),
+  'central gate must check publicly available maintenance status');
+assert(gate.includes('onCheckAgain={checkMaintenance}'),
+  'maintenance refresh must recheck status without reloading browser');
+assert(!contents[0].includes('window.location.reload'),
+  'maintenance refresh must never cause a protected-route redirect during maintenance');
+assert(!contents[1].includes('MaintenanceOverlay') && !contents[2].includes('MaintenanceOverlay'),
+  'individual employee and candidate layouts must not duplicate global maintenance overlay');
+assert(policy.includes("role !== 'admin'"),
+  'only verified Admin role from AuthContext profile may bypass the maintenance UI');
 assert(contents[3].includes('updateAvailable && !isMaintenanceMode && !isAssessmentActive'),
   'version overlay cannot be enabled through the removed developer flag');
 
