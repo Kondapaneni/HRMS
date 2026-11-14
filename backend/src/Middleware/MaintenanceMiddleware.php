@@ -5,6 +5,7 @@ namespace App\Middleware;
 
 use App\Config\Database;
 use App\Utils\SessionVersion;
+use App\Utils\AccessToken;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use PDO;
@@ -28,6 +29,7 @@ final class MaintenanceMiddleware implements MiddlewareInterface
         'POST /api/login' => true,
         'POST /api/auth/otp/send' => true,
         'POST /api/auth/otp/verify' => true,
+        'POST /api/auth/refresh' => true,
         'POST /api/auth/mfa/verify' => true,
         'POST /api/forgot-password' => true,
         'POST /api/reset-password' => true,
@@ -107,6 +109,7 @@ final class MaintenanceMiddleware implements MiddlewareInterface
                 empty($claims->id)
                 || ($claims->role ?? null) !== 'admin'
                 || (isset($claims->type) && $claims->type !== 'session')
+                || !AccessToken::bounded($claims)
             ) {
                 return false;
             }
