@@ -10,6 +10,9 @@ const mfa = read('backend/public/mfa_routes.php');
 const candidate = read('backend/public/candidate_auth_routes.php');
 const change = read('frontend/src/pages/ChangePassword.jsx');
 const ctx = read('frontend/src/contexts/AuthContext.jsx');
+const adminSettings = read('frontend/src/pages/AdminSettings.jsx');
+const employeeProfile = read('frontend/src/pages/EmployeeProfile.jsx');
+const employeeMobileProfile = read('frontend/src/pages/EmployeeMobileProfile.jsx');
 const version = read('backend/src/Utils/SessionVersion.php');
 const otp = read('backend/src/Utils/OtpCode.php');
 
@@ -31,6 +34,13 @@ assert(fileAccess.includes('SessionVersion::matches($claims, $user)'), 'private 
 assert(maintenance.includes('SessionVersion::matches($claims, $row)'), 'Admin maintenance exception must reject revoked JWT');
 assert(version.includes("return $actual === 0"), 'legacy JWTs are valid only before the first revocation');
 assert(otp.includes("hash_hmac('sha256'"), 'small OTP code-space requires keyed HMAC');
+assert(adminSettings.includes("onClick={() => navigate('/change-password')}"), 'Admin Settings must link to personal password change');
+assert(adminSettings.includes('type="button"'), 'Admin navigation must not submit global system settings');
+assert(employeeProfile.includes("onClick={() => navigate('/change-password')}"), 'Employee desktop Profile must link to password change');
+assert(employeeMobileProfile.includes("id: 'password', label: 'Change Password'"), 'Employee mobile Profile must display password option');
+assert(employeeMobileProfile.includes("section.id === 'password' ? navigate('/change-password')"), 'Employee mobile password option must navigate to protected route');
+assert(change.includes("isMandatory ? 'Mandatory Security Update' : 'Account Security'"), 'Voluntary password change must not be mislabeled mandatory');
+assert(change.includes('navigate(returnPath)'), 'Voluntary password change must offer return navigation');
 assert(change.includes('currentPassword, newPassword'), 'frontend must require current password');
 assert(change.includes('signOut({ localOnly: true })'), 'after revocation client must clear token and cached PII');
 assert(change.includes("navigate('/login'"), 'password change must require fresh sign-in');
