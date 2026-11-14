@@ -4,6 +4,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
+use App\Security\OriginationAccess;
 
 /**
  * Helper function to fetch all documents for a loan application from public.loan_documents table.
@@ -686,9 +687,8 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         $db = new Database();
         $conn = $db->getConnection();
 
-        $userId = is_object($decodedToken)
-            ? ($decodedToken->id ?? $decodedToken->user_id ?? null)
-            : ($decodedToken['id'] ?? $decodedToken['user_id'] ?? null);
+        $userId = OriginationAccess::userId($decodedToken);
+        $isAdmin = OriginationAccess::isAdmin($decodedToken);
 
         if (!$userId) {
             $response->getBody()->write(json_encode(['error' => 'Unauthorized user']));
@@ -698,30 +698,41 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         // Fetch editor employee details for the audit log
         $empStmt = $conn->prepare('
             SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email, e.department, e.position,
-                   b.name as branch_name
+                   e.branch, b.name as branch_name
             FROM employee e
-            LEFT JOIN branches b ON e.branch::uuid = b.id
+            LEFT JOIN branches b ON e.branch = b.id::text
             WHERE e."userId" = ? LIMIT 1
         ');
         $empStmt->execute([$userId]);
         $editorEmp = $empStmt->fetch(PDO::FETCH_ASSOC);
 
-        $editorName = 'Branch Officer';
-        if ($editorEmp) {
-            $editorName = trim(($editorEmp['firstName'] ?? '') . ' ' . ($editorEmp['lastName'] ?? ''));
-            if (empty($editorName)) $editorName = $editorEmp['email'] ?? 'Branch Officer';
+        // SEC-011: No synthetic 'Branch Officer' identity when the caller
+        // lacks a real employee profile or branch. Administrators are the only
+        // explicit cross-branch exception.
+        $actorBranch = $editorEmp['branch'] ?? null;
+        if (!$isAdmin && (!$editorEmp || !$actorBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid branch employee profile is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
-        $editorRole = $editorEmp['position'] ?? 'Branch Operations';
+        if (!$editorEmp && $isAdmin) {
+            $adminStmt = $conn->prepare('SELECT "firstName", "lastName", email FROM public.users WHERE id = ? LIMIT 1');
+            $adminStmt->execute([$userId]);
+            $editorEmp = $adminStmt->fetch(PDO::FETCH_ASSOC);
+        }
+        $editorName = trim(($editorEmp['firstName'] ?? '') . ' ' . ($editorEmp['lastName'] ?? ''));
+        if ($editorName === '') $editorName = $editorEmp['email'] ?? 'Administrator';
+        $editorRole = $isAdmin ? 'Administrator' : ($editorEmp['position'] ?? 'Branch Operations');
 
-        // Fetch existing application
+        // Lookup must match the actor's current branch before returning any
+        // customer data. A known foreign ID is indistinguishable from missing.
+        [$branchWhere, $branchParams] = OriginationAccess::branchScope($decodedToken, $actorBranch);
         $findStmt = $conn->prepare('
             SELECT id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_by, created_at, updated_at
             FROM public.loan_applications
-            WHERE id::text = ? OR application_id = ? OR lead_id = ?
-            ORDER BY created_at DESC
-            LIMIT 1
+            WHERE (id::text = ? OR application_id = ? OR lead_id = ?)' . $branchWhere . '
+            ORDER BY created_at DESC LIMIT 1
         ');
-        $findStmt->execute([$identifier, $identifier, $identifier]);
+        $findStmt->execute(array_merge([$identifier, $identifier, $identifier], $branchParams));
         $existingApp = $findStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$existingApp) {
@@ -785,6 +796,40 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         $cleanedFormData['timeline'] = $cleanTimeline;
         unset($cleanedFormData['edit_logs']);
 
+        // Preserve application ID & loan type
+        if (!empty($existingApp['application_id'])) {
+            $cleanedFormData['application_id'] = $existingApp['application_id'];
+        }
+        if ($loanType) {
+            $cleanedFormData['loan_type'] = $loanType;
+        }
+
+        $newApplicantName = $cleanedFormData['applicant_name'] ?? $oldFormData['applicant_name'] ?? $existingApp['applicant_name'] ?? '';
+        $newPhone = $cleanedFormData['phone_number'] ?? $oldFormData['phone_number'] ?? $existingApp['phone_number'] ?? '';
+        $newLoanType = $loanType ?: ($existingApp['loan_type'] ?: 'Personal Loan');
+
+        $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        $updateStmt = $conn->prepare('
+            UPDATE public.loan_applications
+            SET form_data = ?::jsonb,
+                loan_type = ?,
+                updated_at = NOW()
+            WHERE id = ?' . $branchWhere . '
+            RETURNING id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
+        ');
+        $updateStmt->execute(array_merge([
+            $jsonPayload,
+            $newLoanType,
+            $existingApp['id']
+        ], $branchParams));
+        $updatedRecord = $updateStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$updatedRecord) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
         // If changes were detected, save ONLY to dedicated public.loan_application_audit_logs table
         if (!empty($changes)) {
             // Save to dedicated public.loan_application_audit_logs table
@@ -806,35 +851,6 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
                 error_log("Error saving loan application audit log to table: " . $e->getMessage());
             }
         }
-
-        // Preserve application ID & loan type
-        if (!empty($existingApp['application_id'])) {
-            $cleanedFormData['application_id'] = $existingApp['application_id'];
-        }
-        if ($loanType) {
-            $cleanedFormData['loan_type'] = $loanType;
-        }
-
-        $newApplicantName = $cleanedFormData['applicant_name'] ?? $oldFormData['applicant_name'] ?? $existingApp['applicant_name'] ?? '';
-        $newPhone = $cleanedFormData['phone_number'] ?? $oldFormData['phone_number'] ?? $existingApp['phone_number'] ?? '';
-        $newLoanType = $loanType ?: ($existingApp['loan_type'] ?: 'Personal Loan');
-
-        $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-        $updateStmt = $conn->prepare('
-            UPDATE public.loan_applications
-            SET form_data = ?::jsonb,
-                loan_type = ?,
-                updated_at = NOW()
-            WHERE id = ?
-            RETURNING id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
-        ');
-        $updateStmt->execute([
-            $jsonPayload,
-            $newLoanType,
-            $existingApp['id']
-        ]);
-        $updatedRecord = $updateStmt->fetch(PDO::FETCH_ASSOC);
 
         if ($updatedRecord) {
             if (isset($updatedRecord['form_data']) && is_string($updatedRecord['form_data'])) {
