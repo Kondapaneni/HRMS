@@ -40,6 +40,9 @@ assert(tokenPayload(browser.data.token).exp - tokenPayload(browser.data.token).i
 assert(tokenPayload(browser.data.token).exp - tokenPayload(browser.data.token).iat === 3600,
   'session_timeout=never defaults to one-hour access JWT, not 10 years');
 const firstCookie = cookieOnly(browser.cookie);
+const malformedUuid = 'a'.repeat(36) + '.' + 'b'.repeat(64);
+await refreshWeb('hrms_refresh=' + malformedUuid, 401);
+console.log('PASS: malformed refresh UUID fails authentication rather than throwing a database error');
 let rotated = await refreshWeb(firstCookie);
 const secondCookie = cookieOnly(rotated.cookie);
 assert.notEqual(secondCookie, firstCookie, 'refresh token rotates on every request');
