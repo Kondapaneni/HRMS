@@ -6,6 +6,7 @@ use App\Config\Database;
 use App\Utils\RateLimiter;
 use Firebase\JWT\JWT;
 use App\Utils\SessionVersion;
+use App\Utils\RefreshSessions;
 use Dotenv\Dotenv;
 
 // Registration Route
@@ -172,23 +173,12 @@ $app->post('/api/candidate/login', function (Request $request, Response $respons
         }
         
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
-        $payload = [
-            'iss' => 'acme_hrms',
-            'iat' => time(),
-            'exp' => time() + (60 * 60 * 24), // 24 hours for candidate
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'role' => $user['role'],
-            'tv' => SessionVersion::fromRow($user)
-        ];
-        
-        $jwt = JWT::encode($payload, $secret, 'HS256');
+        [$response, $session] = RefreshSessions::newSession(
+            $conn, $user, (string)$secret, '60', $request, $response
+        );
         unset($user['password']);
 
-        $response->getBody()->write(json_encode([
-            'token' => $jwt,
-            'user' => $user
-        ]));
+        $response->getBody()->write(json_encode(array_merge($session, ['user' => $user])));
         
         RateLimiter::clearAttempts($conn, $ip, $action);
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
