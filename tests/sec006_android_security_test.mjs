@@ -81,3 +81,25 @@ test('release build minifies bytecode and filters diagnostics', () => {
   }
   assert.doesNotMatch(service, /Log\.[diwev]\([^\n]*(getLatitude|getLongitude|response|respStr)/);
 });
+
+test('employee APK link requires verified signed-release metadata, not a stale bundled APK', () => {
+  const profile = read('frontend/src/pages/EmployeeMobileProfile.jsx');
+  const workflow = read('.github/workflows/sec006.yml');
+
+  assert.match(profile, /downloads\\/android-release\\.json/);
+  assert.match(profile, /cache: 'no-store'/);
+  assert.match(profile, /androidRelease\\.versionCode/);
+  assert.match(profile, /androidRelease \\? \\(/);
+  assert.match(profile, /Android APK update is pending verified signing/);
+  assert.doesNotMatch(profile, /VITE_APP_VERSION \\|\\| '1'/);
+
+  // A source change must trigger a new native build, while a published
+  // binary/metadata commit must not recursively rebuild itself.
+  assert.match(workflow, /'frontend\\/src\\/\\*\\*'/);
+  assert.match(workflow, /'!frontend\\/public\\/downloads\\/Acme HRMS\\.apk'/);
+  assert.match(workflow, /'!frontend\\/public\\/downloads\\/android-release\\.json'/);
+  assert.match(workflow, /APKSIGNER.*verify --print-certs/);
+  assert.match(workflow, /ALLOW_SIGNER_MIGRATION.*!= "true"/);
+  assert.match(workflow, /git add "\\$existing" frontend\\/public\\/downloads\\/android-release\\.json/);
+  assert.match(workflow, /sha256sum "\\$signed"/);
+});
