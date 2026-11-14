@@ -1,6 +1,6 @@
 # SEC-010 — Feature permission SQL allowlist and fail-closed authorization
 
-**Original severity: CRITICAL. Status: IMPLEMENTED IN BRANCH; pending CI, merge, Render deployment, and owner-led live verification.**
+**Original severity: CRITICAL. Status: PARTIAL — code merged into main by PR #29, dedicated synthetic CI and cross-issue SEC-008/009 regressions passed; owner-led live Render verification still pending.**
 
 ## Root cause and source review
 
@@ -29,6 +29,13 @@ Relevant files: `backend/src/Middleware/AuthMiddleware.php` and connection-error
 - Drops a synthetic feature column and later the synthetic `users` table to force real PostgreSQL query errors: verifies neither employee nor admin is admitted and returns sanitized `503`.
 - Tries a closed localhost port to emulate DB outage, verifying both admin and delegated employee fail with `503` and no DB error body leakage.
 - Existing SEC-009/008/007 regression suites also run when middleware changes.
+
+## Merged source and automated verification — 2026-11-14
+
+- [PR #29](https://github.com/Kondapaneni/HRMS/pull/29) was squash-merged to `main` at commit `da9d73ac5657ac7904d2f9a38becc6e23b479817`.
+- Dedicated SEC-010 workflow passed on the PR, including the full eleven-column feature allowlist, 403 responses for malformed SQL-shaped feature keys (even for admin), correct boolean conversion, inactive/missing accounts, deliberate missing-column/user-table failures, and disconnected-DB fail-closed 503/no-leak behavior.
+- SEC-008 MFA and SEC-009 API-role regression workflows also passed in PR checks.
+- **This is source/CI evidence, not an independently confirmed Render deployment or production permission test.** Leave SEC-010 unchecked until the live test cases below pass.
 
 ## Live verification — development accounts only
 
