@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import useAssessmentBusinessDate from '../hooks/useAssessmentBusinessDate';
 import { 
   Award, Clock, CheckCircle2, PlayCircle, 
   Calendar, Building2, BarChart2, ShieldAlert
@@ -183,12 +184,13 @@ const VirtualizedAssessmentGrid = ({ assessments, onStart, todayStr }) => {
 const EmployeeAssessments = () => {
   const navigate = useNavigate();
 
-  // Memoize today's date outside map/render (Requirement 8)
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  // Match the backend's Asia/Kolkata assessment-date checks even when UTC
+  // is still on the previous day. Refresh on India midnight/tab resume.
+  const todayStr = useAssessmentBusinessDate();
 
   // Optimized React Query config (Requirement 7)
   const { data: assessments = [], isLoading, isError } = useQuery({
-    queryKey: ['employeeAssessments'],
+    queryKey: ['employeeAssessments', todayStr],
     queryFn: async () => {
       const res = await api.get('/employee/assessments');
       return res.data;
