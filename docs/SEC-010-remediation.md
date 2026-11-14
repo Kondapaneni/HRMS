@@ -1,6 +1,6 @@
 # SEC-010 — Feature permission SQL allowlist and fail-closed authorization
 
-**Original severity: CRITICAL. Status: PARTIAL — code merged into main by PR #29, dedicated synthetic CI and cross-issue SEC-008/009 regressions passed; owner-led live Render verification still pending.**
+**Original severity: CRITICAL. Status: CLOSED (2026-11-14) — PR #29 merged, dedicated synthetic and cross-issue SEC-008/009 CI passed, and four live permission tests passed according to the project owner.**
 
 ## Root cause and source review
 
@@ -35,9 +35,20 @@ Relevant files: `backend/src/Middleware/AuthMiddleware.php` and connection-error
 - [PR #29](https://github.com/Kondapaneni/HRMS/pull/29) was squash-merged to `main` at commit `da9d73ac5657ac7904d2f9a38becc6e23b479817`.
 - Dedicated SEC-010 workflow passed on the PR, including the full eleven-column feature allowlist, 403 responses for malformed SQL-shaped feature keys (even for admin), correct boolean conversion, inactive/missing accounts, deliberate missing-column/user-table failures, and disconnected-DB fail-closed 503/no-leak behavior.
 - SEC-008 MFA and SEC-009 API-role regression workflows also passed in PR checks.
-- **This is source/CI evidence, not an independently confirmed Render deployment or production permission test.** Leave SEC-010 unchecked until the live test cases below pass.
+- **Source/CI evidence:** GitHub CI checked database outage and missing-column failure cases only against synthetic Postgres; no live database outage tests were attempted. Live functional/authorization checks were independently performed and reported by the project owner, not rerun by the assistant.
 
-## Live verification — development accounts only
+## Owner-confirmed live verification — 2026-11-14
+
+The project owner reported **all four live checks as passed** against deployed HRMS, using development accounts:
+
+1. **Admin regression (PASS):** Admin Dashboard and Admin → Feature Access load correctly after deployment.
+2. **Ungranted employee denial (PASS):** Test employee without `canLoanOrigination` receives `403 Forbidden` from the loan origination endpoint; Employee Dashboard continues to work.
+3. **Granted employee access (PASS):** Admin enables `canLoanOrigination` for the development employee. The employee receives `200 OK` on the Loan Origination API, and its page works.
+4. **Immediate revocation (PASS):** Admin revokes `canLoanOrigination` while the same employee session remains logged in. The subsequent API request from that **existing session** immediately returns `403 Forbidden`.
+
+**Evidence boundary:** These are owner-reported live checks, not independently repeated production penetration tests. Live database connectivity was **not** intentionally disrupted; fail-closed `503` error scenarios and malformed feature-name inputs were covered in isolated synthetic CI.
+
+## Live verification — reference procedure (development accounts only)
 
 **Never intentionally disconnect the production database or drop live columns.** Those failure modes are covered solely by isolated CI.
 
@@ -46,4 +57,4 @@ Relevant files: `backend/src/Middleware/AuthMiddleware.php` and connection-error
 3. Grant **canLoanOrigination** only to that development employee via Admin → Feature Access, then sign in as that employee and verify loan origination access works without unlocking Sales or Branch Operations.
 4. Revoke **canLoanOrigination** for the development employee and verify the same loan endpoint returns `403` again; the employee's standard workspace should still function.
 
-**Closure gate:** PR merged, CI green, Render deployment, owner-confirmed live permission regression checks. This does not close the independent SEC-011 (record ownership), SEC-012 (JWT lifecycle) or SEC-018 (other DB/SQL errors) findings.
+**Closure decision (2026-11-14):** Fix merged, synthetic CI green, owner confirmed post-deploy admin and employee permission checks, including immediate access denial following feature revocation on an already authenticated session. SEC-010 is closed at the feature-permission and fail-closed authorization scope. Independent SEC-011 (record ownership), SEC-012 (JWT lifecycle) and SEC-018 (other DB/SQL errors) findings remain open.
