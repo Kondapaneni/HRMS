@@ -1,0 +1,76 @@
+name: SEC-010 feature permission SQL allowlist and fail-closed authorization
+
+on:
+  push:
+    branches: ['main', 'fix/sec-010-feature-allowlist-db-fail-closed']
+    paths:
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/src/Config/Database.php'
+      - 'backend/public/admin_feature_access_routes.php'
+      - 'tests/sec010_*'
+      - '.github/workflows/sec010.yml'
+  pull_request:
+    paths:
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/src/Config/Database.php'
+      - 'backend/public/admin_feature_access_routes.php'
+      - 'tests/sec010_*'
+      - '.github/workflows/sec010.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sql-and-authorization:
+    name: Whitelisted feature grants and fail-closed database errors
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec010_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec010_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec010_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec010_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec010_synthetic_only
+      JWT_SECRET: SEC010_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax and explicit feature allowlist checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in backend/src/Middleware/AuthMiddleware.php backend/src/Config/Database.php tests/sec010_*.php; do
+            php -l "$file"
+          done
+          node tests/sec010_policy_test.mjs
+      - name: Install PHP dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Isolated PostgreSQL feature grants, SQL error and inactive-account checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tests/sec010_seed.php
+          php tests/sec010_middleware_test.php
+      - name: Simulated database outage must deny both admins and delegated employees
+        run: php tests/sec010_unavailable_test.php
