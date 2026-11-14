@@ -1,6 +1,6 @@
 # SEC-011 — Server-side loan ownership, activity reassignment and branch isolation
 
-**Severity:** CRITICAL. **Current state:** Code implemented on a feature branch with isolated automated regression tests. **Do not mark CLOSED until PR, CI, deployment and owner-led live verification are confirmed.**
+**Severity:** CRITICAL. **Current state:** PARTIAL — PR #32 merged to `main`, isolated real HTTP/SQL CI passed and SEC-009 regression coverage retained. Render deployment and owner-led live authorization tests are not yet verified. **Do not mark CLOSED until those live checks pass.**
 
 ## Scope and root cause
 
@@ -28,6 +28,12 @@
 - Database after-state assertions that forbidden requests did not alter another user's records, documents or audit trail.
 
 Passing CI and merged code are **not proof that the deployed database has no legacy exceptions**. Existing rows missing creator/branch metadata may need controlled, audited data repair before employees can edit them. Do not relax the ownership predicate to accommodate bad data.
+
+## Merge and automated evidence — 2026-11-14
+
+- [PR #32](https://github.com/Kondapaneni/HRMS/pull/32) merged to `main` at `6d7e5b4c793e2ad6a67ddb60aa972d8076221be8`.
+- Latest dedicated SEC-011 branch CI <https://github.com/Kondapaneni/HRMS/actions/runs/43579120888> passed: real Slim HTTP requests with synthetic JWTs against a disposable two-branch PostgreSQL fixture, plus source policy assertions and post-mutation database integrity assertions.
+- Owner-level live validation has **not yet been reported**. Avoid reading real customer loan records just to test access and never request or print sensitive customer data, tokens or documents.
 
 ## Safe live rollout and validation (development records only)
 
