@@ -1,6 +1,6 @@
 # SEC-009 — Explicit backend role and feature authorization
 
-**Severity:** CRITICAL. **Status:** Source implementation and isolated CI regression prepared; NOT closed until CI + deployment + live verification.
+**Severity:** CRITICAL. **Status: PARTIAL — PR #26 merged, synthetic HTTP/role CI and existing SEC-004/007/008 workflows passed. Live Render permission and functionality verification pending before closure.**
 
 ## Audit finding and threat
 
@@ -28,6 +28,13 @@ No database migration or frontend component change is required.
 2. Exercises actual PHP `AuthMiddleware` against synthetic admin, candidate, employee, HR and manager claims with allowed/denied feature flags; verifies candidate denial **even if every module feature is set**.
 3. Exercises actual Slim HTTP routes to assert `403` for candidate and ungranted staff across reports, performance, assessments, leads, members, sales, loans, activities, branch operations and selected POST/PUT/DELETE routes.
 4. Confirms explicit candidate portal role allowance and internal staff feature grants remain usable.
+
+## Merged code / CI evidence — 2026-11-14
+
+- [PR #26](https://github.com/Kondapaneni/HRMS/pull/26) merged into `main` at commit `fc60dc7d4ba39f42323ab52dc1087e5673f4942e`.
+- Isolated PostgreSQL tests passed, exercising the actual `AuthMiddleware` decisions for admin, candidate, ungranted employee, feature-granted employee, HR and manager. Inactive users were denied and explicitly authorized candidate portal access remained possible.
+- Real Slim HTTP checks returned `403 Forbidden` for synthetic candidate tokens at admin reports, performance, assessments, loans, members, sales, origination activities, and branch operations reads/mutations. Synthetic employees without module permission were also denied.
+- SEC-004, SEC-007 and SEC-008 regression workflows were green in PR checks. **No claim of live Render verification has been made yet.**
 
 ## Live verification (development accounts only)
 
