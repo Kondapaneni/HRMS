@@ -27,6 +27,57 @@ public class LocationTrackerPlugin extends Plugin {
     private static final String TAG = "LocationTrackerPlugin";
 
     @PluginMethod
+    public void saveSession(PluginCall call) {
+        String access = call.getString("accessToken", "");
+        String refresh = call.getString("refreshToken", "");
+        try {
+            TrackerTokenStore.saveSession(getContext(), access, refresh);
+            JSObject response = new JSObject();
+            response.put("success", true);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("Secure session could not be saved.");
+        }
+    }
+
+    @PluginMethod
+    public void getSessionAccessToken(PluginCall call) {
+        JSObject response = new JSObject();
+        String access = TrackerTokenStore.load(getContext());
+        response.put("accessToken", access == null ? "" : access);
+        call.resolve(response);
+    }
+
+    @PluginMethod
+    public void refreshSession(PluginCall call) {
+        final Context context = getContext().getApplicationContext();
+        // Network I/O must not block the Capacitor/UI thread.
+        new Thread(() -> {
+            try {
+                String access = NativeSessionClient.refresh(context);
+                JSObject response = new JSObject();
+                response.put("token", access);
+                call.resolve(response);
+            } catch (NativeSessionClient.InvalidSession invalid) {
+                call.reject("Secure session expired. Please sign in again.");
+            } catch (Exception transientFailure) {
+                call.reject("Secure session refresh temporarily unavailable.");
+            }
+        }, "hrms-sec012-refresh").start();
+    }
+
+    @PluginMethod
+    public void clearSession(PluginCall call) {
+        TrackerTokenStore.clearSession(getContext());
+        Intent intent = new Intent(getContext(), LocationTrackerService.class);
+        intent.setAction(LocationTrackerService.ACTION_STOP);
+        getContext().startService(intent);
+        JSObject response = new JSObject();
+        response.put("success", true);
+        call.resolve(response);
+    }
+
+    @PluginMethod
     public void startTracking(PluginCall call) {
         Context context = getContext();
         String serverUrl = call.getString("serverUrl", "");
