@@ -188,6 +188,15 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             }
         }
 
+        // Origination staff cannot declare that their own draft has reached
+        // Branch Operations. Stage history is advanced only through the
+        // separately validated status-transfer endpoint.
+        if (!OriginationAccess::isAdmin($user)) {
+            unset($cleanedFormData['stage'], $cleanedFormData['current_stage'],
+                  $cleanedFormData['timeline'], $cleanedFormData['created_by'],
+                  $cleanedFormData['branch']);
+        }
+
         $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         // SEC-011: Never trust form_data.created_by or form_data.branch.
