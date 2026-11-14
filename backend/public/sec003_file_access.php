@@ -46,6 +46,13 @@ function sec003Principal(Request $request, $conn): ?array {
     if ($secret === '') return null;
     try {
         $claims = JWT::decode($token, new Key($secret, 'HS256'));
+        // SEC-008: Document requests bypass the normal AuthMiddleware, so
+        // reject scoped first-factor MFA JWTs before consulting the database.
+        // Session tokens from older deployments may omit the type claim.
+        if (
+            (isset($claims->type) && $claims->type !== 'session') ||
+            empty($claims->role)
+        ) return null;
         $id = (string) ($claims->id ?? '');
         if (!preg_match('/\A[0-9a-f-]{36}\z/i', $id)) return null;
         $stmt = $conn->prepare('SELECT role, "isActive" FROM public.users WHERE id::text = ? LIMIT 1');
