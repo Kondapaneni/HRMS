@@ -93,8 +93,14 @@ await verify(404,'alice','POST','/api/loans/applications',
   {...draft,lead_id:leads.bob});
 await verify(201,'alice','POST','/api/loans/applications',
   {...draft,id:loans.alice,lead_id:leads.alice});
-await verify(201,'alice','POST','/api/loans/applications',
-  {...draft,lead_id:null});
+const cleanNewLoan = await verify(201,'alice','POST','/api/loans/applications',
+  {...draft,lead_id:null,form_data:{
+    applicant_name:'Synthetic Applicant',phone_number:'0000000000',
+    stage:'Branch Operations',current_stage:'Branch Operations',
+    timeline:[{stage:'Branch Operations'}],created_by:users.bob
+  }});
+assert(!cleanNewLoan.application?.form_data?.stage,'originator cannot pre-advance branch stage');
+assert(!cleanNewLoan.application?.form_data?.timeline,'originator cannot spoof transfer history');
 
 // Document mutations: deny same-branch stranger, other branch, transferred owner.
 for(const foreign of [loans.bob,loans.carol,loans.transferred]){
@@ -129,6 +135,7 @@ const branchEdit={form_data:{
 await verify(404,'branchA','PUT','/api/branch-operations/applications/'+loans.carol,branchEdit);
 await verify(404,'branchA','PUT','/api/branch-operations/applications/LA-C1',branchEdit);
 await verify(404,'branchA','PUT','/api/branch-operations/applications/'+loans.prebranch,branchEdit);
+await verify(404,'branchA','PUT','/api/branch-operations/applications/'+loans.bob,branchEdit);
 await verify(403,'noProfile','PUT','/api/branch-operations/applications/'+loans.branch,branchEdit);
 await verify(403,'alice','PUT','/api/branch-operations/applications/'+loans.branch,branchEdit);
 await verify(200,'branchA','PUT','/api/branch-operations/applications/'+loans.branch,branchEdit);
