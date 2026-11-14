@@ -80,7 +80,13 @@ jobs:
         run: |
           npm ci
           npm run build
+          # The old website-download APK is needed for signing compatibility
+          # checks, but it must NEVER be nested inside the new Android APK.
+          # Capacitor sync copies dist into native assets; remove only this
+          # generated dist copy, not the public download tracked by Git.
+          rm -f "dist/downloads/Acme HRMS.apk"
           npx cap sync android
+          test ! -e "android/app/src/main/assets/public/downloads/Acme HRMS.apk"
       - name: Confirm Capacitor-generated Android configuration remains HTTPS only
         run: |
           node --test tests/sec006_android_security_test.mjs
