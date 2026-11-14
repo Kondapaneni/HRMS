@@ -12,6 +12,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Firebase\JWT\JWT;
 use App\Utils\SessionVersion;
 use App\Utils\OtpCode;
+use App\Utils\AccessToken;
+use App\Utils\RefreshSessions;
 
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/sec007_cors.php';
@@ -187,17 +189,9 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
         
-        $payload = [
-            'iss' => 'acme_hrms',
-            'iat' => time(),
-            'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60), // Dynamic expiration
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'role' => $user['role'],
-            'tv' => SessionVersion::fromRow($user)
-        ];
-        
-        $jwt = JWT::encode($payload, $secret, 'HS256');
+        [$response, $session] = RefreshSessions::newSession(
+            $conn, $user, (string)$secret, $sessionTimeout, $request, $response
+        );
 
         unset($user['password']); // Don't return password hash
 
@@ -221,10 +215,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             ];
         }
 
-        $response->getBody()->write(json_encode([
-            'token' => $jwt,
-            'user' => $user
-        ]));
+        $response->getBody()->write(json_encode(array_merge($session, ['user' => $user])));
         
         RateLimiter::clearAttempts($conn, $ip, $action);
         
@@ -406,17 +397,9 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
 
     $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
 
-    $payload = [
-        'iss' => 'acme_hrms',
-        'iat' => time(),
-        'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
-        'id' => $user['id'],
-        'email' => $user['email'],
-        'role' => $user['role'],
-        'tv' => SessionVersion::fromRow($user)
-    ];
-
-    $jwt = JWT::encode($payload, $secret, 'HS256');
+    [$response, $session] = RefreshSessions::newSession(
+        $conn, $user, (string)$secret, $sessionTimeout, $request, $response
+    );
 
     unset($user['otp_code'], $user['otp_expires_at']);
 
@@ -443,11 +426,75 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
 
     RateLimiter::clearAttempts($conn, $ip, $action);
 
-    $response->getBody()->write(json_encode([
-        'token' => $jwt,
-        'user' => $user
-    ]));
+    $response->getBody()->write(json_encode(array_merge($session, ['user' => $user])));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+});
+
+/**
+ * SEC-012: Refresh a short-lived JWT using one-use rotated credentials.
+ * Web credentials are scoped HttpOnly/Secure/SameSite cookies. Native Android
+ * credentials are separately encrypted with Android Keystore; never returned
+ * to a web localStorage-based session.
+ */
+$app->post('/api/auth/refresh', function (Request $request, Response $response) {
+    if ($request->getHeaderLine('X-HRMS-Refresh') !== '1') {
+        $response->getBody()->write(json_encode(['error' => 'Refresh request not permitted.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(403);
+    }
+    $origin = $request->getHeaderLine('Origin');
+    if ($origin !== '') {
+        $originHost = parse_url($origin, PHP_URL_HOST);
+        $targetHost = $request->getUri()->getHost();
+        if (!is_string($originHost) || strcasecmp($originHost, $targetHost) !== 0
+            || parse_url($origin, PHP_URL_SCHEME) !== 'https') {
+            $response->getBody()->write(json_encode(['error' => 'Cross-origin refresh denied.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+    }
+    $client = RefreshSessions::isAndroid($request) ? 'android' : 'web';
+    $body = $request->getParsedBody() ?: [];
+    $provided = $client === 'android'
+        ? ($body['refreshToken'] ?? null)
+        : ($request->getCookieParams()['hrms_refresh'] ?? null);
+    if (!is_string($provided) || strlen($provided) > 256) {
+        $response->getBody()->write(json_encode(['error' => 'Refresh session required.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(401);
+    }
+    try {
+        $conn = (new Database())->getConnection();
+        if (!$conn) throw new RuntimeException('Refresh database unavailable');
+        $result = RefreshSessions::rotate($conn, $provided, $client);
+        if (!$result) {
+            $response->getBody()->write(json_encode(['error' => 'Refresh session invalid or revoked.']));
+            if ($client === 'web') {
+                $response = $response->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie());
+            }
+            return $response->withHeader('Content-Type', 'application/json')
+                ->withHeader('Cache-Control', 'no-store')->withStatus(401);
+        }
+        $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+        $access = AccessToken::mint($result['user'], $secret, $setting['session_timeout'] ?? '30');
+        $payload = ['token' => $access];
+        if ($client === 'android') {
+            $payload['refreshToken'] = $result['refreshToken'];
+        } else {
+            $remaining = max(1, strtotime((string)$result['expiresAt']) - time());
+            $response = $response->withAddedHeader(
+                'Set-Cookie', RefreshSessions::cookie($result['refreshToken'], $remaining)
+            );
+        }
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(200);
+    } catch (Throwable $e) {
+        error_log('SEC-012 refresh unavailable: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Refresh service temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(503);
+    }
 });
 
 $app->post('/api/logout', function (Request $request, Response $response, $args) {
@@ -462,6 +509,7 @@ $app->post('/api/logout', function (Request $request, Response $response, $args)
         }
         $response->getBody()->write(json_encode(['message' => 'Logged out and all sessions revoked.']));
         return $response->withHeader('Content-Type', 'application/json')
+            ->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie())
             ->withHeader('Cache-Control', 'no-store')->withStatus(200);
     } catch (Throwable $e) {
         error_log('SEC-012 logout revocation unavailable: ' . $e->getMessage());
