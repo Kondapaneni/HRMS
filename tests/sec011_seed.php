@@ -15,7 +15,7 @@ $pdo = new PDO(
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec(<<<'SQL'
 CREATE TABLE users (
- id UUID PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL DEFAULT TRUE,
+ id UUID PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL DEFAULT TRUE, token_version INTEGER NOT NULL DEFAULT 0,
  "firstName" TEXT, "lastName" TEXT, email TEXT
 );
 CREATE TABLE branches (id UUID PRIMARY KEY, name TEXT NOT NULL);
