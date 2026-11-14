@@ -136,6 +136,12 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     $applicantName = trim($data['applicant_name'] ?? '');
     $phoneNumber = trim($data['phone_number'] ?? '');
     $status = trim($data['status'] ?? 'Created');
+    // Loan originators can save a draft or submit it for processing, but may
+    // not self-approve a financial application or invent a privileged status.
+    if (!OriginationAccess::isAdmin($user) && !in_array($status, ['Draft', 'Created'], true)) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid loan origination status']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+    }
     $formData = $data['form_data'] ?? $data;
     $leadId = $data['lead_id'] ?? $formData['lead_id'] ?? null;
     $documents = $data['documents'] ?? $formData['documents'] ?? [];
@@ -603,6 +609,18 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
         if (!$appRow) {
             $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        // Only the application creator may advance Created -> Under Review
+        // for the transfer to Branch Operations. Approval/rejection requires
+        // a separately authorized administrative workflow.
+        if (!OriginationAccess::isAdmin($loanActor)) {
+            $transferStage = is_array($timelineEvent) ? trim((string)($timelineEvent['stage'] ?? '')) : '';
+            if ($status !== 'Under Review' || $appRow['status'] !== 'Created'
+                || strcasecmp($transferStage, 'Branch Operations') !== 0) {
+                $response->getBody()->write(json_encode(['error' => 'Loan status transition is not permitted']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
         }
 
         $formData = is_string($appRow['form_data']) ? json_decode($appRow['form_data'], true) : ($appRow['form_data'] ?: []);
