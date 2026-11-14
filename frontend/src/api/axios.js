@@ -37,6 +37,11 @@ const api = axios.create({
 // Native tracker may rotate the access JWT while the WebView is closed.
 // Read only the Keystore-protected current access token, never the refresh secret.
 api.interceptors.request.use(async (config) => {
+  if (isAndroidSession && [
+    '/login', '/candidate/login', '/auth/otp/verify', '/auth/mfa/verify',
+  ].includes(config.url)) {
+    config.headers['X-HRMS-Client'] = 'android';
+  }
   if (isAndroidSession) {
     const current = await getNativeAccessToken();
     if (current && current !== localStorage.getItem('token')) {
