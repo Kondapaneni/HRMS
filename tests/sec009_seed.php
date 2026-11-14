@@ -28,7 +28,7 @@ SQL);
 
 $rows = [
   ['sec009-admin',     'admin',     0, 0, 0],
-  ['sec009-candidate', 'candidate', 0, 0, 0],
+  ['sec009-candidate', 'candidate', 1, 1, 1],
   ['sec009-employee',  'employee',  0, 0, 0],
   ['sec009-loans',     'employee',  1, 0, 0],
   ['sec009-sales',     'employee',  0, 1, 0],
