@@ -24,6 +24,12 @@ CREATE TABLE user_feature_access (
   "canSalesOrigination" BOOLEAN NOT NULL DEFAULT FALSE,
   "canBranchOperations" BOOLEAN NOT NULL DEFAULT FALSE
 );
+-- SEC-020: mirror the live settings column used by the maintenance guard.
+CREATE TABLE global_settings (
+  id INTEGER PRIMARY KEY,
+  maintenance_mode BOOLEAN NOT NULL DEFAULT FALSE
+);
+INSERT INTO global_settings (id, maintenance_mode) VALUES (1, FALSE);
 SQL);
 
 $rows = [

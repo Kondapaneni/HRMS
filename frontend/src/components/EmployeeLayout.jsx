@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Home,
@@ -17,7 +17,6 @@ import {
   Play,
   User,
   Megaphone,
-  Terminal,
   Sparkles,
   Shield,
 } from 'lucide-react';
@@ -34,15 +33,6 @@ import api from '../api/axios';
 const EmployeeLayout = () => {
   const { profile } = useAuth();
   const location = useLocation();
-
-  const [isDevBypassed, setIsDevBypassed] = useState(
-    () => localStorage.getItem('dev_bypass_maintenance_session') === 'true'
-  );
-
-  const handleExitBypass = () => {
-    localStorage.removeItem('dev_bypass_maintenance_session');
-    setIsDevBypassed(false);
-  };
 
   // Check today's assessment
   const { data: employeeAssessments = [] } = useQuery({
@@ -107,7 +97,7 @@ const EmployeeLayout = () => {
   const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
   const isMaintenanceMode = newsData?.maintenance_mode === true;
   const maintenanceMessage = newsData?.maintenance_message;
-  const showMaintenanceOverlay = isMaintenanceMode && !isDevBypassed;
+  const showMaintenanceOverlay = isMaintenanceMode;
 
   // Rail Navigation Groups (Section 4.3 Employee Portal)
   const railGroups = useMemo(() => {
@@ -301,27 +291,7 @@ const EmployeeLayout = () => {
 
   return (
     <>
-      {showMaintenanceOverlay && (
-        <MaintenanceOverlay
-          message={maintenanceMessage}
-          onBypassSuccess={() => setIsDevBypassed(true)}
-        />
-      )}
-
-      {/* Floating Developer Bypass Badge */}
-      {isMaintenanceMode && isDevBypassed && (
-        <div className="fixed top-3 right-3 sm:right-6 z-[95] bg-[#131315]/95 text-white px-3.5 py-1.5 rounded-full border border-white/10 shadow-xl flex items-center gap-2.5 text-[12px] font-medium">
-          <Terminal size={14} className="text-[var(--success-text)] shrink-0" />
-          <span>Dev Bypass Active</span>
-          <button
-            type="button"
-            onClick={handleExitBypass}
-            className="text-[11px] font-semibold text-[var(--danger-text)] bg-[var(--danger-bg)] px-2 py-0.5 rounded-full cursor-pointer ml-1"
-          >
-            Exit
-          </button>
-        </div>
-      )}
+      {showMaintenanceOverlay && <MaintenanceOverlay message={maintenanceMessage} />}
 
       <AppShell
         portalName="Acme HRMS"
