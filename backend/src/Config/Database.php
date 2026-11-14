@@ -26,8 +26,10 @@ class Database
                 self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
                 self::$conn->setAttribute(PDO::ATTR_STATEMENT_CLASS, [LoggingPDOStatement::class, []]);
             } catch (PDOException $exception) {
-                // In a production environment, log this instead of echoing it directly.
-                echo "Connection error: " . $exception->getMessage();
+                // SEC-010: Callers must receive a clean error response, not
+                // connection details printed into the HTTP response body.
+                // AuthMiddleware treats a null connection as HTTP 503.
+                error_log('Database connection failed: ' . $exception->getMessage());
                 return null;
             }
         }
