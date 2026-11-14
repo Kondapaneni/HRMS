@@ -19,7 +19,8 @@ if (!function_exists('getBranchLoanDocumentsFromTable')) {
             WHERE application_id = ? OR application_id = ? OR application_id = ?
             ORDER BY created_at ASC
         ');
-        $stmt->execute([(string)$appId, (string)$uuidId, (string)$leadId]);
+        $safeLeadId = OriginationAccess::uniqueLeadDocumentKey($conn, $leadId);
+        $stmt->execute([(string)$appId, (string)$uuidId, (string)$safeLeadId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $docsMap = [];
@@ -45,9 +46,13 @@ if (!function_exists('getBranchLoanDocumentsFromTable')) {
 if (!function_exists('getBranchLoanDocumentsBatch')) {
     function getBranchLoanDocumentsBatch($conn, array $rows) {
         $allIds = [];
+        $ambiguousLeadKeys = OriginationAccess::duplicateLeadDocumentKeys($conn, $rows);
         foreach ($rows as $r) {
-            foreach ([$r['application_id'] ?? null, $r['id'] ?? null, $r['lead_id'] ?? null] as $v) {
+            foreach ([$r['application_id'] ?? null, $r['id'] ?? null] as $v) {
                 if (!empty($v)) $allIds[(string)$v] = true;
+            }
+            if (!empty($r['lead_id']) && !isset($ambiguousLeadKeys[(string)$r['lead_id']])) {
+                $allIds[(string)$r['lead_id']] = true;
             }
         }
         $allIds = array_keys($allIds);
