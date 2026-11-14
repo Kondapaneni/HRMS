@@ -52,6 +52,11 @@ final class CompensationAccess
                     $safe = preg_match('/(?:salary|compensation|payroll|remuneration|ctc|\\bpay\\b|\\bhike\\b|₹)/iu', $details);
                     return $safe === 0;
                 }));
+                // Never forward arbitrary historical event keys such as
+                // old_salary, new_salary or raise_amount through a safe title.
+                $timeline = array_map(static function (array $event): array {
+                    return array_intersect_key($event, array_flip(['date', 'title', 'description']));
+                }, $timeline);
                 $employee['timeline'] = json_encode($timeline);
             } else {
                 // Unknown timeline formats cannot be safely redacted.
