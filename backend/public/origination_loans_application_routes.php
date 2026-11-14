@@ -668,12 +668,19 @@ $app->delete('/api/loans/applications/{id}', function (Request $request, Respons
             $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
+        // Resolve one authorized row first. Deleting by a shared lead ID
+        // must NEVER delete multiple applications or anyone else's record.
+        $appRow = OriginationAccess::findLoan($conn, (string)$identifier, $loanActor, $loanBranch);
+        if (!$appRow) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
         [$deleteScope, $deleteArgs] = OriginationAccess::loanScope($loanActor, $loanBranch);
         $stmt = $conn->prepare('
             DELETE FROM public.loan_applications
-            WHERE (id::text = ? OR application_id = ? OR lead_id = ?)' . $deleteScope
+            WHERE id = ?' . $deleteScope
         );
-        $stmt->execute(array_merge([$identifier, $identifier, $identifier], $deleteArgs));
+        $stmt->execute(array_merge([$appRow['id']], $deleteArgs));
 
         if ($stmt->rowCount() > 0) {
             $response->getBody()->write(json_encode(['success' => true, 'message' => 'Loan application deleted successfully']));
