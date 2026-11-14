@@ -1,0 +1,123 @@
+name: SEC-013 compensation isolation and assessment authorization
+
+on:
+  push:
+    branches: ['main', 'fix/sec-013-salary-assessment-authorization-timers']
+    paths:
+      - 'backend/src/Security/CompensationAccess.php'
+      - 'backend/public/admin_employees_routes.php'
+      - 'backend/public/employee_assessments_routes.php'
+      - 'frontend/src/pages/AdminEmployees.jsx'
+      - 'frontend/src/pages/AdminEmployeeEdit.jsx'
+      - 'frontend/src/pages/AdminEmployeeView.jsx'
+      - 'tests/sec013_*'
+      - '.github/workflows/sec013.yml'
+  pull_request:
+    paths:
+      - 'backend/src/Security/CompensationAccess.php'
+      - 'backend/public/admin_employees_routes.php'
+      - 'backend/public/employee_assessments_routes.php'
+      - 'frontend/src/pages/AdminEmployees.jsx'
+      - 'frontend/src/pages/AdminEmployeeEdit.jsx'
+      - 'frontend/src/pages/AdminEmployeeView.jsx'
+      - 'tests/sec013_*'
+      - '.github/workflows/sec013.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-http:
+    name: Synthetic PostgreSQL authenticated salary and assessment HTTP regression
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec013_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec013_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec013_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec013_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec013_synthetic_only
+      JWT_SECRET: SEC013_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax and JS syntax checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in backend/src/Security/CompensationAccess.php backend/public/admin_employees_routes.php backend/public/employee_assessments_routes.php tests/sec013_seed.php tests/sec013_assert.php; do
+            php -l "$file"
+          done
+          node --check tests/sec013_http_test.mjs
+      - name: Install backend dependencies and seed isolated PostgreSQL
+        shell: bash
+        run: |
+          composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+          php tests/sec013_seed.php
+      - name: Exercise SEC-013 authenticated HTTP endpoints and postconditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > backend/.env <<'SEC013_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec013_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec013_synthetic_only
+          JWT_SECRET=SEC013_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+          APP_ENV=production
+          SEC013_TEST_ENV
+          php -S 127.0.0.1:8774 -t backend/public backend/public/index.php >/tmp/sec013-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..25}; do
+            if curl --fail --silent http://127.0.0.1:8774/version.json >/dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then
+            tail -n 120 /tmp/sec013-server.log
+            exit 1
+          fi
+          node tests/sec013_http_test.mjs || {
+            tail -n 150 /tmp/sec013-server.log
+            exit 1
+          }
+          php tests/sec013_assert.php
+
+  frontend:
+    name: Frontend production build and employee salary view regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Compile production frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build

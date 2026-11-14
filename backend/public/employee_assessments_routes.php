@@ -157,16 +157,17 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
 // GET /api/employee/assessments/{id} - Get assessment details for instructions page
 $app->get('/api/employee/assessments/{id}', function (Request $request, Response $response, $args) {
     $id = $args['id'];
+    $user = $request->getAttribute('user');
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare('SELECT id, title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, status FROM assessments WHERE id = ? AND status = \'Active\'');
-        $stmt->execute([$id]);
+        $stmt = $conn->prepare('SELECT id, title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, status FROM assessments WHERE id = ? AND status = \'Active\' AND COALESCE(assigned_employee_ids, \'[]\'::jsonb) @> ?::jsonb');
+        $stmt->execute([$id, json_encode([(string)$user->id])]);
         $assessment = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$assessment) {
-            $response->getBody()->write(json_encode(['error' => 'Assessment not found or inactive']));
+            $response->getBody()->write(json_encode(['error' => 'Assessment not assigned or unavailable']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
 
@@ -198,8 +199,9 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
                    selected_questions, assigned_employee_ids
             FROM assessments
             WHERE id = ? AND status = \'Active\'
+              AND COALESCE(assigned_employee_ids, \'[]\'::jsonb) @> ?::jsonb
         ');
-        $stmt->execute([$id]);
+        $stmt->execute([$id, json_encode([(string)$user->id])]);
         $assessment = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$assessment) {
@@ -324,6 +326,11 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
         $startEpoch = strtotime($startTime);
         $durationMins = (int)$assessment['duration_minutes'];
         $deadlineEpoch = $durationMins > 0 ? $startEpoch + ($durationMins * 60) : 0;
+        // Expired resumptions cannot obtain questions even if the client timer was manipulated.
+        if ($deadlineEpoch > 0 && time() > $deadlineEpoch + 30) {
+            $response->getBody()->write(json_encode(['error' => 'Assessment time limit has expired.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
 
         $response->getBody()->write(json_encode([
             'attempt_id' => $attemptId,
@@ -358,20 +365,37 @@ $app->put('/api/employee/assessments/attempts/{attemptId}/save', function (Reque
     $conn = $db->getConnection();
 
     try {
-        $checkStmt = $conn->prepare('SELECT id FROM assessment_attempts WHERE id = ? AND employee_id = ? AND status = \'in_progress\'');
-        $checkStmt->execute([$attemptId, $user->id]);
+        // Lock attempt and evaluate live assignment, status and expiry against
+        // the trusted PostgreSQL clock rather than a browser countdown.
+        $conn->beginTransaction();
+        $checkStmt = $conn->prepare("
+            SELECT att.id FROM assessment_attempts att
+            JOIN assessments a ON a.id = att.assessment_id
+            WHERE att.id = ? AND att.employee_id = ? AND att.status = 'in_progress'
+              AND a.status = 'Active'
+              AND COALESCE(a.assigned_employee_ids, '[]'::jsonb) @> ?::jsonb
+              AND att.start_time <= CURRENT_TIMESTAMP
+              AND (a.duration_minutes <= 0 OR CURRENT_TIMESTAMP <=
+                   att.start_time + a.duration_minutes * INTERVAL '1 minute' + INTERVAL '30 seconds')
+            FOR UPDATE OF att
+        ");
+        $checkStmt->execute([$attemptId, $user->id, json_encode([(string)$user->id])]);
         if (!$checkStmt->fetch()) {
-            $response->getBody()->write(json_encode(['error' => 'Attempt not found or already submitted']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Attempt unavailable, unassigned or time limit expired.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
 
         $stmt = $conn->prepare('UPDATE assessment_attempts SET answers_data = ?::jsonb, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND employee_id = ? AND status = \'in_progress\'');
         $stmt->execute([json_encode($answers), $attemptId, $user->id]);
+        $conn->commit();
 
         $response->getBody()->write(json_encode(['success' => true, 'timestamp' => time()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => 'Failed to save progress: ' . $e->getMessage()]));
+        if ($conn->inTransaction()) $conn->rollBack();
+        error_log('SEC-013: Assessment save failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Failed to save assessment progress.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['employee', 'hr', 'manager']));
@@ -396,16 +420,22 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
             FROM assessment_attempts att
             JOIN assessments a ON att.assessment_id = a.id
             WHERE att.id = ? AND att.employee_id = ? AND att.status = \'in_progress\'
+              AND a.status = \'Active\'
+              AND COALESCE(a.assigned_employee_ids, \'[]\'::jsonb) @> ?::jsonb
+              AND att.start_time <= CURRENT_TIMESTAMP
+              AND (a.duration_minutes <= 0 OR CURRENT_TIMESTAMP <=
+                   att.start_time + a.duration_minutes * INTERVAL \'1 minute\' + INTERVAL \'30 seconds\')
+            FOR UPDATE OF att
         ');
-        $attStmt->execute([$attemptId, $user->id]);
+        $attStmt->execute([$attemptId, $user->id, json_encode([(string)$user->id])]);
         $attempt = $attStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$attempt) {
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            $response->getBody()->write(json_encode(['error' => 'Attempt not found or already submitted']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            $response->getBody()->write(json_encode(['error' => 'Attempt unavailable, unassigned or submission deadline passed.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
 
         $answers = $incomingAnswers !== null ? $incomingAnswers : (json_decode($attempt['answers_data'], true) ?: []);
@@ -561,8 +591,9 @@ $app->get('/api/employee/assessments/attempts/{attemptId}/result', function (Req
             FROM assessment_attempts att
             JOIN assessments a ON att.assessment_id = a.id
             WHERE att.id = ? AND att.employee_id = ? AND att.status != \'in_progress\'
+              AND COALESCE(a.assigned_employee_ids, \'[]\'::jsonb) @> ?::jsonb
         ');
-        $stmt->execute([$attemptId, $user->id]);
+        $stmt->execute([$attemptId, $user->id, json_encode([(string)$user->id])]);
         $attempt = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$attempt) {
