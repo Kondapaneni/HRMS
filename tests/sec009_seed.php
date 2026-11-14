@@ -16,7 +16,8 @@ $pdo = new PDO(
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec(<<<'SQL'
 CREATE TABLE users (
-  id TEXT PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL DEFAULT TRUE
+  id TEXT PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL DEFAULT TRUE,
+  token_version INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE user_feature_access (
   "userId" TEXT PRIMARY KEY,

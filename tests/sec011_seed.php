@@ -14,8 +14,12 @@ $pdo = new PDO(
 );
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec(<<<'SQL'
+CREATE TABLE global_settings (
+ id INTEGER PRIMARY KEY, maintenance_mode BOOLEAN NOT NULL DEFAULT FALSE
+);
+INSERT INTO global_settings (id, maintenance_mode) VALUES (1, FALSE);
 CREATE TABLE users (
- id UUID PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL DEFAULT TRUE,
+ id UUID PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL DEFAULT TRUE, token_version INTEGER NOT NULL DEFAULT 0,
  "firstName" TEXT, "lastName" TEXT, email TEXT
 );
 CREATE TABLE branches (id UUID PRIMARY KEY, name TEXT NOT NULL);

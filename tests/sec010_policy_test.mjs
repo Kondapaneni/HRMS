@@ -27,7 +27,7 @@ assert(middleware.includes('private function resolveFeatureColumns(): ?array'),
   'unknown permission keys are rejected before SQL');
 assert(middleware.includes('return $this->unavailableResponse();'),
   'database failure must return fail-closed response');
-assert(middleware.includes('SELECT "isActive" FROM users'),
+assert(middleware.includes('SELECT role, "isActive", token_version FROM users'),
   'active user status is checked from database');
 assert(!middleware.includes('if ($conn) {'),
   'a missing database connection must not permit passthrough');
