@@ -79,6 +79,7 @@ assert.deepEqual(detail.recentPayslips, []);
 const redactedTimeline = JSON.stringify(detail.employee.timeline);
 assert(!redactedTimeline.includes('125000'), 'compensation amounts in timeline must be redacted');
 assert(!redactedTimeline.includes('Salary Updated'), 'salary timeline milestone must be redacted');
+assert(!redactedTimeline.includes('old_salary'), 'arbitrary historical salary fields must be redacted');
 assert(redactedTimeline.includes('Joined Company'), 'nonpayroll timeline events retained');
 
 const payrollDetail = await expectStatus(200, 'payroll', 'GET', '/api/admin/employees/' + employee);
