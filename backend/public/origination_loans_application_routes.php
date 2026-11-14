@@ -281,7 +281,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         $response->getBody()->write(json_encode(['error' => 'An error occurred while saving to database']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
  * Endpoint to list submitted & draft loan applications.
@@ -415,7 +415,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         $response->getBody()->write(json_encode(['error' => 'Error fetching loan applications']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
  * Endpoint to save or update documents for a loan application into dedicated public.loan_documents table.
@@ -479,7 +479,7 @@ $app->post('/api/loans/applications/{id}/documents', function (Request $request,
         $response->getBody()->write(json_encode(['error' => 'Failed to save documents: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
  * Endpoint to delete a specific document from a loan application in dedicated public.loan_documents table.
@@ -531,7 +531,7 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
         $response->getBody()->write(json_encode(['error' => 'Failed to delete document']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
  * Endpoint to update loan application status and append to timeline
@@ -610,7 +610,7 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
         $response->getBody()->write(json_encode(['error' => 'Failed to update application status']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));
 
 /**
  * Endpoint to delete a loan application.
@@ -637,4 +637,4 @@ $app->delete('/api/loans/applications/{id}', function (Request $request, Respons
         $response->getBody()->write(json_encode(['error' => 'Error deleting loan application']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));

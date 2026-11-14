@@ -190,4 +190,4 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
         }
     });
 
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'salesOrigination'));

@@ -365,7 +365,7 @@ $app->post('/api/admin/chatbot/query', function (Request $request, Response $res
         'suggested_actions' => array_slice($suggestedActions, 0, 5)
     ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin']));
 
 /**
  * Universal fallback rule engine for Admin queries.

@@ -601,4 +601,4 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
         }
     });
 
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], ['loanOrigination', 'salesOrigination', 'branchOperations']));
