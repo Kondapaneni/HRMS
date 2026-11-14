@@ -114,9 +114,17 @@ foreach ([
  ['00000000-0000-4000-8000-00000000a003','LA-C1','00000000-0000-4000-8000-00000000b003','Draft',$C,$BRANCH_B],
  ['00000000-0000-4000-8000-00000000a004','LA-TRANSFERRED','00000000-0000-4000-8000-00000000b001','Draft',$A,$BRANCH_B],
  ['00000000-0000-4000-8000-00000000a005','LA-SHARED','00000000-0000-4000-8000-00000000b001','Under Review',$B,$BRANCH_A],
- ['00000000-0000-4000-8000-00000000a006','LA-BRANCH','00000000-0000-4000-8000-00000000b001','Under Review',$A,$BRANCH_A]
+ ['00000000-0000-4000-8000-00000000a006','LA-BRANCH','00000000-0000-4000-8000-00000000b001','Under Review',$A,$BRANCH_A],
+ ['00000000-0000-4000-8000-00000000a007','LA-PREBRANCH','00000000-0000-4000-8000-00000000b001','Created',$A,$BRANCH_A]
 ] as [$id,$app,$lead,$status,$creator,$branch]){
- $form=json_encode(['applicant_name'=>'Synthetic Test','phone_number'=>'0000000000','stage'=>'Branch Operations','timeline'=>[['stage'=>'Branch Operations','timestamp'=>'2026-11-14T00:00:00Z']]]);
+ $transferredToBranch = $app !== 'LA-PREBRANCH';
+ $form=json_encode([
+   'applicant_name'=>'Synthetic Test','phone_number'=>'0000000000',
+   'stage'=>$transferredToBranch ? 'Branch Operations' : 'Loan Origination',
+   'timeline'=>$transferredToBranch
+      ? [['stage'=>'Branch Operations','timestamp'=>'2026-11-14T00:00:00Z']]
+      : []
+ ]);
  $loans->execute([$id,$app,$lead,'Business Loan',$status,$form,$branch,$creator]);
 }
 $docs=$pdo->prepare('INSERT INTO loan_documents (application_id, slot_key, url) VALUES (?,?,?)');
