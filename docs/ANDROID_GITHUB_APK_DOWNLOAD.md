@@ -1,9 +1,12 @@
 # HRMS Android APK download through GitHub + existing Employee Profile
 
-The mobile browser's HRMS Employee Profile already links to
-`/downloads/Acme%20HRMS.apk`. Vite copies the file from
-`frontend/public/downloads/Acme HRMS.apk` into the deployed website.
-Employees never need GitHub access to download it.
+The mobile browser's HRMS Employee Profile provides the **Download Mobile App
+(APK)** button only when `/downloads/android-release.json` confirms that
+GitHub Actions published a verified signed release. The corresponding APK
+lives at `/downloads/Acme%20HRMS.apk` (from
+`frontend/public/downloads/Acme HRMS.apk` in the deploy). This prevents
+the browser profile from presenting a stale, bundled APK as current while
+signing is skipped or blocked. Employees never need GitHub access.
 
 ## How the workflow works
 
@@ -14,11 +17,22 @@ Employees never need GitHub access to download it.
 3. On a successful `main` run, if the permanent signing secrets are configured,
    the release job signs the optimized release APK, verifies the package,
    signing certificate and increasing version code.
-4. Only a compatible signed APK is copied to the existing GitHub file at
-   `frontend/public/downloads/Acme HRMS.apk` and committed by GitHub Actions.
-   The HRMS website must redeploy to make that file available to employees.
-5. On Android, an employee opens HRMS in the mobile browser → Profile →
+4. On a successful signed release (certificate and increasing version code
+   validated), the workflow commits the APK **and**
+   `frontend/public/downloads/android-release.json` together. The JSON records
+   Android version, SHA-256, build source commit, and publication time; it
+   never contains keys or secrets. If secrets are missing or the certificate
+   conflicts, **neither file is changed**. The HRMS website must redeploy the
+   commit before the new APK becomes available.
+5. The Employee Mobile Profile fetches this JSON with `cache: no-store`.
+   If it is missing or invalid, it displays a signing-pending notice instead
+   of offering the older APK. When present, the button includes the release
+   version code in its URL to bypass a cached APK.
+6. On Android Chrome, an employee opens HRMS → Employee Profile →
    Download Mobile App (APK), then confirms installation with Android.
+7. The Android build triggers when relevant native **or frontend** source
+   changes land on `main`, but excludes the generated APK and JSON to avoid
+   recursive builds.
 
 ## Minimum required one-time setup: 2 secrets, not 5
 
@@ -79,7 +93,10 @@ same permanent signing secrets and should update in place.
 - For first new-signer release, coordinate with employees and explicitly run
   the migration workflow.
 - Inspect GitHub Actions logs for successful signing, compatibility verification
-  and Git commit; verify the website redeployed the changed download file.
+  and Git commit of both the APK and `android-release.json`; verify the
+  website redeployed **both**. If the release job reports missing secrets or
+  a certificate mismatch, the profile must show the signing-pending notice.
+  Do not manually point the button at a debug, unsigned or old APK.
 - On an Android test phone download from the browser's Employee Profile,
   install, sign in, confirm the two-minute SEC-006 background location tracker
   continues across app closes/reopens, and check out.
