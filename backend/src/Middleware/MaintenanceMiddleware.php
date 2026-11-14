@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Middleware;
 
 use App\Config\Database;
+use App\Utils\SessionVersion;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use PDO;
@@ -113,14 +114,15 @@ final class MaintenanceMiddleware implements MiddlewareInterface
             // Verify against LIVE database state; JWT role by itself may be
             // stale if the user was demoted or deactivated.
             $stmt = $conn->prepare(
-                'SELECT role, "isActive" FROM public.users WHERE id = ? LIMIT 1'
+                'SELECT role, "isActive", token_version FROM public.users WHERE id = ? LIMIT 1'
             );
             $stmt->execute([$claims->id]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
             return $row
                 && ($row['role'] ?? null) === 'admin'
-                && self::enabled($row['isActive'] ?? null);
+                && self::enabled($row['isActive'] ?? null)
+                && SessionVersion::matches($claims, $row);
         } catch (\Throwable $e) {
             return false;
         }
