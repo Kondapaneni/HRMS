@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 const root = 'http://127.0.0.1:8769';
 const admin = 'sec008-admin@example.invalid';
 const employee = 'sec008-employee@example.invalid';
+const grantedButNotSetUp = 'sec008-granted@example.invalid';
 
 async function post(path, data) {
   const response = await fetch(root + path, {
@@ -100,5 +101,29 @@ assert.equal(plainOtpLogin.data.user?.role, 'employee');
 assert.equal(typeof plainOtpLogin.data.token, 'string');
 assert.equal(plainOtpLogin.data.mfaRequired, undefined);
 console.log('PASS: non-MFA email OTP login remains functional');
+
+// Admin has granted the MFA feature, but the employee has NOT completed
+// Authenticator setup. They must be allowed to log in without an MFA prompt
+// and may finish setup after login. This is not the same as MFA bypass.
+const grantedOtpLogin = await post('/api/auth/otp/verify', {
+  email: grantedButNotSetUp, otp: '789012',
+});
+assert.equal(grantedOtpLogin.status, 200);
+assert.equal(grantedOtpLogin.data.mfaRequired, undefined,
+  'Do not require MFA before setup confirmation');
+assert.equal(grantedOtpLogin.data.user?.role, 'employee');
+assert.equal(typeof grantedOtpLogin.data.token, 'string');
+const grantedStatus = await get('/api/mfa/status', grantedOtpLogin.data.token);
+assert.equal(grantedStatus.status, 200);
+assert.equal(grantedStatus.data.authorized, true, 'Admin grant exposes MFA setup');
+assert.equal(grantedStatus.data.configured, false, 'Authenticator setup not complete');
+assert.equal(grantedStatus.data.enabled, false, 'MFA must remain inactive before confirmation');
+console.log('PASS: admin-granted employee can log in and sees setup, without MFA challenge');
+
+const deniedStatus = await get('/api/mfa/status', plainOtpLogin.data.token);
+assert.equal(deniedStatus.status, 200);
+assert.equal(deniedStatus.data.authorized, false, 'No admin grant hides MFA feature');
+assert.equal(deniedStatus.data.enabled, false);
+console.log('PASS: employee without admin permission cannot see MFA setup');
 
 console.log('SEC-008 synthetic end-to-end HTTP authentication tests PASSED');
