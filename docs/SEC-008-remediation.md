@@ -56,6 +56,17 @@ Use **development/test accounts only**; do not share email OTPs, TOTP codes, bac
 
 **Never disable MFA on an existing privileged real account merely to test a bypass.**
 
+## Login Back-button follow-up — live verified 2026-11-14
+
+The owner reported a separate login UX/privacy defect after SEC-008 closure: the MFA **Back to login** button restored the previous account's credentials; in the email OTP path the previous OTP and email entry remained populated when navigating back. [PR #24](https://github.com/Kondapaneni/HRMS/pull/24) resets email, password, OTP state, pending MFA token and backup-code state, and guards against the scripted autofill effect immediately refilling a deliberately cleared form.
+
+Focused React-state reset regressions, frontend build and security CI passed. The owner explicitly confirmed **both** live Render tests passed after deployment:
+
+1. **Password → MFA → Back:** Email and password fields are empty.
+2. **Email OTP → MFA → Back → Email OTP method:** Email, OTP, and password fields are empty; the earlier verification screen does not reappear.
+
+This is owner-reported browser validation, not an independently repeated live test. The correction was a login UI privacy/regression follow-up, not a change to the MFA authorization policy.
+
 ## Residual independent audit issues
 
 - **SEC-012:** This patch does NOT hash email `otp_code` values stored in the database, replace the 10-year `session_timeout='never'` option, or implement session revocation. OTP storage hardening and JWT lifecycle are tracked there and require a coordinated database migration, so they were intentionally not mixed into an emergency MFA-bypass fix.
