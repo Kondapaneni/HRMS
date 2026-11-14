@@ -125,7 +125,7 @@ const ChangePassword = () => {
                 >
                   <ArrowLeft size={18} />
                 </button>
-              )
+              )}
             </div>
 
             <div className="text-center sm:text-left mb-6">
