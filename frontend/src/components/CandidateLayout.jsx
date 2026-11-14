@@ -10,9 +10,7 @@ import {
 import { useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import MaintenanceOverlay from './MaintenanceOverlay';
 import AppShell from './AppShell';
-import api from '../api/axios';
 
 const CandidateLayout = () => {
   const { profile } = useAuth();
@@ -31,25 +29,6 @@ const CandidateLayout = () => {
     enabled: !!profile?.id,
   });
 
-  // Fetch news & maintenance status
-  const { data: newsData } = useQuery({
-    queryKey: ['newsHeadlines'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/news');
-        return res.data;
-      } catch (e) {
-        return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
-      }
-    },
-    refetchInterval: 15000,
-    staleTime: 10000,
-    refetchOnWindowFocus: true,
-  });
-
-  const isMaintenanceMode = newsData?.maintenance_mode === true;
-  const maintenanceMessage = newsData?.maintenance_message;
-  const showMaintenanceOverlay = isMaintenanceMode;
 
   // Rail Navigation Groups (Section 4.3 Candidate Portal: Accent #E3B9DF)
   const railGroups = [
@@ -97,8 +76,6 @@ const CandidateLayout = () => {
 
   return (
     <>
-      {showMaintenanceOverlay && <MaintenanceOverlay message={maintenanceMessage} />}
-
       <AppShell
         portalName="Acme HRMS"
         portalSubtitle="Candidate Portal"
