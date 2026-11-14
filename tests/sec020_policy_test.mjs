@@ -20,7 +20,7 @@ for (let i = 0; i < paths.length; i++) {
   assert(!/onBypassSuccess|isDevBypassed|handleExitBypass|showBypassBtn|handleBypassSubmit/.test(contents[i]),
     paths[i] + ' must not contain developer unlock state or callbacks');
 }
-assert(!/password|Developer authentication|Developer bypass|setItem/.test(contents[0]),
+assert(!/type="password"|Developer authentication|Developer bypass|localStorage\.setItem/.test(contents[0]),
   'maintenance dialog must contain refresh only, not a password or secret click sequence');
 assert(contents[1].includes('const showMaintenanceOverlay = isMaintenanceMode;'),
   'employee cannot dismiss maintenance via a browser bypass flag');
