@@ -4,6 +4,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Middleware\AuthMiddleware;
 use App\Utils\SessionVersion;
+use App\Utils\RefreshSessions;
 use App\Config\Database;
 use App\Utils\RateLimiter;
 use App\Utils\TotpHelper;
@@ -140,17 +141,9 @@ $app->post('/api/auth/mfa/verify', function (Request $request, Response $respons
     $settings = $stmtSettings->fetch(PDO::FETCH_ASSOC);
     $sessionTimeout = $settings['session_timeout'] ?? '30';
 
-    $payload = [
-        'iss' => 'acme_hrms',
-        'iat' => time(),
-        'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
-        'id' => $user['id'],
-        'email' => $user['email'],
-        'role' => $user['role'],
-        'tv' => SessionVersion::fromRow($user)
-    ];
-
-    $jwt = JWT::encode($payload, $secret, 'HS256');
+    [$response, $session] = RefreshSessions::newSession(
+        $conn, $user, (string)$secret, $sessionTimeout, $request, $response
+    );
 
     // Attach feature access
     $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canExpenses", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments" FROM user_feature_access WHERE "userId" = ?');
@@ -173,10 +166,7 @@ $app->post('/api/auth/mfa/verify', function (Request $request, Response $respons
         ];
     }
 
-    $response->getBody()->write(json_encode([
-        'token' => $jwt,
-        'user' => $user
-    ]));
+    $response->getBody()->write(json_encode(array_merge($session, ['user' => $user])));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
