@@ -100,6 +100,49 @@ final class OriginationAccess
             : [' AND FALSE', []];
     }
 
+    /**
+     * Historic documents may be keyed by lead ID instead of application ID.
+     * Never follow that legacy alias when multiple applications share a lead:
+     * it could reveal or delete another application's KYC documents.
+     */
+    public static function uniqueLeadDocumentKey(PDO $conn, $leadId): ?string
+    {
+        if (!is_scalar($leadId) || trim((string)$leadId) === '') {
+            return null;
+        }
+        $stmt = $conn->prepare('SELECT COUNT(*) FROM public.loan_applications WHERE lead_id = ?');
+        $stmt->execute([(string)$leadId]);
+        return (int)$stmt->fetchColumn() === 1 ? (string)$leadId : null;
+    }
+
+    /**
+     * One grouped query preserves batched document reads while excluding
+     * ambiguous lead-ID document aliases, including across other branches.
+     *
+     * @return array<string,bool>
+     */
+    public static function duplicateLeadDocumentKeys(PDO $conn, array $rows): array
+    {
+        $ids = [];
+        foreach ($rows as $row) {
+            if (!empty($row['lead_id'])) {
+                $ids[(string)$row['lead_id']] = true;
+            }
+        }
+        if (!$ids) {
+            return [];
+        }
+        $keys = array_keys($ids);
+        $placeholders = implode(',', array_fill(0, count($keys), '?'));
+        $stmt = $conn->prepare("
+            SELECT lead_id FROM public.loan_applications
+            WHERE lead_id IN ($placeholders)
+            GROUP BY lead_id HAVING COUNT(*) > 1
+        ");
+        $stmt->execute($keys);
+        return array_fill_keys($stmt->fetchAll(PDO::FETCH_COLUMN), true);
+    }
+
     public static function hasBranchGrant(PDO $conn, $identity): bool
     {
         if (self::isAdmin($identity)) {
