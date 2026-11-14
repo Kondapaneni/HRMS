@@ -128,6 +128,23 @@ await verify(200,'alice','PATCH','/api/loans/applications/'+loans.alice+'/status
 await verify(200,'admin','PATCH','/api/loans/applications/'+loans.carol+'/status',
   {status:'Under Review'},'admin');
 
+// Branch Operations lists are also scoped to the authenticated
+// employee's actual branch, never caller-supplied branch query params.
+const branchAList = await verify(200,'branchA','GET','/api/branch-operations/applications');
+const aIds = branchAList.applications.map(x=>x.application_id);
+assert(aIds.includes('LA-BRANCH'),'branch A can see own branch-transferred loan');
+assert(!aIds.includes('LA-C1'),'branch A cannot see branch B loan');
+assert(!aIds.includes('LA-TRANSFERRED'),'branch A cannot see transferred branch B loan');
+assert(!aIds.includes('LA-PREBRANCH'),'branch A cannot see pre-transfer stage');
+const branchBList = await verify(200,'branchB','GET','/api/branch-operations/applications');
+const bIds = branchBList.applications.map(x=>x.application_id);
+assert(bIds.includes('LA-C1'),'branch B can see branch B loan');
+assert(!bIds.includes('LA-BRANCH'),'branch B cannot see branch A loan');
+
+await verify(404,'branchA','POST',
+  '/api/branch-operations/applications/'+loans.carol+'/seen',
+  {received_at:'2026-11-14T00:00:00Z'});
+
 // Branch Operations must not mutate by knowing a foreign application ID.
 const branchEdit={form_data:{
   applicant_name:'Synthetic Branch Edit',phone_number:'0000000000',stage:'Branch Operations'
