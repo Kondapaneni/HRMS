@@ -81,6 +81,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # PHP's Dotenv populates $_ENV from backend/.env in production.
+          # Supply ONLY synthetic CI database/authentication values.
+          cat > backend/.env <<'SEC008_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec008_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec008_test_password_only
+          JWT_SECRET=SEC008_TEST_SECRET_ONLY_DO_NOT_USE_IN_PRODUCTION
+          APP_ENV=production
+          SEC008_TEST_ENV
           php -S 127.0.0.1:8769 -t backend/public backend/public/index.php > /tmp/sec008-server.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
