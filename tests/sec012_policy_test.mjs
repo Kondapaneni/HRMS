@@ -21,9 +21,10 @@ assert(index.includes('FOR UPDATE'), 'password change must lock user during veri
 assert(index.includes('OtpCode::digest($otp'), 'OTP must never be persisted as plaintext');
 assert(index.includes('OtpCode::matches('), 'OTP verification must use keyed digests');
 assert(!index.includes("$updateStmt->execute([$otp, $expiresAt"), 'plaintext email OTP must not be inserted');
-assert(index.includes("'tv' => SessionVersion::fromRow($user)"), 'password/OTP sign-in must version the JWT');
-assert(mfa.includes("'tv' => SessionVersion::fromRow($user)"), 'MFA sign-in must version the JWT');
-assert(candidate.includes("'tv' => SessionVersion::fromRow($user)"), 'candidate sign-in must version the JWT');
+assert.equal(index.split('RefreshSessions::newSession(').length - 1, 2,
+  'password and OTP login must issue bounded JWT + rotating refresh');
+assert(mfa.includes('RefreshSessions::newSession('), 'MFA session must issue rotating refresh');
+assert(candidate.includes('RefreshSessions::newSession('), 'candidate session must issue rotating refresh');
 assert(auth.includes('SessionVersion::matches($decoded, $userRow)'), 'all protected APIs require live revocation check');
 assert(auth.includes('token_version FROM users'), 'middleware must read DB session generation');
 assert(fileAccess.includes('SessionVersion::matches($claims, $user)'), 'private file cookie must reject revoked JWT');
@@ -34,6 +35,37 @@ assert(change.includes('currentPassword, newPassword'), 'frontend must require c
 assert(change.includes('signOut({ localOnly: true })'), 'after revocation client must clear token and cached PII');
 assert(change.includes("navigate('/login'"), 'password change must require fresh sign-in');
 assert(ctx.includes('options?.localOnly'), 'local-only signout must not reuse revoked token');
-assert(index.includes("60 * 60 * 24 * 365 * 10"),
-  'stage 1 explicitly leaves legacy JWT TTL issue open until refresh-token and native tracking rollout');
-console.log('SEC-012 stage 1 source and security regression policy PASSED');
+const access = read('backend/src/Utils/AccessToken.php');
+const refresh = read('backend/src/Utils/RefreshSessions.php');
+const schema = read('supabase/migrations/20261114_sec012_refresh_sessions.sql');
+const axios = read('frontend/src/api/axios.js');
+const native = read('frontend/android/app/src/main/java/com/example/acmehrms/NativeSessionClient.java');
+const tracker = read('frontend/android/app/src/main/java/com/example/acmehrms/LocationTrackerService.java');
+const store = read('frontend/android/app/src/main/java/com/example/acmehrms/TrackerTokenStore.java');
+const plugin = read('frontend/android/app/src/main/java/com/example/acmehrms/LocationTrackerPlugin.java');
+assert(!index.includes("60 * 60 * 24 * 365 * 10"), 'ten-year session minting must be gone');
+assert(access.includes('public const MAX_TTL = 8 * 60 * 60'), 'access tokens capped at 8 hours');
+assert(auth.includes('AccessToken::bounded($decoded)'), 'auth rejects long-life legacy JWT');
+assert(fileAccess.includes('AccessToken::bounded($claims)'), 'private files reject long-life JWT');
+assert(maintenance.includes('AccessToken::bounded($claims)'), 'maintenance exception rejects long-life JWT');
+assert(index.includes("'/api/auth/refresh'"), 'refresh endpoint required');
+assert(index.includes('RefreshSessions::rotate($conn'), 'refresh must rotate');
+assert(index.includes("'X-HRMS-Refresh'"), 'CSRF-resistant custom header required');
+assert(refresh.includes("hash('sha256', $secret)"), 'server stores only hash');
+assert(refresh.includes('hash_equals('), 'constant-time rotation comparison');
+assert(refresh.includes('SET revoked_at = NOW()'), 'refresh replay invalidates session');
+assert(refresh.includes('HttpOnly; SameSite=Strict'), 'browser refresh uses strict HttpOnly cookie');
+assert(schema.includes('ENABLE ROW LEVEL SECURITY'), 'refresh table RLS enabled');
+assert(schema.includes('REVOKE ALL PRIVILEGES'), 'refresh secrets not accessible to public Data API');
+assert(axios.includes('sharedRefresh'), 'browser dedupes concurrent refresh attempts');
+assert(axios.includes("'/api/auth/refresh'"), 'browser sends cookie-only refresh');
+assert(native.includes('static synchronized String refresh('), 'Android must serialize native refresh');
+assert(native.includes('TrackerTokenStore.saveSession('), 'native refresh secret stored in Keystore');
+assert(!native.includes('Log.'), 'native refresh must not log secrets');
+assert(tracker.includes('NativeSessionClient.accessOrRefresh(this)'), 'Android background punches independently renew');
+assert(tracker.includes('!retriedAfterRefresh'), 'one retry only after 401');
+assert(store.includes('AndroidKeyStore'), 'Android refresh encrypted under Keystore');
+assert(plugin.includes('getSessionAccessToken'), 'native access sync supported');
+assert(!read('frontend/src/api/nativeSession.js').includes("localStorage.setItem('refresh"),
+  'native refresh token must not be stored in WebView localStorage');
+console.log('SEC-012 stage 2 source and security regression policy PASSED');
