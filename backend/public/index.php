@@ -519,7 +519,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
 
     $response->getBody()->write(json_encode(['error' => 'User not found']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
 
 // Update Theme Preference (Protected - any authenticated user)
 $app->put('/api/user/theme', function (Request $request, Response $response, $args) {
@@ -552,7 +552,7 @@ $app->put('/api/user/theme', function (Request $request, Response $response, $ar
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
 
 // Change password endpoint (Protected)
 $app->put('/api/change-password', function (Request $request, Response $response, $args) {
@@ -592,7 +592,7 @@ $app->put('/api/change-password', function (Request $request, Response $response
         $response->getBody()->write(json_encode(['error' => 'Failed to update password']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
 
 require __DIR__ . '/employee_attendance_routes.php';
 require __DIR__ . '/employee_leave_routes.php';
