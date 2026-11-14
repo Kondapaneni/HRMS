@@ -28,14 +28,16 @@ import EmployeeChatbot from './EmployeeChatbot';
 import AppShell from './AppShell';
 import BottomNav from './ui/BottomNav';
 import api from '../api/axios';
+import useAssessmentBusinessDate from '../hooks/useAssessmentBusinessDate';
 
 const EmployeeLayout = () => {
   const { profile } = useAuth();
   const location = useLocation();
+  const todayStr = useAssessmentBusinessDate();
 
   // Check today's assessment
   const { data: employeeAssessments = [] } = useQuery({
-    queryKey: ['employeeAssessmentsList'],
+    queryKey: ['employeeAssessmentsList', todayStr],
     queryFn: async () => {
       try {
         const res = await api.get('/employee/assessments');
@@ -60,11 +62,6 @@ const EmployeeLayout = () => {
     },
     staleTime: 60000,
   });
-
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }, []);
 
   const hasAssessmentToday = useMemo(() => {
     return (
