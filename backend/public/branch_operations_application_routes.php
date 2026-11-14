@@ -765,7 +765,7 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
                 }
             }
         }
-        if (!$isAdmin && !$reachedBranchOps) {
+        if (!$isAdmin && (!$reachedBranchOps || strcasecmp((string)$existingApp['status'], 'Draft') === 0)) {
             $response->getBody()->write(json_encode(['error' => 'Application has not reached Branch Operations']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
