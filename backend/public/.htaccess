@@ -7,12 +7,32 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 # Explicitly set the DirectoryIndex so that / loads index.html
 DirectoryIndex index.html index.php
 
+# SEC-007: apply these response protections to both the React SPA and PHP/API
+# responses, including Apache-generated errors. Do not set static wildcard CORS.
+# API CORS origins are validated in PHP sec007_cors.php.
 <IfModule mod_headers.c>
-    <FilesMatch "\.(json)$">
-        Header set Access-Control-Allow-Origin "*"
-        Header set Access-Control-Allow-Methods "GET, OPTIONS"
-        Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
-    </FilesMatch>
+    # Avoid duplicate values across Apache's onsuccess/always header tables.
+    Header onsuccess unset X-Content-Type-Options
+    Header always set X-Content-Type-Options "nosniff"
+    Header onsuccess unset X-Frame-Options
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header onsuccess unset Referrer-Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header onsuccess unset Permissions-Policy
+    Header always set Permissions-Policy "geolocation=(self), camera=(self)"
+
+    # Render terminates HTTPS at its edge. Browser HSTS is ignored on
+    # plain HTTP, so local development using HTTP remains unaffected.
+    Header onsuccess unset Strict-Transport-Security
+    Header always set Strict-Transport-Security "max-age=31536000"
+
+    # Enforce clickjacking and malicious base-URL protections immediately.
+    # The app currently uses inline bootstrap scripts, so a restrictive
+    # script-src policy is monitored first instead of breaking production.
+    Header onsuccess unset Content-Security-Policy
+    Header always set Content-Security-Policy "frame-ancestors 'self'; base-uri 'self'"
+    Header onsuccess unset Content-Security-Policy-Report-Only
+    Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; form-action 'self'"
 </IfModule>
 
 # Always route version.json to index.php to guarantee CORS headers
