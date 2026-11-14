@@ -62,7 +62,7 @@ final class RefreshSessions
     public static function rotate(PDO $conn, string $credential, string $client): ?array
     {
         if (!in_array($client, ['web', 'android'], true) ||
-            !preg_match('/\A([0-9a-f-]{36})\.([0-9a-f]{64})\z/', $credential, $matches)) {
+            !preg_match('/\A([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.([0-9a-f]{64})\z/', $credential, $matches)) {
             return null;
         }
         $conn->beginTransaction();
