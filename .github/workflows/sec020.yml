@@ -2,8 +2,11 @@ name: SEC-020 maintenance bypass removal and admin-only server enforcement
 
 on:
   push:
-    branches: ['main', 'fix/sec-020-remove-client-maintenance-bypass']
+    branches: ['main', 'fix/sec-020-remove-client-maintenance-bypass', 'fix/sec-020-maintenance-ui-across-all-employee-modules']
     paths:
+      - 'frontend/src/App.jsx'
+      - 'frontend/src/components/MaintenanceGate.jsx'
+      - 'frontend/src/components/maintenancePolicy.js'
       - 'frontend/src/components/MaintenanceOverlay.jsx'
       - 'frontend/src/components/EmployeeLayout.jsx'
       - 'frontend/src/components/CandidateLayout.jsx'
@@ -15,6 +18,9 @@ on:
       - '.github/workflows/sec020.yml'
   pull_request:
     paths:
+      - 'frontend/src/App.jsx'
+      - 'frontend/src/components/MaintenanceGate.jsx'
+      - 'frontend/src/components/maintenancePolicy.js'
       - 'frontend/src/components/MaintenanceOverlay.jsx'
       - 'frontend/src/components/EmployeeLayout.jsx'
       - 'frontend/src/components/CandidateLayout.jsx'
@@ -71,6 +77,7 @@ jobs:
             php -l "$file"
           done
           node tests/sec020_policy_test.mjs
+          node tests/sec020_maintenance_ui_test.mjs
       - name: Install backend PHP dependencies
         run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
       - name: Test dynamic maintenance states, admin MFA, forged/deactivated roles and recovery routes
@@ -93,6 +100,7 @@ jobs:
       - name: Frontend source policy and MFA/back-navigation regression
         run: |
           node tests/sec020_policy_test.mjs
+          node tests/sec020_maintenance_ui_test.mjs
           node tests/sec008_frontend_security_test.mjs
           node tests/sec008_login_reset_test.mjs
       - name: Build production frontend
