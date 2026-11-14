@@ -6,6 +6,7 @@
  */
 use App\Config\Database;
 use App\Utils\SessionVersion;
+use App\Utils\AccessToken;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -53,6 +54,7 @@ function sec003Principal(Request $request, $conn): ?array {
         if (
             (isset($claims->type) && $claims->type !== 'session') ||
             empty($claims->role)
+            || !AccessToken::bounded($claims)
         ) return null;
         $id = (string) ($claims->id ?? '');
         if (!preg_match('/\A[0-9a-f-]{36}\z/i', $id)) return null;
