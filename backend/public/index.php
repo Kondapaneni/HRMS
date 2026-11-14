@@ -96,7 +96,7 @@ $app->add(function (Request $request, $handler) {
     if ($secret === '') return $response;
     try {
         $claims = JWT::decode($matches[1], new \Firebase\JWT\Key($secret, 'HS256'));
-        if (empty($claims->id) || empty($claims->role)) return $response;
+        if (empty($claims->id) || empty($claims->role) || !AccessToken::bounded($claims)) return $response;
     } catch (Throwable $e) {
         return $response;
     }
@@ -676,6 +676,7 @@ $app->put('/api/change-password', function (Request $request, Response $response
             'role' => $user['role']
         ]));
         return $response->withHeader('Content-Type', 'application/json')
+            ->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie())
             ->withHeader('Cache-Control', 'no-store')->withStatus(200);
     } catch (Throwable $e) {
         if ($conn->inTransaction()) $conn->rollBack();
