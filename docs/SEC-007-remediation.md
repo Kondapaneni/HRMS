@@ -1,6 +1,6 @@
 # SEC-007 — HTTP security headers and CORS allowlist
 
-**Severity:** Medium. **Implementation:** PR on `fix/sec-007-headers-cors`. **Closure:** Pending CI, live deployment and application regression verification.
+**Severity:** Medium. **Implementation:** [PR #17](https://github.com/Kondapaneni/HRMS/pull/17) merged into `main`, post-merge CI passed. **Audit status: CLOSED on 2026-11-14**, based on source/CI evidence and the project owner's completed live validation. **Residual:** The stricter script/resource CSP is still Report-Only, not enforced; it remains a separate hardening follow-up.
 
 ## Scope and fixes
 
@@ -30,7 +30,20 @@ GitHub Actions `.github/workflows/sec007.yml`:
 - Starts the real Slim application with synthetic CORS environment settings and asserts allowed, denied, no-Origin and preflight response behavior.
 - Boots the real `php:8.2-apache` server with the production `.htaccess` and verifies seven security headers on HTML and static JSON; confirms no static wildcard CORS.
 
-## Live verification after merge/deploy
+## Verified live results — 14 November 2026
+
+The project owner completed these checks on the live HRMS site and Android 14 phone (results are owner-reported, not independently reproduced on their device by this session):
+
+1. **Step 1 — headers:** Seven security headers present on both `/` and `/manifest.json` over HTTPS.
+2. **Step 2 — CORS:** The untrusted origin received no CORS access on `/version.json`, `/manifest.json`, and the `/api/login` OPTIONS preflight.
+3. **Step 3 — desktop HRMS:** Admin login, Dashboard, Employees and Attendance all worked after deployment.
+4. **Step 4 — Google Maps:** An initial Chrome `ERR_QUIC_PROTOCOL_ERROR` on a Google Maps resource disappeared after reload; Google Maps and existing location markers rendered correctly.
+5. **Step 5 — Android 14:** Employee login/check-in, native background location punch, check-out and tracking notification shutdown worked.
+6. **Step 6 — documents:** All available test document previews and downloads worked, including checks initiated from the admin experience.
+
+**Closure decision:** The original SEC-007 audit finding (missing browser security response headers and permissive wildcard JSON CORS) is remediated and the live functionality tested above has passed. The currently enforced CSP covers `frame-ancestors` and `base-uri`; a more restrictive `script-src` / resource policy remains Report-Only because HRMS has inline bootstrap scripts and third-party maps. Do not mistake the SEC-007 closure for confirmation that every XSS exploit has been mitigated. Audit SEC-022 and further CSP tightening separately before production sign-off.
+
+## Live verification after merge/deploy (reference procedure)
 
 Run on the deployed HTTPS website (no login/JWT is required for these checks):
 
