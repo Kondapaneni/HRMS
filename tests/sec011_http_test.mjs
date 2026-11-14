@@ -164,6 +164,6 @@ await verify(200,'alice','PATCH','/api/origination/activities/'+acts.alice+'/tog
   {currentStatus:'Scheduled'});
 await verify(200,'admin','PATCH','/api/origination/activities/'+acts.carol+'/toggle-status',
   {currentStatus:'Scheduled'},'admin');
-await verify(404,'alice','DELETE','/api/loans/applications/'+loans.branch);
+await verify(404,'alice','DELETE','/api/loans/applications/'+loans.transferred);
 await verify(200,'alice','DELETE','/api/loans/applications/'+loans.alice);
 console.log('SEC-011 real authenticated route-level object ownership and branch isolation PASSED');
