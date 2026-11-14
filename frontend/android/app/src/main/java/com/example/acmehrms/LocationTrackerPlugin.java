@@ -59,9 +59,9 @@ public class LocationTrackerPlugin extends Plugin {
                 response.put("token", access);
                 call.resolve(response);
             } catch (NativeSessionClient.InvalidSession invalid) {
-                call.reject("Secure session expired. Please sign in again.");
+                call.reject("Secure session expired. Please sign in again.", "AUTH_REVOKED");
             } catch (Exception transientFailure) {
-                call.reject("Secure session refresh temporarily unavailable.");
+                call.reject("Secure session refresh temporarily unavailable.", "TEMPORARY");
             }
         }, "hrms-sec012-refresh").start();
     }
