@@ -96,16 +96,38 @@ const publicAuthPaths = [
 const isPublicAuthCall = (url = '') =>
   publicAuthPaths.some(p => url.split('?')[0] === p || url.endsWith('/api' + p));
 
-async function renewAccess() {
+function isUnexpiredToken(token) {
+  try {
+    const segment = token.split('.')[1];
+    const padded = segment.replace(/-/g, '+').replace(/_/g, '/');
+    const claims = JSON.parse(atob(padded));
+    return Number.isFinite(claims.exp) && claims.exp > Date.now() / 1000 + 30;
+  } catch {
+    return false;
+  }
+}
+
+async function renewAccess(staleToken) {
   if (isAndroidSession) return refreshNativeSession();
-  // Browser refresh uses a Secure + HttpOnly + SameSite=Strict cookie scoped
-  // to /api/auth/refresh. No refresh secret is copied into JavaScript.
-  const res = await axios.post('/api/auth/refresh', {}, {
-    withCredentials: true,
-    headers: { 'Content-Type': 'application/json', 'X-HRMS-Refresh': '1' },
-  });
-  if (!res.data?.token) throw new Error('Missing renewed access token');
-  return res.data.token;
+
+  const rotate = async () => {
+    // Other browser tabs share the latest access token in localStorage.
+    // If a prior tab already refreshed, never submit its obsolete cookie again.
+    const latest = localStorage.getItem('token');
+    if (latest && latest !== staleToken && isUnexpiredToken(latest)) return latest;
+    const res = await axios.post('/api/auth/refresh', {}, {
+      withCredentials: true,
+      headers: { 'Content-Type': 'application/json', 'X-HRMS-Refresh': '1' },
+    });
+    if (!res.data?.token) throw new Error('Missing renewed access token');
+    localStorage.setItem('token', res.data.token);
+    return res.data.token;
+  };
+
+  if (typeof navigator !== 'undefined' && navigator.locks?.request) {
+    return navigator.locks.request('hrms-refresh-session', rotate);
+  }
+  return rotate();
 }
 
 api.interceptors.response.use(
@@ -120,17 +142,23 @@ api.interceptors.response.use(
       && !isPublicAuthCall(request.url)) {
       request._sec012Retried = true;
       if (!sharedRefresh) {
-        sharedRefresh = renewAccess().finally(() => { sharedRefresh = null; });
+        sharedRefresh = renewAccess(request.headers.Authorization?.replace(/^Bearer\\s+/i, '') || localStorage.getItem('token')).finally(() => { sharedRefresh = null; });
       }
       try {
         const token = await sharedRefresh;
         localStorage.setItem('token', token);
         request.headers.Authorization = `Bearer ${token}`;
         return api(request);
-      } catch {
-        // An invalid/expired/replayed refresh credential must not silently
-        // keep an old access token in web storage.
-        localStorage.removeItem('token');
+      } catch (refreshError) {
+        const permanent = [401, 403].includes(refreshError.response?.status)
+          || (isAndroidSession && refreshError.code === 'AUTH_REVOKED');
+        if (permanent) {
+          localStorage.removeItem('token');
+        } else {
+          // A 503, offline network or transient native Keystore fault is NOT
+          // a revocation. Let the caller retry later rather than log out.
+          return Promise.reject(refreshError);
+        }
       }
     }
 
