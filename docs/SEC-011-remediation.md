@@ -1,6 +1,6 @@
 # SEC-011 — Server-side loan ownership, activity reassignment and branch isolation
 
-**Severity:** CRITICAL. **Current state:** PARTIAL — PR #32 merged to `main`, isolated real HTTP/SQL CI passed and SEC-009 regression coverage retained. Render deployment and owner-led live authorization tests are not yet verified. **Do not mark CLOSED until those live checks pass.**
+**Severity:** CRITICAL. **Current state:** CLOSED (2026-11-14) — PR #32 merged, isolated real HTTP/SQL and SEC-009 regression CI passed, and owner-confirmed deployed development-account authorization checks passed. Closure covers SEC-011 record-level authorization scope, not an independently executed production penetration test.
 
 ## Scope and root cause
 
@@ -33,9 +33,26 @@ Passing CI and merged code are **not proof that the deployed database has no leg
 
 - [PR #32](https://github.com/Kondapaneni/HRMS/pull/32) merged to `main` at `6d7e5b4c793e2ad6a67ddb60aa972d8076221be8`.
 - Latest dedicated SEC-011 branch CI <https://github.com/Kondapaneni/HRMS/actions/runs/43579120888> passed: real Slim HTTP requests with synthetic JWTs against a disposable two-branch PostgreSQL fixture, plus source policy assertions and post-mutation database integrity assertions.
-- Owner-level live validation has **not yet been reported**. Avoid reading real customer loan records just to test access and never request or print sensitive customer data, tokens or documents.
+- Owner-reported live checks passed on 2026-11-14 (details below). Avoid accessing real customer loan records just to test access. No customer data or tokens were requested for the security verification.
 
-## Safe live rollout and validation (development records only)
+## Owner-confirmed deployed verification — 2026-11-14
+
+The project owner used development employee accounts and synthetic development applications and confirmed:
+
+| Live step | Outcome |
+| --- | --- |
+| 1 — Own applications | Development employee dashboard, own Loan Origination list and own application details load normally |
+| 2 — Same-branch non-owner | Employee B does not see Employee A's synthetic application in their Loan Origination list |
+| 3 — Foreign document endpoint | Employee B receives `404 Not Found` when making an empty-document POST to Employee A's synthetic application, without uploading data |
+| 4 — Different-branch loan isolation | Branch B employee cannot see Branch A's synthetic application; their own branch's development applications remain accessible |
+| 5A — Branch activity permission denied | Without Branch Operations grant: personal activities `200`, branch activities `403` |
+| 5B — Granted branch activity | With Branch Operations grant: branch activities `200`, authorized branch activities available |
+| 5C — Branch Operations list isolation | First `403` for both branch activities and branch application list due to an ungranted feature on the Branch B testing account; after Admin granted Branch Operations for that account both returned `200`, and Branch A's synthetic application was not listed for Branch B |
+| 6 — Admin permission management regression | Admin Dashboard and Admin → Feature Access function correctly. **Admin manages employee features; Admin is not expected to use employee-specific module pages** |
+
+**Verification limitations:** These are owner-reported post-deployment results. The live application checks were primarily read-only, with an empty document-list request to test denied lookup. The destructive and cross-user/cross-branch mutation attempts, activity reassignment rules, records' after-state and audit logs were tested in isolated two-branch synthetic PostgreSQL CI. A passing list filter alone does not independently prove every endpoint secure; the combined scoped backend code and synthetic HTTP/SQL tests underpin the closure. Do not attempt mutation attacks against real loan data.
+
+## Safe live rollout and validation (development records only) — retained test procedure
 
 **Do not run destructive mutation attempts against real customers or use IDs from real applications.** Use separate named development employee accounts in two configured branches and synthetic non-customer loan records. Keep the account/record IDs out of chat.
 
@@ -46,5 +63,5 @@ Passing CI and merged code are **not proof that the deployed database has no leg
 5. Confirm branch activity creation/reassignment stays within the authorized development branch and only a permitted branch operator can reassign colleagues' synthetic activities.
 6. Verify Admin normal functionality and no unexpected 403/500 regressions in loan, branch and activity pages.
 
-**Closure condition:** Source/CI pass, merged PR and Render deploy verified, owner confirms safe live authorization/functional regression tests. The remaining JWT lifetime/revocation risks (SEC-012), input/document upload hardening (SEC-017), and other SQL/data quality findings are tracked separately.
+**Closure decision (2026-11-14):** PR merged and CI passed; the owner reported all eight planned live substeps passed after the correct Branch Operations permission was granted to the Branch B development employee. Object-level authorization SEC-011 is closed, with destructive/unauthorized mutation behavior verified only against a disposable synthetic CI database. Do not infer resolution of JWT lifetime/revocation (SEC-012), assessment/payroll record permission issues (SEC-013), file validation (SEC-017), other SQL errors (SEC-018) or the maintenance bypass (SEC-020).
 
