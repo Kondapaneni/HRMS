@@ -26,6 +26,7 @@ CREATE TABLE users (
     "forcePasswordChange" BOOLEAN NOT NULL DEFAULT false,
     "themePreference" TEXT DEFAULT 'light',
     "mfaEnabled" BOOLEAN NOT NULL DEFAULT false,
+    token_version INTEGER NOT NULL DEFAULT 0,
     otp_code TEXT, otp_expires_at TIMESTAMP
 );
 CREATE TABLE mfa_secrets (
