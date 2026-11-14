@@ -103,7 +103,14 @@ final class NativeSessionClient {
                     || !nextRefresh.matches("[0-9a-f-]{36}\\.[0-9a-f]{64}")) {
                 throw new IOException("Invalid refreshed session response");
             }
-            TrackerTokenStore.saveSession(context, access, nextRefresh);
+            try {
+                TrackerTokenStore.saveSession(context, access, nextRefresh);
+            } catch (Exception persistenceFailure) {
+                // The server already rotated the credential. If we cannot
+                // persist its replacement, the old one MUST NOT be retried.
+                TrackerTokenStore.clearSession(context);
+                throw new InvalidSession("Secure session storage failed. Please sign in again.");
+            }
             return access;
         } catch (InvalidSession failure) {
             throw failure;
