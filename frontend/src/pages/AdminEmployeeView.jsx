@@ -304,6 +304,7 @@ const AdminEmployeeView = () => {
           <Button
             variant="secondary"
             onClick={openPromoteModal}
+            disabled={employee.salary == null}
             className="h-9 px-4 rounded-full font-medium text-xs justify-center"
           >
             <TrendingUp size={14} className="text-[#1F9D55]" />
@@ -441,7 +442,7 @@ const AdminEmployeeView = () => {
                 </div>
               ) : (
                 <p className="text-xs text-[var(--muted)] text-center py-4 italic">
-                  No payslips generated yet
+                  {employee.salary == null ? 'Payroll details restricted' : 'No payslips generated yet'}
                 </p>
               )}
             </div>
@@ -828,7 +829,7 @@ const AdminEmployeeView = () => {
                   <div>
                     <span className="text-[var(--muted)] block text-[11px]">Current monthly salary</span>
                     <span className="font-medium text-[var(--text)] text-xs">
-                      ₹{Number(employee?.salary || 0).toLocaleString('en-IN')}
+                      {employee?.salary == null ? 'Restricted' : `₹${Number(employee.salary).toLocaleString('en-IN')}`}
                     </span>
                   </div>
                 </div>
