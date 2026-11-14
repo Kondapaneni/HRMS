@@ -93,7 +93,8 @@ foreach ([
 $timeline=json_encode([
  ['title'=>'Joined Company','description'=>'Joined Synthetic Corp'],
  ['title'=>'Salary Updated','description'=>'Salary changed from ₹100000 to ₹125000'],
- ['title'=>'Promoted to Manager','description'=>'Monthly compensation: ₹125000']
+ ['title'=>'Promoted to Manager','description'=>'Monthly compensation: ₹125000'],
+ ['title'=>'Annual revision','description'=>'₹125000 (10% hike)']
 ]);
 $pdo->prepare('INSERT INTO employee (id,"userId","employeeId","firstName","lastName",email,department,position,branch,"joinDate",salary,status,timeline) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
     ->execute([$emp,$alice,'EMP-SYNTH','Alice','Synthetic','alice@example.invalid','Training','Engineer',$branch,'2026-01-01',125000,'active',$timeline]);
