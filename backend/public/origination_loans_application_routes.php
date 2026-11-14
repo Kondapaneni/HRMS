@@ -314,15 +314,13 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         $db = new Database();
         $conn = $db->getConnection();
 
-        $userId = null;
-        $userRole = 'employee';
-        if (is_object($user)) {
-            $userId = isset($user->id) ? (string)$user->id : null;
-            $userRole = $user->role ?? 'employee';
-        } elseif (is_array($user)) {
-            $userId = isset($user['id']) ? (string)$user['id'] : null;
-            $userRole = $user['role'] ?? 'employee';
+        $userId = OriginationAccess::userId($user);
+        $userBranch = $userId ? OriginationAccess::branch($conn, $userId) : null;
+        if (!$userId || (!OriginationAccess::isAdmin($user) && !$userBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
+        [$readScope, $readArgs] = OriginationAccess::loanScope($user, $userBranch, 'la');
 
         $stmt = $conn->prepare('
             SELECT 
@@ -342,11 +340,12 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
                 la.branch = b.id::text OR 
                 (la.branch ~ \'^[0-9a-fA-F-]{36}$\' AND la.branch::uuid = b.id)
             )
-            WHERE la.created_by = ? OR ? = \'admin\'
+            WHERE TRUE
+        ' . $readScope . '
             ORDER BY la.created_at DESC
         ');
 
-        $stmt->execute([$userId, $userRole]);
+        $stmt->execute($readArgs);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // OPTIMIZATION: fetch documents for every row in one query instead of
