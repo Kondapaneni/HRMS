@@ -1,0 +1,103 @@
+name: SEC-011 object and branch ownership authorization
+
+on:
+  push:
+    branches: ['main', 'fix/sec-011-loan-activity-branch-record-authorization']
+    paths:
+      - 'backend/src/Security/OriginationAccess.php'
+      - 'backend/public/origination_loans_application_routes.php'
+      - 'backend/public/origination_activities_routes.php'
+      - 'backend/public/branch_operations_application_routes.php'
+      - 'tests/sec011_*'
+      - '.github/workflows/sec011.yml'
+  pull_request:
+    paths:
+      - 'backend/src/Security/OriginationAccess.php'
+      - 'backend/public/origination_loans_application_routes.php'
+      - 'backend/public/origination_activities_routes.php'
+      - 'backend/public/branch_operations_application_routes.php'
+      - 'tests/sec011_*'
+      - '.github/workflows/sec011.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ownership:
+    name: Real HTTP cross-user and cross-branch isolation
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec011_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec011_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec011_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec011_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec011_synthetic_only
+      JWT_SECRET: SEC011_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP and JS syntax, route security policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in backend/src/Security/OriginationAccess.php backend/public/origination_loans_application_routes.php backend/public/origination_activities_routes.php backend/public/branch_operations_application_routes.php tests/sec011_seed.php; do
+            php -l "$file"
+          done
+          node --check tests/sec011_http_test.mjs
+          node tests/sec011_policy_test.mjs
+      - name: Install backend dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Seed isolated two-branch loan and activity fixtures
+        run: php tests/sec011_seed.php
+      - name: Exercise real HTTP endpoints with synthetic JWTs
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > backend/.env <<'SEC011_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec011_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec011_synthetic_only
+          JWT_SECRET=SEC011_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+          APP_ENV=production
+          SEC011_TEST_ENV
+          php -S 127.0.0.1:8771 -t backend/public backend/public/index.php > /tmp/sec011-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8771/version.json > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then
+            echo "Synthetic SEC-011 test server failed to start"
+            tail -n 120 /tmp/sec011-server.log
+            exit 1
+          fi
+          node tests/sec011_http_test.mjs || {
+            tail -n 150 /tmp/sec011-server.log
+            exit 1
+          }
