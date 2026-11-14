@@ -46,6 +46,18 @@ class AuthMiddleware
             return $this->unauthorizedResponse("Invalid or expired token: " . $e->getMessage() . " (Secret empty? " . (empty($secret) ? 'yes' : 'no') . ")");
         }
 
+        // SEC-008: A first-factor MFA challenge JWT must NEVER authorize
+        // protected routes, even those using new AuthMiddleware() without
+        // a required role (SEC-009 tracks those broad role policies separately).
+        // Legacy session tokens have no type; new scoped tokens have one.
+        if (
+            (isset($decoded->type) && $decoded->type !== 'session') ||
+            empty($decoded->id) ||
+            empty($decoded->role)
+        ) {
+            return $this->unauthorizedResponse('A completed sign-in session is required.');
+        }
+
         // Check roles if specified
         $roleAllowed = false;
         if (empty($this->requiredRoles) || in_array($decoded->role, $this->requiredRoles)) {
