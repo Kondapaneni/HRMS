@@ -40,6 +40,10 @@ $app->add(new \App\Middleware\PerformanceLoggingMiddleware());
 // Add GZIP compression middleware
 $app->add(new \App\Middleware\GzipMiddleware());
 
+// SEC-020: Every protected API request must observe live maintenance mode.
+// Registered before the CORS wrapper so even 503 responses retain CORS policy.
+$app->add(new \App\Middleware\MaintenanceMiddleware());
+
 // SEC-007: Only explicitly configured trusted origins can read cross-origin
 // API responses. The same-origin SPA/native WebView needs no CORS permission.
 // Apache applies browser security headers to ALL static and PHP responses.
@@ -455,7 +459,7 @@ $app->get('/api/news', function (Request $request, Response $response, $args) {
     $stmt = $conn->query('SELECT news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes FROM global_settings ORDER BY id ASC LIMIT 1');
     $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     $headlines = isset($settings['news_headlines']) ? json_decode($settings['news_headlines'], true) : [];
-    $maintenanceMode = isset($settings['maintenance_mode']) && $settings['maintenance_mode'] ? true : false;
+    $maintenanceMode = \App\Middleware\MaintenanceMiddleware::enabled($settings['maintenance_mode'] ?? null);
     $maintenanceMessage = $settings['maintenance_message'] ?? '';
     $trackingIntervalMinutes = isset($settings['tracking_interval_minutes']) ? (int)$settings['tracking_interval_minutes'] : 15;
     
