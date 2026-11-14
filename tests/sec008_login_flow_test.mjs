@@ -10,7 +10,7 @@ const employee = 'sec008-employee@example.invalid';
 async function post(path, data) {
   const response = await fetch(root + path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Accept-Encoding': 'identity' },
     body: JSON.stringify(data),
   });
   return { status: response.status, data: await response.json() };
@@ -18,7 +18,7 @@ async function post(path, data) {
 
 async function get(path, token) {
   const response = await fetch(root + path, {
-    headers: { Authorization: 'Bearer ' + token },
+    headers: { Authorization: 'Bearer ' + token, 'Accept-Encoding': 'identity' },
   });
   return { status: response.status, data: await response.json() };
 }
