@@ -3,6 +3,7 @@
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
+use App\Security\OriginationAccess;
 
 /**
  * Origination Activities Routes (Shared across Loans, Sales & Branch Operations)
@@ -275,6 +276,30 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                 throw new Exception("Database connection failed");
             }
 
+            // SEC-011: The caller may schedule themselves, but bulk/coworker
+            // assignments require Branch Operations permission and a target
+            // active employee in the caller's current branch.
+            $actorId = OriginationAccess::userId($user);
+            $isAdmin = OriginationAccess::isAdmin($user);
+            $actorBranch = $actorId ? OriginationAccess::branch($conn, $actorId) : null;
+            $canAssignTeam = OriginationAccess::hasBranchGrant($conn, $user);
+            foreach ($assigneeList as $targetId) {
+                if (!is_string($targetId) || trim($targetId) === '') {
+                    $response->getBody()->write(json_encode(['error' => 'Invalid assignee']));
+                    return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+                }
+                if ($isAdmin) {
+                    if (!OriginationAccess::targetEmployeeInBranch($conn, $targetId, null, true)) {
+                        $response->getBody()->write(json_encode(['error' => 'Assignee not found']));
+                        return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+                    }
+                } elseif ($targetId !== $actorId
+                    && (!$canAssignTeam || !OriginationAccess::targetEmployeeInBranch($conn, $targetId, $actorBranch, false))) {
+                    $response->getBody()->write(json_encode(['error' => 'Assignee outside permitted branch']));
+                    return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+                }
+            }
+
             $newStart = $startDate . ' ' . ($allDay ? '00:00:00' : ($startTime . ':00'));
             $newEnd = $endDate . ' ' . ($allDay ? '23:59:59' : ($endTime . ':00'));
 
@@ -411,19 +436,36 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                 throw new Exception("Database connection failed");
             }
 
-            // Fetch existing activity details
+            // SEC-011: Reassignment is a branch-operator action. Staff must
+            // be in the current assignee's branch, and the new assignee must
+            // belong to that same branch. Admin has explicit global scope.
+            $actorId = OriginationAccess::userId($user);
+            $isAdmin = OriginationAccess::isAdmin($user);
+            $actorBranch = $actorId ? OriginationAccess::branch($conn, $actorId) : null;
+            if (!$actorId || (!$isAdmin && (!$actorBranch || !OriginationAccess::hasBranchGrant($conn, $user)))) {
+                $response->getBody()->write(json_encode(['error' => 'Branch Operations permission and branch are required']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
+
+            $activityScope = $isAdmin ? '' : OriginationAccess::activityBranchPredicate();
+            $activityParams = $isAdmin ? [] : [$actorBranch];
             $actStmt = $conn->prepare('
                 SELECT id, title, start_date, start_time, end_date, end_time, all_day, created_by, assigned_to
                 FROM public.origination_activities
-                WHERE id = ?
-                LIMIT 1
+                WHERE id = ?' . $activityScope . ' LIMIT 1
             ');
-            $actStmt->execute([$id]);
+            $actStmt->execute(array_merge([$id], $activityParams));
             $act = $actStmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$act) {
                 $response->getBody()->write(json_encode(['error' => 'Activity not found']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            }
+
+            if (!is_string($newAssigneeId) ||
+                !OriginationAccess::targetEmployeeInBranch($conn, $newAssigneeId, $actorBranch, $isAdmin)) {
+                $response->getBody()->write(json_encode(['error' => 'Target employee outside permitted branch']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
 
             // Check if new assignee exists
@@ -482,11 +524,15 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
             $updateStmt = $conn->prepare('
                 UPDATE public.origination_activities
                 SET assigned_to = ?, updated_at = NOW()
-                WHERE id = ?
+                WHERE id = ?' . $activityScope . '
                 RETURNING id, title, priority, start_date, start_time, end_date, end_time, all_day, address, notes, status, created_by, assigned_to, created_at, updated_at
             ');
-            $updateStmt->execute([$newAssigneeId, $id]);
+            $updateStmt->execute(array_merge([$newAssigneeId, $id], $activityParams));
             $updated = $updateStmt->fetch(PDO::FETCH_ASSOC);
+            if (!$updated) {
+                $response->getBody()->write(json_encode(['error' => 'Activity not found']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            }
 
             $response->getBody()->write(json_encode([
                 'success' => true,
