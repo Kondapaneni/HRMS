@@ -15,7 +15,7 @@ $pdo = new PDO(
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec('CREATE TABLE public.global_settings (id SERIAL PRIMARY KEY, maintenance_mode BOOLEAN NOT NULL DEFAULT FALSE)');
 $pdo->exec('INSERT INTO public.global_settings (maintenance_mode) VALUES (FALSE)');
-$pdo->exec('CREATE TABLE public.users (id TEXT PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL)');
+$pdo->exec('CREATE TABLE public.users (id TEXT PRIMARY KEY, role TEXT NOT NULL, "isActive" BOOLEAN NOT NULL, token_version INTEGER NOT NULL DEFAULT 0)');
 $stmt = $pdo->prepare('INSERT INTO public.users (id, role, "isActive") VALUES (?, ?, ?::boolean)');
 foreach ([
     ['sec020-admin', 'admin', 'true'],
