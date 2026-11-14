@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - 'backend/src/Utils/SessionVersion.php'
+      - 'backend/src/Utils/AccessToken.php'
+      - 'backend/src/Utils/RefreshSessions.php'
+      - 'supabase/migrations/20261114_sec012_refresh_sessions.sql'
+      - 'frontend/src/api/**'
+      - 'frontend/android/app/src/main/java/com/example/acmehrms/**'
       - 'backend/src/Utils/OtpCode.php'
       - 'backend/src/Middleware/AuthMiddleware.php'
       - 'backend/src/Middleware/MaintenanceMiddleware.php'
@@ -19,6 +24,11 @@ on:
     branches: ['main', 'fix/sec-012-session-revocation-password-otp-stage1']
     paths:
       - 'backend/src/Utils/SessionVersion.php'
+      - 'backend/src/Utils/AccessToken.php'
+      - 'backend/src/Utils/RefreshSessions.php'
+      - 'supabase/migrations/20261114_sec012_refresh_sessions.sql'
+      - 'frontend/src/api/**'
+      - 'frontend/android/app/src/main/java/com/example/acmehrms/**'
       - 'backend/src/Utils/OtpCode.php'
       - 'backend/src/Middleware/AuthMiddleware.php'
       - 'backend/public/index.php'
@@ -68,7 +78,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in backend/src/Utils/SessionVersion.php backend/src/Utils/OtpCode.php backend/src/Middleware/AuthMiddleware.php backend/src/Middleware/MaintenanceMiddleware.php backend/public/index.php backend/public/mfa_routes.php backend/public/candidate_auth_routes.php backend/public/sec003_file_access.php tests/sec012_*.php; do
+          for file in backend/src/Utils/SessionVersion.php backend/src/Utils/OtpCode.php backend/src/Utils/AccessToken.php backend/src/Utils/RefreshSessions.php backend/src/Middleware/AuthMiddleware.php backend/src/Middleware/MaintenanceMiddleware.php backend/public/index.php backend/public/mfa_routes.php backend/public/candidate_auth_routes.php backend/public/sec003_file_access.php tests/sec012_*.php; do
             php -l "$file"
           done
           node tests/sec012_policy_test.mjs
@@ -104,6 +114,7 @@ jobs:
           set -euo pipefail
           trap 'kill "$(cat /tmp/sec012-php.pid)" 2>/dev/null || true' EXIT
           node tests/sec012_http_test.mjs
+          node tests/sec012_refresh_http_test.mjs
 
   browser-build:
     name: Change-password UI and production build
