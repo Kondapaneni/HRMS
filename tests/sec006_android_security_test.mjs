@@ -81,3 +81,27 @@ test('release build minifies bytecode and filters diagnostics', () => {
   }
   assert.doesNotMatch(service, /Log\.[diwev]\([^\n]*(getLatitude|getLongitude|response|respStr)/);
 });
+
+test('employee APK download uses a verified current signed release', () => {
+  const profile = read('frontend/src/pages/EmployeeMobileProfile.jsx');
+  const workflow = read('.github/workflows/sec006.yml');
+
+  assert.ok(profile.includes('/downloads/android-release.json'));
+  assert.ok(profile.includes("cache: 'no-store'"));
+  assert.ok(profile.includes('androidRelease.versionCode'));
+  assert.ok(profile.includes('androidRelease ? ('));
+  assert.ok(profile.includes('Android APK update is pending verified signing'));
+  assert.ok(!profile.includes("VITE_APP_VERSION || '1'"));
+
+  // Source changes rebuild Android; published APK/metadata commits do not
+  // loop back into a self-triggered Android rebuild.
+  assert.ok(workflow.includes("'frontend/src/**'"));
+  assert.ok(workflow.includes("'!frontend/public/downloads/Acme HRMS.apk'"));
+  assert.ok(workflow.includes("'!frontend/public/downloads/android-release.json'"));
+  assert.ok(workflow.includes('verify --print-certs'));
+  assert.ok(workflow.includes('ALLOW_SIGNER_MIGRATION'));
+  assert.ok(workflow.includes('git add "$existing" frontend/public/downloads/android-release.json'));
+  assert.ok(workflow.includes('sha256sum "$signed"'));
+  assert.ok(workflow.includes('rm -f "dist/downloads/Acme HRMS.apk"'));
+  assert.ok(workflow.includes('test ! -e "android/app/src/main/assets/public/downloads/Acme HRMS.apk"'));
+});
