@@ -5,6 +5,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
 use App\Utils\RateLimiter;
 use Firebase\JWT\JWT;
+use App\Utils\SessionVersion;
 use Dotenv\Dotenv;
 
 // Registration Route
@@ -158,7 +159,7 @@ $app->post('/api/candidate/login', function (Request $request, Response $respons
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
-    $stmt = $conn->prepare('SELECT id, email, password, "firstName", "lastName", role, department, position, "isActive", "forcePasswordChange" FROM users WHERE email = ? AND role = \'candidate\'');
+    $stmt = $conn->prepare('SELECT id, email, password, "firstName", "lastName", role, department, position, "isActive", "forcePasswordChange", token_version FROM users WHERE email = ? AND role = \'candidate\'');
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
@@ -177,7 +178,8 @@ $app->post('/api/candidate/login', function (Request $request, Response $respons
             'exp' => time() + (60 * 60 * 24), // 24 hours for candidate
             'id' => $user['id'],
             'email' => $user['email'],
-            'role' => $user['role']
+            'role' => $user['role'],
+            'tv' => SessionVersion::fromRow($user)
         ];
         
         $jwt = JWT::encode($payload, $secret, 'HS256');
