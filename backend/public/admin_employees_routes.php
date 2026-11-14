@@ -4,6 +4,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
+use App\Security\CompensationAccess;
 
 // Get all employees for admin
 /** @var \Slim\App $app */
@@ -27,9 +28,15 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
         $queryParams = [$searchParam, $searchParam, $searchParam, $searchParam];
     }
 
-    $sql = 'SELECT e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", e.salary, e.status, e.avatar, e."managerId", b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id' . $whereClause . ' ORDER BY e."firstName" ASC LIMIT ? OFFSET ?';
-
     try {
+        // SEC-013: the directory is also available through non-payroll feature
+        // grants (assets/leave/attendance). Null-out salary at SQL projection
+        // time rather than fetching and accidentally serializing the secret.
+        $canReadCompensation = CompensationAccess::allowed($conn, $request->getAttribute('user'));
+        $salaryColumn = $canReadCompensation ? 'e.salary' : 'NULL::numeric AS salary';
+        $sql = 'SELECT e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", '
+            . $salaryColumn . ', e.status, e.avatar, e."managerId", b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id'
+            . $whereClause . ' ORDER BY e."firstName" ASC LIMIT ? OFFSET ?';
         $stmt = $conn->prepare($sql);
         $paramIndex = 1;
         foreach ($queryParams as $param) {
@@ -83,6 +90,7 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
     $conn = $db->getConnection();
     
     try {
+        $canReadCompensation = CompensationAccess::allowed($conn, $request->getAttribute('user'));
         $stmt = $conn->prepare('
             SELECT e.*, b.name as branch_name, u."isActive", u."mfaEnabled" 
             FROM employee e 
@@ -148,6 +156,13 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
         $stmtAssets->execute([$employee['id']]);
         $assets = $stmtAssets->fetchAll(PDO::FETCH_ASSOC);
 
+        if (!$canReadCompensation) {
+            CompensationAccess::redactEmployee($employee);
+            // Payslips, earning/deduction breakdowns and compensation change
+            // history must not leak through the employee detail endpoint.
+            $recentPayslips = [];
+        }
+
         $response->getBody()->write(json_encode([
             'employee' => $employee,
             'leaveBalance' => $leaveBalance,
@@ -168,6 +183,11 @@ $app->put('/api/admin/employees/{id}', function (Request $request, Response $res
     $conn = $db->getConnection();
     
     try {
+        if (array_key_exists('salary', (array)$data)
+            && !CompensationAccess::allowed($conn, $request->getAttribute('user'))) {
+            $response->getBody()->write(json_encode(['error' => 'Payroll permission required to change compensation.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
         $conn->beginTransaction();
 
         // 1. Fetch current employee to check for changes and get current timeline
@@ -411,6 +431,11 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
     $conn = $db->getConnection();
 
     try {
+        if (array_key_exists('salary', (array)$data)
+            && !CompensationAccess::allowed($conn, $request->getAttribute('user'))) {
+            $response->getBody()->write(json_encode(['error' => 'Payroll permission required to set compensation.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
         $conn->beginTransaction();
 
         // 1. Insert into employee table
@@ -479,6 +504,19 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
 
     $db = new Database();
     $conn = $db->getConnection();
+
+    // SEC-013: an employee-management grant alone cannot set salary.
+    try {
+        if (array_key_exists('salary', (array)$data)
+            && !CompensationAccess::allowed($conn, $request->getAttribute('user'))) {
+            $response->getBody()->write(json_encode(['error' => 'Payroll permission required to set compensation.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+    } catch (\Throwable $e) {
+        error_log('SEC-013 compensation authorization unavailable');
+        $response->getBody()->write(json_encode(['error' => 'Authorization service temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
 
     // Check if email already exists
     $stmtCheck = $conn->prepare('SELECT id FROM users WHERE email = ?');
