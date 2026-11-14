@@ -3,6 +3,7 @@
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
+use App\Security\OriginationAccess;
 
 /**
  * Helper function to fetch all documents for a loan application from public.loan_documents table.
@@ -178,57 +179,72 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
 
         $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-        // Resolve user ID safely as string (supports both UUID strings and integer IDs)
-        $createdById = null;
-        if (is_object($user)) {
-            $createdById = isset($user->id) ? (string)$user->id : (isset($user->user_id) ? (string)$user->user_id : null);
-        } elseif (is_array($user)) {
-            $createdById = isset($user['id']) ? (string)$user['id'] : (isset($user['user_id']) ? (string)$user['user_id'] : (isset($user['sub']) ? (string)$user['sub'] : null));
+        // SEC-011: Never trust form_data.created_by or form_data.branch.
+        $createdById = OriginationAccess::userId($user);
+        $userBranch = $createdById ? OriginationAccess::branch($conn, $createdById) : null;
+        if (!$createdById || (!OriginationAccess::isAdmin($user) && !$userBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
 
-        // Fetch user's branch from employee table
-        $branchStmt = $conn->prepare('SELECT branch FROM public.employee WHERE "userId" = ? LIMIT 1');
-        $branchStmt->execute([$createdById]);
-        $emp = $branchStmt->fetch(PDO::FETCH_ASSOC);
-        $userBranch = $emp['branch'] ?? null;
+        // A lead may be linked only if it belongs to this creator/branch.
+        if (!empty($leadId) && !OriginationAccess::isAdmin($user)) {
+            $leadStmt = $conn->prepare('
+                SELECT 1 FROM public.loan_leads
+                WHERE id::text = ? AND created_by = ? AND branch = ? LIMIT 1
+            ');
+            $leadStmt->execute([(string)$leadId, $createdById, $userBranch]);
+            if (!$leadStmt->fetchColumn()) {
+                $response->getBody()->write(json_encode(['error' => 'Lead not found']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            }
+        }
 
         $existingDraft = null;
         $appId = $data['id'] ?? $data['application_id'] ?? $formData['id'] ?? $formData['application_id'] ?? null;
         if (!empty($appId)) {
-            $checkStmt = $conn->prepare('
-                SELECT id, application_id FROM public.loan_applications
-                WHERE (id::text = ? OR application_id = ?) AND status = \'Draft\'
-                ORDER BY created_at DESC
-                LIMIT 1
-            ');
-            $checkStmt->execute([(string)$appId, (string)$appId]);
-            $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
+            $existingDraft = OriginationAccess::findLoan($conn, (string)$appId, $user, $userBranch, true);
+            if (!$existingDraft) {
+                // If the caller supplied an existing application identifier
+                // that isn't an editable own draft, refuse instead of silently
+                // creating a fresh record linked to someone else's identity.
+                $anyStmt = $conn->prepare('
+                    SELECT 1 FROM public.loan_applications
+                    WHERE id::text = ? OR application_id = ? LIMIT 1
+                ');
+                $anyStmt->execute([(string)$appId, (string)$appId]);
+                if ($anyStmt->fetchColumn()) {
+                    $response->getBody()->write(json_encode(['error' => 'Draft not found']));
+                    return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+                }
+            }
         }
 
         if (!$existingDraft && !empty($leadId)) {
-            $checkStmt = $conn->prepare('
+            [$draftScope, $draftArgs] = OriginationAccess::loanScope($user, $userBranch);
+            $checkStmt = $conn->prepare("
                 SELECT id, application_id FROM public.loan_applications
-                WHERE lead_id = ? AND loan_type = ? AND status = \'Draft\'
-                ORDER BY created_at DESC
-                LIMIT 1
-            ');
-            $checkStmt->execute([$leadId, $loanType]);
+                WHERE lead_id = ? AND loan_type = ? AND status = 'Draft'
+                {$draftScope}
+                ORDER BY created_at DESC LIMIT 1
+            ");
+            $checkStmt->execute(array_merge([$leadId, $loanType], $draftArgs));
             $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
         }
 
         if ($existingDraft) {
-            $stmt = $conn->prepare('
+            [$writeScope, $writeArgs] = OriginationAccess::loanScope($user, $userBranch);
+            $stmt = $conn->prepare("
                 UPDATE public.loan_applications
-                SET status = ?, form_data = ?::jsonb, branch = COALESCE(branch, ?), updated_at = NOW()
-                WHERE id = ?
+                SET status = ?, form_data = ?::jsonb, updated_at = NOW()
+                WHERE id = ? {$writeScope}
                 RETURNING id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
-            ');
-            $stmt->execute([
+            ");
+            $stmt->execute(array_merge([
                 $status,
                 $jsonPayload,
-                $userBranch,
                 $existingDraft['id']
-            ]);
+            ], $writeArgs));
         } else {
             $applicationId = 'LA' . random_int(100000, 999999);
             $stmt = $conn->prepare('
@@ -249,6 +265,11 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         }
 
         $application = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$application) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
 
         if ($application) {
             if (isset($application['form_data']) && is_string($application['form_data'])) {
