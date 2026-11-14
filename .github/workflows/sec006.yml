@@ -228,7 +228,7 @@ jobs:
               sha256,
               publishedAt: new Date().toISOString(),
               file: 'Acme HRMS.apk'
-            }, null, 2) + '\\n');
+            }, null, 2) + '\n');
           NODE
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
