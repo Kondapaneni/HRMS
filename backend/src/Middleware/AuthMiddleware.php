@@ -75,8 +75,7 @@ class AuthMiddleware
         }
 
         // SEC-008: A first-factor MFA challenge JWT must NEVER authorize
-        // protected routes, even those using new AuthMiddleware() without
-        // a required role (SEC-009 tracks those broad role policies separately).
+        // protected routes, including routes whose role policies were hardened in SEC-009.
         // Legacy session tokens have no type; new scoped tokens have one.
         if (
             (isset($decoded->type) && $decoded->type !== 'session') ||
@@ -148,7 +147,7 @@ class AuthMiddleware
             if (!$this->isTrueFlag($userRow['isActive'] ?? null)) {
                 return $this->forbiddenResponse('Your account has been deactivated. Please contact your administrator.');
             }
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             error_log('AuthMiddleware: Authorization database check failed: ' . $e->getMessage());
             return $this->unavailableResponse();
         }
@@ -176,7 +175,7 @@ class AuthMiddleware
                 ':ua' => $_SERVER['HTTP_USER_AGENT'] ?? '',
                 ':sid' => bin2hex(random_bytes(16))
             ]);
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             error_log('AuthMiddleware: Failed to set audit context: ' . $e->getMessage());
         }
 
