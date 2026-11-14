@@ -142,11 +142,15 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
-  const signOut = async () => {
-    try {
-      await api.post('/logout');
-    } catch (err) {
-      console.error('Logout error', err);
+  const signOut = async (options = {}) => {
+    // When the password was just changed, the server already invalidated
+    // the JWT. Clear local state without making an obsolete logout call.
+    if (!options?.localOnly) {
+      try {
+        await api.post('/logout');
+      } catch (err) {
+        console.error('Logout revocation could not be confirmed:', err);
+      }
     }
     localStorage.removeItem('token');
     setProfile(null);
