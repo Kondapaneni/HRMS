@@ -1,6 +1,6 @@
 # SEC-012 — Session revocation, password verification and JWT lifetime
 
-**Severity:** HIGH. **Status:** IN PROGRESS / OPEN. **Stage 1 + Stage 2 code:** [PR #39](https://github.com/Kondapaneni/HRMS/pull/39) (**open, not merged, not deployed**; release requires owner-approved migration and Android rollout).
+**Severity:** HIGH. **Status:** IN PROGRESS / OPEN. **Stage 1 + Stage 2 code:** [PR #39](https://github.com/Kondapaneni/HRMS/pull/39). The development Supabase refresh-session migration was applied and verified on 2026-11-14; code rollout and development Android device testing remain separate.
 
 ## Scope of original finding
 
@@ -8,7 +8,7 @@
 
 ## Stage 1 changes in PR #39
 
-- Read-only connected schema inspection confirmed `public.users.token_version` **already exists** with integer default `0`. **No production DB changes were made.**
+- Connected schema inspection confirmed `public.users.token_version` already exists with integer default `0`. The Acme HRMS **development** Supabase project now has the SEC-012 refresh-session table. No users, passwords, or attendance records were modified by this migration.
 - All password, email-OTP, MFA-completed and candidate sign-in paths include signed `tv` (token_version). Live `AuthMiddleware` compares `tv` with the current user record on **every** protected request and confirms current role/active state. Direct private-file proxy auth and the Admin maintenance exception apply the same revocation check.
 - Stage 1 accepts a legacy JWT without `tv` only when database version is 0; **Stage 2 additionally rejects all signed JWTs whose `exp - iat` exceeds 8 hours**. This includes existing ten-year tokens, requiring re-login immediately after rollout and a signed updated Android APK first.
 - `POST /api/logout` now requires a real session and **atomically bumps** `users.token_version`; this revokes that account's sessions **on all devices**, not just the current browser. If the DB cannot perform revocation, it returns failure, not a misleading success. The browser clears its local state even if revocation fails; an administrator must be able to force reauthentication in that case.
@@ -26,7 +26,7 @@
 ## Stage 2 code added to PR #39 — access caps and refresh rotation
 
 - `AccessToken.php` replaces ten-year JWTs with 15-minute to 8-hour access tokens, interpreting the live `session_timeout=never` setting as **one-hour access**. Normal API authorization, private files, Admin maintenance authorization and file-view cookie minting reject overlong signed JWTs.
-- `supabase/migrations/20261114_sec012_refresh_sessions.sql` creates a **server-only** refresh table containing SHA-256 digests of 256-bit random secrets, per-session identifiers, live token versions, a 14-day absolute expiry, UUID user foreign keys, row-level security and revoked Data API grants. **Migration has not been applied to live Supabase.**
+- `supabase/migrations/20261114_sec012_refresh_sessions.sql` creates a **server-only** refresh table containing SHA-256 digests of 256-bit random secrets, per-session identifiers, live token versions, a 14-day absolute expiry, UUID user foreign keys, row-level security and revoked Data API grants. **Migration was applied to the connected development Acme HRMS Supabase project on 2026-11-14.** Read-only post-migration checks confirmed UUID columns, RLS enabled and forced, and no `SELECT` grants for `anon` or `authenticated`. The table initially had zero rows.
 - `RefreshSessions.php` rotates a refresh secret inside a database row lock; replay of a previously used secret revokes that refresh session. Logout and password changes invalidate all refresh sessions for the account via existing `token_version`.
 - Web logins store the refresh credential in a `Secure; HttpOnly; SameSite=Strict` cookie scoped to `/api/auth/refresh`. The browser has single-flight 401 recovery and a required custom anti-CSRF header; refresh also checks Origin. Refresh tokens are never put in web localStorage, although web **access** JWT storage remains an independent SEC-021 risk.
 - Android login responses can carry a native refresh credential; the Capacitor bridge immediately stores the access/refresh pair in **AndroidKeystore-backed AES-GCM** preferences. Synchronized native Java refresh serves both WebView and `LocationTrackerService`, including when the UI is closed. Before attendance punches, expired tokens are refreshed; only rejected HTTP 401 punches may be retried once, without resetting the tracking interval. A transient refresh outage does not automatically stop the schedule.
@@ -35,10 +35,18 @@
 
 ## Gates before merge, deployment, and SEC-012 closure
 
-1. **Keep PR #39 unmerged until coordinated rollout approval.** Old APKs do not know how to refresh and will lose access when existing long-lived tokens are rejected. Build the new signed APK with the same release key and test upgrading a development device, including Android 14 screen-off/background tracking.
-2. Apply the committed refresh-session SQL migration **before** deploying new PHP login routes; check UUID schema, indexes, RLS and grants. No live DDL was executed by this work.
-3. Deploy backend/frontend together in a safe window; existing users must reauthenticate and older APKs must upgrade. The current `session_timeout=never` setting changes to a one-hour access JWT with 14-day rotating refresh while the new backend runs.
+1. **Development-only rollout:** the project owner confirmed there are no real users; no live shift-coordination gate is needed. Existing long-lived JWTs will be rejected after deploying the new backend. Older APKs cannot refresh: install the latest GitHub Actions **debug APK on a disposable development phone** (uninstall old APK if the signatures differ) and verify Android 14 screen-off/background tracking. A signed release APK with the original signing key is still required before future in-place distribution.
+2. **DONE on 2026-11-14:** Applied `20261114_sec012_refresh_sessions.sql` to the connected Acme HRMS development Supabase database using the Supabase migration tool, before code deployment. Verified user IDs are UUID, `token_version` exists with default 0, refresh table RLS is enabled/forced, and neither `anon` nor `authenticated` can read the table.
+3. Deploy backend/frontend together to the **development** site. Development accounts must reauthenticate and older APKs must be replaced. With the new backend, `session_timeout=never` maps to a one-hour access JWT with 14-day rotating refresh.
 4. Owner-led live verification one step at a time: employee/password/OTP/MFA and candidate sign-in; logout/JWT replay; current-password denial and update; reset revocation; refresh at access expiry; private files and Admin maintenance; Android check-in, multiple background punches across expiry, Doze, app swiped away, check-out, and notification cleanup.
 5. Review intended cross-device logout semantics: current stage-1 implementation increments the account token version and revokes **all** sessions, even on another device. The 14-day refresh period is absolute and requires fresh sign-in afterward.
 6. **SEC-012 remains OPEN until migration, coordinated deployment, real Android tracking and owner-confirmed tests pass.**
 **Production status:** The overall HRMS is not production-cleared; this document does not change the historical audit baseline or close other findings.
+
+## Verified development database state (2026-11-14)
+
+- Supabase project: Acme HRMS (development environment); migration `sec012_refresh_sessions` reported success.
+- Post-migration inspection: `public.hrms_refresh_sessions` exists, with `relrowsecurity=true`, `relforcerowsecurity=true`, and `anon`/`authenticated` have no `SELECT` privilege.
+- Initial refresh rows: 0. Existing user session-version values were all present and non-negative. No synthetic fixture was inserted in the connected database.
+- GitHub PR #39 remains the source of backend/frontend/native code; isolated CI passed on commit `92f4b57545c56552f8ec7eddca92e9cb438549bf`. Green CI is not a substitute for live device verification.
+- The Supabase advisor flags `rls_enabled_no_policy` on this private table; that is intentional because it is server-only with revoked Data API grants. Other advisor notices are tracked independently.
