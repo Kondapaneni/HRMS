@@ -755,7 +755,8 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         // Enforce this server-side even if the UI normally hides other stages.
         $currentStage = trim((string)($oldFormData['stage'] ?? $oldFormData['current_stage'] ?? ''));
         $reachedBranchOps = stripos($currentStage, 'Branch Operations') !== false;
-        foreach (($oldFormData['timeline'] ?? []) as $event) {
+        $stageTimeline = is_array($oldFormData['timeline'] ?? null) ? $oldFormData['timeline'] : [];
+        foreach ($stageTimeline as $event) {
             if ($reachedBranchOps) break;
             if (is_array($event)) {
                 $stageName = trim((string)($event['stage'] ?? $event['title'] ?? ''));
@@ -764,7 +765,7 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
                 }
             }
         }
-        if (!$reachedBranchOps) {
+        if (!$isAdmin && !$reachedBranchOps) {
             $response->getBody()->write(json_encode(['error' => 'Application has not reached Branch Operations']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
