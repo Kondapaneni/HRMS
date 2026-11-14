@@ -117,8 +117,10 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Browser security assertions
-        run: node tests/sec008_frontend_security_test.mjs
+      - name: Browser authentication and login-reset regressions
+        run: |
+          node tests/sec008_frontend_security_test.mjs
+          node tests/sec008_login_reset_test.mjs
       - name: Build production frontend
         working-directory: frontend
         run: |
