@@ -3,6 +3,7 @@
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Middleware\AuthMiddleware;
+use App\Utils\SessionVersion;
 use App\Config\Database;
 use App\Utils\RateLimiter;
 use App\Utils\TotpHelper;
@@ -64,7 +65,7 @@ $app->post('/api/auth/mfa/verify', function (Request $request, Response $respons
 
     // Fetch user details
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference"
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u.token_version
         FROM users u WHERE u.id = ?
     ');
     $stmt->execute([$userId]);
@@ -145,7 +146,8 @@ $app->post('/api/auth/mfa/verify', function (Request $request, Response $respons
         'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
         'id' => $user['id'],
         'email' => $user['email'],
-        'role' => $user['role']
+        'role' => $user['role'],
+        'tv' => SessionVersion::fromRow($user)
     ];
 
     $jwt = JWT::encode($payload, $secret, 'HS256');
