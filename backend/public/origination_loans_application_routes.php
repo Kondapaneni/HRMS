@@ -17,7 +17,8 @@ function getLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null
         WHERE application_id = ? OR application_id = ? OR application_id = ?
         ORDER BY created_at ASC
     ');
-    $stmt->execute([(string)$appId, (string)$uuidId, (string)$leadId]);
+    $safeLeadId = OriginationAccess::uniqueLeadDocumentKey($conn, $leadId);
+    $stmt->execute([(string)$appId, (string)$uuidId, (string)$safeLeadId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $docsMap = [];
@@ -39,9 +40,13 @@ function getLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null
  */
 function getLoanDocumentsBatch($conn, array $rows) {
     $allIds = [];
+    $ambiguousLeadKeys = OriginationAccess::duplicateLeadDocumentKeys($conn, $rows);
     foreach ($rows as $r) {
-        foreach ([$r['application_id'] ?? null, $r['id'] ?? null, $r['lead_id'] ?? null] as $v) {
+        foreach ([$r['application_id'] ?? null, $r['id'] ?? null] as $v) {
             if (!empty($v)) $allIds[(string)$v] = true;
+        }
+        if (!empty($r['lead_id']) && !isset($ambiguousLeadKeys[(string)$r['lead_id']])) {
+            $allIds[(string)$r['lead_id']] = true;
         }
     }
     $allIds = array_keys($allIds);
@@ -538,7 +543,8 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
             DELETE FROM public.loan_documents
             WHERE (application_id = ? OR application_id = ? OR application_id = ?) AND slot_key = ?
         ');
-        $delStmt->execute([$appId, (string)$appRow['id'], (string)$appRow['lead_id'], $docKey]);
+        $safeLeadId = OriginationAccess::uniqueLeadDocumentKey($conn, $appRow['lead_id']);
+        $delStmt->execute([$appId, (string)$appRow['id'], (string)$safeLeadId, $docKey]);
 
         // Fetch remaining documents from dedicated table
         $remainingDocs = getLoanDocumentsFromTable($conn, $appId, $appRow['id'], $appRow['lead_id']);
