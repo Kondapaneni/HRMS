@@ -91,7 +91,7 @@ foreach ([
     $insertPerm->execute([$id,$assets ? 'true':'false',$employees ? 'true':'false',$pay ? 'true':'false']);
 }
 $timeline=json_encode([
- ['title'=>'Joined Company','description'=>'Joined Synthetic Corp'],
+ ['title'=>'Joined Company','description'=>'Joined Synthetic Corp','old_salary'=>125000],
  ['title'=>'Salary Updated','description'=>'Salary changed from ₹100000 to ₹125000'],
  ['title'=>'Promoted to Manager','description'=>'Monthly compensation: ₹125000'],
  ['title'=>'Annual revision','description'=>'₹125000 (10% hike)']
