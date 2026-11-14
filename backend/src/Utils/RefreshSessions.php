@@ -50,7 +50,7 @@ final class RefreshSessions
         $stmt = $conn->prepare(
             "INSERT INTO public.hrms_refresh_sessions
                 (id, user_id, token_hash, session_version, client_type, expires_at)
-             VALUES (?::uuid, ?::uuid, ?, ?, ?, NOW() + INTERVAL '14 days')"
+             VALUES (?, ?, ?, ?, ?, NOW() + INTERVAL '14 days')"
         );
         $stmt->execute([
             $id, $user['id'], hash('sha256', $secret),
@@ -73,7 +73,7 @@ final class RefreshSessions
                         u.id AS user_id, u.email, u.role, u."isActive", u.token_version
                  FROM public.hrms_refresh_sessions s
                  JOIN public.users u ON u.id = s.user_id
-                 WHERE s.id = ?::uuid FOR UPDATE OF s'
+                 WHERE s.id = ? FOR UPDATE OF s'
             );
             $stmt->execute([$matches[1]]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -86,7 +86,7 @@ final class RefreshSessions
             if (!hash_equals((string)$row['token_hash'], $hash)) {
                 // An old secret for a known session ID was replayed. Revoke
                 // the whole refresh chain to prevent session theft.
-                $conn->prepare('UPDATE public.hrms_refresh_sessions SET revoked_at = NOW() WHERE id = ?::uuid')
+                $conn->prepare('UPDATE public.hrms_refresh_sessions SET revoked_at = NOW() WHERE id = ?')
                     ->execute([$matches[1]]);
                 $conn->commit();
                 return null;
@@ -97,7 +97,7 @@ final class RefreshSessions
             if (!$active || $row['revoked_at'] !== null
                 || strtotime((string)$row['expires_at']) <= time()
                 || (int)$row['session_version'] !== $version) {
-                $conn->prepare('UPDATE public.hrms_refresh_sessions SET revoked_at = COALESCE(revoked_at, NOW()) WHERE id = ?::uuid')
+                $conn->prepare('UPDATE public.hrms_refresh_sessions SET revoked_at = COALESCE(revoked_at, NOW()) WHERE id = ?')
                     ->execute([$matches[1]]);
                 $conn->commit();
                 return null;
@@ -106,7 +106,7 @@ final class RefreshSessions
             $newSecret = self::newSecret();
             $update = $conn->prepare(
                 'UPDATE public.hrms_refresh_sessions SET token_hash = ?, last_used_at = NOW()
-                 WHERE id = ?::uuid'
+                 WHERE id = ?'
             );
             $update->execute([hash('sha256', $newSecret), $matches[1]]);
             $conn->commit();
