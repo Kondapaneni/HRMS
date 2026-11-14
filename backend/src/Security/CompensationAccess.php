@@ -45,10 +45,12 @@ final class CompensationAccess
             if (is_array($timeline)) {
                 $timeline = array_values(array_filter($timeline, static function ($item): bool {
                     if (!is_array($item)) return false;
-                    return stripos((string)($item['title'] ?? ''), 'salary') === false
-                        && stripos((string)($item['description'] ?? ''), 'salary') === false
-                        && stripos((string)($item['title'] ?? ''), 'compensation') === false
-                        && stripos((string)($item['description'] ?? ''), 'compensation') === false;
+                    $details = (string)($item['title'] ?? '') . ' ' . (string)($item['description'] ?? '');
+                    // Some historical promotion events show only a rupee
+                    // amount or hike percentage rather than the word salary.
+                    // Unknown or undecodable events are not safe to expose.
+                    $safe = preg_match('/(?:salary|compensation|payroll|remuneration|ctc|\\bpay\\b|\\bhike\\b|₹)/iu', $details);
+                    return $safe === 0;
                 }));
                 $employee['timeline'] = json_encode($timeline);
             } else {
