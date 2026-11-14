@@ -1,0 +1,126 @@
+name: SEC-008 Email OTP MFA bypass regression
+
+on:
+  push:
+    branches: ['main', 'fix/sec-008-otp-mfa-bypass']
+    paths:
+      - 'backend/public/index.php'
+      - 'backend/public/sec008_mfa_guard.php'
+      - 'backend/public/sec003_file_access.php'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'frontend/src/pages/Login.jsx'
+      - 'frontend/src/contexts/AuthContext.jsx'
+      - 'tests/sec008_*'
+      - '.github/workflows/sec008.yml'
+  pull_request:
+    paths:
+      - 'backend/public/index.php'
+      - 'backend/public/sec008_mfa_guard.php'
+      - 'backend/public/sec003_file_access.php'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'frontend/src/pages/Login.jsx'
+      - 'frontend/src/contexts/AuthContext.jsx'
+      - 'tests/sec008_*'
+      - '.github/workflows/sec008.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sec008-security:
+    name: Synthetic MFA / OTP API integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec008_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec008_test_password_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec008_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec008_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec008_test_password_only
+      JWT_SECRET: SEC008_TEST_SECRET_ONLY_DO_NOT_USE_IN_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql, pdo_sqlite, sqlite3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate PHP and browser security assertions
+        run: |
+          php -l backend/public/index.php
+          php -l backend/public/sec008_mfa_guard.php
+          php -l backend/public/sec003_file_access.php
+          php -l backend/src/Middleware/AuthMiddleware.php
+          php -l tests/sec008_mfa_guard_test.php
+          php -l tests/sec008_integration_seed.php
+          node tests/sec008_frontend_security_test.mjs
+      - name: Install backend dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Test MFA scope, expiry and AuthMiddleware denial
+        run: php tests/sec008_mfa_guard_test.php
+      - name: Seed isolated test users
+        run: php tests/sec008_integration_seed.php
+      - name: Test actual PHP/JSON login and MFA endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          # PHP's Dotenv populates $_ENV from backend/.env in production.
+          # Supply ONLY synthetic CI database/authentication values.
+          cat > backend/.env <<'SEC008_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec008_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec008_test_password_only
+          JWT_SECRET=SEC008_TEST_SECRET_ONLY_DO_NOT_USE_IN_PRODUCTION
+          APP_ENV=production
+          SEC008_TEST_ENV
+          php -S 127.0.0.1:8769 -t backend/public backend/public/index.php > /tmp/sec008-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8769/version.json > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then
+            echo "SEC-008 test server did not start"
+            tail -n 80 /tmp/sec008-server.log
+            exit 1
+          fi
+          node tests/sec008_login_flow_test.mjs
+
+  sec008-frontend:
+    name: Frontend build after MFA changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Browser security assertions
+        run: node tests/sec008_frontend_security_test.mjs
+      - name: Build production frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
