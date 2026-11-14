@@ -23,7 +23,6 @@ import {
 import { useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import MaintenanceOverlay from './MaintenanceOverlay';
 import GlobalSearch from './GlobalSearch';
 import EmployeeChatbot from './EmployeeChatbot';
 import AppShell from './AppShell';
@@ -95,9 +94,6 @@ const EmployeeLayout = () => {
   });
 
   const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
-  const isMaintenanceMode = newsData?.maintenance_mode === true;
-  const maintenanceMessage = newsData?.maintenance_message;
-  const showMaintenanceOverlay = isMaintenanceMode;
 
   // Rail Navigation Groups (Section 4.3 Employee Portal)
   const railGroups = useMemo(() => {
@@ -291,8 +287,6 @@ const EmployeeLayout = () => {
 
   return (
     <>
-      {showMaintenanceOverlay && <MaintenanceOverlay message={maintenanceMessage} />}
-
       <AppShell
         portalName="Acme HRMS"
         portalSubtitle="Employee Workspace"
