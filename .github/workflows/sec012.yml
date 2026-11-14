@@ -40,6 +40,63 @@ permissions:
   contents: read
 
 jobs:
+  migration-security:
+    name: Isolated refresh-table migration and RLS grants
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec012_schema_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec012_schema_synthetic
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec012_schema_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGPASSWORD: sec012_schema_synthetic
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate migratable PostgreSQL schema and private grants
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d sec012_schema_test -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE TABLE public.users (id uuid PRIMARY KEY);
+          SQL
+          psql -h 127.0.0.1 -U postgres -d sec012_schema_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261114_sec012_refresh_sessions.sql
+          psql -h 127.0.0.1 -U postgres -d sec012_schema_test -v ON_ERROR_STOP=1 <<'SQL'
+          DO $
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_class WHERE oid = 'public.hrms_refresh_sessions'::regclass
+              AND relrowsecurity AND relforcerowsecurity
+            ) THEN
+              RAISE EXCEPTION 'Refresh session RLS must be enabled and forced';
+            END IF;
+            IF EXISTS (
+              SELECT 1 FROM information_schema.role_table_grants
+              WHERE table_schema = 'public' AND table_name = 'hrms_refresh_sessions'
+                AND grantee IN ('anon', 'authenticated', 'PUBLIC')
+            ) THEN
+              RAISE EXCEPTION 'Refresh session table must be inaccessible to Data API roles';
+            END IF;
+            IF NOT EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_schema='public' AND table_name='hrms_refresh_sessions'
+                AND column_name='user_id' AND udt_name='uuid'
+            ) THEN
+              RAISE EXCEPTION 'Refresh user reference must have UUID type';
+            END IF;
+          END $;
+          SQL
+
   auth-http:
     name: Synthetic PostgreSQL auth + JWT replay denials
     runs-on: ubuntu-latest
