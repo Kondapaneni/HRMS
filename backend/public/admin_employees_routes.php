@@ -621,6 +621,12 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
     $conn = $db->getConnection();
 
     try {
+        // An employee-management grant alone must not allow salary changes
+        // through the promotion endpoint (or leak compensation email terms).
+        if (!CompensationAccess::allowed($conn, $request->getAttribute('user'))) {
+            $response->getBody()->write(json_encode(['error' => 'Payroll permission required for compensation changes.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
         $conn->beginTransaction();
 
         // 1. Fetch current employee
