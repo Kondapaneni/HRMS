@@ -5,6 +5,7 @@ const auth = readFileSync('frontend/src/contexts/AuthContext.jsx', 'utf8');
 const login = readFileSync('frontend/src/pages/Login.jsx', 'utf8');
 const server = readFileSync('backend/public/index.php', 'utf8');
 const middleware = readFileSync('backend/src/Middleware/AuthMiddleware.php', 'utf8');
+const mfaCard = readFileSync('frontend/src/components/MfaSecurityCard.jsx', 'utf8');
 
 const otpAuthStart = auth.indexOf('const signInWithOtp = async');
 const otpAuthEnd = auth.indexOf('const signOut = async', otpAuthStart);
@@ -26,5 +27,11 @@ assert.equal((server.match(/sec008MfaRequired\(\$conn, \$user\)/g) || []).length
   'both password and OTP routes enforce same MFA requirement');
 assert(middleware.includes("A completed sign-in session is required."),
   'protected routes reject incomplete first-factor JWTs');
+
+// The admin permission gate controls whether employees can even see setup.
+assert(mfaCard.includes('if (isLoading || !mfaStatus?.authorized)'),
+  'Employee MFA settings must be hidden unless admin grants the feature');
+assert(mfaCard.includes('return null;'),
+  'Unauthorized MFA settings must not render');
 
 console.log('SEC-008 browser and backend MFA regression checks passed');
