@@ -1,6 +1,6 @@
 # SEC-020 — Remove hardcoded maintenance bypass and enforce server-side maintenance
 
-**Severity:** CRITICAL. **Status:** IMPLEMENTED IN BRANCH — isolated CI passed; awaiting PR merge, Render deployment and owner-confirmed live verification before closure.
+**Severity:** CRITICAL. **Status:** PARTIAL — [PR #35](https://github.com/Kondapaneni/HRMS/pull/35) merged to `main` (2026-11-14), all seven PR checks passed including isolated database authorization, production bundle scan, MFA/CORS/role regressions. Render deployment and owner-approved safe live maintenance verification remain unconfirmed; do not mark closed.
 
 ## Original audit finding
 
@@ -21,6 +21,13 @@
 
 - **Frontend production build:** compile with `npm ci && npm run build`, verify no hardcoded developer password, old bypass `localStorage` key, or developer unlock UI remains in the built `frontend/dist/assets/*.js`. Existing MFA/frontend login reset security tests also run.
 - **Isolated PostgreSQL authorization:** a destructive fixture is guarded to accept **only** `sec020_test` with synthetic-only signing secrets. It verifies maintenance toggles without restart, normal OFF mode, non-admin 503 for reads and writes, administrative role + active account verification, forged/admin-claim/demoted/disabled/MFA-pending token rejection, recovery routes during maintenance, safe 503 JSON, and database-error fail-closed behavior. It does not touch a live Render or production database.
+
+## GitHub merge and automated evidence — 2026-11-14
+
+- [PR #35](https://github.com/Kondapaneni/HRMS/pull/35) merged to `main` as commit `f7da70caa752a4b074d4b0abc0b3b59a25a79b54`.
+- Seven PR checks passed: dedicated SEC-020 synthetic DB middleware tests and full frontend build/bundle-secret scan; SEC-007 security headers and CORS; SEC-008 MFA and frontend regression; SEC-009 real HTTP authorization. The synthetic SEC-008 and SEC-009 fixture schemas were updated to model the already existing live `maintenance_mode` column, preserving fail-closed behavior rather than bypassing it.
+- This is **source/CI evidence**, not confirmation that Render has deployed this revision or that a live production maintenance window is safe/complete.
+- The current audit tracker marks SEC-020 **PARTIAL / OPEN** until live verification. Do not enable maintenance in a business-critical period without owner approval.
 
 ## Critical scope and operational caveats
 
