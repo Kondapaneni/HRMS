@@ -6,6 +6,7 @@ on:
     paths:
       - 'backend/public/index.php'
       - 'backend/public/sec008_mfa_guard.php'
+      - 'backend/public/sec003_file_access.php'
       - 'backend/src/Middleware/AuthMiddleware.php'
       - 'frontend/src/pages/Login.jsx'
       - 'frontend/src/contexts/AuthContext.jsx'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'backend/public/index.php'
       - 'backend/public/sec008_mfa_guard.php'
+      - 'backend/public/sec003_file_access.php'
       - 'backend/src/Middleware/AuthMiddleware.php'
       - 'frontend/src/pages/Login.jsx'
       - 'frontend/src/contexts/AuthContext.jsx'
@@ -64,6 +66,7 @@ jobs:
         run: |
           php -l backend/public/index.php
           php -l backend/public/sec008_mfa_guard.php
+          php -l backend/public/sec003_file_access.php
           php -l backend/src/Middleware/AuthMiddleware.php
           php -l tests/sec008_mfa_guard_test.php
           php -l tests/sec008_integration_seed.php
