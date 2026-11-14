@@ -223,7 +223,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         $existingDraft = null;
         $appId = $data['id'] ?? $data['application_id'] ?? $formData['id'] ?? $formData['application_id'] ?? null;
         if (!empty($appId)) {
-            $existingDraft = OriginationAccess::findLoan($conn, (string)$appId, $user, $userBranch, true);
+            $existingDraft = OriginationAccess::findLoan($conn, (string)$appId, $user, $userBranch, true, false);
             if (!$existingDraft) {
                 // If the caller supplied an existing application identifier
                 // that isn't an editable own draft, refuse instead of silently
