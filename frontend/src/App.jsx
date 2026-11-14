@@ -102,6 +102,7 @@ import NotFound from './pages/NotFound'
 import { Toaster } from 'react-hot-toast'
 import Offline from './pages/Offline'
 import UpdateOverlay from './components/UpdateOverlay'
+import MaintenanceGate from './components/MaintenanceGate'
 import LandscapeOverlay from './components/LandscapeOverlay'
 import CapacitorLifecycle from './components/CapacitorLifecycle'
 import BackgroundLocationTracker from './components/BackgroundLocationTracker'
@@ -141,6 +142,7 @@ function App() {
         <CapacitorLifecycle />
         <AuthProvider>
           <ThemeProvider>
+            <MaintenanceGate>
             <BackgroundLocationTracker />
             <TrackerPermissionGate />
             <UpdateOverlay />
@@ -381,6 +383,7 @@ function App() {
             {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+            </MaintenanceGate>
           </ThemeProvider>
         </AuthProvider>
       </Router>

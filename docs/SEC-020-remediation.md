@@ -36,6 +36,17 @@
 - Historical repository commits and the audit report still contain the exposed former password. Removing the secret from current frontend source and compiled JavaScript does **not** delete Git history. Rotate the former password **anywhere else it might have been reused**.
 - Existing normal Admin authentication and MFA must remain functional both before and during maintenance; no new developer password or hidden admin override is introduced.
 
+## SEC-020 first live test — UI regression observed (2026-11-14)
+
+The owner confirmed **Step 1 PASS** after Render deployment with Maintenance OFF: Admin Dashboard, Admin → Settings, Admin → Feature Access, and Employee Dashboard all functioned. During the approved maintenance ON window (Step 2A), Admin remained signed in and could save Maintenance ON. In Step 2B, an already logged-in employee encountered two frontend UX problems:
+
+- Loan/Sales/Branch Operations and delegated Admin Features pages did **not** show the maintenance overlay because they use separate route layouts that do not inherit EmployeeLayout.
+- Clicking the original maintenance "Refresh" performed a full page reload; the employee's `/api/me` then correctly returned 503 under the server maintenance policy, but the frontend lost its in-memory profile and redirected to the login page. Regular employee access during maintenance being denied is **expected**; losing the maintenance notice or seeming to sign out on status check is not.
+
+**Follow-up UI remediation** (this change): `MaintenanceGate` is mounted once above all routes and related UI components in `App.jsx`, using publicly readable `/api/news` status instead of any client bypass flag. A protected route with an existing session is held until the maintenance status check completes, so a 503 during `/api/me` no longer races with the route's login redirect. The shared maintenance overlay covers all employee business modules, delegated Admin Features, candidate pages, and standalone screens. Its Refresh action rechecks the public status **without a full browser reload** and rehydrates `/api/me` after the maintenance toggle returns to OFF before restoring protected routes. Public login/recovery pages remain accessible so an authorized Admin can sign in; they show an informative maintenance banner. Admin remains exempt from the frontend overlay only with a server-fetched Admin profile; PHP enforces the actual authorization.
+
+These changes have additional coverage in `tests/sec020_maintenance_ui_test.mjs` (full business/role route matrix, refresh with absent profile, Admin recovery, maintenance OFF) and the frontend bundle build CI. **Step 2B remains NOT PASSED** until the owner safely repeats the overlay and `503` check after this UI change deploys. Do not turn maintenance ON again until the owner confirms an approved low-traffic window. Return the live maintenance setting to OFF as soon as the issue is observed.
+
 ## Safe live verification plan — one step at a time
 
 1. After the new Render deployment, with maintenance **OFF**, test normal Admin Dashboard, Admin → Settings, Admin → Feature Access, and employee dashboard. Confirm the maintenance notice is absent. **Do not activate live maintenance in Step 1.**
