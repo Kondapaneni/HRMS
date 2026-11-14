@@ -72,7 +72,7 @@ jobs:
           SQL
           psql -h 127.0.0.1 -U postgres -d sec012_schema_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261114_sec012_refresh_sessions.sql
           psql -h 127.0.0.1 -U postgres -d sec012_schema_test -v ON_ERROR_STOP=1 <<'SQL'
-          DO $
+          DO $$
           BEGIN
             IF NOT EXISTS (
               SELECT 1 FROM pg_class WHERE oid = 'public.hrms_refresh_sessions'::regclass
@@ -94,7 +94,7 @@ jobs:
             ) THEN
               RAISE EXCEPTION 'Refresh user reference must have UUID type';
             END IF;
-          END $;
+          END $$;
           SQL
 
   auth-http:
