@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Settings, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -7,13 +7,7 @@ import { motion } from 'framer-motion';
  * Maintenance access is decided on the PHP server, never by a browser
  * password, a hidden click sequence, or a localStorage override.
  */
-const MaintenanceOverlay = ({ message }) => {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => window.location.reload(), 400);
-  };
+const MaintenanceOverlay = ({ message, onCheckAgain, checking = false }) => {
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#131315]/45 backdrop-blur-md flex items-center justify-center p-4 select-none">
@@ -38,12 +32,12 @@ const MaintenanceOverlay = ({ message }) => {
         </p>
         <button
           type="button"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
+          onClick={onCheckAgain}
+          disabled={checking}
           className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.99]"
         >
-          <RefreshCw size={16} className={`inline-block mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Checking status...' : 'Check again / Refresh'}
+          <RefreshCw size={16} className={`inline-block mr-2 ${checking ? 'animate-spin' : ''}`} />
+          {checking ? 'Checking status...' : 'Check again / Refresh'}
         </button>
       </motion.div>
     </div>
