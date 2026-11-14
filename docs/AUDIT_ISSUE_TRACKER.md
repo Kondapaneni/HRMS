@@ -8,9 +8,9 @@
 
 - **39 original findings:** 24 security (SEC), 8 performance (PERF), 7 code quality (QUAL).
 - **11 closed:** SEC-001 through SEC-011. SEC-009 passed six owner-confirmed role/feature checks, SEC-010 passed four permission/revocation checks, and SEC-011 passed owner-confirmed loan/branch/activity isolation and admin-feature regression checks on 2026-11-14.
-- **2 partially fixed / still open:** SEC-017 and QUAL-002.
-- **26 pending / not verified:** No completed remediation and verification established in this progress review.
-- **28 still open in total:** 2 partial + 26 pending.
+- **3 partially fixed / still open:** SEC-017, SEC-020 and QUAL-002.
+- **25 pending / not verified:** No completed remediation and verification established in this progress review.
+- **28 still open in total:** 3 partial + 25 pending.
 - **11 / 39 closed = 28.2%.** Security 11 / 24 closed (45.8%); performance 0 / 8; quality 0 / 7.
 - **6 of the 7 critical-severity findings closed (SEC-001, SEC-002, SEC-008, SEC-009, SEC-010 and SEC-011); 1 critical finding remains open (SEC-020).** HRMS is **not cleared for production** as a whole.
 
@@ -37,7 +37,7 @@ Legend: `[x]` = **CLOSED** in the project issue tracker on the basis of owner co
 - [ ] **SEC-017** — Direct client storage uploads lacking backend validation (**MEDIUM**) · **Partial** — SEC-001 secured browser-to-storage mutation paths in code; live uploads, file validation and authorization remain to be verified. [SEC-001 remediation](SEC-001-remediation.md)
 - [ ] **SEC-018** — Emulated SQL prepares, error echoes and runtime DDL (**HIGH**) · **Pending / not verified** — No completed remediation plus verification established in this review.
 - [ ] **SEC-019** — Weak IDs, DB isolation and constraints (**MEDIUM**) · **Pending / not verified** — No completed remediation plus verification established in this review.
-- [ ] **SEC-020** — Hardcoded maintenance bypass credential (**CRITICAL**) · **Pending / not verified** — No completed remediation plus verification established in this review.
+- [ ] **SEC-020** — Hardcoded maintenance bypass credential (**CRITICAL**) · **PARTIAL — Fix merged; seven PR checks passed; safe live verification pending** — PR #35 removes the bundled developer password, hidden unlock modal, browser localStorage bypass flag and badges from employee/candidate/update layouts. A new server-side maintenance middleware checks current PostgreSQL maintenance status on protected `/api/*` routes and returns sanitized 503 to non-admin/invalid/MFA-pending tokens while allowing verified active administrators (with an essential login/MFA/recovery exception) to disable maintenance. An isolated PostgreSQL test suite verifies ON/OFF transitions, forged/demoted/disabled admin claims, database-failure handling, and employee denial. Production Vite build + bundle scan confirmed no backdoor credential or flag in shipped JS; SEC-007/008/009 regressions passed after modernizing their synthetic test fixtures. **Still required:** deployed normal-mode regression and owner-approved maintenance ON/employee 503/admin recovery/OFF tests. **WARNING:** live maintenance temporarily blocks employee/candidate APIs and attendance/location punches; schedule a safe window, do not toggle casually. The PHP gate is not a database-wide lock on direct Supabase requests, and historical Git/audit may retain the exposed credential. [Remediation](SEC-020-remediation.md) · [PR #35](https://github.com/Kondapaneni/HRMS/pull/35)
 - [ ] **SEC-021** — Browser localStorage JWT/PII and console logging (**HIGH**) · **Pending / not verified** — No completed remediation plus verification established in this review.
 - [ ] **SEC-022** — Maps InfoWindow and HTML XSS sinks (**MEDIUM**) · **Pending / not verified** — No completed remediation plus verification established in this review.
 - [ ] **SEC-023** — Vulnerable frontend npm dependencies (**MEDIUM**) · **Pending / not verified** — No completed remediation plus verification established in this review.
@@ -75,7 +75,7 @@ Legend: `[x]` = **CLOSED** in the project issue tracker on the basis of owner co
 - **SEC-009:** Closed on 2026-11-14 following merged role/feature route restrictions, successful synthetic HTTP/role CI, and six owner-confirmed live HRMS verification steps spanning candidate denial, employee feature restrictions, and working admin functionality. This is owner-confirmed rather than an independent production penetration test; record-level security remains separately tracked in SEC-011/013.
 - **SEC-010:** Closed on 2026-11-14 after PR #29 merged, synthetic PostgreSQL fail-closed and other security CI passed, and the owner confirmed four live permission regression steps, including immediate rejection of a revoked permission in the preexisting authenticated employee session. The tests were owner-reported rather than independently repeated; SQL outage scenarios were tested only on isolated CI.
 - **SEC-011:** Closed 2026-11-14 after PR #32 merged, two-branch synthetic HTTP/SQL authorization CI passed, and the owner reported eight successful live substeps (Steps 1–4, 5A–5C and 6). The short-lived 403 during 5C resolved after granting Branch Operations to the correct account. The final admin regression covered Admin Dashboard and Admin → Feature Access only, consistent with the intended Admin role. Live negative verification was read-only or used an empty-document request; unauthorized writes/reassignment were exercised only in synthetic CI.
-- **SEC-017, QUAL-002:** Marked PARTIAL, not closed. SEC-017 has safer storage mutation code linked to SEC-001; QUAL-002 has focused CI but not complete test coverage.
+- **SEC-017, SEC-020, QUAL-002:** Marked PARTIAL, not closed. SEC-020's browser backdoor removal and backend maintenance policy are merged with passing CI but have not yet passed owner-confirmed live tests; SEC-017 has safer storage mutation code linked to SEC-001; QUAL-002 has focused CI but not complete test coverage.
 
 ## Evidence
 
