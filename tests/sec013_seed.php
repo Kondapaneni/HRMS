@@ -17,7 +17,8 @@ INSERT INTO global_settings VALUES (1, false);
 CREATE TABLE users (
  id uuid primary key, role text not null, "isActive" boolean default true,
  token_version integer default 0,
- "firstName" text, "lastName" text, email text, department text
+ "firstName" text, "lastName" text, email text, department text, position text,
+ "mfaEnabled" boolean default false
 );
 CREATE TABLE user_feature_access (
  "userId" uuid primary key,
