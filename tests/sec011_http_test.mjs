@@ -22,7 +22,8 @@ const loans={
   carol:'00000000-0000-4000-8000-00000000a003',
   transferred:'00000000-0000-4000-8000-00000000a004',
   shared:'00000000-0000-4000-8000-00000000a005',
-  branch:'00000000-0000-4000-8000-00000000a006'
+  branch:'00000000-0000-4000-8000-00000000a006',
+  prebranch:'00000000-0000-4000-8000-00000000a007'
 };
 const acts={
   alice:'00000000-0000-4000-8000-00000000c001',
@@ -76,7 +77,7 @@ assert(!aliceApps.includes('LA-B1'),'same-branch other creator excluded');
 assert(!aliceApps.includes('LA-C1'),'crossbranch creator excluded');
 assert(!aliceApps.includes('LA-TRANSFERRED'),'own record in another branch excluded');
 const adminList=await verify(200,'admin','GET','/api/loans/applications',undefined,'admin');
-assert(adminList.applications.length>=6,'admin retains explicit global visibility');
+assert(adminList.applications.length>=7,'admin retains explicit global visibility');
 
 // Legacy lead document alias must not cross-join applications sharing a lead.
 const own=aliceList.applications.find(x=>x.application_id==='LA-A1');
@@ -107,8 +108,17 @@ for(const foreign of [loans.bob,loans.carol,loans.transferred]){
 await verify(200,'alice','POST','/api/loans/applications/'+loans.alice+'/documents',
   {documents:{test_document:{url:'https://example.invalid/synthetic'}}});
 await verify(200,'alice','DELETE','/api/loans/applications/'+loans.alice+'/documents/test_document');
+// Loan originators may submit/transfer but not forge approval or skip stages.
+await verify(403,'alice','POST','/api/loans/applications',
+  {...draft,status:'Approved',lead_id:leads.alice});
+await verify(403,'alice','PATCH','/api/loans/applications/'+loans.alice+'/status',
+  {status:'Approved'});
+await verify(403,'alice','PATCH','/api/loans/applications/'+loans.alice+'/status',
+  {status:'Under Review',timelineEvent:{stage:'Branch Operations'}});
+await verify(201,'alice','POST','/api/loans/applications',
+  {...draft,status:'Created',id:loans.alice,lead_id:leads.alice});
 await verify(200,'alice','PATCH','/api/loans/applications/'+loans.alice+'/status',
-  {status:'Under Review'});
+  {status:'Under Review',timelineEvent:{stage:'Branch Operations',timestamp:new Date().toISOString()}});
 await verify(200,'admin','PATCH','/api/loans/applications/'+loans.carol+'/status',
   {status:'Under Review'},'admin');
 
@@ -118,6 +128,7 @@ const branchEdit={form_data:{
 },loan_type:'Business Loan'};
 await verify(404,'branchA','PUT','/api/branch-operations/applications/'+loans.carol,branchEdit);
 await verify(404,'branchA','PUT','/api/branch-operations/applications/LA-C1',branchEdit);
+await verify(404,'branchA','PUT','/api/branch-operations/applications/'+loans.prebranch,branchEdit);
 await verify(403,'noProfile','PUT','/api/branch-operations/applications/'+loans.branch,branchEdit);
 await verify(403,'alice','PUT','/api/branch-operations/applications/'+loans.branch,branchEdit);
 await verify(200,'branchA','PUT','/api/branch-operations/applications/'+loans.branch,branchEdit);
