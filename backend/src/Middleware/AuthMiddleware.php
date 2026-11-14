@@ -11,6 +11,7 @@ use Firebase\JWT\Key;
 use Exception;
 use App\Config\Database;
 use App\Utils\SessionVersion;
+use App\Utils\AccessToken;
 
 class AuthMiddleware
 {
@@ -82,6 +83,7 @@ class AuthMiddleware
             (isset($decoded->type) && $decoded->type !== 'session') ||
             empty($decoded->id) ||
             empty($decoded->role)
+            || !AccessToken::bounded($decoded)
         ) {
             return $this->unauthorizedResponse('A completed sign-in session is required.');
         }
