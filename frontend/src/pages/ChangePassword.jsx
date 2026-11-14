@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, AlertCircle, LogOut, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, LogOut, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
@@ -18,7 +18,9 @@ const ChangePassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
+  const isMandatory = Boolean(profile?.forcePasswordChange);
+  const returnPath = profile?.role === 'admin' ? '/admin/settings' : '/employee/profile';
 
 
   const passwordRequirements = [
@@ -101,23 +103,34 @@ const ChangePassword = () => {
                   className="w-8 h-8 rounded-xl object-contain shadow-xs"
                 />
                 <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
-                  Mandatory Security Update
+                  {isMandatory ? 'Mandatory Security Update' : 'Account Security'}
                 </span>
               </div>
 
-              <button
-                type="button"
-                onClick={signOut}
-                title="Sign out"
-                className="p-2 text-neutral-400 hover:text-red-600 transition-colors rounded-full hover:bg-neutral-100 cursor-pointer"
-              >
-                <LogOut size={16} />
-              </button>
+              {isMandatory ? (
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  title="Sign out"
+                  className="p-2 text-neutral-400 hover:text-red-600 transition-colors rounded-full hover:bg-neutral-100 cursor-pointer"
+                >
+                  <LogOut size={16} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate(returnPath)}
+                  title="Back to account settings"
+                  className="p-2 text-neutral-400 hover:text-neutral-700 transition-colors rounded-full hover:bg-neutral-100 cursor-pointer"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )
             </div>
 
             <div className="text-center sm:text-left mb-6">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#131315]">
-                Update password
+                {isMandatory ? 'Update password' : 'Change password'}
               </h1>
               <p className="text-xs sm:text-sm text-neutral-500 mt-2 leading-relaxed font-normal">
                 Verify your current password, then choose a strong new password. You will need to sign in again after the update.
