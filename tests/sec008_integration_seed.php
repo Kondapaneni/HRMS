@@ -65,7 +65,7 @@ $stmt = $pdo->prepare(<<<'SQL'
 INSERT INTO users (
     id, email, password, "firstName", "lastName", role, "mfaEnabled",
     otp_code, otp_expires_at
-) VALUES (?, ?, ?, 'Security', 'Test', ?, ?::boolean, ?, CURRENT_TIMESTAMP + INTERVAL '10 minutes')
+) VALUES (?, ?, ?, 'Security', 'Test', ?, ?::boolean, ?, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata') + INTERVAL '10 minutes')
 SQL);
 foreach ($users as $i => [$email, $role, $mfaEnabled, $otp]) {
     $stmt->execute([
