@@ -102,4 +102,6 @@ test('employee APK download uses a verified current signed release', () => {
   assert.ok(workflow.includes('ALLOW_SIGNER_MIGRATION'));
   assert.ok(workflow.includes('git add "$existing" frontend/public/downloads/android-release.json'));
   assert.ok(workflow.includes('sha256sum "$signed"'));
+  assert.ok(workflow.includes('rm -f "dist/downloads/Acme HRMS.apk"'));
+  assert.ok(workflow.includes('test ! -e "android/app/src/main/assets/public/downloads/Acme HRMS.apk"'));
 });
