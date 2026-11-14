@@ -115,4 +115,4 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
         }
     });
 
-})->add(new \App\Middleware\AuthMiddleware()); // Use the existing AuthMiddleware for security
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination')); // Use the existing AuthMiddleware for security
