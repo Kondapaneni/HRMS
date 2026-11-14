@@ -1,6 +1,6 @@
 # SEC-008 — Email OTP cannot bypass authenticator MFA
 
-**Original severity:** Critical. **Status:** Implemented in source; requires CI, deployment and live testing before closure.
+**Original severity:** Critical. **Status: CLOSED (2026-11-14)**, following merged PRs #20 and #22, passing GitHub CI and five owner-reported live HRMS employee verification steps. The live tests were reported by the project owner; this session did not independently execute browser tests against Render.
 
 ## Original vulnerability
 
@@ -19,7 +19,7 @@
 GitHub Actions `.github/workflows/sec008.yml` performs:
 - PHP syntax checks and shared MFA policy tests for enabled/disabled/unconfirmed users.
 - Scoped pre-auth token expiry/claims tests and a real `AuthMiddleware` rejection check.
-- Real Slim API integration on an isolated, synthetic PostgreSQL database with two invented test users:
+- Real Slim API integration on an isolated, synthetic PostgreSQL database with invented admin and employee test users:
   - Incorrect email OTP rejected.
   - Correct admin email OTP returns `mfaRequired` and NO privileged JWT.
   - Pending token rejected on a protected endpoint.
@@ -28,9 +28,22 @@ GitHub Actions `.github/workflows/sec008.yml` performs:
   - Correct Authenticator code returns authorized admin JWT.
   - Password login still requires MFA.
   - Non-MFA employee email OTP still returns an ordinary session.
+- Confirmed admin-granted-but-not-configured employee login succeeds without MFA, with setup available; employee without a grant cannot access MFA setup.
 - Production frontend build plus static regression assertions.
 
-## Live verification after deploying
+## Owner-confirmed live validation — 2026-11-14
+
+All five staged checks were reported as passed on the deployed HRMS application using employee test accounts:
+
+1. **No admin grant:** Employee login succeeds without MFA; the MFA setup feature is hidden.
+2. **Admin grant, no completed setup:** Employee login still succeeds without an MFA prompt; setup becomes available.
+3. **Setup confirmed:** Once the employee enters the initial valid Authenticator code and completes setup, later logins require an additional MFA challenge.
+4. **MFA challenge enforcement:** An invalid Authenticator code is rejected; a current valid code permits login.
+5. **Original SEC-008 bypass:** After successful email OTP verification, the employee must complete Authenticator MFA before the Employee Dashboard opens; a valid Authenticator code then completes sign-in.
+
+This is project-owner testimony of live behavior, supported by synthetic GitHub Actions integration tests. It is **not** an independent live security assessment and does not claim a separately repeated live test for an administrator account. The source-level requirement remains: the MFA feature must be granted AND setup must be confirmed before employee login is challenged.
+
+## Live verification after deploying (reference procedure)
 
 Use **development/test accounts only**; do not share email OTPs, TOTP codes, backup codes, passwords or JWTs in chat.
 
@@ -49,4 +62,4 @@ Use **development/test accounts only**; do not share email OTPs, TOTP codes, bac
 - **SEC-015:** The email queue contains OTP message content and other emailed credentials, independently tracked.
 - **SEC-009:** Full RBAC/feature enforcement remains separate from this pre-auth token safeguard.
 
-**Closure gate:** GitHub CI green, Render deployment confirmed, and MFA-enabled email OTP → TOTP challenge → full login plus non-MFA login tested live.
+**Closure decision:** Source changes and automated checks have passed, and the owner confirmed the deployed live employee flows, including the original email-OTP bypass path. A separate live admin-account bypass test was not reported; the privileged-account behavior is covered by synthetic API CI. Keep independent SEC-009/012/015 findings open.
