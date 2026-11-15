@@ -1,0 +1,123 @@
+name: SEC-016 Google Maps browser/server key isolation
+
+on:
+  pull_request:
+    paths:
+      - 'backend/src/Security/MapsConfig.php'
+      - 'backend/public/index.php'
+      - 'backend/public/employee_attendance_routes.php'
+      - 'backend/public/admin_attendance_routes.php'
+      - 'frontend/src/pages/AdminAttendanceLocation.jsx'
+      - 'frontend/src/pages/EmployeeMobileMap.jsx'
+      - 'frontend/src/hooks/useMapsBrowserKey.js'
+      - 'docker-entrypoint.sh'
+      - 'render.yaml'
+      - 'tests/sec016_*'
+      - '.github/workflows/sec016.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'backend/src/Security/MapsConfig.php'
+      - 'backend/public/index.php'
+      - 'backend/public/employee_attendance_routes.php'
+      - 'backend/public/admin_attendance_routes.php'
+      - 'frontend/src/pages/AdminAttendanceLocation.jsx'
+      - 'frontend/src/pages/EmployeeMobileMap.jsx'
+      - 'frontend/src/hooks/useMapsBrowserKey.js'
+      - 'docker-entrypoint.sh'
+      - 'render.yaml'
+      - 'tests/sec016_*'
+      - '.github/workflows/sec016.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-config-http:
+    name: Isolated authenticated browser Maps config and key-leak regression
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec014_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec014_synthetic_only
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec014_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec014_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec014_synthetic_only
+      JWT_SECRET: SEC014_TEST_ONLY_NOT_FOR_DEPLOYMENT
+      GOOGLE_MAPS_BROWSER_API_KEY: SEC016_BROWSER_TEST_PUBLIC_ONLY
+      GOOGLE_GEOCODING_API_KEY: SEC016_GEOCODE_TEST_SECRET_NEVER_SEND
+      GOOGLE_MAPS_API_KEY: SEC016_LEGACY_TEST_SECRET_NEVER_SEND
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and source checks
+        run: |
+          set -euo pipefail
+          for f in backend/src/Security/MapsConfig.php backend/public/index.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php; do php -l "$f"; done
+          node --check tests/sec016_http_test.mjs
+          node --check tests/sec016_source_test.mjs
+          node tests/sec016_source_test.mjs
+      - name: Isolated config and HTTP authorization checks
+        run: |
+          set -euo pipefail
+          composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+          php tests/sec016_policy_test.php
+          php tests/sec014_seed.php
+          cat > backend/.env <<'SEC016_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec014_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec014_synthetic_only
+          JWT_SECRET=SEC014_TEST_ONLY_NOT_FOR_DEPLOYMENT
+          GOOGLE_MAPS_BROWSER_API_KEY=SEC016_BROWSER_TEST_PUBLIC_ONLY
+          GOOGLE_GEOCODING_API_KEY=SEC016_GEOCODE_TEST_SECRET_NEVER_SEND
+          GOOGLE_MAPS_API_KEY=SEC016_LEGACY_TEST_SECRET_NEVER_SEND
+          APP_ENV=production
+          SEC016_TEST_ENV
+          php -S 127.0.0.1:8775 -t backend/public backend/public/index.php >/tmp/sec016-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..25}; do
+            if curl --fail --silent http://127.0.0.1:8775/version.json >/dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then tail -n 120 /tmp/sec016-server.log; exit 1; fi
+          node tests/sec016_http_test.mjs || { tail -n 120 /tmp/sec016-server.log; exit 1; }
+
+  frontend:
+    name: Maps web and Capacitor remote-view Vite production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Production build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
