@@ -1,6 +1,6 @@
 # SEC-014 — Server-side attendance geofence and non-spoofable rate-limit identity
 
-**Severity:** MEDIUM. **Status:** CODE IMPLEMENTED / FOCUSED CI REQUIRED / OWNER-LED LIVE DEVELOPMENT VERIFICATION PENDING. **Scope:** Development security remediation; not production penetration testing.
+**Severity:** MEDIUM. **Status:** CODE IMPLEMENTED / FOCUSED SYNTHETIC CI PASSED / OWNER-LED LIVE DEVELOPMENT VERIFICATION PENDING. **Scope:** Development security remediation; not production penetration testing.
 
 ## Finding and policy
 
@@ -27,6 +27,8 @@ The authenticated map endpoints `GET /api/employee/geofences` and `GET /api/empl
 - PHP lint, JS syntax, Vite production build. Seed/postcondition scripts strictly refuse any database other than `sec014_test`.
 
 Do not run brute force tests against a real HRMS account, trigger real OTP/reset email deliveries, delete genuine rate-limit rows, or alter real employee attendance in connected development/production. To verify live without making employee punches, first check Admin attendance/geofence configuration with a dedicated dev employee account (preferably with no attendance active), then use benign invalid synthetic-coordinate **check-in** requests that must be denied before writes. For allowed check-in/out or roaming background behavior, obtain explicit approval for a designated development-only day/employee and then perform each action safely. A failed/denied response is not proof of physical location validation if the employee's `geoFenceEnabled` flag is disabled; inspect it before interpreting results.
+
+**CI evidence:** [SEC-014 focused real HTTP/PostgreSQL and frontend build — PASSED](https://github.com/Kondapaneni/HRMS/actions/runs/43682233703). The first iterations exposed missing test-schema columns and an unbound authenticated user ID in the map-status route; both were corrected before the final green run. The final run confirmed PHP lint, policy/Haversine tests, rotated-forwarded-header authentication abuse checks, authorized/denied attendance and map status, no unauthorized data mutations, and the frontend production build.
 
 ## Closure gates
 
