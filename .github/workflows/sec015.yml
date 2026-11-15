@@ -7,6 +7,7 @@ on:
       - 'backend/src/Security/EmailSecurity.php'
       - 'backend/public/admin_recruitment_routes.php'
       - 'backend/public/admin_employees_routes.php'
+      - 'backend/public/index.php'
       - 'backend/src/Templates/welcome_email.html'
       - 'backend/src/Templates/candidate_status_update_email.html'
       - 'frontend/src/pages/AdminRecruitment.jsx'
@@ -19,6 +20,7 @@ on:
       - 'backend/src/Security/EmailSecurity.php'
       - 'backend/public/admin_recruitment_routes.php'
       - 'backend/public/admin_employees_routes.php'
+      - 'backend/public/index.php'
       - 'backend/src/Templates/welcome_email.html'
       - 'backend/src/Templates/candidate_status_update_email.html'
       - 'frontend/src/pages/AdminRecruitment.jsx'
@@ -70,7 +72,7 @@ jobs:
       - name: PHP and Node syntax
         run: |
           set -euo pipefail
-          for f in backend/src/Security/EmailSecurity.php backend/public/admin_recruitment_routes.php backend/public/admin_employees_routes.php tests/sec015_seed.php tests/sec015_policy_test.php tests/sec015_assert.php; do php -l "$f"; done
+          for f in backend/src/Security/EmailSecurity.php backend/public/admin_recruitment_routes.php backend/public/admin_employees_routes.php backend/public/index.php tests/sec015_seed.php tests/sec015_policy_test.php tests/sec015_assert.php; do php -l "$f"; done
           node --check tests/sec015_http_test.mjs
       - name: Install backend dependencies and run isolated policy tests
         run: |
