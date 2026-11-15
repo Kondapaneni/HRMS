@@ -1069,7 +1069,8 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
             'record' => $record,
             'employee' => $employee,
             'punches' => $punches,
-            'googleMapsApiKey' => $_ENV['GOOGLE_MAPS_API_KEY'] ?? ''
+            // Browser-visible Maps JavaScript key; never expose a server credential.
+            'googleMapsBrowserKey' => $_ENV['GOOGLE_MAPS_JS_BROWSER_KEY'] ?? ''
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         
