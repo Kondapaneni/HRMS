@@ -1,0 +1,133 @@
+name: SEC-015 templated HR email and one-time employee setup
+
+on:
+  push:
+    branches: ['main', 'fix/sec015-templated-email-onboarding']
+    paths:
+      - 'backend/src/Security/EmailSecurity.php'
+      - 'backend/public/admin_recruitment_routes.php'
+      - 'backend/public/admin_employees_routes.php'
+      - 'backend/public/index.php'
+      - 'backend/src/Templates/welcome_email.html'
+      - 'backend/src/Templates/candidate_status_update_email.html'
+      - 'frontend/src/pages/AdminRecruitment.jsx'
+      - 'frontend/src/pages/AdminVerifyDocuments.jsx'
+      - 'frontend/src/components/AddEmployeeModal.jsx'
+      - 'tests/sec015_*'
+      - '.github/workflows/sec015.yml'
+  pull_request:
+    paths:
+      - 'backend/src/Security/EmailSecurity.php'
+      - 'backend/public/admin_recruitment_routes.php'
+      - 'backend/public/admin_employees_routes.php'
+      - 'backend/public/index.php'
+      - 'backend/src/Templates/welcome_email.html'
+      - 'backend/src/Templates/candidate_status_update_email.html'
+      - 'frontend/src/pages/AdminRecruitment.jsx'
+      - 'frontend/src/pages/AdminVerifyDocuments.jsx'
+      - 'frontend/src/components/AddEmployeeModal.jsx'
+      - 'tests/sec015_*'
+      - '.github/workflows/sec015.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-postgres-and-http:
+    name: Isolated recruiter/employee HTTP + PostgreSQL mail postconditions
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec015_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec015_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec015_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec015_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec015_synthetic_only
+      JWT_SECRET: SEC015_TEST_ONLY_NOT_FOR_DEPLOYMENT
+      FRONTEND_URL: https://hrms-qwv3.onrender.com
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP and Node syntax
+        run: |
+          set -euo pipefail
+          for f in backend/src/Security/EmailSecurity.php backend/public/admin_recruitment_routes.php backend/public/admin_employees_routes.php backend/public/index.php tests/sec015_seed.php tests/sec015_policy_test.php tests/sec015_assert.php; do php -l "$f"; done
+          node --check tests/sec015_http_test.mjs
+      - name: Install backend dependencies and run isolated policy tests
+        run: |
+          composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+          php tests/sec015_seed.php
+          php tests/sec015_policy_test.php
+      - name: Test anonymous/candidate/admin HTTP and queue integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > backend/.env <<'SEC015_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec015_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec015_synthetic_only
+          JWT_SECRET=SEC015_TEST_ONLY_NOT_FOR_DEPLOYMENT
+          FRONTEND_URL=https://hrms-qwv3.onrender.com
+          APP_ENV=production
+          SEC015_TEST_ENV
+          php -S 127.0.0.1:8776 -t backend/public backend/public/index.php >/tmp/sec015-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..25}; do
+            if curl --fail --silent http://127.0.0.1:8776/version.json >/dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then tail -n 100 /tmp/sec015-server.log; exit 1; fi
+          node tests/sec015_http_test.mjs || {
+            tail -n 120 /tmp/sec015-server.log
+            exit 1
+          }
+          php tests/sec015_assert.php || {
+            tail -n 120 /tmp/sec015-server.log
+            exit 1
+          }
+  frontend:
+    name: Frontend production Vite build and no client email HTML assembly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Ensure client does not assemble email HTML or initial passwords
+        run: |
+          set -euo pipefail
+          if grep -Fq 'emailBody' frontend/src/pages/AdminRecruitment.jsx; then exit 1; fi
+          if grep -Fq 'documentVerifiedEmailTemplateHtml' frontend/src/pages/AdminVerifyDocuments.jsx; then exit 1; fi
+          if grep -Fq 'generateRandomPassword' frontend/src/components/AddEmployeeModal.jsx; then exit 1; fi
+      - name: Compile frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build

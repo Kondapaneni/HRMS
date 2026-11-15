@@ -5,6 +5,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 use App\Security\CompensationAccess;
+use App\Security\EmailSecurity;
 
 // Get all employees for admin
 /** @var \Slim\App $app */
@@ -480,7 +481,6 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
     $data = $request->getParsedBody();
     
     $email = $data['email'] ?? '';
-    $password = $data['password'] ?? '';
     $firstName = $data['firstName'] ?? '';
     $lastName = $data['lastName'] ?? '';
     $phone = $data['phone'] ?? '';
@@ -492,13 +492,11 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
     $status = strtolower($data['status'] ?? 'active');
     $managerId = $data['manager_id'] ?? null;
 
-    if (empty($email) || empty($password)) {
-        $response->getBody()->write(json_encode(['error' => 'Email and password are required']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-    }
-
-    if (!\App\Utils\PasswordValidator::validate($password)) {
-        $response->getBody()->write(json_encode(['error' => \App\Utils\PasswordValidator::getPolicyMessage()]));
+    // SEC-015: admins must not create reusable initial passwords in the SPA.
+    // Reject legacy clients sending a password rather than silently using it.
+    if (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)
+        || array_key_exists('password', (array)$data)) {
+        $response->getBody()->write(json_encode(['error' => 'Valid email required; use password setup invitation instead of an initial password.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
@@ -530,11 +528,20 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         $conn->beginTransaction();
 
         // 1. Insert into users table
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        // Password is random, unknown to admin/employee, and is never emailed.
+        // Existing /api/reset-password consumes a one-use, one-hour setup link.
+        $hashedPassword = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+        $setupToken = bin2hex(random_bytes(32));
         $role = 'employee';
-        
-        $stmtUser = $conn->prepare('INSERT INTO users (email, password, "firstName", "lastName", role, department, position, "forcePasswordChange") VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id');
-        $stmtUser->execute([$email, $hashedPassword, $firstName, $lastName, $role, $department, $position, 'true']);
+
+        $stmtUser = $conn->prepare(<<<'SQL'
+            INSERT INTO users (email, password, "firstName", "lastName", role,
+                department, position, "forcePasswordChange", reset_token, reset_token_expires)
+            VALUES (?, ?, ?, ?, ?, ?, ?, true, ?, CURRENT_TIMESTAMP + INTERVAL '1 hour')
+            RETURNING id
+SQL
+        );
+        $stmtUser->execute([$email, $hashedPassword, $firstName, $lastName, $role, $department, $position, $setupToken]);
         
         $userId = $stmtUser->fetchColumn();
 
@@ -554,19 +561,10 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         ]);
         $empPkId = $stmtEmp->fetchColumn();
 
-        // 3. Queue Welcome Email
-        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
-        $loginLink = !empty($frontendUrl) ? ($frontendUrl . '/login') : '/login';
-        $subject = 'Welcome to Acme HRMS - Your Account Details';
-        
-        $currentYear = date('Y');
-        
-        $template = file_get_contents(__DIR__ . '/../src/Templates/welcome_email.html');
-        $body = str_replace(
-            ['{{firstName}}', '{{email}}', '{{password}}', '{{loginLink}}', '{{currentYear}}'],
-            [htmlspecialchars($firstName), htmlspecialchars($email), htmlspecialchars($password), htmlspecialchars($loginLink), htmlspecialchars($currentYear)],
-            $template
-        );
+        // 3. Queue setup invitation atomically with the new account.
+        // An email-queue reader can never recover an initial account password.
+        $subject = 'Welcome to Acme HRMS - Set Up Your Account';
+        $body = EmailSecurity::welcome((string)$firstName, (string)$email, $setupToken);
         
         $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
         $stmtQueue->execute([$email, $subject, $body]);
@@ -667,8 +665,12 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
             $hikeBadge = 'Retained (Same Pay)';
         }
 
+        // SEC-015: dynamic values inside the intentionally formatted HTML
+        // fragments must be escaped BEFORE fragment construction.
         // 2. Determine titles, badges, and opening paragraphs adaptively
         $formattedEffectiveDate = date('F j, Y', strtotime($effectiveDate));
+        $safeNewPosition = EmailSecurity::escape($newPosition);
+        $safeFormattedEffectiveDate = EmailSecurity::escape($formattedEffectiveDate);
         $empFullName = trim(($emp['firstName'] ?? '') . ' ' . ($emp['lastName'] ?? ''));
 
         if ($positionChanged && $salaryChanged) {
@@ -676,9 +678,9 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
             $actionType = 'Promotion & Salary Revision';
             $letterBadge = '★ Official Promotion & Salary Revision';
             $letterHeading = "Congratulations, {$emp['firstName']}!";
-            $letterSubheading = "We are proud to announce your promotion to <strong style=\"color: #1a73e8;\">{$newPosition}</strong> and revision of your monthly compensation.";
-            $openingParagraph = "In recognition of your exceptional dedication, sustained performance, and impactful contributions to <strong>Acme Corp</strong>, the management and leadership team are pleased to officially promote you to the designation of <strong>{$newPosition}</strong> along with a revised compensation structure.";
-            $closingNote = "Your revised compensation and elevated role responsibilities will take effect as of <strong>{$formattedEffectiveDate}</strong>. All other terms and conditions of your employment contract remain in full force and effect.";
+            $letterSubheading = "We are proud to announce your promotion to <strong style=\"color: #1a73e8;\">{$safeNewPosition}</strong> and revision of your monthly compensation.";
+            $openingParagraph = "In recognition of your exceptional dedication, sustained performance, and impactful contributions to <strong>Acme Corp</strong>, the management and leadership team are pleased to officially promote you to the designation of <strong>{$safeNewPosition}</strong> along with a revised compensation structure.";
+            $closingNote = "Your revised compensation and elevated role responsibilities will take effect as of <strong>{$safeFormattedEffectiveDate}</strong>. All other terms and conditions of your employment contract remain in full force and effect.";
             $emailSubject = "Congratulations on Your Promotion to {$newPosition} - Acme Corp";
             $timelineTitle = "Promoted to {$newPosition}";
             $timelineDesc = "Promoted from {$oldPosition} to {$newPosition}. Revised monthly compensation: ₹" . number_format($revisedSalary, 2) . ($hikeText ? " ({$hikeText})" : "") . ($notes ? ". Remarks: {$notes}" : "");
@@ -687,9 +689,9 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
             $actionType = 'Role Advancement & Promotion';
             $letterBadge = '★ Official Role Advancement';
             $letterHeading = "Congratulations, {$emp['firstName']}!";
-            $letterSubheading = "We are proud to announce your career advancement to <strong style=\"color: #1a73e8;\">{$newPosition}</strong>.";
-            $openingParagraph = "In recognition of your demonstrated leadership, technical expertise, and outstanding commitments to <strong>Acme Corp</strong>, the management team is proud to officially promote you to the designation of <strong>{$newPosition}</strong>.";
-            $closingNote = "Your new role responsibilities will take effect as of <strong>{$formattedEffectiveDate}</strong>. Your current compensation remains in effect. All other terms and conditions remain in full force.";
+            $letterSubheading = "We are proud to announce your career advancement to <strong style=\"color: #1a73e8;\">{$safeNewPosition}</strong>.";
+            $openingParagraph = "In recognition of your demonstrated leadership, technical expertise, and outstanding commitments to <strong>Acme Corp</strong>, the management team is proud to officially promote you to the designation of <strong>{$safeNewPosition}</strong>.";
+            $closingNote = "Your new role responsibilities will take effect as of <strong>{$safeFormattedEffectiveDate}</strong>. Your current compensation remains in effect. All other terms and conditions remain in full force.";
             $emailSubject = "Congratulations on Your Promotion to {$newPosition} - Acme Corp";
             $timelineTitle = "Promoted to {$newPosition}";
             $timelineDesc = "Promoted from {$oldPosition} to {$newPosition}. Base compensation retained at ₹" . number_format($revisedSalary, 2) . ($notes ? ". Remarks: {$notes}" : "");
@@ -698,9 +700,9 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
             $actionType = 'Compensation Appraisal & Revision';
             $letterBadge = '★ Official Compensation Revision';
             $letterHeading = "Salary Revision Notification, {$emp['firstName']}";
-            $letterSubheading = "We are pleased to communicate the revision of your monthly compensation as <strong style=\"color: #1a73e8;\">{$newPosition}</strong>.";
+            $letterSubheading = "We are pleased to communicate the revision of your monthly compensation as <strong style=\"color: #1a73e8;\">{$safeNewPosition}</strong>.";
             $openingParagraph = "In appreciation of your valued contributions, commitment, and performance during this cycle, the leadership team at <strong>Acme Corp</strong> is pleased to approve a revision in your monthly compensation.";
-            $closingNote = "Your revised monthly compensation will take effect as of <strong>{$formattedEffectiveDate}</strong>. All other terms and conditions of your employment contract remain unchanged.";
+            $closingNote = "Your revised monthly compensation will take effect as of <strong>{$safeFormattedEffectiveDate}</strong>. All other terms and conditions of your employment contract remain unchanged.";
             $emailSubject = "Official Notification: Salary Revision & Compensation Update - Acme Corp";
             $timelineTitle = "Salary Revised to ₹" . number_format($revisedSalary, 2);
             $timelineDesc = "Monthly compensation revised from ₹" . number_format($oldSalary, 2) . " to ₹" . number_format($revisedSalary, 2) . ($hikeText ? " ({$hikeText})" : "") . ($notes ? ". Remarks: {$notes}" : "");
@@ -709,13 +711,15 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
             $actionType = 'Employee Record Update';
             $letterBadge = '★ Official Employment Record Update';
             $letterHeading = "Employment Record Confirmation, {$emp['firstName']}";
-            $letterSubheading = "Confirmation of your current designation as <strong style=\"color: #1a73e8;\">{$newPosition}</strong>.";
+            $letterSubheading = "Confirmation of your current designation as <strong style=\"color: #1a73e8;\">{$safeNewPosition}</strong>.";
             $openingParagraph = "This letter serves to confirm your active designation and compensation terms with <strong>Acme Corp</strong>.";
             $closingNote = "All terms and conditions of your employment contract remain in full force and effect.";
             $emailSubject = "Employment Record Confirmation - Acme Corp";
             $timelineTitle = "Profile Milestone Confirmed";
             $timelineDesc = "Designation: {$newPosition}, monthly compensation: ₹" . number_format($revisedSalary, 2) . ($notes ? ". Remarks: {$notes}" : "");
         }
+
+        $emailSubject = EmailSecurity::safeSubject($emailSubject);
 
         // 3. Parse and update timeline
         $timeline = [];
