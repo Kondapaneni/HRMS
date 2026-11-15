@@ -500,8 +500,8 @@ DB_DATABASE=your_db_name
 DB_USERNAME=your_db_user
 DB_PASSWORD=your_db_password
 JWT_SECRET=your_super_secret_jwt_key
-GOOGLE_MAPS_API_KEY=your_google_maps_key
-GOOGLE_GEOCODING_API_KEY=your_geocoding_key
+GOOGLE_MAPS_JS_BROWSER_KEY=your_referrer_restricted_maps_javascript_key
+GOOGLE_GEOCODING_API_KEY=your_server_only_geocoding_key
 FRONTEND_URL=http://localhost:5173
 ```
 
