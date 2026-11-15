@@ -4,6 +4,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
+use App\Security\EmailSecurity;
+use App\Utils\RateLimiter;
 
 // Get all candidate users
 /** @var \Slim\App $app */
@@ -55,30 +57,51 @@ $app->get('/api/admin/candidates', function (Request $request, Response $respons
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
 
-// Send generic email to candidate
+// SEC-015: Only a server-owned notification for an existing application may
+// enter the email queue. No caller-supplied recipient, subject, HTML, or link.
 $app->post('/api/admin/send-email', function (Request $request, Response $response, $args) {
-    $db = new Database();
-    $conn = $db->getConnection();
-    
-    $data = json_decode($request->getBody()->getContents(), true);
-    $toEmail = $data['to'] ?? '';
-    $subject = $data['subject'] ?? '';
-    $body = $data['body'] ?? '';
-    
-    if (empty($toEmail) || empty($subject) || empty($body)) {
-        $response->getBody()->write(json_encode(['error' => 'Missing required fields']));
+    $data = $request->getParsedBody();
+    if (!is_array($data)
+        || array_diff(array_keys($data), ['applicationId', 'type'])
+        || !is_string($data['applicationId'] ?? null)
+        || !is_string($data['type'] ?? null)) {
+        $response->getBody()->write(json_encode(['error' => 'Only applicationId and notification type are allowed.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
-    
-    try {
-        $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
-        $stmtQueue->execute([$toEmail, $subject, $body]);
 
-        $response->getBody()->write(json_encode(['message' => 'Email queued successfully']));
+    try {
+        $conn = (new Database())->getConnection();
+        $mail = EmailSecurity::recruitment(
+            $conn,
+            trim($data['applicationId']),
+            trim($data['type'])
+        );
+
+        // A compromised admin/recruiter must not flood even known applicants.
+        $actor = $request->getAttribute('user');
+        $key = RateLimiter::userKey((string)$actor->id);
+        if (!RateLimiter::checkLimit($conn, $key, 'recruitment_notification', 20, 60)) {
+            $response->getBody()->write(json_encode(['error' => 'Notification quota exceeded. Try later.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
+        }
+
+        $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
+        $stmtQueue->execute([$mail['to'], $mail['subject'], $mail['body']]);
+        RateLimiter::recordAttempt($conn, $key, 'recruitment_notification');
+
+        $response->getBody()->write(json_encode(['message' => 'Application notification queued successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (Exception $e) {
+    } catch (\InvalidArgumentException $e) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid application or notification type']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    } catch (\DomainException $e) {
+        $missing = $e->getMessage() === 'Application not found';
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus($missing ? 404 : 409);
+    } catch (\Throwable $e) {
+        error_log('SEC-015: recruitment notification failed');
+        $response->getBody()->write(json_encode(['error' => 'Unable to queue notification']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
 
