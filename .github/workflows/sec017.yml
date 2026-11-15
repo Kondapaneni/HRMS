@@ -1,0 +1,51 @@
+name: SEC-017 Storage path hardening
+on:
+  pull_request:
+    paths:
+      - 'backend/public/storage_routes.php'
+      - 'frontend/src/**'
+      - 'tests/sec001_storage_test.php'
+      - 'tests/sec017_*'
+      - '.github/workflows/sec017.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: fileinfo, curl, pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax and CSPRNG / MIME / ownership regression
+        run: |
+          php -l backend/public/storage_routes.php
+          php -l tests/sec001_storage_test.php
+          php tests/sec001_storage_test.php
+      - name: Browser Storage adapter and returned-path source checks
+        run: |
+          node --check tests/sec017_storage_source_test.mjs
+          node --check tests/sec017_storage_http_test.mjs
+          node tests/sec017_storage_source_test.mjs
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build production frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
