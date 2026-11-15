@@ -15,7 +15,7 @@ const locationPart = admin.slice(admin.indexOf('// GET /api/admin/attendance/loc
 assert(!responsePart.includes('GOOGLE_GEOCODING_API_KEY') && !responsePart.includes('googleMapsApiKey'));
 assert(!locationPart.includes('GOOGLE_MAPS_API_KEY') && !locationPart.includes('googleMapsApiKey'));
 assert(backend.includes("'/api/maps/browser-config'"));
-assert(backend.includes("new AuthMiddleware(['admin', 'employee'])"));
+assert(backend.includes("new AuthMiddleware(['admin', 'employee', 'hr', 'manager'])"));
 assert(hook.includes("api.get('/maps/browser-config')"));
 assert(!mobile.includes('data.googleMapsApiKey') && !location.includes('data.googleMapsApiKey'));
 assert(mobile.includes('browserKey') && location.includes('browserKey'));
