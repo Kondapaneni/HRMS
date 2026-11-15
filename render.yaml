@@ -18,7 +18,7 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: GOOGLE_MAPS_API_KEY
+      - key: GOOGLE_MAPS_JS_BROWSER_KEY
         sync: false
       - key: GOOGLE_GEOCODING_API_KEY
         sync: false
