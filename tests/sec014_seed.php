@@ -24,7 +24,8 @@ CREATE TABLE users (
  id uuid primary key, role text not null, email text, password text,
  "isActive" boolean default true, token_version integer default 0,
  "firstName" text, "lastName" text, department text, position text,
- "forcePasswordChange" boolean default false, "themePreference" text, "mfaEnabled" boolean default false
+ "forcePasswordChange" boolean default false, "themePreference" text, "mfaEnabled" boolean default false,
+ otp_code text, otp_expires_at timestamp, reset_token text, reset_token_expires timestamp
 );
 CREATE TABLE rate_limits (
  id bigserial primary key, ip_address text, action text,
