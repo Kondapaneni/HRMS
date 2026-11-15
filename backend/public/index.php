@@ -812,24 +812,13 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
 // Execute Password Reset
 $app->post('/api/reset-password', function (Request $request, Response $response) {
     $data = json_decode($request->getBody()->getContents(), true);
-    $token = $data['token'] ?? '';
-    $newPassword = $data['newPassword'] ?? '';
+    $token = is_array($data) ? ($data['token'] ?? null) : null;
+    $newPassword = is_array($data) ? ($data['newPassword'] ?? null) : null;
 
-    if (!$token || !$newPassword || strlen($newPassword) < 8) {
+    if (!is_string($token) || !is_string($newPassword)
+        || !preg_match('/\A[a-f0-9]{64}\z/i', $token)
+        || strlen($newPassword) < 8) {
         $response->getBody()->write(json_encode(['error' => 'Valid token and a password of at least 8 characters are required']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-    }
-
-    $db = new Database();
-    $conn = $db->getConnection();
-
-    // Find valid token
-    $stmt = $conn->prepare("SELECT id, role FROM users WHERE reset_token = :token AND reset_token_expires > CURRENT_TIMESTAMP");
-    $stmt->execute(['token' => $token]);
-    $user = $stmt->fetch();
-
-    if (!$user) {
-        $response->getBody()->write(json_encode(['error' => 'Invalid or expired password reset token']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
@@ -838,21 +827,38 @@ $app->post('/api/reset-password', function (Request $request, Response $response
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    // Hash new password
-    $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+    try {
+        $conn = (new Database())->getConnection();
+        $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
-    // Update password and clear token
-    $updateStmt = $conn->prepare("UPDATE users SET password = :hash, reset_token = NULL, reset_token_expires = NULL, \"forcePasswordChange\" = false, token_version = token_version + 1 WHERE id = :id");
-    $updateStmt->execute([
-        'hash' => $passwordHash,
-        'id' => $user['id']
-    ]);
+        // SEC-015: Consume the token and update credentials atomically.
+        // A concurrent/replayed reset cannot pass a stale SELECT then reset
+        // the same account again; PostgreSQL rechecks the predicate under lock.
+        $stmt = $conn->prepare('
+            UPDATE users
+            SET password = :hash, reset_token = NULL, reset_token_expires = NULL,
+                "forcePasswordChange" = false, token_version = token_version + 1
+            WHERE reset_token = :token AND reset_token_expires > CURRENT_TIMESTAMP
+            RETURNING role
+        ');
+        $stmt->execute(['hash' => $passwordHash, 'token' => $token]);
+        $role = $stmt->fetchColumn();
 
-    $response->getBody()->write(json_encode([
-        'message' => 'Password has been successfully reset',
-        'role' => $user['role']
-    ]));
-    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        if ($role === false) {
+            $response->getBody()->write(json_encode(['error' => 'Invalid or expired password reset token']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        $response->getBody()->write(json_encode([
+            'message' => 'Password has been successfully reset',
+            'role' => $role
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Throwable $e) {
+        error_log('SEC-015: password setup/reset transaction failed');
+        $response->getBody()->write(json_encode(['error' => 'Password reset temporarily unavailable']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
 });
 
 // Resume proxy route for clean URLs
