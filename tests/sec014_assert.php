@@ -37,5 +37,5 @@ foreach ($stored as $key) {
     requireCheck(!str_contains((string)$key, '198.51.100.'), 'Spoofed XFF must not appear in rate_limits');
 }
 requireCheck(count(array_filter($stored, static fn($k) => str_starts_with((string)$k, 'acct:'))) >= 4, 'Credential account-specific counters recorded');
-requireCheck(count(array_filter($stored, static fn($k) => str_starts_with((string)$k, 'user:'))) === 1, 'Maps per-account tracking only for the tested limited employee');
+requireCheck(count(array_filter($stored, static fn($k) => str_starts_with((string)$k, 'user:'))) === 2, 'Map rate limits tracked separately for both requested authenticated employees');
 echo "PASS SEC-014 isolated SQL postconditions, no unauthorized attendance writes, no emails, no spoofed IPs\n";
