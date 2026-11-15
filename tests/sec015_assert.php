@@ -42,9 +42,9 @@ check015(strlen((string)$user['password'])>30 && !password_verify('NeverEmailMyS
 check015((int)$user['seconds']>0 && (int)$user['seconds']<=3600,'One-hour invitation expiry enforced by DB clock');
 check015(in_array($user['forcePasswordChange'],[true,'t','true',1,'1'],true),'Setup remains mandatory');
 check015((bool)preg_match('/\A[a-f0-9]{64}\z/',(string)$user['reset_token']),'Cryptographically random setup token');
-$stmt=$pdo->prepare('SELECT body FROM email_queue WHERE to_email=?');
-$stmt->execute(['sec015-new-employee@example.invalid']);
-$body=(string)$stmt->fetchColumn();
+$emailStmt=$pdo->prepare('SELECT body FROM email_queue WHERE to_email=?');
+$emailStmt->execute(['sec015-new-employee@example.invalid']);
+$body=(string)$emailStmt->fetchColumn();
 check015(str_contains($body,'/reset-password?token='),'Welcome email links to established one-time reset flow');
 check015(str_contains($body,'&lt;img src=x onerror=alert(1)&gt;'),'Onboarding name must be escaped');
 check015(!str_contains($body,'{{password}}')&&!str_contains($body,'Temporary Password')&&!str_contains($body,'NeverEmailMySecret!1'),'Welcome email contains no plaintext initial password');
