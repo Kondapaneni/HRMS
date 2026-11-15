@@ -73,7 +73,7 @@ jobs:
       - name: Syntax and source checks
         run: |
           set -euo pipefail
-          for f in backend/src/Security/MapsConfig.php backend/public/index.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php; do php -l "$f"; done
+          for f in backend/src/Security/MapsConfig.php backend/public/index.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php tests/sec016_role_seed.php; do php -l "$f"; done
           node --check tests/sec016_http_test.mjs
           node --check tests/sec016_source_test.mjs
           node tests/sec016_source_test.mjs
@@ -83,6 +83,7 @@ jobs:
           composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
           php tests/sec016_policy_test.php
           php tests/sec014_seed.php
+          php tests/sec016_role_seed.php
           cat > backend/.env <<'SEC016_TEST_ENV'
           DB_HOST=127.0.0.1
           DB_PORT=5432
