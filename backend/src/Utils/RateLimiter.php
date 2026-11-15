@@ -19,53 +19,55 @@ class RateLimiter
     public static function checkLimit(PDO $conn, string $ip, string $action, int $maxAttempts, int $windowMinutes): bool
     {
         $stmt = $conn->prepare("
-            SELECT COUNT(*) 
-            FROM rate_limits 
-            WHERE ip_address = :ip 
-              AND action = :action 
-              AND created_at > CURRENT_TIMESTAMP - INTERVAL '$windowMinutes minutes'
+            SELECT COUNT(*)
+            FROM rate_limits
+            WHERE ip_address = :ip
+              AND action = :action
+              AND created_at > CURRENT_TIMESTAMP -
+                  (CAST(:window_minutes AS integer) * INTERVAL '1 minute')
         ");
         $stmt->execute([
             'ip' => $ip,
-            'action' => $action
+            'action' => $action,
+            'window_minutes' => max(1, $windowMinutes)
         ]);
-        
-        $attempts = (int)$stmt->fetchColumn();
-        return $attempts < $maxAttempts;
+        return (int)$stmt->fetchColumn() < max(1, $maxAttempts);
     }
 
     /**
-     * Gets the remaining time in seconds until the lockout expires.
+     * Gets the remaining lockout time from the database clock, not PHP's
+     * configured Asia/Kolkata timezone. rate_limits.created_at can be a
+     * PostgreSQL TIMESTAMP without timezone on a UTC DB server.
      * Returns null if not locked out.
      */
     public static function getLockoutRemainingTime(PDO $conn, string $ip, string $action, int $maxAttempts, int $windowMinutes): ?int
     {
         $stmt = $conn->prepare("
-            SELECT created_at 
-            FROM rate_limits 
-            WHERE ip_address = :ip 
-              AND action = :action 
-              AND created_at > CURRENT_TIMESTAMP - INTERVAL '$windowMinutes minutes'
+            SELECT CEIL(EXTRACT(EPOCH FROM (
+                created_at + (CAST(:window_add AS integer) * INTERVAL '1 minute')
+                - CURRENT_TIMESTAMP
+            ))) AS remaining_seconds
+            FROM rate_limits
+            WHERE ip_address = :ip
+              AND action = :action
+              AND created_at > CURRENT_TIMESTAMP -
+                  (CAST(:window_filter AS integer) * INTERVAL '1 minute')
             ORDER BY created_at ASC
         ");
         $stmt->execute([
             'ip' => $ip,
-            'action' => $action
+            'action' => $action,
+            'window_add' => max(1, $windowMinutes),
+            'window_filter' => max(1, $windowMinutes)
         ]);
-        
+
         $attempts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $count = count($attempts);
-        
-        if ($count < $maxAttempts) {
+        $max = max(1, $maxAttempts);
+        if (count($attempts) < $max) {
             return null;
         }
-
-        // We need (count - maxAttempts + 1) attempts to expire to get below the limit.
-        $targetIndex = $count - $maxAttempts;
-        $targetAttemptTime = strtotime($attempts[$targetIndex]['created_at']);
-        $unlockTime = $targetAttemptTime + ($windowMinutes * 60);
-        $remaining = $unlockTime - time();
-
+        $target = $attempts[count($attempts) - $max];
+        $remaining = (int)($target['remaining_seconds'] ?? 0);
         return $remaining > 0 ? $remaining : null;
     }
 
