@@ -1,6 +1,6 @@
 # SEC-014 — Server-side attendance geofence and non-spoofable rate-limit identity
 
-**Severity:** MEDIUM. **Status:** CODE IMPLEMENTED / FOCUSED SYNTHETIC CI PASSED / OWNER-LED LIVE DEVELOPMENT VERIFICATION PENDING. **Scope:** Development security remediation; not production penetration testing.
+**Severity:** MEDIUM. **Status:** CLOSED — PR #46 MERGED / FOCUSED SYNTHETIC CI PASSED / RENDER DEVELOPMENT DEPLOYED / OWNER-REPORTED LIVE VERIFICATION AND CLEANUP PASSED (2026-11-15). **Scope:** Development security remediation; not production penetration testing.
 
 ## Finding and policy
 
@@ -28,7 +28,7 @@ The authenticated map endpoints `GET /api/employee/geofences` and `GET /api/empl
 
 Do not run brute force tests against a real HRMS account, trigger real OTP/reset email deliveries, delete genuine rate-limit rows, or alter real employee attendance in connected development/production. To verify live without making employee punches, first check Admin attendance/geofence configuration with a dedicated dev employee account (preferably with no attendance active), then use benign invalid synthetic-coordinate **check-in** requests that must be denied before writes. For allowed check-in/out or roaming background behavior, obtain explicit approval for a designated development-only day/employee and then perform each action safely. A failed/denied response is not proof of physical location validation if the employee's `geoFenceEnabled` flag is disabled; inspect it before interpreting results.
 
-**CI evidence:** [SEC-014 focused real HTTP/PostgreSQL and frontend build — PASSED](https://github.com/Kondapaneni/HRMS/actions/runs/43682233703). The first iterations exposed missing test-schema columns and an unbound authenticated user ID in the map-status route; both were corrected before the final green run. The final run confirmed PHP lint, policy/Haversine tests, rotated-forwarded-header authentication abuse checks, authorized/denied attendance and map status, no unauthorized data mutations, and the frontend production build.
+**CI evidence:** [SEC-014 final focused real HTTP/PostgreSQL and frontend build — PASSED](https://github.com/Kondapaneni/HRMS/actions/runs/43682349266). The first iterations exposed missing test-schema columns and an unbound authenticated user ID in the map-status route; both were corrected before the final green run. The final run confirmed PHP lint, policy/Haversine tests, rotated-forwarded-header authentication abuse checks, authorized/denied attendance and map status, no unauthorized data mutations, and the frontend production build.
 
 ## Closure gates
 
@@ -39,3 +39,16 @@ Do not run brute force tests against a real HRMS account, trigger real OTP/reset
 5. Temporary dev config/attendance fixture cleaned or restored, and Admin/Employee Dashboard regression checked. Close SEC-014 only when owner reports scoped live results and environment restoration.
 
 **Independent open findings:** SEC-015, SEC-018, SEC-021, SEC-022 and other audit items remain separately scoped. Closing SEC-014 does not clear HRMS for real-user production.
+
+## Live development verification and scoped closure — 2026-11-15
+
+- **Delivery:** [PR #46](https://github.com/Kondapaneni/HRMS/pull/46) merged into `main` as commit `944dce1da8f59906a5e036a93d052f929720c739`. Render development deployed this change successfully; subsequent development deployments remained live. Final focused [SEC-014 CI](https://github.com/Kondapaneni/HRMS/actions/runs/43682349266) and related SEC-006/007/008/009/012/020 security/Android regressions reported success.
+- **Step 1, 2A:** Owner confirmed Admin Dashboard, Attendance Configuration, Employee Security, and Employee Dashboard were functional without attendance changes; development employee's `Geo-fence radius validation` was **ON**, with at least one valid saved office geofence.
+- **Step 2B, 2C (negative tests):** Owner confirmed one direct check-in without GPS and one check-in with synthetic coordinates outside all office geofences each returned **HTTP 403**; attendance history remained unchanged in both cases. No repeated failed requests or real-user mutations.
+- **Step 3A–3C (permitted tests):** Owner confirmed approved development-only testing conditions, and reported genuine GPS inside an approved office radius. The normal Employee Dashboard check-in returned **HTTP 200** and created the expected Admin-visible attendance. A single authenticated interval `punch` returned **HTTP 200**, preserving original check-in and leaving checkout empty, and appeared in Admin Attendance Location.
+- **Step 3D (roaming policy):** The owner **skipped a live offsite interval punch intentionally** to avoid unsafe travel or a stranded checked-in attendance session. The offsite interval-punch policy passed *isolated synthetic HTTP/PostgreSQL CI* and was not separately validated live on the development account.
+- **Step 3E (controlled checkout):** Owner confirmed genuine inside-radius checkout returned **HTTP 200** with successful completion; check-in time and interval punch were preserved; Employee Dashboard and Admin Attendance/Attendance Location displayed the completed single-day attendance record and expected location markers. No automatic tracking remained.
+- **Step 4A (rate-limit connectivity):** Owner confirmed three Admin rate-limit settings sections displayed valid positive thresholds/windows without changes, and the employee read-only map-rate-limit-status endpoint returned **HTTP 200** with a valid lock-status field. Rotated-header account, OTP/reset and map abuse checks ran **only in isolated CI**, never against live credentials or real email queues.
+- **Step 4B (regression and cleanup):** Owner confirmed Admin Dashboard, Attendance, Attendance Location and Settings; Employee Dashboard and history; geofence **ON**, original office geofences and rate-limit values; checked-out test employee and inactive tracking. Approved handling of test records and no alteration of genuine employee attendance were owner-reported.
+
+**Closure decision:** All scoped SEC-014 closure gates met for development based on merged source, CI, confirmed Render deployment and **owner-reported** live verification. These statements do **not** independently verify physical GPS provenance or constitute live production penetration testing. Shared company-wide geofences (no per-branch assignment), lack of device-location attestation, and other open audit items remain limitations; SEC-014 closure is not authorization for production release.
