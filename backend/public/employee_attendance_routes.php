@@ -298,8 +298,10 @@ $app->get('/api/employee/geofences', function (Request $request, Response $respo
 
         $stmt = $conn->query('SELECT id, name, latitude, longitude, radius FROM geofences ORDER BY id ASC');
         $geofences = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        $apiKey = $_ENV['GOOGLE_GEOCODING_API_KEY'] ?? '';
+
+        // SEC-016: Only the intentionally public, referrer-restricted Maps JS
+        // key may be returned to browsers. Server geocoding credentials stay private.
+        $browserMapsKey = $_ENV['GOOGLE_MAPS_JS_BROWSER_KEY'] ?? '';
         
         $stmtEmp = $conn->prepare('SELECT "geoFenceEnabled" FROM employee WHERE "userId" = ?');
         $stmtEmp->execute([$decodedToken->id]);
@@ -307,7 +309,7 @@ $app->get('/api/employee/geofences', function (Request $request, Response $respo
         
         $response->getBody()->write(json_encode([
             'geofences' => $geofences,
-            'googleMapsApiKey' => $apiKey,
+            'googleMapsBrowserKey' => $browserMapsKey,
             'geoFenceEnabled' => $emp ? $emp['geoFenceEnabled'] : false
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
