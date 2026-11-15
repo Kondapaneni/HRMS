@@ -90,6 +90,7 @@ function sec001Mime(string $bucket, string $path, string $sample): ?string {
         'jpg' => ['image/jpeg', ['image/jpeg']],
         'jpeg' => ['image/jpeg', ['image/jpeg']],
         'png' => ['image/png', ['image/png']],
+        'avif' => ['image/avif', ['image/avif']],
         'webp' => ['image/webp', ['image/webp']],
         'gif' => ['image/gif', ['image/gif']],
         'pdf' => ['application/pdf', ['application/pdf']],
@@ -100,7 +101,7 @@ function sec001Mime(string $bucket, string $path, string $sample): ?string {
         'webm' => ['video/webm', ['video/webm']],
         'mov' => ['video/quicktime', ['video/quicktime']]
     ];
-    $images = ['jpg','jpeg','png','webp','gif'];
+    $images = ['jpg','jpeg','png','webp','gif','avif'];
     $docs = ['pdf','doc','docx'];
     $allowed = match ($bucket) {
         'avatars','attendance','holidays','loan_documents','loan_signatures' => $images,
