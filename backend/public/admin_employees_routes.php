@@ -667,11 +667,10 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
 
         // SEC-015: dynamic values inside the intentionally formatted HTML
         // fragments must be escaped BEFORE fragment construction.
-        $safeNewPosition = EmailSecurity::escape($newPosition);
-        $safeFormattedEffectiveDate = EmailSecurity::escape($formattedEffectiveDate);
-
         // 2. Determine titles, badges, and opening paragraphs adaptively
         $formattedEffectiveDate = date('F j, Y', strtotime($effectiveDate));
+        $safeNewPosition = EmailSecurity::escape($newPosition);
+        $safeFormattedEffectiveDate = EmailSecurity::escape($formattedEffectiveDate);
         $empFullName = trim(($emp['firstName'] ?? '') . ' ' . ($emp['lastName'] ?? ''));
 
         if ($positionChanged && $salaryChanged) {
