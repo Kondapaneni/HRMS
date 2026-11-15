@@ -240,7 +240,7 @@ export const uploadToSupabaseWithProgress = async ({
       });
     }
   });
-  return { ...response.data, publicUrl: getAssetUrl('/Training-Video/' + fileName) };
+  return { ...response.data, publicUrl: getAssetUrl('/Training-Video/' + response.data.path) };
 };
 
 export const formatBytes = (bytes, decimals = 1) => {

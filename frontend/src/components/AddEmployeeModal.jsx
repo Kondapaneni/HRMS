@@ -81,7 +81,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(filePath, avatarFile);
 
@@ -89,7 +89,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
 
         const { data: publicUrlData } = supabase.storage
           .from('avatars')
-          .getPublicUrl(filePath);
+          .getPublicUrl(uploadData.path);
 
         avatarUrl = publicUrlData.publicUrl;
       }

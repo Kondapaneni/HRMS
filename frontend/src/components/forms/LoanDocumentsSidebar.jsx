@@ -153,7 +153,7 @@ export function LoanDocumentsSidebar({
       }
 
       // 2. Upload optimized photo to Supabase storage bucket 'loan_documents'
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('loan_documents')
         .upload(filePath, optimizedFile, {
           cacheControl: '3600',
@@ -165,7 +165,7 @@ export function LoanDocumentsSidebar({
       }
 
       // 3. Construct proxy URL matching avatar pattern in EmployeeProfile.jsx
-      const documentUrl = window.location.origin + "/Loan-Document/" + fileName;
+      const documentUrl = window.location.origin + "/Loan-Document/" + uploadData.path;
 
       const docRecord = {
         url: documentUrl,

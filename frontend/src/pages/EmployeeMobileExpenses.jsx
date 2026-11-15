@@ -91,12 +91,12 @@ const EmployeeMobileExpenses = () => {
         const fileExt = billFile.name.split('.').pop();
         if (!profile?.id) throw new Error('Login required');
         const fileName = `${profile.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('expenses')
           .upload(fileName, billFile);
 
         if (uploadError) throw new Error('Failed to upload bill receipt');
-        bill_url = window.location.origin + "/Bills/" + fileName;
+        bill_url = window.location.origin + "/Bills/" + uploadData.path;
       }
 
       const res = await api.post('/employee/expenses', {

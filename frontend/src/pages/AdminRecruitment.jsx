@@ -140,10 +140,10 @@ const AdminRecruitment = () => {
         const fileExt = jobFile.name.split('.').pop();
         const safeTitle = jobFormData.title ? jobFormData.title.trim().replace(/\s+/g, '-') : 'Job';
         const fileName = `${safeTitle}-Job-Description-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('job_descriptions').upload(fileName, jobFile);
+        const { data: uploadData, error: uploadError } = await supabase.storage.from('job_descriptions').upload(fileName, jobFile);
         if (uploadError) throw uploadError;
         
-        description_pdf_url = window.location.origin + "/Job-Description/" + fileName;
+        description_pdf_url = window.location.origin + "/Job-Description/" + uploadData.path;
       }
 
       const jobDataToInsert = { ...jobFormData, description_pdf_url, status: submitStatus };
@@ -349,14 +349,14 @@ const AdminRecruitment = () => {
       // SEC-003: do not embed candidate names or predictable timestamps in file paths.
       const fileName = `offer-${crypto.randomUUID()}.pdf`;
       
-      const { error: uploadError } = await supabase.storage.from('offer_letters').upload(fileName, blob, {
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('offer_letters').upload(fileName, blob, {
         contentType: 'application/pdf',
         upsert: false
       });
       
       if (uploadError) throw uploadError;
       
-      const proxyUrl = window.location.origin + "/Offer-Letter/" + fileName;
+      const proxyUrl = window.location.origin + "/Offer-Letter/" + uploadData.path;
       
       const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
       updateStatusMutation.mutate({ 

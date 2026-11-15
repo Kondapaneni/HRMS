@@ -93,7 +93,7 @@ const AdminHolidays = () => {
         const fileName = `holiday-${selectedDate}-${Math.random()}.${fileExt}`;
         const filePath = `${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('holidays')
           .upload(filePath, holidayImage);
 
@@ -101,7 +101,7 @@ const AdminHolidays = () => {
           throw uploadError;
         }
 
-        const proxyUrl = window.location.origin + "/Holiday/" + fileName;
+        const proxyUrl = window.location.origin + "/Holiday/" + uploadData.path;
         imageUrl = proxyUrl;
       }
 

@@ -32,4 +32,33 @@ assert(upload.indexOf('$mime = sec001Mime(') < upload.indexOf('$config = sec001C
   'Reject invalid MIME before reading remote Storage config');
 assert(upload.includes('413') && upload.includes('415') && upload.includes('403'),
   'Upload handler must fail closed for size, MIME and authorization');
-console.log('PASS SEC-017 source: browser writes use authenticated backend and server validates files');
+assert(storage.includes('bin2hex(random_bytes(16))') &&
+  upload.includes('$storedPath = sec017GeneratedPath($path)') &&
+  upload.includes("'path' => $storedPath") &&
+  upload.includes("'x-upsert: false'"),
+  'Backend must mint unpredictable object filenames and return the stored path');
+
+// Every UI feature must persist the returned Storage object path, not the
+// client-requested provisional name. Otherwise downloads would break.
+const consumers = [
+  'frontend/src/pages/CandidateProfile.jsx',
+  'frontend/src/pages/AdminRecruitment.jsx',
+  'frontend/src/pages/AdminHolidays.jsx',
+  'frontend/src/pages/EmployeeProfile.jsx',
+  'frontend/src/pages/EmployeeMobileProfile.jsx',
+  'frontend/src/pages/AdminEmployeeView.jsx',
+  'frontend/src/components/AddEmployeeModal.jsx',
+  'frontend/src/pages/EmployeeMobileCamera.jsx',
+  'frontend/src/pages/EmployeeExpenses.jsx',
+  'frontend/src/pages/EmployeeMobileExpenses.jsx',
+  'frontend/src/pages/CandidateDocuments.jsx',
+  'frontend/src/pages/OriginationLoanViewApplication.jsx',
+  'frontend/src/pages/OriginationMobileLoanViewApplications.jsx',
+  'frontend/src/components/forms/LoanDocumentsSidebar.jsx'
+];
+for (const path of consumers) {
+  const source = read(path);
+  assert(source.includes('uploadData.path'), path + ' must use server-assigned path');
+}
+assert(video.includes("response.data.path"), 'Training video URLs must use server path');
+console.log('PASS SEC-017 source: backend-minted filenames are preserved by upload consumers');
