@@ -4,6 +4,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 use App\Utils\RateLimiter;
+use App\Security\AttendanceGeofence;
 
 // Get Employee Attendance History
 /** @var \Slim\App $app */
@@ -51,11 +52,38 @@ $app->get('/api/employee/attendance', function (Request $request, Response $resp
 $app->post('/api/employee/attendance/punch', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
     $data = $request->getParsedBody();
+    $data = is_array($data) ? $data : [];
     $action = $data['action'] ?? ''; // 'check-in', 'check-out', 'punch'
     $lat = $data['latitude'] ?? null;
     $lng = $data['longitude'] ?? null;
     $address = $data['address'] ?? null;
     $photoUrl = $data['photo'] ?? null;
+
+    // SEC-014: Decide permission using the server-owned employee setting and
+    // office geofences BEFORE geocoding or writing attendance.
+    // The native roaming tracker may continue interval ('punch') updates.
+    $db = new Database();
+    $conn = $db->getConnection();
+    if (!$conn) {
+        $response->getBody()->write(json_encode(['error' => 'Attendance service temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+    try {
+        [$lat, $lng] = AttendanceGeofence::coordinates($lat, $lng);
+        if (!AttendanceGeofence::permits($conn, (string)$decodedToken->id, (string)$action, $lat, $lng)) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Attendance location is outside the permitted office geofence or access is not configured.'
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+    } catch (\InvalidArgumentException $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    } catch (\Throwable $e) {
+        error_log('SEC-014: Server attendance geofence check failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Attendance location verification is temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
 
     // If no photo provided (web attendance), store descriptive text label
     if (empty($photoUrl)) {
@@ -69,7 +97,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
     }
     
     // Only fetch Google Geocoding API if address is empty and API key is present
-    if ($lat && $lng && empty($address)) {
+    if ($lat !== null && $lng !== null && empty($address)) {
         $apiKey = $_ENV['GOOGLE_GEOCODING_API_KEY'] ?? '';
         if ($apiKey) {
             $ctx = stream_context_create(['http' => ['timeout' => 1.5]]);
@@ -86,9 +114,6 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
     
     $today = date('Y-m-d');
     $now = date('Y-m-d H:i:s');
-    
-    $db = new Database();
-    $conn = $db->getConnection();
     
     // Face verification removed for attendance punch
 
@@ -225,7 +250,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
 $app->get('/api/employee/maps-rate-limit-status', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
-    $ip = RateLimiter::getClientIp();
+    $ip = RateLimiter::userKey((string)$decodedToken->id);
     $action = 'load_map';
 
     try {
@@ -245,7 +270,7 @@ $app->get('/api/employee/maps-rate-limit-status', function (Request $request, Re
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-});
+})->add(new AuthMiddleware(['employee']));
 
 // Get Geofences
 $app->get('/api/employee/geofences', function (Request $request, Response $response, $args) {
@@ -253,7 +278,7 @@ $app->get('/api/employee/geofences', function (Request $request, Response $respo
     $db = new Database();
     $conn = $db->getConnection();
     
-    $ip = RateLimiter::getClientIp();
+    $ip = RateLimiter::userKey((string)$decodedToken->id);
     $action = 'load_map';
 
     try {
