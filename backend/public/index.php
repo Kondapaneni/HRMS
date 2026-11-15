@@ -815,9 +815,10 @@ $app->post('/api/reset-password', function (Request $request, Response $response
     $token = is_array($data) ? ($data['token'] ?? null) : null;
     $newPassword = is_array($data) ? ($data['newPassword'] ?? null) : null;
 
-    if (!is_string($token) || !is_string($newPassword)
-        || !preg_match('/\A[a-f0-9]{64}\z/i', $token)
-        || strlen($newPassword) < 8) {
+    // Accept already-issued legacy tokens as well as new 64-hex setup tokens.
+    // The database predicate, not token syntax, determines token validity.
+    if (!is_string($token) || $token === '' || strlen($token) > 128
+        || !is_string($newPassword) || strlen($newPassword) < 8) {
         $response->getBody()->write(json_encode(['error' => 'Valid token and a password of at least 8 characters are required']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
