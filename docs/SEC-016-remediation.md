@@ -1,10 +1,10 @@
 # SEC-016 — Separate Google Maps browser and server Geocoding API keys
 
-**Severity:** MEDIUM. **Status:** PREPARED ON FEATURE BRANCH; CI, Render configuration, deployment and owner live verification pending. **No production clearance.**
+**Severity:** MEDIUM. **Status:** PREPARED ON FEATURE BRANCH; CI recheck after role regression fix, deployment and owner live verification pending. **No production clearance.**
 
 ## Original exposure and owner-verified baseline
 
-The owner confirmed in development that Admin Attendance Location loaded correctly (Step 1A), and an authenticated `GET /api/admin/attendance/location/{id}` returned a nonempty `googleMapsApiKey` field (Step 1B), without copying its value. Source code also exposed `GOOGLE_GEOCODING_API_KEY` in `GET /api/employee/geofences`. An existing mixed-use Maps Platform API key was configured with **no application restrictions** and access to five Google APIs. The owner created (but has not deployed) distinct restricted DEV keys:
+The owner confirmed in development that Admin Attendance Location loaded correctly (Step 1A), and an authenticated `GET /api/admin/attendance/location/{id}` returned a nonempty `googleMapsApiKey` field (Step 1B), without copying its value. Source code also exposed `GOOGLE_GEOCODING_API_KEY` in `GET /api/employee/geofences`. An existing mixed-use Maps Platform API key was configured with **no application restrictions** and access to five Google APIs. The owner created distinct restricted DEV keys (browser key subsequently staged in Render development; backend key not yet activated):
 - **Browser:** `https://hrms-qwv3.onrender.com` website referrers; Maps JavaScript API only.
 - **Backend:** Render shared outbound CIDR ranges; Geocoding API only. Render IP ranges are shared with other services; protect the key and configure quotas.
 
@@ -12,7 +12,7 @@ The owner confirmed in development that Admin Attendance Location loaded correct
 
 - Attendance and geofence JSON no longer carry any Google API key. The backend continues address reverse geocoding using `GOOGLE_GEOCODING_API_KEY` and must never emit it in payloads.
 - A dedicated authenticated `GET /api/maps/browser-config` exposes only `mapsJavaScriptApiKey` from the **new** `GOOGLE_MAPS_BROWSER_API_KEY`. Browser Maps JavaScript keys are necessarily public and must be tightly restricted in Google Cloud. This intentionally visible browser value is **not** a server credential. No attendance coordinates or other business records appear in the config response.
-- `MapsConfig::browserKey` fails closed (503) when the browser key is missing or equals `GOOGLE_GEOCODING_API_KEY` or the legacy `GOOGLE_MAPS_API_KEY`; no server/mixed-use fallback. All configuration requests require an active Admin or Employee session.
+- `MapsConfig::browserKey` fails closed (503) when the browser key is missing or equals `GOOGLE_GEOCODING_API_KEY` or the legacy `GOOGLE_MAPS_API_KEY`; no server/mixed-use fallback. All configuration requests require an active Admin, Employee, HR, or Manager session. Candidate sessions are denied. The HR/Manager roles are required for existing employee attendance map access; the frontend route permits both roles.
 - Both `AdminAttendanceLocation` and `EmployeeMobileMap` use the same runtime browser-config hook. Capacitor Android loads the remote `https://hrms-qwv3.onrender.com` site from `server.url`. A new APK is not required solely for the web map change, but Android regression testing is mandatory.
 - Render entrypoint and blueprint accept `GOOGLE_MAPS_BROWSER_API_KEY` as a runtime backend environment variable. This is deliberately **not** a Vite build-time variable.
 - Focused CI tests exercise fail-closed key policy, authenticated runtime config, absence of Geocoding/mixed-use keys in geofence responses, source-level Admin response and both frontend map consumers, plus the production Vite build. Only disposable PostgreSQL and synthetic test values are used.
