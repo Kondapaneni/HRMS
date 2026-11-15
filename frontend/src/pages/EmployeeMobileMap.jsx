@@ -130,7 +130,7 @@ const EmployeeMobileMap = () => {
   useEffect(() => {
     if (!currentLocation || !data) return;
 
-    const apiKey = data.googleMapsApiKey;
+    const apiKey = data.googleMapsBrowserKey;
     if (!apiKey) return;
 
     const loadGoogleMapsScript = () => {
@@ -356,11 +356,11 @@ const EmployeeMobileMap = () => {
               <Loader2 className="w-8 h-8 text-[var(--brand-deep)] animate-spin mb-3" />
               <p className="text-[var(--text-2)] font-medium text-xs">Acquiring GPS Signal...</p>
             </div>
-          ) : !data?.googleMapsApiKey ? (
+          ) : !data?.googleMapsBrowserKey ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface-alt)] z-10">
               <MapPin className="w-10 h-10 text-[var(--muted)] mb-3" />
               <p className="text-sm font-semibold text-[var(--text)]">Map unavailable</p>
-              <p className="text-xs text-[var(--muted)] mt-1 max-w-xs">Waiting for admin to configure Google Maps API key.</p>
+              <p className="text-xs text-[var(--muted)] mt-1 max-w-xs">Waiting for the Google Maps JavaScript browser key to be configured.</p>
             </div>
           ) : (
             <div ref={mapRef} className="w-full h-full" />
