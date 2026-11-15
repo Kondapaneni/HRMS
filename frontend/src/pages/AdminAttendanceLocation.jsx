@@ -6,6 +6,7 @@ import axios from '../api/axios';
 import { toast } from 'react-hot-toast';
 import { MapPin, ArrowRightToLine, ArrowLeftFromLine, MapPinOff, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui';
+import useMapsBrowserKey from '../hooks/useMapsBrowserKey';
 
 const AdminAttendanceLocation = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const AdminAttendanceLocation = () => {
   const markersRef = useRef({ checkIn: null, checkOut: null, punch: [] });
   const infoWindowRef = useRef(null);
   const pinnedMarkerRef = useRef(null);
+  const { browserKey, loadingBrowserKey } = useMapsBrowserKey();
 
   const { data, isLoading: loading } = useQuery({
     queryKey: ['admin', 'attendance-location', id],
@@ -92,7 +94,7 @@ const AdminAttendanceLocation = () => {
   };
 
   useEffect(() => {
-    if (!data || !data.googleMapsApiKey || !mapRef.current) return;
+    if (!data || !browserKey || !mapRef.current) return;
 
     const loadGoogleMapsScript = () => {
       if (window.google && window.google.maps) {
@@ -107,7 +109,7 @@ const AdminAttendanceLocation = () => {
 
       const script = document.createElement('script');
       script.id = 'google-maps-script';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${data.googleMapsApiKey}&callback=initGoogleMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(browserKey)}&callback=initGoogleMap`;
       script.async = true;
       script.defer = true;
       window.initGoogleMap = initMap;
@@ -255,7 +257,7 @@ const AdminAttendanceLocation = () => {
     };
 
     loadGoogleMapsScript();
-  }, [data]);
+  }, [data, browserKey]);
 
   const showAllMarkers = () => {
     if (window.__showAllMarkers) window.__showAllMarkers();
@@ -473,7 +475,7 @@ const AdminAttendanceLocation = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {!data.googleMapsApiKey && (
+              {!loadingBrowserKey && !browserKey && (
                 <div className="px-2.5 py-1 bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] text-xs rounded-[9px] font-semibold">
                   API Key Missing
                 </div>
@@ -489,14 +491,14 @@ const AdminAttendanceLocation = () => {
             </div>
           </div>
           <div className="flex-1 min-h-0 relative">
-            {data.googleMapsApiKey ? (
+            {browserKey ? (
               <div ref={mapRef} className="w-full h-full"></div>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--surface-alt)] text-[var(--muted)]">
                 <MapPinOff size={32} className="mb-3 text-[var(--icon-muted)]" />
                 <p className="font-semibold text-sm text-[var(--text)]">Map is unavailable</p>
                 <p className="text-xs mt-1 max-w-sm text-center">
-                  Please provide a valid Google Maps API Key in the backend environment file to view the attendance map.
+                  Please configure a restricted Maps JavaScript browser key to view the attendance map.
                 </p>
               </div>
             )}

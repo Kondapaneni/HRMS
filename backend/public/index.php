@@ -14,6 +14,7 @@ use App\Utils\SessionVersion;
 use App\Utils\OtpCode;
 use App\Utils\AccessToken;
 use App\Utils\RefreshSessions;
+use App\Security\MapsConfig;
 
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/sec007_cors.php';
@@ -32,8 +33,27 @@ $app = AppFactory::create();
 // Add Body Parsing Middleware for JSON POST requests
 $app->addBodyParsingMiddleware();
 
-// Add error middleware
-$app->addErrorMiddleware(true, true, true);
+// SEC-018: Legacy routes may construct HTTP 5xx bodies from PDO exceptions.
+// Redact all API server errors; preserve existing 4xx validation responses.
+$app->add(function (Request $request, $handler) {
+    $response = $handler->handle($request);
+    if (!str_starts_with($request->getUri()->getPath(), '/api/')
+        || $response->getStatusCode() < 500) {
+        return $response;
+    }
+    error_log('SEC-018: API server error response sanitized; HTTP ' . $response->getStatusCode());
+    $body = (new \Slim\Psr7\Factory\StreamFactory())
+        ->createStream(json_encode(['error' => 'Internal server error']));
+    return $response->withBody($body)
+        ->withHeader('Content-Type', 'application/json')
+        ->withHeader('Cache-Control', 'no-store')
+        ->withoutHeader('Content-Length')
+        ->withoutHeader('Content-Encoding');
+});
+
+// SEC-024: Never return file paths, SQL diagnostics, or stack traces to
+// clients. Error details belong in server logs, including DEV deployments.
+$app->addErrorMiddleware(false, true, true);
 
 // Add custom audit middleware
 $app->add(new AuditMiddleware());
@@ -682,6 +702,20 @@ $app->put('/api/change-password', function (Request $request, Response $response
         return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 })->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
+
+// SEC-016: A dedicated referrer-restricted Maps JS browser key is public.
+// Never substitute a backend Geocoding key or the legacy mixed-use key.
+$app->get('/api/maps/browser-config', function (Request $request, Response $response) {
+    $key = MapsConfig::browserKey($_ENV);
+    if ($key === null) {
+        $response->getBody()->write(json_encode(['error' => 'Browser Maps configuration unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'private, no-store')->withStatus(503);
+    }
+    $response->getBody()->write(json_encode(['mapsJavaScriptApiKey' => $key]));
+    return $response->withHeader('Content-Type', 'application/json')
+        ->withHeader('Cache-Control', 'private, no-store')->withStatus(200);
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 require __DIR__ . '/employee_attendance_routes.php';
 require __DIR__ . '/employee_leave_routes.php';

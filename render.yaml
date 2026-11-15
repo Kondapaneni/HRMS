@@ -22,3 +22,5 @@ services:
         sync: false
       - key: GOOGLE_GEOCODING_API_KEY
         sync: false
+      - key: GOOGLE_MAPS_BROWSER_API_KEY
+        sync: false

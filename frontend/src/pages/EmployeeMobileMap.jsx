@@ -15,6 +15,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import useMapsBrowserKey from '../hooks/useMapsBrowserKey';
 
 const EmployeeMobileMap = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const EmployeeMobileMap = () => {
   const action = locationState?.action;
   
   const { profile } = useAuth();
+  const { browserKey, loadingBrowserKey } = useMapsBrowserKey();
   
   const [currentLocation, setCurrentLocation] = useState(null);
   const [address, setAddress] = useState('Locating your position...');
@@ -128,10 +130,7 @@ const EmployeeMobileMap = () => {
 
   // Initialize Google Maps
   useEffect(() => {
-    if (!currentLocation || !data) return;
-
-    const apiKey = data.googleMapsApiKey;
-    if (!apiKey) return;
+    if (!currentLocation || !data || !browserKey) return;
 
     const loadGoogleMapsScript = () => {
       if (window.google && window.google.maps) {
@@ -145,7 +144,7 @@ const EmployeeMobileMap = () => {
       if (!script) {
         script = document.createElement('script');
         script.id = scriptId;
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(browserKey)}&libraries=geometry`;
         script.async = true;
         script.defer = true;
         script.onload = () => initMap();
@@ -246,7 +245,7 @@ const EmployeeMobileMap = () => {
     };
 
     loadGoogleMapsScript();
-  }, [currentLocation, data]);
+  }, [currentLocation, data, browserKey]);
 
   // Timeout safety
   useEffect(() => {
@@ -351,16 +350,16 @@ const EmployeeMobileMap = () => {
                 Try Again
               </button>
             </div>
-          ) : !currentLocation || loadingGeofences ? (
+          ) : !currentLocation || loadingGeofences || loadingBrowserKey ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface)]/70 backdrop-blur-sm z-10">
               <Loader2 className="w-8 h-8 text-[var(--brand-deep)] animate-spin mb-3" />
               <p className="text-[var(--text-2)] font-medium text-xs">Acquiring GPS Signal...</p>
             </div>
-          ) : !data?.googleMapsApiKey ? (
+          ) : !browserKey ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface-alt)] z-10">
               <MapPin className="w-10 h-10 text-[var(--muted)] mb-3" />
               <p className="text-sm font-semibold text-[var(--text)]">Map unavailable</p>
-              <p className="text-xs text-[var(--muted)] mt-1 max-w-xs">Waiting for admin to configure Google Maps API key.</p>
+              <p className="text-xs text-[var(--muted)] mt-1 max-w-xs">Waiting for a restricted Maps JavaScript browser key.</p>
             </div>
           ) : (
             <div ref={mapRef} className="w-full h-full" />

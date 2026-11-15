@@ -25,13 +25,30 @@ class HierarchyHelper
             return false;
         }
 
+        // SEC-018: Use distinct parameters for native PDO and prefer the
+        // employee's actual department over a potentially stale users value.
+        // UNION without ORDER BY could return NULL first and incorrectly
+        // change HR exemption behavior.
         $stmt = $conn->prepare('
-            SELECT department FROM employee WHERE "userId" = :uid OR id = :uid
-            UNION
-            SELECT department FROM users WHERE id = :uid
+            SELECT department FROM (
+                SELECT department, 0 AS source_priority FROM employee
+                WHERE "userId" = :emp_user_id
+                UNION ALL
+                SELECT department, 1 AS source_priority FROM employee
+                WHERE id = :emp_row_id
+                UNION ALL
+                SELECT department, 2 AS source_priority FROM users
+                WHERE id = :account_id
+            ) AS departments
+            WHERE NULLIF(TRIM(department), \'\') IS NOT NULL
+            ORDER BY source_priority
             LIMIT 1
         ');
-        $stmt->execute([':uid' => $userId]);
+        $stmt->execute([
+            ':emp_user_id' => $userId,
+            ':emp_row_id' => $userId,
+            ':account_id' => $userId,
+        ]);
         $department = $stmt->fetchColumn();
 
         if ($department) {
