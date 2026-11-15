@@ -53,6 +53,8 @@ jobs:
     env:
       DB_HOST: 127.0.0.1
       DB_PORT: '5432'
+      SUPABASE_SECRET_KEY: ''
+      SUPABASE_URL: ''
       DB_DATABASE: sec014_test
       DB_USERNAME: postgres
       DB_PASSWORD: sec014_synthetic_only
@@ -73,10 +75,15 @@ jobs:
       - name: Syntax and source checks
         run: |
           set -euo pipefail
-          for f in backend/src/Security/MapsConfig.php backend/public/index.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php tests/sec016_role_seed.php; do php -l "$f"; done
+          for f in backend/src/Security/MapsConfig.php backend/public/index.php backend/public/storage_routes.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php tests/sec016_role_seed.php; do php -l "$f"; done
           node --check tests/sec016_http_test.mjs
           node --check tests/sec016_source_test.mjs
+          node --check tests/sec017_storage_source_test.mjs
+          node --check tests/sec017_storage_http_test.mjs
+          node --check tests/sec024_source_test.mjs
           node tests/sec016_source_test.mjs
+          node tests/sec017_storage_source_test.mjs
+          node tests/sec024_source_test.mjs
       - name: Isolated config and HTTP authorization checks
         run: |
           set -euo pipefail
@@ -106,6 +113,7 @@ jobs:
           done
           if [ "$ready" != "true" ]; then tail -n 120 /tmp/sec016-server.log; exit 1; fi
           node tests/sec016_http_test.mjs || { tail -n 120 /tmp/sec016-server.log; exit 1; }
+          node tests/sec017_storage_http_test.mjs || { tail -n 120 /tmp/sec016-server.log; exit 1; }
 
   frontend:
     name: Maps web and Capacitor remote-view Vite production build
