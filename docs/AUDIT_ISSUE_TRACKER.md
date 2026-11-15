@@ -1,6 +1,6 @@
 # HRMS Audit Issue Tracker — Checklist
 
-**As of:** 2026-11-15 (SEC-001–SEC-013 and SEC-020 closed after source/CI review and owner-confirmed scoped live testing)  
+**As of:** 2026-11-15 (SEC-001–SEC-013 and SEC-020 closed; SEC-014 implementation awaiting CI and owner-led development verification)  
 **Baseline:** [AUDIT_REPORT.md](../AUDIT_REPORT.md) (2026-11-11), [GitHub commits](https://github.com/Kondapaneni/HRMS/commits/main), CI runs and owner-confirmed Android 14 testing.  
 **Important:** Original audit is a historical baseline, not an up-to-date closure record. "Pending / not verified" does **not** prove a vulnerability is still exploitable; it means no completed remediation and verification were established in this progress review.
 
@@ -8,9 +8,9 @@
 
 - **39 original findings:** 24 security (SEC), 8 performance (PERF), 7 code quality (QUAL).
 - **14 closed:** SEC-001 through SEC-013 and SEC-020. Latest closure: SEC-013 passed focused synthetic HTTP/DB CI, development Render deployment, owner-reported live salary/assessment regression checks and scoped test cleanup on 2026-11-15.
-- **2 partially fixed / still open:** SEC-017 and QUAL-002.
-- **23 pending / not verified:** No completed remediation and verification established in this progress review.
-- **25 still open in total:** 2 partial + 23 pending.
+- **3 partially fixed / still open:** SEC-014, SEC-017 and QUAL-002.
+- **22 pending / not verified:** No completed remediation and verification established in this progress review.
+- **25 still open in total:** 3 partial + 22 pending.
 - **14 / 39 closed = 35.9%.** Security 14 / 24 closed (58.3%); performance 0 / 8; quality 0 / 7.
 - **All 7 of the 7 original critical-severity findings closed** (SEC-001, SEC-002, SEC-008, SEC-009, SEC-010, SEC-011 and SEC-020). **This does not clear HRMS for production**: open high/medium findings, credential rotation and wider release gates remain.
 
@@ -78,7 +78,7 @@ Legend: `[x]` = **CLOSED** in the project issue tracker on the basis of owner co
 - **SEC-012:** Closed for verified development scope on 2026-11-14, following PRs #39/#40, synthetic CI, read-only Supabase checks, and owner-confirmed web Steps 1–8B and 10A plus Android 14 Steps 9A–9I. Live scope included login/OTP/MFA, revocation on logout and credential changes, web/native rotation, expired JWT rejection, private-file negative access tests, background punches across native refresh and post-checkout silence. A new debug APK was installed after an Android signing conflict; the older website-hosted download was *not* validated as an updated signed release. Candidate authentication, cross-device revocation, complete document-type coverage, 14-day absolute expiry and destructive misuse cases were covered only in CI or not independently retested live. SEC-015 and SEC-021 remain open, and this issue closure does not authorize production release.
 - **SEC-013:** Closed 2026-11-15 after [PR #43](https://github.com/Kondapaneni/HRMS/pull/43) salary/assignment/timer fixes and [PR #44](https://github.com/Kondapaneni/HRMS/pull/44) Asia/Kolkata assessment calendar correction were merged, focused synthetic CI passed, and Render development deployment was confirmed. Owner reported SEC-013 live Steps 1–9C PASSED including admin/delegated salary visibility and same-session revocation, fake-ID compensation write denial, unassigned and cross-employee assessment denial, authorized assessment completion, and 1-minute timer expiry save/submit/resume denial. Steps 10A–10C confirmed archiving temporary assessments, preserving attempts as evidence, restoring temporary Payroll/Employees/Assets settings, and successful employee/Admin regression checks. This is a scoped **owner-confirmed development** closure; isolated CI, not live destructive testing, covers database postconditions and other abuse cases. Remaining independently tracked issues and production release gates are unaffected.
 - **SEC-020:** Closed on 2026-11-14 after PRs #35 and #37 merged with passing focused CI and owner-confirmed live maintenance retest: protected employee API 503, Loan/Sales/Branch Operations notice, no refresh/login bounce, active Admin recovery, OFF/session restoration, and old localStorage flag failing to hide maintenance. Live testing was owner-reported and scoped to the tested routes/account, not a full independent penetration test. PHP middleware does not constrain direct Supabase traffic; historical secret reuse requires review.
-- **SEC-017 and QUAL-002:** Remain PARTIAL, not closed. SEC-017 has safer storage mutation code linked to SEC-001 but awaits further validation; QUAL-002 has focused CI but not comprehensive coverage.
+- **SEC-014, SEC-017 and QUAL-002:** Remain PARTIAL, not closed. SEC-014 has a proposed backend geofence/rate-limit fix awaiting CI and owner live verification; SEC-017 has safer storage mutation code linked to SEC-001 but awaits further validation; QUAL-002 has focused CI but not comprehensive coverage.
 
 ## Evidence
 
