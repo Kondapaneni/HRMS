@@ -6,7 +6,8 @@ if ((getenv('DB_DATABASE') ?: '') !== 'sec014_test'
     || !in_array((getenv('DB_HOST') ?: ''), ['127.0.0.1', 'localhost'], true)
     || (getenv('DB_PORT') ?: '') !== '5432'
     || (getenv('DB_USERNAME') ?: '') !== 'postgres'
-    || (getenv('DB_PASSWORD') ?: '') !== 'sec014_synthetic_only') {
+    || (getenv('DB_PASSWORD') ?: '') !== 'sec014_synthetic_only'
+    || (getenv('DB_PDO_PREPARE_MODE') ?: '') !== 'native') {
     fwrite(STDERR, "Refusing SEC-018 test outside isolated CI PostgreSQL\n");
     exit(1);
 }
