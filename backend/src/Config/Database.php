@@ -23,7 +23,8 @@ class Database
                 self::$conn = new LoggingPDO($dsn, $username, $password);
                 self::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 self::$conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
+                // SEC-018: Use native PostgreSQL prepares, never client-side substitution.
+                self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
                 self::$conn->setAttribute(PDO::ATTR_STATEMENT_CLASS, [LoggingPDOStatement::class, []]);
             } catch (PDOException $exception) {
                 // SEC-010: Callers must receive a clean error response, not

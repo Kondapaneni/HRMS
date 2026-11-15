@@ -33,6 +33,24 @@ $app = AppFactory::create();
 // Add Body Parsing Middleware for JSON POST requests
 $app->addBodyParsingMiddleware();
 
+// SEC-018: Legacy routes may construct HTTP 5xx bodies from PDO exceptions.
+// Redact all API server errors; preserve existing 4xx validation responses.
+$app->add(function (Request $request, $handler) {
+    $response = $handler->handle($request);
+    if (!str_starts_with($request->getUri()->getPath(), '/api/')
+        || $response->getStatusCode() < 500) {
+        return $response;
+    }
+    error_log('SEC-018: API server error response sanitized; HTTP ' . $response->getStatusCode());
+    $body = (new \Slim\Psr7\Factory\StreamFactory())
+        ->createStream(json_encode(['error' => 'Internal server error']));
+    return $response->withBody($body)
+        ->withHeader('Content-Type', 'application/json')
+        ->withHeader('Cache-Control', 'no-store')
+        ->withoutHeader('Content-Length')
+        ->withoutHeader('Content-Encoding');
+});
+
 // SEC-024: Never return file paths, SQL diagnostics, or stack traces to
 // clients. Error details belong in server logs, including DEV deployments.
 $app->addErrorMiddleware(false, true, true);

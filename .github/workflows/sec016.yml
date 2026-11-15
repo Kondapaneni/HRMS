@@ -1,10 +1,15 @@
 name: SEC-016 Google Maps browser/server key isolation
-# Batch regression for SEC-016, SEC-017, and SEC-024; no Android APK compilation.
+# Batch regression for SEC-016, SEC-017, SEC-018 and prior SEC-024; no Android APK compilation.
 
 on:
   pull_request:
     paths:
       - 'backend/src/Security/MapsConfig.php'
+      - 'backend/src/Config/Database.php'
+      - 'backend/src/Utils/HierarchyHelper.php'
+      - 'backend/public/admin_employees_routes.php'
+      - 'supabase/migrations/20261115_sec018_mfa_schema.sql'
+      - 'tests/sec018_*'
       - 'backend/public/index.php'
       - 'backend/public/employee_attendance_routes.php'
       - 'backend/public/admin_attendance_routes.php'
@@ -19,6 +24,11 @@ on:
     branches: ['main']
     paths:
       - 'backend/src/Security/MapsConfig.php'
+      - 'backend/src/Config/Database.php'
+      - 'backend/src/Utils/HierarchyHelper.php'
+      - 'backend/public/admin_employees_routes.php'
+      - 'supabase/migrations/20261115_sec018_mfa_schema.sql'
+      - 'tests/sec018_*'
       - 'backend/public/index.php'
       - 'backend/public/employee_attendance_routes.php'
       - 'backend/public/admin_attendance_routes.php'
@@ -76,15 +86,18 @@ jobs:
       - name: Syntax and source checks
         run: |
           set -euo pipefail
-          for f in backend/src/Security/MapsConfig.php backend/public/index.php backend/public/storage_routes.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php tests/sec016_role_seed.php; do php -l "$f"; done
+          for f in backend/src/Security/MapsConfig.php backend/src/Config/Database.php backend/src/Utils/HierarchyHelper.php backend/public/admin_employees_routes.php backend/public/index.php backend/public/storage_routes.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php tests/sec016_role_seed.php tests/sec018_db_test.php; do php -l "$f"; done
           node --check tests/sec016_http_test.mjs
           node --check tests/sec016_source_test.mjs
           node --check tests/sec017_storage_source_test.mjs
           node --check tests/sec017_storage_http_test.mjs
           node --check tests/sec024_source_test.mjs
+          node --check tests/sec018_source_test.mjs
+          node --check tests/sec018_http_test.mjs
           node tests/sec016_source_test.mjs
           node tests/sec017_storage_source_test.mjs
           node tests/sec024_source_test.mjs
+          node tests/sec018_source_test.mjs
       - name: Isolated config and HTTP authorization checks
         run: |
           set -euo pipefail
@@ -92,6 +105,7 @@ jobs:
           php tests/sec016_policy_test.php
           php tests/sec014_seed.php
           php tests/sec016_role_seed.php
+          php tests/sec018_db_test.php
           cat > backend/.env <<'SEC016_TEST_ENV'
           DB_HOST=127.0.0.1
           DB_PORT=5432
@@ -115,6 +129,7 @@ jobs:
           if [ "$ready" != "true" ]; then tail -n 120 /tmp/sec016-server.log; exit 1; fi
           node tests/sec016_http_test.mjs || { tail -n 120 /tmp/sec016-server.log; exit 1; }
           node tests/sec017_storage_http_test.mjs || { tail -n 120 /tmp/sec016-server.log; exit 1; }
+          node tests/sec018_http_test.mjs || { tail -n 120 /tmp/sec016-server.log; exit 1; }
 
   frontend:
     name: Maps web and Capacitor remote-view Vite production build

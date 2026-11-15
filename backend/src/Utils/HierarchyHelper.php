@@ -26,12 +26,16 @@ class HierarchyHelper
         }
 
         $stmt = $conn->prepare('
-            SELECT department FROM employee WHERE "userId" = :uid OR id = :uid
+            SELECT department FROM employee WHERE "userId" = :emp_user_id OR id = :emp_row_id
             UNION
-            SELECT department FROM users WHERE id = :uid
+            SELECT department FROM users WHERE id = :account_id
             LIMIT 1
         ');
-        $stmt->execute([':uid' => $userId]);
+        $stmt->execute([
+            ':emp_user_id' => $userId,
+            ':emp_row_id' => $userId,
+            ':account_id' => $userId,
+        ]);
         $department = $stmt->fetchColumn();
 
         if ($department) {

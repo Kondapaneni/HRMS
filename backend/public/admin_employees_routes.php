@@ -373,7 +373,8 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
             }
             
             if (isset($data['mfaEnabled'])) {
-                $conn->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS "mfaEnabled" BOOLEAN DEFAULT false');
+                // SEC-018: This schema column is installed by a one-time migration.
+                // Never perform DDL with an application request or DB login.
                 $mfaBool = filter_var($data['mfaEnabled'], FILTER_VALIDATE_BOOLEAN);
                 $userUpdates[] = '"mfaEnabled" = ?';
                 $userValues[] = $mfaBool ? 'true' : 'false';
