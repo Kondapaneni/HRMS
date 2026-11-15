@@ -92,7 +92,7 @@ const AdminAttendanceLocation = () => {
   };
 
   useEffect(() => {
-    if (!data || !data.googleMapsApiKey || !mapRef.current) return;
+    if (!data || !data.googleMapsBrowserKey || !mapRef.current) return;
 
     const loadGoogleMapsScript = () => {
       if (window.google && window.google.maps) {
@@ -107,7 +107,7 @@ const AdminAttendanceLocation = () => {
 
       const script = document.createElement('script');
       script.id = 'google-maps-script';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${data.googleMapsApiKey}&callback=initGoogleMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${data.googleMapsBrowserKey}&callback=initGoogleMap`;
       script.async = true;
       script.defer = true;
       window.initGoogleMap = initMap;
@@ -473,7 +473,7 @@ const AdminAttendanceLocation = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {!data.googleMapsApiKey && (
+              {!data.googleMapsBrowserKey && (
                 <div className="px-2.5 py-1 bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] text-xs rounded-[9px] font-semibold">
                   API Key Missing
                 </div>
@@ -489,14 +489,14 @@ const AdminAttendanceLocation = () => {
             </div>
           </div>
           <div className="flex-1 min-h-0 relative">
-            {data.googleMapsApiKey ? (
+            {data.googleMapsBrowserKey ? (
               <div ref={mapRef} className="w-full h-full"></div>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--surface-alt)] text-[var(--muted)]">
                 <MapPinOff size={32} className="mb-3 text-[var(--icon-muted)]" />
                 <p className="font-semibold text-sm text-[var(--text)]">Map is unavailable</p>
                 <p className="text-xs mt-1 max-w-sm text-center">
-                  Please provide a valid Google Maps API Key in the backend environment file to view the attendance map.
+                  Ask the administrator to configure the Google Maps JavaScript browser key to view the attendance map.
                 </p>
               </div>
             )}
