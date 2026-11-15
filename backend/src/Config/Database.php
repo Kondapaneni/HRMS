@@ -23,8 +23,18 @@ class Database
                 self::$conn = new LoggingPDO($dsn, $username, $password);
                 self::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 self::$conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                // SEC-018: Use native PostgreSQL prepares, never client-side substitution.
-                self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+                // SEC-018: Supabase shared transaction pooler cannot keep named
+                // server-side prepared statements across transactions (SQLSTATE 26000).
+                // Preserve safe PDO binding in pooler mode; only opt in to native
+                // prepares after moving to a verified direct/session connection.
+                // No Render database setting or credential change is required here.
+                $prepareMode = (string) ($_ENV['DB_PDO_PREPARE_MODE']
+                    ?? (getenv('DB_PDO_PREPARE_MODE') ?: 'pooler'));
+                if (!in_array($prepareMode, ['pooler', 'native'], true)) {
+                    error_log('Invalid DB_PDO_PREPARE_MODE; using pooler-safe prepares');
+                    $prepareMode = 'pooler';
+                }
+                self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, $prepareMode !== 'native');
                 self::$conn->setAttribute(PDO::ATTR_STATEMENT_CLASS, [LoggingPDOStatement::class, []]);
             } catch (PDOException $exception) {
                 // SEC-010: Callers must receive a clean error response, not

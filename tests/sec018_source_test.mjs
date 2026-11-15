@@ -6,8 +6,10 @@ const hierarchy = read('backend/src/Utils/HierarchyHelper.php');
 const employee = read('backend/public/admin_employees_routes.php');
 const entrypoint = read('backend/public/index.php');
 const migration = read('supabase/migrations/20261115_sec018_mfa_schema.sql');
-assert(db.includes('PDO::ATTR_EMULATE_PREPARES, false'), 'Native PostgreSQL prepares required');
-assert(!db.includes('PDO::ATTR_EMULATE_PREPARES, true'), 'Emulated prepares must be off');
+assert(db.includes('DB_PDO_PREPARE_MODE') &&
+  db.includes("getenv('DB_PDO_PREPARE_MODE') ?: 'pooler'") &&
+  db.includes("PDO::ATTR_EMULATE_PREPARES, $prepareMode !== 'native'"),
+  'Pooler default with explicit native override required');
 assert(!/echo\s+.*getMessage\(\)/.test(db), 'Do not echo database failure');
 assert(!hierarchy.includes(':uid OR id = :uid') &&
   hierarchy.includes(':emp_user_id') &&
@@ -27,4 +29,4 @@ assert(entrypoint.includes('API server error response sanitized') &&
   entrypoint.includes('getStatusCode() < 500') &&
   entrypoint.includes('new \\Slim\\Psr7\\Factory\\StreamFactory()'),
   'Server error responses must be redacted');
-console.log('PASS SEC-018 source: native prepares, no HTTP DDL, error redaction and migration');
+console.log('PASS SEC-018 source: pooler-compatible default, opt-in native prepares, no HTTP DDL, redaction');
