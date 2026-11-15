@@ -696,7 +696,7 @@ $app->get('/api/maps/browser-config', function (Request $request, Response $resp
     $response->getBody()->write(json_encode(['mapsJavaScriptApiKey' => $key]));
     return $response->withHeader('Content-Type', 'application/json')
         ->withHeader('Cache-Control', 'private, no-store')->withStatus(200);
-})->add(new AuthMiddleware(['admin', 'employee']));
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 require __DIR__ . '/employee_attendance_routes.php';
 require __DIR__ . '/employee_leave_routes.php';
