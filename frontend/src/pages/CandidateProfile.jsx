@@ -113,13 +113,13 @@ const CandidateProfile = () => {
         const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-');
         const fileName = `Resume-${profile.id}-${Date.now()}-${safeName}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('resumes')
           .upload(fileName, file);
 
         if (uploadError) throw uploadError;
 
-        const proxyUrl = window.location.origin + "/Resume/" + fileName;
+        const proxyUrl = window.location.origin + "/Resume/" + uploadData.path;
 
         const newResume = {
           name: file.name,
@@ -179,13 +179,13 @@ const CandidateProfile = () => {
         }
       }
 
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      const proxyUrl = window.location.origin + "/Avatar/" + fileName;
+      const proxyUrl = window.location.origin + "/Avatar/" + uploadData.path;
 
       setFormData(prev => {
         const newData = { ...prev, avatarUrl: proxyUrl };
