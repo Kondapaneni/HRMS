@@ -148,8 +148,8 @@ $app->post('/api/storage/upload', function (Request $request, Response $response
     if (!$conn || !sec001Permission($conn, $request->getAttribute('user'), $bucket, $path)) {
         return sec001Reply($response, 403, ['error' => 'Upload not permitted']);
     }
-    $config = sec001Config();
-    if (!$config || !function_exists('curl_init')) return sec001Reply($response, 503, ['error' => 'Storage is not configured']);
+    // SEC-017: Validate request length and file signature before even inspecting
+    // server-only Storage configuration. Rejected content never reaches Storage.
     $limit = $bucket === 'training_videos' ? 250 * 1024 * 1024 : 20 * 1024 * 1024;
     $length = (int) $request->getHeaderLine('Content-Length');
     if ($length <= 0) return sec001Reply($response, 411, ['error' => 'Content-Length required']);
@@ -170,6 +170,11 @@ $app->post('/api/storage/upload', function (Request $request, Response $response
     if (!$mime) {
         fclose($tmp);
         return sec001Reply($response, 415, ['error' => 'Unsupported or invalid file type']);
+    }
+    $config = sec001Config();
+    if (!$config || !function_exists('curl_init')) {
+        fclose($tmp);
+        return sec001Reply($response, 503, ['error' => 'Storage is not configured']);
     }
     [$url,$key] = $config;
     $encoded = implode('/', array_map('rawurlencode', explode('/', $path)));
