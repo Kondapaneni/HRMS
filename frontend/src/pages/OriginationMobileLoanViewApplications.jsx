@@ -169,7 +169,7 @@ export default function OriginationMobileLoanViewApplications({
         const fileToUpload = new File([blob], 'signature.png', { type: 'image/png' });
 
         const fileName = `${dbId}/employee-signature-${Date.now()}.png`;
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('loan_signatures')
           .upload(fileName, fileToUpload, {
             cacheControl: '3600',
@@ -177,7 +177,7 @@ export default function OriginationMobileLoanViewApplications({
           });
 
         if (uploadError) throw new Error(uploadError.message);
-        signatureUrl = window.location.origin + '/Loan-Signature/' + fileName;
+        signatureUrl = window.location.origin + '/Loan-Signature/' + uploadData.path;
       }
 
       const timelineEvent = {
