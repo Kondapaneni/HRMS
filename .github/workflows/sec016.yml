@@ -1,4 +1,5 @@
 name: SEC-016 Google Maps browser/server key isolation
+# Batch regression for SEC-016, SEC-017, and SEC-024; no Android APK compilation.
 
 on:
   pull_request:
