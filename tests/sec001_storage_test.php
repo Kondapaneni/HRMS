@@ -31,6 +31,17 @@ check001(sec001ValidPath('user123/id.pdf'), 'accept valid path');
 foreach (['../x.pdf', '/abs.jpg', 'two//slashes.pdf', 'with spaces.png', 'a/../file', ''] as $path) {
     check001(!sec001ValidPath($path), "reject unsafe path");
 }
+// CSPRNG-generated object paths must retain ownership prefixes and extensions.
+$firstPath = sec017GeneratedPath('candidate-user123-sec017.png');
+$secondPath = sec017GeneratedPath('candidate-user123-sec017.png');
+check001(is_string($firstPath) &&
+    preg_match('/^candidate-user123-sec017-[a-f0-9]{32}\\.png$/', $firstPath) === 1,
+    'server mints a 128-bit random suffix');
+check001($firstPath !== $secondPath, 'separate uploads never reuse client filename');
+check001(sec001ValidPath($firstPath), 'generated filename preserves safe path rules');
+check001(sec017GeneratedPath('user123/id.pdf') !== null, 'nested ownership path retained');
+check001(sec017GeneratedPath(str_repeat('a', 237) . '.pdf') === null,
+    'reject names too long after random suffix');
 check001(sec001Flag('t') && sec001Flag(true) && !sec001Flag('f') && !sec001Flag(false), 'parse postgres boolean strings');
 $u = (object)['id' => 'user123', 'role' => 'candidate'];
 check001(sec001Permission(new MockDb([]), $u, 'resumes', 'Resume-user123-001-file.pdf'), 'allow own candidate resume');
