@@ -12,6 +12,12 @@ if ((getenv('DB_DATABASE') ?: '') !== 'sec014_test'
 }
 require dirname(__DIR__) . '/backend/vendor/autoload.php';
 
+// PHP CLI does not necessarily populate $_ENV (variables_order can omit E).
+// The application factory reads $_ENV, so transfer only synthetic CI settings.
+foreach (['DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD'] as $name) {
+    $_ENV[$name] = (string) getenv($name);
+}
+
 // Simulate Render DEV with no newly configured prepare-mode environment var.
 // Do not overwrite the parent process environment (the next CI test uses native).
 unset($_ENV['DB_PDO_PREPARE_MODE']);
