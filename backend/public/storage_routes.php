@@ -20,6 +20,21 @@ function sec001ValidPath(string $path): bool {
         && !str_ends_with($path, '/');
 }
 
+/**
+ * SEC-017: The browser supplies only a requested ownership-scoped name.
+ * The actual Storage object name is minted on the server with 128 bits of
+ * CSPRNG entropy. Preserve scope prefixes and extensions because authorization,
+ * existing file proxies and domain records depend on them.
+ */
+function sec017GeneratedPath(string $requestedPath): ?string {
+    $dot = strrpos($requestedPath, '.');
+    if ($dot === false) return null;
+    $storedPath = substr($requestedPath, 0, $dot)
+        . '-' . bin2hex(random_bytes(16))
+        . substr($requestedPath, $dot);
+    return sec001ValidPath($storedPath) ? $storedPath : null;
+}
+
 function sec001Flag($value): bool {
     return in_array($value, [true, 1, '1', 't', 'true'], true);
 }
@@ -171,18 +186,24 @@ $app->post('/api/storage/upload', function (Request $request, Response $response
         fclose($tmp);
         return sec001Reply($response, 415, ['error' => 'Unsupported or invalid file type']);
     }
+    // Final path is unpredictable even when clients choose predictable names.
+    $storedPath = sec017GeneratedPath($path);
+    if ($storedPath === null) {
+        fclose($tmp);
+        return sec001Reply($response, 400, ['error' => 'Invalid file path']);
+    }
     $config = sec001Config();
     if (!$config || !function_exists('curl_init')) {
         fclose($tmp);
         return sec001Reply($response, 503, ['error' => 'Storage is not configured']);
     }
     [$url,$key] = $config;
-    $encoded = implode('/', array_map('rawurlencode', explode('/', $path)));
+    $encoded = implode('/', array_map('rawurlencode', explode('/', $storedPath)));
     $ok = sec001Call($url . '/storage/v1/object/' . $bucket . '/' . $encoded,
         $key, 'POST', $tmp, ['Content-Type: ' . $mime, 'x-upsert: false', 'Expect:'], $bytes);
     fclose($tmp);
     if (!$ok) return sec001Reply($response, 502, ['error' => 'File upload failed']);
-    return sec001Reply($response, 201, ['path' => $path, 'key' => $bucket . '/' . $path]);
+    return sec001Reply($response, 201, ['path' => $storedPath, 'key' => $bucket . '/' . $storedPath]);
 })->add(new AuthMiddleware(['admin','employee','candidate']));
 
 $app->delete('/api/storage/object', function (Request $request, Response $response) {
