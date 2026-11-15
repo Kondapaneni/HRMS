@@ -248,6 +248,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
 
 // Get Maps Rate Limit Status
 $app->get('/api/employee/maps-rate-limit-status', function (Request $request, Response $response, $args) {
+    $decodedToken = $request->getAttribute('user');
     $db = new Database();
     $conn = $db->getConnection();
     $ip = RateLimiter::userKey((string)$decodedToken->id);
