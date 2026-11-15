@@ -143,7 +143,9 @@ const EmployeeDashboard = () => {
 
           if (isGeoFenceEnabled && action !== 'punch') {
             const geofences = geofenceRes.data?.geofences || [];
-            if (geofences.length > 0) {
+            // SEC-014: If no office is configured, fail closed just as the
+            // backend does; do not silently allow remote check-in/out.
+            {
               let insideAny = false;
               geofences.forEach(gf => {
                 const d = getDistanceFromLatLonInMeters(lat, lng, parseFloat(gf.latitude), parseFloat(gf.longitude));
