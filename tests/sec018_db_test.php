@@ -54,6 +54,13 @@ $userId = '00000000-0000-4000-8000-000000000143';
 sec018Check(HierarchyHelper::isExempt($conn, (object)[
     'role' => 'employee', 'id' => $userId,
 ]), 'Hierarchy helper with distinct native named placeholders');
+$conn->prepare('UPDATE users SET department = ? WHERE id = ?')
+    ->execute(['Human Resources', $userId]);
+$conn->prepare('UPDATE employee SET department = ? WHERE "userId" = ?')
+    ->execute(['Sales', $userId]);
+sec018Check(!HierarchyHelper::isExempt($conn, (object)[
+    'role' => 'employee', 'id' => $userId,
+]), 'Employee department must override stale users department');
 $q = $conn->prepare('UPDATE users SET "mfaEnabled" = :flag WHERE id = :user_id');
 $q->execute([':flag' => true, ':user_id' => $userId]);
 sec018Check($q->rowCount() === 1, 'Restricted runtime can perform allowed MFA DML');
