@@ -1,6 +1,6 @@
 # SEC-016 — Separate Google Maps browser and server Geocoding API keys
 
-**Severity:** MEDIUM. **Status:** PREPARED ON FEATURE BRANCH; CI recheck after role regression fix, deployment and owner live verification pending. **No production clearance.**
+**Severity:** MEDIUM. **Status:** CLOSED for owner-verified development security-remediation scope (2026-11-15). **No production clearance.**
 
 ## Original exposure and owner-verified baseline
 
@@ -27,3 +27,13 @@ The owner confirmed in development that Admin Attendance Location loaded correct
 6. Finish owner-confirmed scoped live verification and cleanup before closing issue in the tracker. Never claim production approval from this development test.
 
 **Rollback:** Restore the previous working app release together with its matching old key setup if deployment fails. Never introduce a new-code fallback to the Geocoding key or old mixed-use key.
+
+## Development closure evidence — 2026-11-15
+
+- **Code/deployment:** [PR #51](https://github.com/Kondapaneni/HRMS/pull/51) merged. Owner confirmed Render DEV deployed with independent `GOOGLE_MAPS_BROWSER_API_KEY` and updated `GOOGLE_GEOCODING_API_KEY`; subsequently removed `GOOGLE_MAPS_API_KEY` from Render DEV and deleted the legacy unrestricted Google Cloud `Maps Platform API Key` after finding no post-removal traffic. The new dedicated browser and backend keys were retained.
+- **No server credential exposure:** Owner verified `GET /api/admin/attendance/location/{id}` returned 200 with record/employee/punches and no Google key fields, and `GET /api/employee/geofences` returned 200 with the geofences array and `geoFenceEnabled` but no Maps or Geocoding keys. Anonymous `GET /api/maps/browser-config` returned 401; authenticated Admin received 200 with only a nonempty `mapsJavaScriptApiKey` and `Cache-Control: no-store`.
+- **Map regression:** Owner verified Admin Attendance Location, Employee Web location map and Android 14 remote WebView map, including current-location markers/geofence circles where applicable, and repeated all three regression checks after removing the legacy Render key and after deleting the original Google Cloud legacy key. No Maps authorization errors or employee attendance mutations were observed.
+- **Key restrictions:** Owner verified new Maps JavaScript browser key is limited to the DEV HRMS website and Maps JavaScript API; backend Geocoding key limited to Geocoding API and `74.220.52.0/24` plus `74.220.60.0/24`, matching Render service outbound ranges. These Render CIDR ranges are shared with other services. Google Cloud Geocoding API is enabled.
+- **Controlled Geocoding runtime test:** During an owner-confirmed no-check-in/no-tracking DEV window, a single synthetic `POST /api/employee/attendance/punch` request with public coordinates, `action=punch`, and no provided address received 400 (`Cannot punch without checking in first.`). The owner verified the attendance history was unchanged. Current server source attempts Geocoding before that attendance-state denial. Google Cloud metrics for the **new restricted backend credential** showed a `2xx` Geocoding request at the test time and `grpc_status_code=0` (OK), confirming Google API acceptance from the deployed backend. Avoid repeating the synthetic request against actual attendance records.
+- **Usage limit:** Owner set Geocoding v3 daily quota to **1,000 requests/day** (previously unlimited). Evaluate this limit before scale-up; it is a project/API quota, not per-key isolation.
+- **Residual boundary:** HTTP/gRPC success and safe attendance rejection do **not** directly prove that the PHP application parsed a returned `formatted_address` or persisted it for a successful attendance action. That functional check remains a documented, separate owner-approved test and is **not** represented as passed. No independent production security clearance, production rollout approval or blanket Maps billing-safety guarantee is claimed. This closes only the scoped **secret exposure and key separation** finding.
