@@ -64,7 +64,7 @@ check001(sec001Permission(new MockDb([
 check001(!sec001Permission(new MockDb([]), (object)['id'=>'a','role'=>'admin'],'unknown','file.pdf'), 'block unknown bucket');
 $pdf = "%PDF-1.4\n1 0 obj <</Type/Catalog>> endobj\n%%EOF\n";
 check001(sec001Mime('offer_letters','doc.pdf',$pdf) === 'application/pdf', 'accept PDF signature');
-$avifHeader = "\\x00\\x00\\x00\\x18ftypavif\\x00\\x00\\x00\\x00avifmif1";
+$avifHeader = "\x00\x00\x00\x18ftypavif\x00\x00\x00\x00avifmif1";
 check001(sec001Mime('avatars', 'historic.avif', $avifHeader) === 'image/avif',
     'accept AVIF image signature for historical format compatibility');
 check001(sec001Mime('avatars', 'spoofed.avif', '<svg onload="x"/>') === null,
