@@ -33,8 +33,9 @@ $app = AppFactory::create();
 // Add Body Parsing Middleware for JSON POST requests
 $app->addBodyParsingMiddleware();
 
-// Add error middleware
-$app->addErrorMiddleware(true, true, true);
+// SEC-024: Never return file paths, SQL diagnostics, or stack traces to
+// clients. Error details belong in server logs, including DEV deployments.
+$app->addErrorMiddleware(false, true, true);
 
 // Add custom audit middleware
 $app->add(new AuditMiddleware());
