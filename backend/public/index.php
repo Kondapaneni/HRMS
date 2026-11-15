@@ -14,6 +14,7 @@ use App\Utils\SessionVersion;
 use App\Utils\OtpCode;
 use App\Utils\AccessToken;
 use App\Utils\RefreshSessions;
+use App\Security\MapsConfig;
 
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/sec007_cors.php';
@@ -682,6 +683,20 @@ $app->put('/api/change-password', function (Request $request, Response $response
         return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 })->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
+
+// SEC-016: A dedicated referrer-restricted Maps JS browser key is public.
+// Never substitute a backend Geocoding key or the legacy mixed-use key.
+$app->get('/api/maps/browser-config', function (Request $request, Response $response) {
+    $key = MapsConfig::browserKey($_ENV);
+    if ($key === null) {
+        $response->getBody()->write(json_encode(['error' => 'Browser Maps configuration unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'private, no-store')->withStatus(503);
+    }
+    $response->getBody()->write(json_encode(['mapsJavaScriptApiKey' => $key]));
+    return $response->withHeader('Content-Type', 'application/json')
+        ->withHeader('Cache-Control', 'private, no-store')->withStatus(200);
+})->add(new AuthMiddleware(['admin', 'employee']));
 
 require __DIR__ . '/employee_attendance_routes.php';
 require __DIR__ . '/employee_leave_routes.php';
