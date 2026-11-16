@@ -61,4 +61,13 @@ for (const path of consumers) {
   assert(source.includes('uploadData.path'), path + ' must use server-assigned path');
 }
 assert(video.includes("response.data.path"), 'Training video URLs must use server path');
+
+const deleteRoute = storage.slice(storage.indexOf("$app->delete('/api/storage/object'"));
+assert(storage.includes('function sec017DeleteResponseConfirmsPath(') &&
+  storage.includes("if ($method === 'DELETE'") &&
+  storage.includes('!sec017DeleteResponseConfirmsPath($data, $deletedBucket, $deletedPath)'),
+  'DELETE must fail closed unless Supabase confirms the exact removed object');
+assert(deleteRoute.includes("['Content-Type: application/json'], 0, $bucket, $path)") &&
+  deleteRoute.includes("'File deletion not confirmed'"),
+  'Authenticated delete handler must bind the expected bucket/path and reject unconfirmed deletion');
 console.log('PASS SEC-017 source: backend-minted filenames are preserved by upload consumers');
