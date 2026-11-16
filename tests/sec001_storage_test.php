@@ -71,6 +71,24 @@ check001(sec001Mime('avatars', 'spoofed.avif', '<svg onload="x"/>') === null,
     'reject fake AVIF with SVG content');
 check001(sec001Mime('avatars','fake.jpg',$pdf) === null, 'reject disguised upload');
 check001(sec001Mime('avatars','unsafe.svg','<svg></svg>') === null, 'reject SVG upload');
+// SEC-017: Supabase bulk DELETE may return 2xx with an empty or unrelated list.
+$removed = json_encode([['name' => 'owner/test.png', 'bucket_id' => 'expenses', 'id' => 'synthetic']]);
+check001(sec017DeleteResponseConfirmsPath($removed, 'expenses', 'owner/test.png'),
+    'confirm exact deleted file and bucket from response');
+check001(sec017DeleteResponseConfirmsPath(json_encode([['name' => 'owner/test.png']]),
+    'expenses', 'owner/test.png'), 'accept omitted deprecated bucket_id field');
+check001(!sec017DeleteResponseConfirmsPath('[]', 'expenses', 'owner/test.png'),
+    'reject successful empty deletion list');
+check001(!sec017DeleteResponseConfirmsPath(json_encode([['name' => 'owner/other.png',
+    'bucket_id' => 'expenses']]), 'expenses', 'owner/test.png'),
+    'reject unrelated deleted path');
+check001(!sec017DeleteResponseConfirmsPath(json_encode([['name' => 'owner/test.png',
+    'bucket_id' => 'holidays']]), 'expenses', 'owner/test.png'),
+    'reject wrong deleted bucket');
+check001(!sec017DeleteResponseConfirmsPath('{"message":"Successfully deleted"}',
+    'expenses', 'owner/test.png'), 'reject non-list response body');
+check001(!sec017DeleteResponseConfirmsPath('{broken-json', 'expenses', 'owner/test.png'),
+    'reject malformed deletion response');
 $sql = file_get_contents(dirname(__DIR__) . '/supabase/migrations/20261113_sec_001_lock_down_rls.sql');
 check001(str_contains($sql, 'DROP POLICY IF EXISTS') && str_contains($sql, 'REVOKE ALL PRIVILEGES'), 'migration revokes permissive rules');
 echo "Focused SEC-001 regression checks passed.\n";
