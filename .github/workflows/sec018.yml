@@ -8,9 +8,13 @@ permissions:
 jobs:
   isolated-security:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: [16, 17]
     services:
       postgres:
-        image: postgres:16
+        image: postgres:${{ matrix.postgres }}
         env:
           POSTGRES_DB: sec018_phasea_ci
           POSTGRES_USER: postgres
@@ -31,7 +35,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_pgsql
+          extensions: pdo_pgsql, curl
       - name: Apply review-only SQL to disposable fixture
         shell: bash
         run: |
@@ -72,9 +76,30 @@ jobs:
           php tests/sec018_adversarial_ci.php 5432
           php tests/sec018_adversarial_ci.php 6432
           php tests/sec018_business_ci.php
+      - name: Actual HTTP under restricted signed-audit runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+          cat > backend/.env <<'ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=6432
+          DB_DATABASE=sec018_phasea_ci
+          DB_USERNAME=hrms_runtime_restricted
+          DB_PASSWORD=SEC018_PHASEA_CI_RUNTIME_ONLY
+          JWT_SECRET=SEC018_HTTP_SYNTHETIC_ONLY
+          SEC018_AUDIT_CONTEXT_ENABLED=true
+          SEC018_AUDIT_HMAC_KEY=ac9f1c12ebd1677a7a32e1c79b4d2a808feca339589d302d1bdb102edc4b9e1a
+          APP_ENV=production
+          ENV
+          env -u DB_HOST -u DB_PORT -u DB_DATABASE -u DB_USERNAME -u DB_PASSWORD php -S 127.0.0.1:8788 -t backend/public backend/public/index.php > /tmp/sec018-pool/http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in {1..20}; do curl -fsS http://127.0.0.1:8788/version.json >/dev/null && break; sleep 1; done
+          php tests/sec018_restricted_http_ci.php || { tail -n 100 /tmp/sec018-pool/http.log; exit 1; }
       - name: Upload isolated evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sec018-pooler-evidence
-          path: /tmp/sec018-pool/pool.log
+          name: sec018-pooler-evidence-${{ matrix.postgres }}
+          path: /tmp/sec018-pool/*.log

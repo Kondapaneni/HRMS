@@ -54,6 +54,9 @@ try {
  ins($c,'portal_item_reads',['user_id'=>$a,'item_id'=>'ci','last_seen_at'=>date('Y-m-d H:i:s'),'portal_key'=>'ci','item_type'=>'ci']);
  ins($c,'email_queue',['to_email'=>'nobody@example.invalid','subject'=>'Synthetic','body'=>'Never delivered']);
  ins($c,'hrms_refresh_sessions',['user_id'=>$a,'token_hash'=>str_repeat('0',64),'session_version'=>1,'client_type'=>'android','expires_at'=>'2099-01-01']);
+ $c->prepare("INSERT INTO public.loan_documents(application_id,slot_key,url) VALUES (?,?,?) ON CONFLICT(application_id,slot_key) DO UPDATE SET url=EXCLUDED.url")->execute(['SEC018-CI','Synthetic','https://example.invalid/replaced']);
+ if($c->query("SELECT url FROM public.loan_documents WHERE application_id='SEC018-CI'")->fetchColumn()!=='https://example.invalid/replaced')throw new RuntimeException('loan document upsert');
+ echo "PASS actual loan-document conflict update\n";
  $names=$c->query("SELECT tablename FROM pg_tables WHERE schemaname='public'")->fetchAll(PDO::FETCH_COLUMN);
  if(count($names)!==38)throw new RuntimeException('inventory');
  foreach($names as $name){$c->query('SELECT * FROM public."'.$name.'" LIMIT 1')->fetchAll();echo "PASS restricted SELECT $name\n";}

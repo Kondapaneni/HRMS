@@ -193,9 +193,10 @@ CREATE POLICY sec018_runtime_i ON public.loan_applications FOR INSERT TO hrms_ru
 CREATE POLICY sec018_runtime_u ON public.loan_applications FOR UPDATE TO hrms_runtime_restricted USING (true) WITH CHECK (true);
 CREATE POLICY sec018_runtime_d ON public.loan_applications FOR DELETE TO hrms_runtime_restricted USING (true);
 
-GRANT SELECT, INSERT, DELETE ON TABLE public.loan_documents TO hrms_runtime_restricted;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.loan_documents TO hrms_runtime_restricted;
 CREATE POLICY sec018_runtime_s ON public.loan_documents FOR SELECT TO hrms_runtime_restricted USING (true);
 CREATE POLICY sec018_runtime_i ON public.loan_documents FOR INSERT TO hrms_runtime_restricted WITH CHECK (true);
+CREATE POLICY sec018_runtime_u ON public.loan_documents FOR UPDATE TO hrms_runtime_restricted USING (true) WITH CHECK (true);
 CREATE POLICY sec018_runtime_d ON public.loan_documents FOR DELETE TO hrms_runtime_restricted USING (true);
 
 GRANT SELECT, INSERT, UPDATE ON TABLE public.loan_leads TO hrms_runtime_restricted;

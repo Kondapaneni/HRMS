@@ -36,11 +36,12 @@ class Database
                 }
                 self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, $prepareMode !== 'native');
                 // Statement objects retain their own connection (configured by LoggingPDO).
-                if ($username === 'hrms_runtime_restricted' && !\App\Utils\Sec018AuditContext::enabled()) {
+                if (self::$conn->query('SELECT current_user')->fetchColumn() === 'hrms_runtime_restricted' && !\App\Utils\Sec018AuditContext::enabled()) {
                     self::$conn = null;
                     throw new \RuntimeException('Restricted runtime requires signed audit context');
                 }
-            } catch (PDOException $exception) {
+            } catch (\Throwable $exception) {
+                self::$conn = null;
                 // SEC-010: Callers must receive a clean error response, not
                 // connection details printed into the HTTP response body.
                 // AuthMiddleware treats a null connection as HTTP 503.
