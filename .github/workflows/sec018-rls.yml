@@ -8,6 +8,7 @@ on:
       - '.github/workflows/sec018-rls.yml'
       - 'tests/sec018_rls_ci.php'
       - 'tests/sec018_signed_identity_ci.php'
+      - 'tests/sec018_replay_refresh_ci.php'
       - 'docs/SEC-018-isolated-rls-test-plan.md'
   workflow_dispatch:
 
@@ -49,7 +50,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_pgsql
+          extensions: pdo_pgsql, pcntl
           coverage: none
       - uses: actions/setup-node@v4
         with:
@@ -59,9 +60,11 @@ jobs:
           set -euo pipefail
           php -l tests/sec018_rls_ci.php
           php -l tests/sec018_signed_identity_ci.php
+          php -l tests/sec018_replay_refresh_ci.php
           node tests/sec018_source_test.mjs
       - name: Run synthetic-only role and RLS regression
         run: |
           set -euo pipefail
           php tests/sec018_rls_ci.php
           php tests/sec018_signed_identity_ci.php
+          php tests/sec018_replay_refresh_ci.php
