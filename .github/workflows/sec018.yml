@@ -71,6 +71,7 @@ jobs:
         run: |
           php tests/sec018_adversarial_ci.php 5432
           php tests/sec018_adversarial_ci.php 6432
+          php tests/sec018_business_ci.php
       - name: Upload isolated evidence
         if: always()
         uses: actions/upload-artifact@v4
