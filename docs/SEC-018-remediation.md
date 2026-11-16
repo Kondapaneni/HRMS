@@ -213,3 +213,122 @@ No live SQL mutation, role/grant change, credential change, Render setting,
 deployment, data migration or merge was performed in this remediation review.
 The next actionable gate is **B1**, but it is blocked until the owner explicitly
 authorizes a safe method of obtaining the missing trusted schema source.
+
+## Step 1I — proposed schema-only evidence collection plan (approval required; NOT executed)
+
+**Status: PLAN ONLY / NOT AUTHORIZED TO COLLECT.** Owner requested this plan
+without connecting to live Supabase, changing Render, or deploying. No export,
+catalog query, SQL execution, credential request, migration, role activation,
+merge, or delivery of function bodies is authorized by drafting or approving
+this document. PR #58 stays DRAFT; SEC-018 stays OPEN; the Step 1H NO-GO
+release hold applies.
+
+### Purpose and evidence gap
+
+The successful PostgreSQL 16/17 CI uses a *synthetic* representation of
+38 public tables, 407 pre-migration columns, 78 constraints, and nine
+application triggers. Its `public.rls_auto_enable()` and
+`public.enforce_direct_chat_two_participants()` are ACL-only no-ops, not
+verified real implementations. No existing sanitized schema-only offline
+backup was available at Step 1G-1. A trustworthy structural source is
+needed for B1–B4; the recent synthetic restore does not satisfy those gates.
+
+### Explicit authorization boundary — request independently later
+
+Before any live access, owner must explicitly approve **all** of:
+- The exact target **development** project/database and operator; never infer
+  a target from a saved identifier, login, or environment setting.
+- Which allowed **read-only metadata** to collect, how, under which
+  appropriately authorized account, and the agreed safe time. The preferred
+  first phase is small, bounded catalog queries, not a full database dump.
+- Approved private output destination, retention/deletion period, secret
+  screening by a trusted operator, and who may see sanitized artifacts.
+- Whether a *second, separate* permission will authorize reading full
+  function definitions or a schema-only export after metadata assessment.
+
+Approval of this **plan** is not approval to run queries or to view/copy
+unsanitized secrets. Any operational request requires a new, unambiguous
+approval. No production access, employee-row queries, secret extraction,
+write operations, permissions changes, or backup restoration is in scope.
+
+### Stage A — low-exposure metadata inventory (future; NOT executed)
+
+After separate read-only approval, an authorized operator would collect only
+structure and permission metadata, ideally from PostgreSQL catalogs, with
+small row/size limits and a read-only transaction where supported:
+
+1. Public application object names, kinds, owner identifiers, column
+   names/types/nullability/default **classification**, index and constraint
+   metadata, 38-table RLS/FORCE status, existing RLS policy names/role
+   applicability, and relevant schema-level grants. Compare observed
+   counts to the dated 38/407/78/9 inventory; treat drift as **STOP**, not
+   permission to update the migration automatically. Do not retrieve rows
+   from employee, payroll, authentication, audit or other business tables.
+2. Function *signatures* and catalog properties for all existing public and
+   worker functions: namespace, identity/return type, language, owner,
+   definer/invoker mode, function-specific settings, EXECUTE grants and
+   dependent trigger/event-trigger registrations. In particular identify
+   `rls_auto_enable()` and
+   `enforce_direct_chat_two_participants()`, plus the audit, attendance,
+   asset timestamp and email worker paths. Treat unknown return types,
+   event hooks, privilege changes or dependencies as unresolved.
+3. Scheduler/email worker *identity and permission metadata* only: role
+   ownership, schedule existence and purpose, object access and relevant
+   dependency mapping. **Never copy raw webhook trigger arguments, URLs
+   with query tokens, HTTP headers, cron commands, credential-bearing
+   settings or function bodies into a PR/comment/public artifact.**
+4. Relevant database/extension/schema/grant/default-grant inventories needed
+   to validate the reviewed migrations' assumptions. Do not download or
+   expose configuration values or key material.
+
+**Stage A deliverable:** a small, *sanitized* evidence inventory with
+collection date, approved source, object names/roles, count comparisons,
+expected-versus-actual differences and explicit unknowns. A trusted person
+must review for secrets, personal information and unexpected endpoint URLs
+*before* uploading even a supposedly metadata-only report.
+
+### Stage B — carefully screened function provenance (separate approval)
+
+If Stage A identifies missing dependencies, explicitly request another
+authorization to examine the two actual function definitions and their
+trigger/event-trigger bindings. **Definitions, comments, trigger arguments,
+scheduled commands and defaults can contain hardcoded credentials, URLs,
+employee details or other sensitive literals even when no table rows are
+exported.** Keep raw evidence private in the authorized controlled
+environment. Have a trusted operator remove or replace sensitive values
+without hiding control flow, authorization rules or relevant dependencies.
+If sanitization makes the behavior impossible to review, record the
+limitation and **do not treat it as verified**. Avoid publishing raw source
+to GitHub, CI logs, chat or a shared attachment. Never request secrets.
+
+An entire schema-only dump, if ultimately necessary, needs **another**
+specifically approved method, source, destination and local sanitization.
+A generic schema-only flag is not proof that exported definitions are safe.
+
+### Stage C — only after trustworthy sanitized evidence exists
+
+Review the metadata and actual function dependencies against the two
+review-only SEC-018 migrations. Update the isolated schema fixture where
+faithful, test true function and worker behavior with fake records,
+and perform a matching restored-schema and rollback rehearsal.
+Repeat PostgreSQL 16/17 and all required security regressions. If
+dependencies cannot safely be represented, leave B2–B4 **BLOCKED** rather
+than substituting permission-only stubs for a release decision.
+
+### Stop/go and completion rules
+
+- **STOP immediately** for wrong target, unapproved source/operator, unexpected
+  data rows, secret-bearing source/worker arguments, metadata drift, unclear
+  DDL/worker privilege, unverified function behavior or inaccessible private
+  output path. Do not publish potentially sensitive outputs.
+- **Step 1I can be marked PLAN PREPARED** after its documentation review,
+  but **B1 is NOT completed** until an authorized, screened, trustworthy
+  source is received. **B2–B4 stay blocked** until actual function review
+  and a realistic isolated restore. **B5–B8 stay pending**.
+- No Supabase connection or query, Render change, role/credential change,
+  migration, PR merge or deployment is authorized or performed in Step 1I.
+
+**Next owner decision:** approve/revise this **written plan only**.
+Then request separate authorization for a narrowly scoped Stage A read-only
+metadata collection. Do not assume that acknowledgment of Step 1I
+constitutes operational permission.
