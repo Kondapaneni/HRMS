@@ -188,31 +188,9 @@ class AuthMiddleware
             }
         }
 
-        // Record audit context on a best-effort basis only AFTER access is
-        // granted and the account is confirmed active. An audit logging fault
-        // cannot be mistaken for a successful feature/identity lookup.
-        try {
-            $stmt = $conn->prepare("
-                SELECT
-                    set_config('app.current_user_id', :uid, false),
-                    set_config('app.current_user_email', :email, false),
-                    set_config('app.current_user_role', :role, false),
-                    set_config('app.ip_address', :ip, false),
-                    set_config('app.user_agent', :ua, false),
-                    set_config('app.session_id', :sid, false)
-            ");
-            $stmt->execute([
-                ':uid' => $decoded->id,
-                ':email' => $decoded->email ?? '',
-                ':role' => $decoded->role,
-                ':ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-                ':ua' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-                ':sid' => bin2hex(random_bytes(16))
-            ]);
-        } catch (\Throwable $e) {
-            error_log('AuthMiddleware: Failed to set audit context: ' . $e->getMessage());
-        }
-
+        // Legacy session GUCs are forgeable and leak under transaction pooling.
+        // A pre-rollout connection may operate without attribution; it must not
+        // pretend that a session setting establishes a verified actor.
         return $handler->handle($request);
     }
 

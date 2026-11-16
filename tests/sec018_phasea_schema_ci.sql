@@ -2,6 +2,11 @@
 -- Invoked by GitHub Actions after strict environment checks. No real data.
 CREATE SCHEMA extensions;
 CREATE EXTENSION pgcrypto WITH SCHEMA extensions;
+CREATE TABLE public.users (
+ id uuid PRIMARY KEY, email text NOT NULL, role text NOT NULL,
+ "firstName" text, "lastName" text, "isActive" boolean NOT NULL,
+ token_version integer NOT NULL DEFAULT 0
+);
 CREATE TABLE public.application_timeline (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.applications (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.assessment_attempts (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
@@ -54,11 +59,7 @@ CREATE TABLE public.sale_leads (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.shift_times (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.training_videos (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.user_feature_access (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
-CREATE TABLE public.users (
- id uuid PRIMARY KEY, email text NOT NULL, role text NOT NULL,
- "firstName" text, "lastName" text, "isActive" boolean NOT NULL,
- token_version integer NOT NULL DEFAULT 0
-);
+
 ALTER TABLE public.application_timeline ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assessment_attempts ENABLE ROW LEVEL SECURITY;

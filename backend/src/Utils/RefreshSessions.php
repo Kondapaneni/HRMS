@@ -20,6 +20,9 @@ use Psr\Http\Message\ResponseInterface;
 final class RefreshSessions
 {
     public const TTL_SECONDS = 14 * 86400;
+    // Duplicate requests get no replacement; outside this fixed window a
+    // proven used secret revokes the family. Never extend the window on retry.
+    public const REPLAY_GRACE_SECONDS = 30;
     private const COOKIE_NAME = 'hrms_refresh';
 
     public static function isAndroid(ServerRequestInterface $request): bool
@@ -71,11 +74,12 @@ final class RefreshSessions
         try {
             $stmt = $conn->prepare(
                 'SELECT s.id, s.token_hash, s.session_version, s.client_type,
-                        s.expires_at, s.revoked_at,
+                        s.expires_at, s.revoked_at, s.used_token_hashes,
+                        EXTRACT(EPOCH FROM clock_timestamp()) AS db_now,
                         u.id AS user_id, u.email, u.role, u."isActive", u.token_version
                  FROM public.hrms_refresh_sessions s
                  JOIN public.users u ON u.id = s.user_id
-                 WHERE s.id = ? FOR UPDATE OF s'
+                 WHERE s.id = ? FOR UPDATE OF s, u'
             );
             $stmt->execute([$matches[1]]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -86,12 +90,16 @@ final class RefreshSessions
 
             $hash = hash('sha256', $matches[2]);
             if (!hash_equals((string)$row['token_hash'], $hash)) {
-                // SEC-018 G05/G10/G11: a wrong secret cannot prove replay.
-                // In particular, a concurrent second request or a lost 200
-                // response may send the just-used credential again. Deny it
-                // without rotating, reissuing, or revoking the winning token.
-                // Clients still receive the same generic authentication denial.
-                $conn->rollBack();
+                // SEC-018 G05/G10/G11: only a known, consumed secret is proof
+                // of replay. A random secret + public session id cannot revoke.
+                $used = json_decode((string)$row['used_token_hashes'], true, 512, JSON_THROW_ON_ERROR);
+                if (isset($used[$hash]) && (float)$row['db_now'] - (float)$used[$hash] > self::REPLAY_GRACE_SECONDS) {
+                    $conn->prepare('UPDATE public.hrms_refresh_sessions SET revoked_at = COALESCE(revoked_at, NOW()) WHERE id = ?')
+                        ->execute([$matches[1]]);
+                    $conn->commit();
+                } else {
+                    $conn->rollBack();
+                }
                 return null;
             }
 
@@ -106,12 +114,14 @@ final class RefreshSessions
                 return null;
             }
 
+            $used = json_decode((string)$row['used_token_hashes'], true, 512, JSON_THROW_ON_ERROR);
+            $used[$hash] = (float)$row['db_now'];
             $newSecret = self::newSecret();
             $update = $conn->prepare(
-                'UPDATE public.hrms_refresh_sessions SET token_hash = ?, last_used_at = NOW()
+                'UPDATE public.hrms_refresh_sessions SET token_hash = ?, last_used_at = NOW(), used_token_hashes = ?::jsonb
                  WHERE id = ?'
             );
-            $update->execute([hash('sha256', $newSecret), $matches[1]]);
+            $update->execute([hash('sha256', $newSecret), json_encode($used, JSON_THROW_ON_ERROR), $matches[1]]);
             $conn->commit();
             return [
                 'user' => [

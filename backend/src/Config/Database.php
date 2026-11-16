@@ -35,7 +35,11 @@ class Database
                     $prepareMode = 'pooler';
                 }
                 self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, $prepareMode !== 'native');
-                self::$conn->setAttribute(PDO::ATTR_STATEMENT_CLASS, [LoggingPDOStatement::class, []]);
+                // Statement objects retain their own connection (configured by LoggingPDO).
+                if ($username === 'hrms_runtime_restricted' && !\App\Utils\Sec018AuditContext::enabled()) {
+                    self::$conn = null;
+                    throw new \RuntimeException('Restricted runtime requires signed audit context');
+                }
             } catch (PDOException $exception) {
                 // SEC-010: Callers must receive a clean error response, not
                 // connection details printed into the HTTP response body.

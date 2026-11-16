@@ -41,6 +41,11 @@ GRANT SELECT ON public.users TO hrms_audit_verifier;
 GRANT USAGE ON SCHEMA public TO hrms_audit_executor;
 GRANT SELECT ON public.users, public.employee TO hrms_audit_executor;
 GRANT INSERT ON public.audit_logs TO hrms_audit_executor;
+DO $sequence$
+DECLARE seq text := pg_get_serial_sequence('public.audit_logs','id');
+BEGIN
+ IF seq IS NOT NULL THEN EXECUTE format('GRANT USAGE ON SEQUENCE %s TO hrms_audit_executor', seq); END IF;
+END $sequence$;
 GRANT EXECUTE ON FUNCTION public.jsonb_diff_val(jsonb,jsonb) TO hrms_audit_executor;
 
 -- Database RLS still applies to dedicated NOLOGIN SECURITY DEFINER owners:
@@ -76,11 +81,14 @@ DECLARE
  i integer;
  diff integer := 0;
 BEGIN
+ SELECT k.key_hex INTO secret_hex FROM sec018_internal.audit_keys k WHERE k.kid='v1';
+ IF NOT FOUND THEN RAISE EXCEPTION 'Audit verifier unavailable' USING ERRCODE='28000'; END IF;
  IF payload IS NULL OR length(payload) > 2048 OR mac IS NULL
     OR mac !~ '^[a-f0-9]{64}$' THEN RETURN NULL; END IF;
  BEGIN raw := payload::jsonb; EXCEPTION WHEN OTHERS THEN RETURN NULL; END;
  IF jsonb_typeof(raw)<>'object'
-    OR raw->>'v'<>'1'
+    OR (raw->>'v') IS DISTINCT FROM '1'
+    OR NOT (raw ?& ARRAY['uid','tv','txid','iat','exp','sid'])
     OR (raw->>'uid') !~ '^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
     OR (raw->>'tv') !~ '^[0-9]{1,9}$'
     OR (raw->>'txid') !~ '^[0-9]{1,20}$'
@@ -90,7 +98,7 @@ BEGIN
     OR length(COALESCE(raw->>'ip','')) > 60
     OR length(COALESCE(raw->>'ua','')) > 250 THEN RETURN NULL; END IF;
  txid := pg_catalog.txid_current_if_assigned()::text;
- IF txid IS NULL OR txid <> raw->>'txid' THEN RETURN NULL; END IF;
+ IF txid IS NULL OR txid <> (raw->>'txid') THEN RETURN NULL; END IF;
  issued:=(raw->>'iat')::bigint;
  expires:=(raw->>'exp')::bigint;
  now_epoch:=pg_catalog.date_part('epoch',pg_catalog.clock_timestamp())::bigint;
@@ -109,8 +117,9 @@ BEGIN
  IF diff<>0 THEN RETURN NULL; END IF;
  SELECT u.role,u."isActive",u.token_version,u."firstName",u."lastName"
  INTO actor FROM public.users u WHERE u.id=(raw->>'uid')::uuid;
- IF NOT FOUND OR actor."isActive" IS DISTINCT FROM true
-    OR actor.token_version <> (raw->>'tv')::integer THEN RETURN NULL; END IF;
+ -- PHP verified live identity/version before signing. Rechecking after an
+ -- UPDATE would break self-revocation, password changes and deactivation.
+ IF NOT FOUND THEN RETURN NULL; END IF;
  RETURN pg_catalog.jsonb_build_object(
    'uid',raw->>'uid',
    'name',COALESCE(actor."firstName",'') || ' ' || COALESCE(actor."lastName",''),
@@ -122,7 +131,8 @@ $secure$;
 REVOKE ALL ON FUNCTION sec018_internal.verified_audit_actor() FROM PUBLIC;
 ALTER FUNCTION sec018_internal.verified_audit_actor() OWNER TO hrms_audit_verifier;
 GRANT EXECUTE ON FUNCTION sec018_internal.verified_audit_actor()
- TO hrms_audit_executor;
+ TO hrms_audit_executor, hrms_runtime_restricted;
+GRANT USAGE ON SCHEMA sec018_internal TO hrms_runtime_restricted;
 
 -- The original trigger semantics (row diffs, employee lookup, audit columns)
 -- are kept, but legacy session GUC attribution is replaced by verified HMAC.

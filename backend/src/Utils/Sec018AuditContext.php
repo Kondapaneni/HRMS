@@ -70,5 +70,10 @@ final class Sec018AuditContext
         $mac = hash_hmac('sha256', $payload, $keyBytes);
         $stmt = $conn->prepare("SELECT set_config('sec018.audit_payload', ?, true), set_config('sec018.audit_mac', ?, true)");
         $stmt->execute([$payload, $mac]);
+        // Exercise the installed verifier before any application statement,
+        // including statements whose tables do not have audit triggers.
+        if (!$conn->query('SELECT sec018_internal.verified_audit_actor() IS NOT NULL')->fetchColumn()) {
+            throw new RuntimeException('SEC-018 audit verification failed');
+        }
     }
 }

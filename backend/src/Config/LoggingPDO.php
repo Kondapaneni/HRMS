@@ -17,7 +17,7 @@ class LoggingPDO extends PDO
 {
     public static int $queryCount = 0;
     public static float $queryTimeMs = 0.0;
-    private static ?self $active = null;
+
 
     /** @var array{uid:string,tv:int,ip:string,ua:string,sid:string}|null */
     private ?array $sec018Actor = null;
@@ -26,7 +26,7 @@ class LoggingPDO extends PDO
     public function __construct(string $dsn, ?string $username = null, ?string $password = null, ?array $options = null)
     {
         parent::__construct($dsn, $username, $password, $options ?? []);
-        self::$active = $this;
+        $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, [LoggingPDOStatement::class, [$this]]);
     }
 
     public static function activeConnection(): ?self
@@ -46,18 +46,10 @@ class LoggingPDO extends PDO
         $this->sec018Actor = null;
     }
 
-    public static function isSec018Write(string $sql): bool
-    {
-        // Includes writes inside common-table expressions. Does NOT assume
-        // arbitrary SELECT functions are harmless: such routes need explicit
-        // review before enabling the signed-audit feature.
-        return preg_match('/\b(?:INSERT\s+INTO|UPDATE\s+|DELETE\s+FROM)\b/i', $sql) === 1;
-    }
-
     public function withSec018AuditContext(string $sql, callable $operation): mixed
     {
         if (!Sec018AuditContext::enabled() || $this->sec018Actor === null
-            || $this->sec018Binding || !self::isSec018Write($sql)) {
+            || $this->sec018Binding) {
             return $operation();
         }
         $ownsTransaction = !$this->inTransaction();
@@ -111,17 +103,16 @@ class LoggingPDO extends PDO
 
 class LoggingPDOStatement extends PDOStatement
 {
-    protected function __construct() {}
+    protected function __construct(private LoggingPDO $connection) {}
 
     public function execute(?array $params = null): bool
     {
         LoggingPDO::$queryCount++;
         $start = microtime(true);
         try {
-            $conn = LoggingPDO::activeConnection();
+            $conn = $this->connection;
             $run = fn () => parent::execute($params);
-            return $conn === null ? $run()
-                : $conn->withSec018AuditContext($this->queryString, $run);
+            return $conn->withSec018AuditContext($this->queryString, $run);
         } finally {
             LoggingPDO::$queryTimeMs += (microtime(true) - $start) * 1000;
         }

@@ -47,6 +47,15 @@ DO $sec018$ BEGIN
  EXECUTE format('GRANT CONNECT ON DATABASE %I TO hrms_runtime_restricted', current_database());
 END $sec018$;
 
+ALTER TABLE public.hrms_refresh_sessions
+ ADD COLUMN used_token_hashes jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+-- Prevent ambient PUBLIC grants from defeating the explicit role ACL.
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
+REVOKE CREATE ON SCHEMA public FROM anon, authenticated;
+
 -- Explicit table-by-table DML; do not issue GRANT ALL ON ALL TABLES.
 -- Backend PHP RBAC remains the authorization boundary in this compatibility
 -- phase. A role-specific USING(true) is not independent per-user/branch RLS.
@@ -115,9 +124,11 @@ CREATE POLICY sec018_runtime_i ON public.department_question_bank FOR INSERT TO 
 CREATE POLICY sec018_runtime_u ON public.department_question_bank FOR UPDATE TO hrms_runtime_restricted USING (true) WITH CHECK (true);
 CREATE POLICY sec018_runtime_d ON public.department_question_bank FOR DELETE TO hrms_runtime_restricted USING (true);
 
-GRANT SELECT, INSERT ON TABLE public.email_queue TO hrms_runtime_restricted;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.email_queue TO hrms_runtime_restricted;
 CREATE POLICY sec018_runtime_s ON public.email_queue FOR SELECT TO hrms_runtime_restricted USING (true);
 CREATE POLICY sec018_runtime_i ON public.email_queue FOR INSERT TO hrms_runtime_restricted WITH CHECK (true);
+CREATE POLICY sec018_runtime_u ON public.email_queue FOR UPDATE TO hrms_runtime_restricted USING (true) WITH CHECK (true);
+CREATE POLICY sec018_runtime_d ON public.email_queue FOR DELETE TO hrms_runtime_restricted USING (true);
 
 GRANT SELECT, INSERT, UPDATE ON TABLE public.employee TO hrms_runtime_restricted;
 CREATE POLICY sec018_runtime_s ON public.employee FOR SELECT TO hrms_runtime_restricted USING (true);

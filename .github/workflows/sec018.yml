@@ -1,0 +1,79 @@
+name: SEC-018 restricted role audit and transaction pooler
+on:
+  pull_request:
+    paths: ['backend/**', 'tests/**', 'supabase/**', '.github/workflows/sec018.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-security:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec018_phasea_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: SEC018_PHASEA_CI_PG_ONLY
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec018_phasea_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec018_phasea_ci
+      DB_USERNAME: postgres
+      DB_PASSWORD: SEC018_PHASEA_CI_PG_ONLY
+      PGPASSWORD: SEC018_PHASEA_CI_PG_ONLY
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - name: Apply review-only SQL to disposable fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;'
+          for file in tests/sec018_phasea_schema_ci.sql supabase/migrations/20261116_sec018_runtime_role_review_only.sql supabase/migrations/20261116_sec018_signed_audit_review_only.sql; do
+            psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f "$file"
+          done
+          php tests/sec018_phasea_acceptance_ci.php
+      - name: Install isolated transaction pooler
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y pgbouncer
+          sudo systemctl stop pgbouncer
+          mkdir /tmp/sec018-pool
+          cat > /tmp/sec018-pool/pgbouncer.ini <<'INI'
+          [databases]
+          sec018_phasea_ci = host=127.0.0.1 port=5432 dbname=sec018_phasea_ci
+          [pgbouncer]
+          listen_addr = 127.0.0.1
+          listen_port = 6432
+          auth_type = plain
+          auth_file = /tmp/sec018-pool/userlist.txt
+          pool_mode = transaction
+          default_pool_size = 1
+          max_client_conn = 30
+          logfile = /tmp/sec018-pool/pool.log
+          pidfile = /tmp/sec018-pool/pool.pid
+          INI
+          echo '"hrms_runtime_restricted" "SEC018_PHASEA_CI_RUNTIME_ONLY"' > /tmp/sec018-pool/userlist.txt
+          sudo chown -R postgres:postgres /tmp/sec018-pool
+          sudo -u postgres pgbouncer -d /tmp/sec018-pool/pgbouncer.ini
+          for i in {1..20}; do pg_isready -h 127.0.0.1 -p 6432 && break; sleep 1; done
+      - name: Actual PHP classes through direct and transaction-pooled connections
+        run: |
+          php tests/sec018_adversarial_ci.php 5432
+          php tests/sec018_adversarial_ci.php 6432
+      - name: Upload isolated evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sec018-pooler-evidence
+          path: /tmp/sec018-pool/pool.log

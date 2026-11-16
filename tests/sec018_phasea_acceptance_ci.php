@@ -65,7 +65,7 @@ $runtime=new LoggingPDO('pgsql:host=127.0.0.1;port=5432;dbname=sec018_phasea_ci'
 $runtime->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 $runtime->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
 $runtime->setAttribute(PDO::ATTR_EMULATE_PREPARES,true);
-$runtime->setAttribute(PDO::ATTR_STATEMENT_CLASS,[LoggingPDOStatement::class,[]]);
+
 verifyA(scalarA($runtime,'SELECT current_user')==='hrms_runtime_restricted',
     'A03 runtime connection uses non-owner restricted role');
 verifyA(scalarA($runtime,"SELECT has_schema_privilege(current_user,'public','CREATE')")===false,
@@ -122,7 +122,7 @@ $threw=false;
 try {
     $runtime->prepare('UPDATE public.users SET "lastName"=? WHERE id=?')
         ->execute(['Tampered',$alice]);
-} catch(PDOException $e){$threw=true;}
+} catch(Throwable $e){$threw=true;}
 verifyA($threw,'A06 mismatched signer/database key fails closed');
 verifyA(scalarA($owner,"SELECT \"lastName\" FROM public.users WHERE id='{$alice}'")==='SignedWriter',
   'A06 failed audit proof rolls back protected data modification');
