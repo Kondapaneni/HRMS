@@ -12,8 +12,10 @@ use Psr\Http\Message\ResponseInterface;
  *
  * The raw secret exists only in an HttpOnly web cookie or Android Keystore.
  * The database stores SHA-256 digests of 256-bit random refresh secrets,
- * and a stable random session identifier. A replay of a rotated token revokes
- * that individual refresh session (not the whole user's account).
+ * and a stable random session identifier. A used or unknown secret is
+ * rejected without issuing another credential. Never revoke merely because
+ * the caller knows a session ID: this would enable a targeted DoS and would
+ * also terminate legitimate sessions after lost responses or refresh races.
  */
 final class RefreshSessions
 {
@@ -84,11 +86,12 @@ final class RefreshSessions
 
             $hash = hash('sha256', $matches[2]);
             if (!hash_equals((string)$row['token_hash'], $hash)) {
-                // An old secret for a known session ID was replayed. Revoke
-                // the whole refresh chain to prevent session theft.
-                $conn->prepare('UPDATE public.hrms_refresh_sessions SET revoked_at = NOW() WHERE id = ?')
-                    ->execute([$matches[1]]);
-                $conn->commit();
+                // SEC-018 G05/G10/G11: a wrong secret cannot prove replay.
+                // In particular, a concurrent second request or a lost 200
+                // response may send the just-used credential again. Deny it
+                // without rotating, reissuing, or revoking the winning token.
+                // Clients still receive the same generic authentication denial.
+                $conn->rollBack();
                 return null;
             }
 
