@@ -88,7 +88,7 @@ jobs:
 
           [pgbouncer]
           listen_addr = 127.0.0.1
-          listen_port = 6432
+          listen_port = 16432
           unix_socket_dir = $config_dir
           auth_type = plain
           auth_file = $config_dir/users.txt
@@ -101,10 +101,11 @@ jobs:
           logfile = $config_dir/pooler.log
           pidfile = $config_dir/pooler.pid
           EOF
+          sudo systemctl stop pgbouncer.service || true
           pgbouncer -d "$config_dir/pgbouncer.ini"
           ready=0
           for attempt in $(seq 1 50); do
-            if pg_isready -h 127.0.0.1 -p 6432 -d sec018_rls_ci -U sec018_ci_runtime >/dev/null 2>&1; then
+            if pg_isready -h 127.0.0.1 -p 16432 -d sec018_rls_ci -U sec018_ci_runtime >/dev/null 2>&1; then
               ready=1
               break
             fi
@@ -118,7 +119,7 @@ jobs:
       - name: Characterize actual HRMS RefreshSessions through PgBouncer
         env:
           DB_HOST: 127.0.0.1
-          DB_PORT: '6432'
+          DB_PORT: '16432'
           DB_DATABASE: sec018_rls_ci
           DB_USERNAME: sec018_ci_runtime
           DB_PASSWORD: SEC018_SYNTHETIC_RUNTIME
