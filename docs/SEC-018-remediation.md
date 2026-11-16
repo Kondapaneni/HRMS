@@ -115,3 +115,98 @@ a denied cross-user/branch operation with no record change, refresh rotation and
 logout, and the email worker. Confirm API failures are sanitized and audit rows
 show the expected verified actor. Inspect errors for pooler SQLSTATE 26000.
 No destructive live tests or real employee modifications are required.
+
+## Step 1H — explicit deployment hold and outstanding release gates (2026-11-16)
+
+**Decision: NO-GO.** PR #58 must remain **DRAFT, OPEN and UNMERGED**.
+SEC-018 must remain **OPEN**. Do not run either review-only SQL migration,
+enable a new DB role, provision credentials, change Render settings, or deploy.
+The current approved scope is GitHub/documentation and disposable CI only.
+There is no authorization to access live Supabase, including read-only schema
+queries or generating a new schema export.
+
+### Evidence established by isolated tests (not release approval)
+
+- [x] Proposed backend error-sanitization, no request-time MFA DDL, pooled
+  database connectivity, signed audit, restricted-privilege and refresh-replay
+  behavior are represented in the draft and tested in disposable CI.
+- [x] PostgreSQL 16 + 17 isolated functional/permission coverage includes
+  the 38-table synthetic application fixture, 407 pre-migration columns and
+  408 post-migration columns, 78 constraints, and nine non-internal triggers.
+  The two missing real function bodies are represented by **ACL-only stubs**.
+- [x] Five incompatible schema conditions refuse migration with no partial
+  restricted role, policy, or refresh-column changes.
+- [x] Custom-format backup, both proposed migrations, synthetic post-change
+  activity, and full pre-change fixture restore passed on PostgreSQL 16 and 17.
+  The restored pre-change schema/ACL/ownership dumps matched exactly; three
+  introduced CI roles were cleaned up. This is **not** a rehearsal on an
+  authentic restored HRMS database.
+- [x] All 13 PR security workflows passed for isolated commit
+  `3e5ddb2d61c01b73ce0ad377309f01907243ac48`. Evidence:
+  [Step 1F](https://github.com/Kondapaneni/HRMS/actions/runs/43837861858),
+  [Step 1G-2](https://github.com/Kondapaneni/HRMS/actions/runs/43840077826),
+  [Step 1G-3](https://github.com/Kondapaneni/HRMS/actions/runs/43841566133).
+  Any later application/security code change requires its own green CI run.
+
+### Outstanding blockers — all MUST pass before rollout approval
+
+- [ ] **B1 — Trustworthy schema source.** Obtain an owner-approved, sanitized
+  *schema-only* snapshot from an authorized channel, including real table,
+  column, constraint, index, view, trigger/event-trigger, function, extension,
+  cron, schema-default-privilege, role, grant and policy metadata. No real
+  employee data, OTPs, tokens, secrets, webhook authorization headers or
+  credentials in Git/issues/test artifacts. No existing offline backup is
+  available; live extraction remains prohibited without new explicit approval.
+- [ ] **B2 — Real routine and worker compatibility.** Review actual definitions,
+  owners, grants, dependencies and trigger registrations of
+  `public.rls_auto_enable()`,
+  `public.enforce_direct_chat_two_participants()`, and the privileged
+  attendance/email/audit paths. The isolated versions of the first two are
+  ACL-only stubs: do not claim they verify actual behavior or event hooks.
+  Confirm that the proposed broad function EXECUTE revocations do not break
+  any legitimate existing RPCs/background workers.
+- [ ] **B3 — Genuine restored-schema rehearsal.** Recreate a sufficiently
+  faithful complete HRMS schema in an isolated environment; validate both
+  exact review-only migrations with the full structure and representative
+  synthetic HRMS workflows. Fix any grant, ownership, dependency or
+  application compatibility regressions and rerun all required CI.
+- [ ] **B4 — Recoverable pre-change backup and real-schema rollback.** Verify
+  database and schema/ACL/function backups, capture current deployed app
+  revision and role/worker state, and rehearse restoration from a matching
+  authentic schema. The GitHub synthetic backup/restore is not sufficient.
+  Obtain an owner-approved downtime/writer-quiescence and rollback procedure.
+- [ ] **B5 — Explicit risk and configuration decision.** Owner reviews that
+  role-scoped RLS `USING (true)` is a compatibility boundary, **not**
+  database-enforced employee/branch row isolation; PHP authorization remains
+  critical. Owner reviews the 30-second refresh-token duplicate policy and
+  potential re-login after lost refresh responses. Decide whether these risks
+  are acceptable or require additional remediation.
+- [ ] **B6 — Separate, explicit DEV change authorization.** Only after B1–B5,
+  request owner approval for the exact target environment, maintenance window,
+  app revision, SQL order, restricted role provisioning, audit signing key,
+  feature setting, transaction-pooler setting, worker coordination, backups
+  and rollback trigger. No implicit fallback to privileged credentials.
+  **Approval to run tests does not authorize deployment.**
+- [ ] **B7 — Approved DEV verification and cleanup.** Under a separate approved
+  rollout, use designated synthetic accounts to check Admin/Employee login,
+  session refresh/revocation, Employee Directory/Settings, Recruitment and email,
+  Attendance/background tracking and daily scheduler, branch/loan/sales access,
+  Payroll, audit identity, rejected cross-user/branch actions, and safe API
+  error messages. Verify old and new roles, application logs, workers, and
+  the expected denied operations; then remove/restore test state safely.
+- [ ] **B8 — Owner's release decision.** Confirm no outstanding security or
+  functionality regressions, obtain explicit merge/release approval, and only
+  then consider marking SEC-018 closed in the issue tracker.
+
+### Stop conditions
+
+A missing real routine definition, unknown dependency/worker privilege, stale
+or incomplete schema snapshot, unexpected migration output, failed restore,
+unverified backup, employee attendance disruption, privileged runtime fallback,
+or failed security CI means **STOP / DO NOT DEPLOY**. Keep PR #58 draft and
+SEC-018 open. Log the reason and continue isolated investigation only.
+
+**Latest checkpoint:** No live SQL, role/grant change, credentials, Render
+settings, deployment, data migration or merge occurred during Steps 1A–1H.
+The next actionable gate is **B1**, but it is blocked until the owner explicitly
+authorizes a safe method of obtaining the missing trusted schema source.
