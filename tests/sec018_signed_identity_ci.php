@@ -269,6 +269,8 @@ $admin->exec('CREATE TABLE sec018_signed.login_directory(email text PRIMARY KEY,
 $admin->exec('ALTER TABLE sec018_signed.login_directory ENABLE ROW LEVEL SECURITY');
 $admin->exec("INSERT INTO sec018_signed.login_directory VALUES ('alice@example.invalid','alice'),('bob@example.invalid','bob')");
 $admin->exec('GRANT SELECT ON sec018_signed.login_directory TO sec018_ci_verifier');
+// The NOLOGIN verifier can perform the narrowly scoped lookup despite RLS.
+$admin->exec("CREATE POLICY login_lookup_verifier ON sec018_signed.login_directory FOR SELECT TO sec018_ci_verifier USING (true)");
 $admin->exec(<<<'SQL'
 CREATE FUNCTION sec018_guard.pre_auth_lookup(lookup_email text) RETURNS text
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER
