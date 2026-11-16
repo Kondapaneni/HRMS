@@ -63,7 +63,7 @@ assert(index.includes('RefreshSessions::rotate($conn'), 'refresh must rotate');
 assert(index.includes("'X-HRMS-Refresh'"), 'CSRF-resistant custom header required');
 assert(refresh.includes("hash('sha256', $secret)"), 'server stores only hash');
 assert(refresh.includes('hash_equals('), 'constant-time rotation comparison');
-assert(refresh.includes('SET revoked_at = NOW()'), 'refresh replay invalidates session');
+assert(refresh.includes('$conn->rollBack();') && refresh.includes('SEC-018 G05/G10/G11'), 'stale or incorrect refresh must be denied without destructive revocation');
 assert(refresh.includes('HttpOnly; SameSite=Strict'), 'browser refresh uses strict HttpOnly cookie');
 assert(schema.includes('ENABLE ROW LEVEL SECURITY'), 'refresh table RLS enabled');
 assert(schema.includes('REVOKE ALL PRIVILEGES'), 'refresh secrets not accessible to public Data API');

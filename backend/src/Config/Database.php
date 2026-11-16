@@ -19,6 +19,21 @@ class Database
             $password = $_ENV['DB_PASSWORD'] ?? '';
 
             try {
+                // SEC-018: A separately enabled limited database identity keeps
+                // the current credentials intact for safe failback.
+                $restrictedEnabled = (string) ($_ENV['SEC018_DB_USE_RESTRICTED']
+                    ?? (getenv('SEC018_DB_USE_RESTRICTED') ?: '')) === 'true';
+                if ($restrictedEnabled) {
+                    $limitedUsername = (string) ($_ENV['SEC018_DB_USERNAME']
+                        ?? (getenv('SEC018_DB_USERNAME') ?: ''));
+                    $limitedPassword = (string) ($_ENV['SEC018_DB_PASSWORD']
+                        ?? (getenv('SEC018_DB_PASSWORD') ?: ''));
+                    if ($limitedUsername === '' || $limitedPassword === '') {
+                        throw new \RuntimeException('SEC-018 restricted database credentials unavailable');
+                    }
+                    $username = $limitedUsername;
+                    $password = $limitedPassword;
+                }
                 $dsn = "pgsql:host={$host};port={$port};dbname={$db_name}";
                 self::$conn = new LoggingPDO($dsn, $username, $password);
                 self::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -35,8 +50,18 @@ class Database
                     $prepareMode = 'pooler';
                 }
                 self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, $prepareMode !== 'native');
-                self::$conn->setAttribute(PDO::ATTR_STATEMENT_CLASS, [LoggingPDOStatement::class, []]);
-            } catch (PDOException $exception) {
+                // Statement objects retain their own connection (configured by LoggingPDO).
+                // Refuse any wrong-identity connection when the restricted
+                // switch is enabled; never silently use privileged fallback.
+                $activeRole = (string) self::$conn->query('SELECT current_user')->fetchColumn();
+                if (($restrictedEnabled && $activeRole !== 'hrms_runtime_restricted')
+                    || ($activeRole === 'hrms_runtime_restricted'
+                        && !\App\Utils\Sec018AuditContext::enabled())) {
+                    self::$conn = null;
+                    throw new \RuntimeException('Restricted runtime requires signed audit context');
+                }
+            } catch (\Throwable $exception) {
+                self::$conn = null;
                 // SEC-010: Callers must receive a clean error response, not
                 // connection details printed into the HTTP response body.
                 // AuthMiddleware treats a null connection as HTTP 503.

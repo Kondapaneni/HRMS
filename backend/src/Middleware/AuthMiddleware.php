@@ -12,6 +12,7 @@ use Exception;
 use App\Config\Database;
 use App\Utils\SessionVersion;
 use App\Utils\AccessToken;
+use App\Utils\Sec018AuditContext;
 
 class AuthMiddleware
 {
@@ -163,31 +164,35 @@ class AuthMiddleware
 
         $request = $request->withAttribute('user', $decoded);
 
-        // Record audit context on a best-effort basis only AFTER access is
-        // granted and the account is confirmed active. An audit logging fault
-        // cannot be mistaken for a successful feature/identity lookup.
-        try {
-            $stmt = $conn->prepare("
-                SELECT
-                    set_config('app.current_user_id', :uid, false),
-                    set_config('app.current_user_email', :email, false),
-                    set_config('app.current_user_role', :role, false),
-                    set_config('app.ip_address', :ip, false),
-                    set_config('app.user_agent', :ua, false),
-                    set_config('app.session_id', :sid, false)
-            ");
-            $stmt->execute([
-                ':uid' => $decoded->id,
-                ':email' => $decoded->email ?? '',
-                ':role' => $decoded->role,
-                ':ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-                ':ua' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-                ':sid' => bin2hex(random_bytes(16))
-            ]);
-        } catch (\Throwable $e) {
-            error_log('AuthMiddleware: Failed to set audit context: ' . $e->getMessage());
+        // SEC-018: An audited SQL statement binds a signed actor with SET LOCAL
+        // inside its OWN transaction, including routes using explicit PDO
+        // transactions. Never rely on legacy session-scoped GUCs after the
+        // separately approved verifier/key migration is enabled.
+        if (Sec018AuditContext::enabled()) {
+            try {
+                $conn->setSec018AuditIdentity([
+                    'uid' => (string) $decoded->id,
+                    'tv' => SessionVersion::fromRow($userRow),
+                    'ip' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+                    'ua' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+                    'sid' => bin2hex(random_bytes(16)),
+                ]);
+            } catch (\Throwable $e) {
+                error_log('SEC-018 audit context unavailable');
+                return $this->unavailableResponse();
+            }
+            try {
+                return $handler->handle($request);
+            } finally {
+                // Never carry an unfinished route transaction into another request.
+                if ($conn->inTransaction()) $conn->rollBack();
+                $conn->clearSec018AuditIdentity();
+            }
         }
 
+        // Legacy session GUCs are forgeable and leak under transaction pooling.
+        // A pre-rollout connection may operate without attribution; it must not
+        // pretend that a session setting establishes a verified actor.
         return $handler->handle($request);
     }
 

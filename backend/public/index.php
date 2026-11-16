@@ -485,9 +485,10 @@ $app->post('/api/auth/refresh', function (Request $request, Response $response) 
         $result = RefreshSessions::rotate($conn, $provided, $client);
         if (!$result) {
             $response->getBody()->write(json_encode(['error' => 'Refresh session invalid or revoked.']));
-            if ($client === 'web') {
-                $response = $response->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie());
-            }
+            // SEC-018 G10/G11: an in-flight stale refresh must never clear
+            // a newer valid HttpOnly cookie set by a winning parallel request.
+            // Deny this request; browser max-age and explicit logout handle
+            // cookie removal. No replacement credential is ever disclosed.
             return $response->withHeader('Content-Type', 'application/json')
                 ->withHeader('Cache-Control', 'no-store')->withStatus(401);
         }
