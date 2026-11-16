@@ -11,7 +11,7 @@ declare(strict_types=1);
 $required = [
     'GITHUB_ACTIONS' => 'true',
     'DB_HOST' => '127.0.0.1',
-    'DB_PORT' => '6432',
+    'DB_PORT' => '16432',
     'DB_DATABASE' => 'sec018_rls_ci',
     'DB_USERNAME' => 'sec018_ci_runtime',
     'DB_PASSWORD' => 'SEC018_SYNTHETIC_RUNTIME',
@@ -89,7 +89,7 @@ check2G(scalar2G($admin,'SELECT current_database()')==='sec018_rls_ci',
     'G01 disposable database verified');
 
 // PgBouncer administrative console must report real transaction pooling.
-$control=pdo2G('postgres','SEC018_LOCAL_PG_CI_ONLY',6432,'pgbouncer');
+$control=pdo2G('postgres','SEC018_LOCAL_PG_CI_ONLY',16432,'pgbouncer');
 $config=$control->query('SHOW CONFIG')->fetchAll();
 $settings=[];
 foreach ($config as $line) $settings[$line['key']]=$line['value'];
@@ -248,7 +248,7 @@ check2G(scalar2G($app,"SELECT sec018_2e_private.claim('uid')")==='alice',
 $app->commit();
 check2G(scalar2G($app,"SELECT sec018_2e_private.claim('uid')")===null,
     'G09 signed identity clears after COMMIT');
-$other=pdo2G('sec018_ci_runtime','SEC018_SYNTHETIC_RUNTIME',6432);
+$other=pdo2G('sec018_ci_runtime','SEC018_SYNTHETIC_RUNTIME',16432);
 check2G(scalar2G($other,"SELECT sec018_2e_private.claim('uid')")===null,
     'G09 other pooled client cannot inherit Alice identity');
 $other->beginTransaction();
@@ -292,7 +292,7 @@ for($i=0;$i<2;$i++){
     if($pid===0){
         try {
             // Create fresh client AFTER fork, never use inherited PDO.
-            $worker=pdo2G('sec018_ci_runtime','SEC018_SYNTHETIC_RUNTIME',6432);
+            $worker=pdo2G('sec018_ci_runtime','SEC018_SYNTHETIC_RUNTIME',16432);
             $result=RefreshSessions::rotate($worker,$raceCredential,'web');
             exit(is_array($result)?0:1);
         } catch(Throwable $e){
