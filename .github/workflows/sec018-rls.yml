@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/sec018-rls.yml'
       - 'tests/sec018_rls_ci.php'
+      - 'tests/sec018_signed_identity_ci.php'
       - 'docs/SEC-018-isolated-rls-test-plan.md'
   workflow_dispatch:
 
@@ -57,8 +58,10 @@ jobs:
         run: |
           set -euo pipefail
           php -l tests/sec018_rls_ci.php
+          php -l tests/sec018_signed_identity_ci.php
           node tests/sec018_source_test.mjs
       - name: Run synthetic-only role and RLS regression
         run: |
           set -euo pipefail
           php tests/sec018_rls_ci.php
+          php tests/sec018_signed_identity_ci.php
