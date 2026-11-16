@@ -980,6 +980,13 @@ CREATE SCHEMA supabase_functions;
 CREATE FUNCTION supabase_functions.http_request() RETURNS trigger
 LANGUAGE plpgsql AS $sec018_no_network$
 BEGIN
+  -- Purely local transaction-scoped counter, proving the fixture trigger fired.
+  -- No HTTP client, queue worker, service URL, or network operation exists here.
+  PERFORM pg_catalog.set_config(
+    'sec018.ci_webhook_hits',
+    (COALESCE(NULLIF(pg_catalog.current_setting('sec018.ci_webhook_hits', true), ''), '0')::integer + 1)::text,
+    true
+  );
   RETURN NEW;
 END
 $sec018_no_network$;
