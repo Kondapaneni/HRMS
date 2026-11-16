@@ -965,15 +965,30 @@ ALTER TABLE public.training_videos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_feature_access ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.hrms_refresh_sessions FORCE ROW LEVEL SECURITY;
-CREATE TRIGGER sec018_audit_assets AFTER INSERT OR UPDATE OR DELETE ON public.assets FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
-CREATE TRIGGER sec018_audit_attendance AFTER INSERT OR UPDATE OR DELETE ON public.attendance FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
-CREATE TRIGGER sec018_audit_employee AFTER INSERT OR UPDATE OR DELETE ON public.employee FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
-CREATE TRIGGER sec018_audit_leaves AFTER INSERT OR UPDATE OR DELETE ON public.leaves FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
-CREATE TRIGGER sec018_audit_payslips AFTER INSERT OR UPDATE OR DELETE ON public.payslips FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
-CREATE TRIGGER sec018_audit_user_feature_access AFTER INSERT OR UPDATE OR DELETE ON public.user_feature_access FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
-CREATE TRIGGER sec018_audit_users AFTER INSERT OR UPDATE OR DELETE ON public.users FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
+CREATE TRIGGER audit_assets_trigger AFTER INSERT OR UPDATE OR DELETE ON public.assets FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
+CREATE TRIGGER trg_audit_attendance AFTER INSERT OR UPDATE OR DELETE ON public.attendance FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
+CREATE TRIGGER trg_audit_employee AFTER INSERT OR UPDATE OR DELETE ON public.employee FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
+CREATE TRIGGER trg_audit_leaves AFTER INSERT OR UPDATE OR DELETE ON public.leaves FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
+CREATE TRIGGER trg_audit_payslips AFTER INSERT OR UPDATE OR DELETE ON public.payslips FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
+CREATE TRIGGER trg_audit_user_feature_access AFTER INSERT OR UPDATE OR DELETE ON public.user_feature_access FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
+CREATE TRIGGER trg_audit_users AFTER INSERT OR UPDATE OR DELETE ON public.users FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
 CREATE TRIGGER update_assets_updated_at BEFORE UPDATE ON public.assets FOR EACH ROW EXECUTE FUNCTION public.update_assets_updated_at_column();
--- Email network webhook deliberately omitted: tests must never send messages.
+-- The real database has an email_queue webhook trigger. Recreate its
+-- name/timing/argument shape in disposable CI, but NEVER install the network
+-- implementation or point at a real service. This stub performs zero I/O.
+CREATE SCHEMA supabase_functions;
+CREATE FUNCTION supabase_functions.http_request() RETURNS trigger
+LANGUAGE plpgsql AS $sec018_no_network$
+BEGIN
+  RETURN NEW;
+END
+$sec018_no_network$;
+CREATE TRIGGER "Trigger Send Email" AFTER INSERT ON public.email_queue
+FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request(
+  'https://example.invalid/functions/v1/send-email',
+  'POST', '{"Content-type":"application/json"}', '{}', '5000'
+);
+-- No HTTP calls, real endpoints, or email deliveries are possible here.
 INSERT INTO public.users (id,email,password,role,"firstName","lastName","isActive",token_version)
 VALUES ('11111111-1111-4111-8111-111111111111','alice@example.invalid','synthetic-unusable-password','employee','Alice','Synthetic',true,1),
 ('22222222-2222-4222-8222-222222222222','bob@example.invalid','synthetic-unusable-password','employee','Bob','Synthetic',true,1);
