@@ -82,7 +82,9 @@ foreach ($publicFunctions as $signature) {
 }
 // SEC-018 Step 1F: fail fast if the structural fixture drifts from the
 // previously documented read-only schema inventory: 38 tables / 407 columns /
-// 78 constraints / nine non-internal row triggers. These counts do not prove
+// 78 constraints / nine non-internal row triggers. The controlled migration adds
+// exactly one refresh-history column, for 408 post-migration columns. None of
+// these counts alone proves
 // full production schema equivalence (extensions and function bodies differ).
 $inventory = [
     'application tables' => [
@@ -91,7 +93,7 @@ $inventory = [
     'application columns' => [
         'SELECT count(*) FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid
          JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-         WHERE n.nspname=\'public\' AND c.relkind=\'r\' AND a.attnum>0 AND NOT a.attisdropped', 407],
+         WHERE n.nspname=\'public\' AND c.relkind=\'r\' AND a.attnum>0 AND NOT a.attisdropped', 408],
     'application constraints' => [
         'SELECT count(*) FROM pg_catalog.pg_constraint co JOIN pg_catalog.pg_class c ON c.oid=co.conrelid
          JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
@@ -105,6 +107,12 @@ foreach ($inventory as $label => [$sql, $expected]) {
     step1eCheck((int)step1eScalar($db, $sql) === $expected,
         "synthetic fixture preserves $expected $label");
 }
+step1eCheck(step1eBool(step1eScalar($db,
+    "SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_attribute
+       WHERE attrelid='public.hrms_refresh_sessions'::regclass
+       AND attname='used_token_hashes'
+       AND atttypid='jsonb'::regtype AND attnotnull AND NOT attisdropped)")),
+    'the only expected extra column is NOT NULL jsonb refresh replay history');
 step1eCheck((int)step1eScalar($db,
     "SELECT count(*) FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
      WHERE n.nspname='public'") === 8,
