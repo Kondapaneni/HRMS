@@ -109,7 +109,7 @@ BEGIN
     INSERT INTO chat_participants(chat_id,user_id)
     VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','33333333-3333-4333-8333-333333333333');
   EXCEPTION WHEN OTHERS THEN
-    IF SQLERRM NOT LIKE '%two participants%' THEN RAISE; END IF;
+    IF SQLERRM NOT LIKE '%more than 2 participants%' THEN RAISE; END IF;
     blocked := true;
   END;
   IF NOT blocked OR (SELECT COUNT(*) FROM chat_participants)<>2 THEN
