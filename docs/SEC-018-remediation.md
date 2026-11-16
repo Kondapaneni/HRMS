@@ -63,8 +63,8 @@ cannot by itself certify every feature's schema compatibility.
    backup and a recoverable database backup. Capture existing policies, grants,
    function owners/bodies and role membership for exact rollback.
 3. On a matching isolated restored schema, run `psql -X -v ON_ERROR_STOP=1`
-   with `-f supabase/migrations/20261116_sec018_runtime_role_review_only.sql`,
-   then `-f supabase/migrations/20261116_sec018_signed_audit_review_only.sql`.
+   with `-f supabase/review-only/20261116_sec018_runtime_role_review_only.sql`,
+   then `-f supabase/review-only/20261116_sec018_signed_audit_review_only.sql`.
    The first script refuses inventory or policy drift. Review errors, never
    bypass guards. Only after approval repeat on the target with the approved
    migration owner. Do not put a production connection string on the command line.

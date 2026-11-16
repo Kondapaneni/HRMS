@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;'
-          for file in tests/sec018_phasea_schema_ci.sql supabase/migrations/20261116_sec018_runtime_role_review_only.sql supabase/migrations/20261116_sec018_signed_audit_review_only.sql; do
+          for file in tests/sec018_phasea_schema_ci.sql supabase/review-only/20261116_sec018_runtime_role_review_only.sql supabase/review-only/20261116_sec018_signed_audit_review_only.sql; do
             psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f "$file"
           done
           php tests/sec018_phasea_acceptance_ci.php

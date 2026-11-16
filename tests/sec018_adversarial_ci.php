@@ -88,7 +88,12 @@ foreach(['anon','authenticated'] as $role) {
  try { $denied=false;try {$owner->query('SELECT * FROM public.users');}catch(PDOException $e){$denied=true;}check($denied,"$role cannot read application data"); }
  finally {$owner->rollBack();}
 }
-foreach(['TRUNCATE public.users','CREATE TABLE public.forbidden(id int)','SET ROLE postgres','GRANT SELECT ON public.users TO anon'] as $sql) {
+foreach(['TRUNCATE public.users','CREATE TABLE public.forbidden(id int)','SET ROLE postgres'] as $sql) {
  $denied=false;try {$c->exec($sql);}catch(PDOException $e){$denied=true;}check($denied,'restricted role denies '.$sql);
 }
+// PostgreSQL reports an ineffective GRANT as a warning, not an exception.
+$c->exec('GRANT SELECT ON public.users TO anon');
+check(!$owner->query("SELECT has_table_privilege('anon','public.users','SELECT')")->fetchColumn(),'ineffective GRANT cannot change target ACL');
+check(!$c->query("SELECT has_table_privilege(current_user,'public.users','SELECT WITH GRANT OPTION')")->fetchColumn(),'runtime has no grant option');
+check(!$c->query("SELECT has_database_privilege(current_user,current_database(),'TEMP')")->fetchColumn(),'no ambient temporary object creation');
 echo "SEC018 ADVERSARIAL PASSED port=$port\n";
