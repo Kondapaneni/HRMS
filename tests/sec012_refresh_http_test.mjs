@@ -51,10 +51,13 @@ let again = await refreshWeb(secondCookie);
 const thirdCookie = cookieOnly(again.cookie);
 assert.notEqual(thirdCookie, secondCookie, 'consecutive rotations issue distinct credentials');
 
-// A single replay invalidates this refresh chain, but not other sessions.
-await refreshWeb(firstCookie, 401);
-await refreshWeb(thirdCookie, 401);
-console.log('PASS: web refresh cookie is HttpOnly/Strict and single-use replay revokes chain');
+// SEC-018: a stale or incorrect credential cannot obtain a token and
+// cannot destroy another valid one. Reused refresh secrets remain single-use.
+const staleWeb = await refreshWeb(firstCookie, 401);
+assert(!staleWeb.cookie?.includes('Max-Age=0'), 'stale response must not clear winning cookie');
+const winningWeb = await refreshWeb(thirdCookie);
+assert.notEqual(cookieOnly(winningWeb.cookie), thirdCookie, 'current credential remains valid');
+console.log('PASS: web replay denied without revoking winning refresh chain');
 
 const other = await request('/api/login', {
   email: employeeEmail, password: 'SEC012-Reset-Password3!',
@@ -85,8 +88,9 @@ const nativeRotated = await nativeRefresh(native.data.refreshToken);
 assert(nativeRotated.data.token && nativeRotated.data.refreshToken);
 assert.notEqual(nativeRotated.data.refreshToken, native.data.refreshToken);
 await nativeRefresh(native.data.refreshToken, 401);
-await nativeRefresh(nativeRotated.data.refreshToken, 401);
-console.log('PASS: Android refresh rotates in JSON and replay revokes native chain');
+const stillGood = await nativeRefresh(nativeRotated.data.refreshToken);
+assert(stillGood.data.refreshToken !== nativeRotated.data.refreshToken);
+console.log('PASS: Android replay denied without revoking winning native chain');
 
 // The server must reject a *validly signed* ten-year access JWT even when
 // version 0 and role are otherwise valid.
