@@ -206,7 +206,10 @@ unverified backup, employee attendance disruption, privileged runtime fallback,
 or failed security CI means **STOP / DO NOT DEPLOY**. Keep PR #58 draft and
 SEC-018 open. Log the reason and continue isolated investigation only.
 
-**Latest checkpoint:** No live SQL, role/grant change, credentials, Render
-settings, deployment, data migration or merge occurred during Steps 1A–1H.
+**Latest checkpoint:** Earlier Step 1D included authorized read-only
+catalog/worker metadata queries; it did not inspect employee records or mutate
+the live database. Steps 1E–1H used GitHub/offline sources and disposable CI.
+No live SQL mutation, role/grant change, credential change, Render setting,
+deployment, data migration or merge was performed in this remediation review.
 The next actionable gate is **B1**, but it is blocked until the owner explicitly
 authorizes a safe method of obtaining the missing trusted schema source.
