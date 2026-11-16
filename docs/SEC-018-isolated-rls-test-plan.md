@@ -108,3 +108,27 @@ The signed request context is supplied transaction-locally via set_config(...,tr
 - There is no evidence yet that PostgreSQL RLS correctly enforces all real employee/branch/user permissions in the full backend.
 
 **Green CI establishes only this synthetic proof. SEC-018 remains OPEN; PR #57 remains DRAFT. No merge, deploy, live credential change or Supabase SQL change is approved.**
+
+## Step 2E — transaction-bound replay, revocation, refresh concurrency and rollback
+
+**Scope and isolation:** tests/sec018_replay_refresh_ci.php runs after the Step 2A and 2C synthetic suites, only against the disposable localhost PostgreSQL 16 container and synthetic roles. CI-only guards refuse unexpected hosts, database names, credentials or any external connection settings. The CI workflow adds the pcntl extension to fork two genuinely independent database connections for a contested refresh row lock. No application PHP runtime, live migration, RLS policy, data, Render service or deployment is touched.
+
+**Additional synthetic checks:**
+- E01: strict ephemeral database and restricted-login identity.
+- E02–E04: new v2 signed contexts bind the HMAC payload to the actual PostgreSQL transaction ID from txid_current(). Context from one transaction cannot be replayed in another, including after a rollback; rollback clears the transaction-local GUC.
+- E05–E06: verifier reads synthetic live account active state, token_version and branch, denying a once-valid signed context after the account is deactivated, session version changes or branch is changed. Revocation is checked under READ COMMITTED, within the same request transaction.
+- E07: restricted pre-auth role cannot read refresh-session rows. A random incorrect secret cannot revoke a session.
+- E08: a refresh-hash rotation rolled back within a transaction leaves the original secret usable, and a subsequent committed use succeeds. Test acknowledges transactional state only.
+- E09: deactivated accounts and bumped session versions cannot rotate active refresh credentials.
+- E10: the first refresh holds SELECT ... FOR UPDATE on a synthetic refresh session, a forked second independent connection blocks on the same row, the first commits the rotation, and the second detects replay of the old secret and revokes the chain. CI checks pg_stat_activity to confirm an actual Lock wait.
+
+**Known blocking design limitation:** two legitimate, simultaneous requests carrying the same old refresh credential cause the same chain-revocation outcome as malicious replay. This is a safe denial under the existing SEC-012 replay-security model, but it may log a user out; client single-flight coordination, bounded retry handling and an explicitly reviewed collision policy are required before changing backend refresh logic. The synthetic rotated-token hash is never returned to clients; this harness does not solve the client exchange protocol.
+
+**Other unresolved gaps:**
+- This v2 proof uses signed transaction IDs rather than a persistent nonce ledger; same-transaction token reuse is expected and can authorize repeated operations during that transaction. It does not protect against a compromise of the trusted PHP signing service or leakage of an in-progress transaction's signing context. An attacker with database capabilities to execute within the same authorized transaction could abuse valid scope.
+- A fresh transaction-ID assignment adds SQL operations and was tested against direct PostgreSQL, not a real Supabase transaction pooler. Nested PDO transactions, multi-query routes, timeouts, legacy audit context, key rotation, signed context confidentiality, and authorization races require realistic tests.
+- The synthetic refresh gate is **not** the existing production RefreshSessions::rotate() function and its current SQL semantics are not modified. This test intentionally adds previous-hash detection so random guesses do not revoke, unlike the existing known-session-ID mismatch code. Production policy/changes require separate owner review.
+- This proof does not implement real password/MFA login, candidate flows, account recovery, token cookie handling, rate limits, real Storage, tenant/branch policy integration across all 38 tables, or production signing-key lifecycle.
+- All tests must remain isolated to ephemeral PostgreSQL CI. A green CI job does not authorize a merge, deployment or Supabase migration.
+
+**Step 2E status:** CI and separate owner authorization are required; SEC-018 remains OPEN.
