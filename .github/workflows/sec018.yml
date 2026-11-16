@@ -45,6 +45,9 @@ jobs:
           # Synthetic worker role/grants exist BEFORE the SEC-018 migration.
           # Confirm the migration preserves explicit service_role access.
           psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE ON TABLE public.email_queue TO service_role;'
+          # Reject unsafe schema drift *before* either review-only migration.
+          # Deliberate mutations are restored in this disposable CI database.
+          bash tests/sec018_migration_guards_ci.sh
           for file in supabase/review-only/20261116_sec018_runtime_role_review_only.sql supabase/review-only/20261116_sec018_signed_audit_review_only.sql; do
             psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f "$file"
           done
