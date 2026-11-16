@@ -102,7 +102,7 @@ $update=$runtime->prepare('UPDATE public.users SET "lastName"=? WHERE id=?');
 $update->execute(['SignedWriter',$alice]);
 verifyA($update->rowCount()===1,'A04 signed context authenticates a prepared DML statement');
 $audit=$owner->query('SELECT actor_user_id,actor_role,actor_name,ip_address,session_id
-  FROM public.audit_logs ORDER BY id DESC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+  FROM public.audit_logs ORDER BY timestamp DESC, audit_id DESC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
 verifyA(($audit['actor_user_id']??null)===$alice && ($audit['actor_role']??null)==='employee',
   'A04 trigger records cryptographically verified user and DB-confirmed role');
 verifyA(($audit['ip_address']??null)==='127.0.0.1' && strlen((string)($audit['session_id']??''))===32,
@@ -134,7 +134,7 @@ $runtime->clearSec018AuditIdentity();
 $runtime->query("SELECT set_config('app.current_user_id','{$bob}',false)")->fetchAll();
 $runtime->prepare('UPDATE public.users SET "lastName"=? WHERE id=?')
         ->execute(['NoVerifiedActor',$alice]);
-$last=$owner->query('SELECT actor_user_id FROM public.audit_logs ORDER BY id DESC LIMIT 1')->fetchColumn();
+$last=$owner->query('SELECT actor_user_id FROM public.audit_logs ORDER BY timestamp DESC, audit_id DESC LIMIT 1')->fetchColumn();
 verifyA($last===null,'A07 spoofed legacy session context never becomes audit actor');
 
 // Grant rollout stays disabled by default; a separate approved deployment

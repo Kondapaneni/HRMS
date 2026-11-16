@@ -41,11 +41,6 @@ GRANT SELECT ON public.users TO hrms_audit_verifier;
 GRANT USAGE ON SCHEMA public TO hrms_audit_executor;
 GRANT SELECT ON public.users, public.employee TO hrms_audit_executor;
 GRANT INSERT ON public.audit_logs TO hrms_audit_executor;
-DO $sequence$
-DECLARE seq text := pg_get_serial_sequence('public.audit_logs','id');
-BEGIN
- IF seq IS NOT NULL THEN EXECUTE format('GRANT USAGE ON SEQUENCE %s TO hrms_audit_executor', seq); END IF;
-END $sequence$;
 GRANT EXECUTE ON FUNCTION public.jsonb_diff_val(jsonb,jsonb) TO hrms_audit_executor;
 
 -- Database RLS still applies to dedicated NOLOGIN SECURITY DEFINER owners:

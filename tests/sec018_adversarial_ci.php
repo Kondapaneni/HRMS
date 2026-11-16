@@ -29,7 +29,7 @@ $prepared=$c->prepare('UPDATE public.users SET "lastName"=? WHERE id=?');
 $d=connectRuntime($port);
 $identity=fn($id)=>['uid'=>$id,'tv'=>1,'ip'=>'127.0.0.1','ua'=>'SEC018','sid'=>bin2hex(random_bytes(16))];
 $c->setSec018AuditIdentity($identity($a)); $d->setSec018AuditIdentity($identity($b));
-$actor=fn()=>$owner->query('SELECT actor_user_id FROM public.audit_logs ORDER BY id DESC LIMIT 1')->fetchColumn();
+$actor=fn()=>$owner->query('SELECT actor_user_id FROM public.audit_logs ORDER BY timestamp DESC, audit_id DESC LIMIT 1')->fetchColumn();
 $prepared->execute(['Alice-'.$port,$a]);
 check($actor()===$a,'prepared statement keeps original PDO after second connection is created');
 $d->prepare('UPDATE public.users SET "lastName"=? WHERE id=?')->execute(['Bob-'.$port,$b]);

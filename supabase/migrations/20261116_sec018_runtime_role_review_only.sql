@@ -57,6 +57,12 @@ REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
 REVOKE CREATE ON SCHEMA public FROM anon, authenticated;
 
+-- Existing postgres cron and service_role email-worker grants are retained.
+-- The HTTP backend cannot update/delete queued delivery jobs.
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES FROM PUBLIC, anon, authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON SEQUENCES FROM PUBLIC, anon, authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+
 -- Explicit table-by-table DML; do not issue GRANT ALL ON ALL TABLES.
 -- Backend PHP RBAC remains the authorization boundary in this compatibility
 -- phase. A role-specific USING(true) is not independent per-user/branch RLS.
@@ -125,11 +131,9 @@ CREATE POLICY sec018_runtime_i ON public.department_question_bank FOR INSERT TO 
 CREATE POLICY sec018_runtime_u ON public.department_question_bank FOR UPDATE TO hrms_runtime_restricted USING (true) WITH CHECK (true);
 CREATE POLICY sec018_runtime_d ON public.department_question_bank FOR DELETE TO hrms_runtime_restricted USING (true);
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.email_queue TO hrms_runtime_restricted;
+GRANT SELECT, INSERT ON TABLE public.email_queue TO hrms_runtime_restricted;
 CREATE POLICY sec018_runtime_s ON public.email_queue FOR SELECT TO hrms_runtime_restricted USING (true);
 CREATE POLICY sec018_runtime_i ON public.email_queue FOR INSERT TO hrms_runtime_restricted WITH CHECK (true);
-CREATE POLICY sec018_runtime_u ON public.email_queue FOR UPDATE TO hrms_runtime_restricted USING (true) WITH CHECK (true);
-CREATE POLICY sec018_runtime_d ON public.email_queue FOR DELETE TO hrms_runtime_restricted USING (true);
 
 GRANT SELECT, INSERT, UPDATE ON TABLE public.employee TO hrms_runtime_restricted;
 CREATE POLICY sec018_runtime_s ON public.employee FOR SELECT TO hrms_runtime_restricted USING (true);

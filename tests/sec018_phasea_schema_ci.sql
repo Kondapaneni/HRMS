@@ -15,7 +15,8 @@ CREATE TABLE public.assets (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.attendance (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.attendance_punches (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.audit_logs (
- id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ audit_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
  module_name text, entity_type text, entity_id text, action_type text,
  actor_user_id text, actor_name text, actor_role text,
  target_employee_id text, target_employee_name text,
