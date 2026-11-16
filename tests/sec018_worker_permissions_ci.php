@@ -64,8 +64,14 @@ $publicFunctions = [
     'public.jsonb_diff_val(jsonb,jsonb)',
     'public.process_audit_log()',
     'public.update_assets_updated_at_column()',
+    // Step 1F: ACL models of two functions whose real bodies are unavailable.
+    'public.rls_auto_enable()',
+    'public.enforce_direct_chat_two_participants()',
 ];
 foreach ($publicFunctions as $signature) {
+    // An absent function must not accidentally pass a negative grant check.
+    step1eCheck(step1eBool(step1eScalar($db, 'SELECT to_regprocedure(?) IS NOT NULL', [$signature])),
+        "disposable function fixture includes $signature");
     foreach (['anon', 'authenticated', 'hrms_runtime_restricted'] as $role) {
         $grant = step1eScalar($db,
             'SELECT has_function_privilege(?, to_regprocedure(?), ?)',
@@ -74,6 +80,58 @@ foreach ($publicFunctions as $signature) {
             "$role cannot directly EXECUTE $signature");
     }
 }
+// SEC-018 Step 1F: fail fast if the structural fixture drifts from the
+// previously documented read-only schema inventory: 38 tables / 407 columns /
+// 78 constraints / nine non-internal row triggers. These counts do not prove
+// full production schema equivalence (extensions and function bodies differ).
+$inventory = [
+    'application tables' => [
+        'SELECT count(*) FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+         WHERE n.nspname=\'public\' AND c.relkind=\'r\'', 38],
+    'application columns' => [
+        'SELECT count(*) FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid
+         JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+         WHERE n.nspname=\'public\' AND c.relkind=\'r\' AND a.attnum>0 AND NOT a.attisdropped', 407],
+    'application constraints' => [
+        'SELECT count(*) FROM pg_catalog.pg_constraint co JOIN pg_catalog.pg_class c ON c.oid=co.conrelid
+         JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+         WHERE n.nspname=\'public\'', 78],
+    'non-internal application triggers' => [
+        'SELECT count(*) FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid
+         JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+         WHERE n.nspname=\'public\' AND NOT t.tgisinternal', 9],
+];
+foreach ($inventory as $label => [$sql, $expected]) {
+    step1eCheck((int)step1eScalar($db, $sql) === $expected,
+        "synthetic fixture preserves $expected $label");
+}
+step1eCheck((int)step1eScalar($db,
+    "SELECT count(*) FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
+     WHERE n.nspname='public'") === 8,
+    'six functional public routines plus two explicit ACL-only models');
+
+foreach ([
+    'public.rls_auto_enable()' => [true, 'event_trigger'],
+    'public.enforce_direct_chat_two_participants()' => [false, 'trigger'],
+] as $signature => [$definer, $syntheticReturn]) {
+    $metadata = $db->prepare(
+        'SELECT p.prosecdef, p.prorettype::regtype::text AS ret, pg_get_userbyid(p.proowner) AS owner
+         FROM pg_catalog.pg_proc p WHERE p.oid=to_regprocedure(?)'
+    );
+    $metadata->execute([$signature]);
+    $row = $metadata->fetch(PDO::FETCH_ASSOC);
+    step1eCheck(is_array($row)
+        && step1eBool($row['prosecdef'] ?? null) === $definer
+        && ($row['ret'] ?? '') === $syntheticReturn
+        && ($row['owner'] ?? '') === 'postgres',
+        "synthetic ACL-only model's declared metadata for $signature");
+    // Privileged catalog objects are not invoked. Real function bodies,
+    // dependencies and any live DDL event registrations remain unverified.
+}
+step1eCheck((int)step1eScalar($db,
+    'SELECT count(*) FROM pg_catalog.pg_event_trigger') === 0,
+    'test fixture registers no DDL event triggers or real RLS helper execution');
+
 step1eCheck(step1eBool(step1eScalar($db,
     "SELECT has_function_privilege('hrms_audit_executor', 'public.jsonb_diff_val(jsonb,jsonb)', 'EXECUTE')")),
     'signed audit trigger owner retains required JSON-diff function access');
