@@ -77,7 +77,7 @@ cannot by itself certify every feature's schema compatibility.
    use it for DB_USERNAME. These credential/environment changes require separate
    approval; none are performed by this PR or its tests.
 5. Deploy the approved application SHA with coordinated schema/settings changes.
-   Restart workers with approved restricted credentials. Verify the checks below
+   Retain the separately reviewed existing worker identities. Verify the checks below
    before reopening writes. Never resume using a privileged fallback silently.
 
 ## Rollback
@@ -92,6 +92,19 @@ and remove the newly introduced credentials/key after all dependent sessions
 are stopped. Reverting to privileged access reopens SEC-018 and must be tracked
 as an unresolved incident, not a successful security rollout. Validate rollback
 on the isolated restored schema before approving production deployment.
+
+## Read-only inventory (2026-11-16)
+
+Catalog inspection confirmed all 38 public tables have RLS enabled and the
+refresh table has FORCE RLS. The real audit key is audit_id (UUID), with a
+timestamp column. Seven table audit triggers call process_audit_log; the asset
+updated-at trigger is invoker code. The email_queue insert webhook uses
+supabase_functions.http_request. The email Edge Function uses its existing
+service_role access to claim/update delivery status; those explicit grants are
+preserved. The active daily_attendance_master_job runs as postgres, whose
+function ownership/execute permissions remain unchanged. These workers are
+separate privileged components, not evidence of least privilege for all
+infrastructure. No live records, grants, roles, settings or jobs were changed.
 
 ## Essential live verification after an approved rollout
 
