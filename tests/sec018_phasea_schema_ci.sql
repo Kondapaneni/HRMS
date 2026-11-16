@@ -779,6 +779,32 @@ BEGIN
 END;
 $function$
 ;
+-- SEC-018 Step 1F - synthetic function metadata models, NOT real function bodies.
+-- These two live public function signatures are known from read-only metadata.
+-- Their implementations are unavailable in the repository; do not pretend
+-- that these stubs reproduce business logic, DDL hooks, or direct-chat checks.
+-- Deliberately do not register event/row triggers for these no-op models.
+CREATE OR REPLACE FUNCTION public.rls_auto_enable()
+ RETURNS event_trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'pg_catalog'
+AS $sec018_rls_acl_only$
+BEGIN
+  -- ACL model only. No dynamic DDL, table changes or event trigger installed.
+  RETURN;
+END;
+$sec018_rls_acl_only$;
+CREATE OR REPLACE FUNCTION public.enforce_direct_chat_two_participants()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public', 'pg_temp'
+AS $sec018_direct_chat_acl_only$
+BEGIN
+  -- ACL model only. No chat data or foreign tables are fabricated.
+  RETURN NEW;
+END;
+$sec018_direct_chat_acl_only$;
 CREATE OR REPLACE FUNCTION public.process_audit_log()
  RETURNS trigger
  LANGUAGE plpgsql
