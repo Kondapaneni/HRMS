@@ -52,6 +52,9 @@ jobs:
             psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f "$file"
           done
           php tests/sec018_phasea_acceptance_ci.php
+          for mode in default restricted missing-password wrong-role missing-audit; do
+            php tests/sec018_db_switch_ci.php "$mode"
+          done
       - name: Install isolated transaction pooler
         shell: bash
         run: |
