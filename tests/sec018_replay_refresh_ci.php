@@ -310,10 +310,19 @@ if($pid===0) {
         exit(1);
     }
 }
-usleep(250000);
+// Confirm that the second session really blocks on the first row lock.
+$blocked=false;
+for($attempt=0;$attempt<30;$attempt++) {
+    $n=(int)sec018EScalar($admin, "SELECT count(*) FROM pg_stat_activity
+        WHERE datname='sec018_rls_ci' AND usename='sec018_ci_preauth'
+          AND wait_event_type='Lock'");
+    if($n>0){$blocked=true;break;}
+    usleep(100000);
+}
 $preauth->commit();
 $wait=0;
 pcntl_waitpid($pid,$wait);
+sec018EAssert($blocked,'E10 second PostgreSQL connection waited on first row lock');
 sec018EAssert(pcntl_wifexited($wait)&&pcntl_wexitstatus($wait)===0,'E10 competing refresh observes first committed rotation');
 sec018EAssert(sec018EScalar($admin,"SELECT revoked FROM sec018_2e_private.refresh_tokens WHERE id='session-race'")===true,'E10 replayed old credential revokes chain');
 sec018EAssert(sec018ERotate($preauth,'session-race',$raceNew,bin2hex(random_bytes(32)))==='invalid','E10 revoked chain cannot be renewed');
