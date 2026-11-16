@@ -2,6 +2,9 @@ name: SEC-017 Storage path hardening
 on:
   pull_request:
     paths:
+      - 'backend/src/Config/**'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/src/Utils/Sec018AuditContext.php'
       - 'backend/public/storage_routes.php'
       - 'frontend/src/**'
       - 'tests/sec001_storage_test.php'

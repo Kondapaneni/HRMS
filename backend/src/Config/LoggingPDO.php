@@ -44,6 +44,9 @@ class LoggingPDO extends PDO
     public function clearSec018AuditIdentity(): void
     {
         $this->sec018Actor = null;
+        if ($this->inTransaction() && Sec018AuditContext::enabled()) {
+            parent::query("SELECT set_config('sec018.audit_payload', '', true), set_config('sec018.audit_mac', '', true)");
+        }
     }
 
     public function withSec018AuditContext(string $sql, callable $operation): mixed

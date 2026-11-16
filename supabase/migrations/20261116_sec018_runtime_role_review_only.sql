@@ -10,10 +10,10 @@ DECLARE
  actual text[];
  expected text[];
 BEGIN
- SELECT array_agg(c.relname::text ORDER BY c.relname) INTO actual
+ SELECT array_agg(c.relname::text ORDER BY c.relname::text COLLATE "C") INTO actual
  FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
  WHERE n.nspname='public' AND c.relkind='r';
- SELECT array_agg(v ORDER BY v) INTO expected
+ SELECT array_agg(v ORDER BY v COLLATE "C") INTO expected
  FROM unnest(ARRAY['application_timeline', 'applications', 'assessment_attempts', 'assessments', 'assets', 'attendance', 'attendance_punches', 'audit_logs', 'branches', 'candidate_documents', 'candidate_profiles', 'company_holidays', 'department_question_bank', 'email_queue', 'employee', 'employee_training_progress', 'expenses', 'geofences', 'global_settings', 'hrms_refresh_sessions', 'jobs', 'leave_balances', 'leaves', 'loan_application_audit_logs', 'loan_applications', 'loan_documents', 'loan_leads', 'mfa_backup_codes', 'mfa_secrets', 'origination_activities', 'payslips', 'portal_item_reads', 'rate_limits', 'sale_leads', 'shift_times', 'training_videos', 'user_feature_access', 'users']::text[]) v;
  IF actual IS DISTINCT FROM expected THEN
      RAISE EXCEPTION 'SEC-018: public table inventory changed: abort and re-review permissions';
@@ -44,6 +44,7 @@ CREATE ROLE hrms_runtime_restricted NOLOGIN NOSUPERUSER NOCREATEDB
     NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT;
 GRANT USAGE ON SCHEMA public TO hrms_runtime_restricted;
 DO $sec018$ BEGIN
+ EXECUTE format('REVOKE TEMPORARY ON DATABASE %I FROM PUBLIC', current_database());
  EXECUTE format('GRANT CONNECT ON DATABASE %I TO hrms_runtime_restricted', current_database());
 END $sec018$;
 

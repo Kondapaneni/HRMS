@@ -184,6 +184,8 @@ class AuthMiddleware
             try {
                 return $handler->handle($request);
             } finally {
+                // Never carry an unfinished route transaction into another request.
+                if ($conn->inTransaction()) $conn->rollBack();
                 $conn->clearSec018AuditIdentity();
             }
         }

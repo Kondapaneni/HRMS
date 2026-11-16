@@ -12,6 +12,9 @@ on:
       - '.github/workflows/sec011.yml'
   pull_request:
     paths:
+      - 'backend/src/Config/**'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/src/Utils/Sec018AuditContext.php'
       - 'backend/src/Security/OriginationAccess.php'
       - 'backend/public/origination_loans_application_routes.php'
       - 'backend/public/origination_activities_routes.php'
