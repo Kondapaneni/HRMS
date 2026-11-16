@@ -125,7 +125,24 @@ function sec001Config(): ?array {
     return [$url,$key];
 }
 
-function sec001Call(string $url, string $key, string $method, $body, array $headers, int $size = 0): bool {
+/**
+ * SEC-017: DELETE /storage/v1/object/{bucket} returns an array of deleted
+ * objects. HTTP 2xx alone does not prove that the requested path existed or
+ * was removed. The bucket_id field is optional in newer Supabase responses.
+ */
+function sec017DeleteResponseConfirmsPath(string $body, string $bucket, string $path): bool {
+    $objects = json_decode($body, true);
+    if (!is_array($objects) || !array_is_list($objects)) return false;
+    foreach ($objects as $object) {
+        if (!is_array($object) || ($object['name'] ?? null) !== $path) continue;
+        if (array_key_exists('bucket_id', $object) && $object['bucket_id'] !== $bucket) continue;
+        return true;
+    }
+    return false;
+}
+
+function sec001Call(string $url, string $key, string $method, $body, array $headers,
+    int $size = 0, ?string $deletedBucket = null, ?string $deletedPath = null): bool {
     $ch = curl_init($url);
     $opts = [
         CURLOPT_RETURNTRANSFER => true,
@@ -150,6 +167,13 @@ function sec001Call(string $url, string $key, string $method, $body, array $head
     curl_close($ch);
     if ($data === false || $status < 200 || $status >= 300) {
         error_log('SEC-001 Storage error: HTTP ' . $status . ' ' . $error);
+        return false;
+    }
+    if ($method === 'DELETE' && (
+        $deletedBucket === null || $deletedPath === null ||
+        !sec017DeleteResponseConfirmsPath($data, $deletedBucket, $deletedPath)
+    )) {
+        error_log('SEC-017 Storage DELETE response did not confirm exact object');
         return false;
     }
     return true;
@@ -220,7 +244,7 @@ $app->delete('/api/storage/object', function (Request $request, Response $respon
     if (!$config || !function_exists('curl_init')) return sec001Reply($response, 503, ['error' => 'Storage is not configured']);
     [$url,$key] = $config;
     $ok = sec001Call($url . '/storage/v1/object/' . $bucket, $key, 'DELETE',
-        json_encode(['prefixes' => [$path]]), ['Content-Type: application/json']);
-    if (!$ok) return sec001Reply($response, 502, ['error' => 'File delete failed']);
+        json_encode(['prefixes' => [$path]]), ['Content-Type: application/json'], 0, $bucket, $path);
+    if (!$ok) return sec001Reply($response, 502, ['error' => 'File deletion not confirmed']);
     return sec001Reply($response, 200, ['path' => $path]);
 })->add(new AuthMiddleware(['admin','employee','candidate']));
