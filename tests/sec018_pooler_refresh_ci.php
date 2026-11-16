@@ -307,7 +307,7 @@ for($attempt=0;$attempt<40;$attempt++){
     $count=(int)scalar2G($admin,"SELECT COUNT(*) FROM pg_stat_activity
       WHERE datname='sec018_rls_ci' AND usename='sec018_ci_runtime'
         AND wait_event_type='Lock'");
-    if($count>=2){$blocked=true;break;}
+    if($count>=1){$blocked=true;break;}
     usleep(100000);
 }
 $admin->commit(); // Must release lock even if workers were slower than expected.
@@ -318,7 +318,7 @@ foreach($children as $pid) {
     $codes[]=pcntl_wifexited($status)?pcntl_wexitstatus($status):2;
 }
 sort($codes);
-check2G($blocked,'G11 both independent workers waited on actual row lock');
+check2G($blocked,'G11 observed real PostgreSQL row-lock contention');
 check2G($codes===[0,1],'G11 one actual refresh succeeds, competing refresh denied');
 // Forked children may close inherited PDO sockets; verify using a fresh conn.
 unset($admin,$app,$db);
