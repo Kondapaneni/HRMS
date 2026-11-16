@@ -162,3 +162,44 @@ jobs:
         run: |
           set -euo pipefail
           bash tests/sec018_rollback_ci.sh
+
+  # SEC-018 verified routine provenance in a separate disposable DB. This
+  # recreates the two actual (screened, secret-free) DEV function bodies.
+  # It cannot interact with connected Supabase/Render projects.
+  isolated-real-functions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: [16, 17]
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_DB: sec018_phasea_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: SEC018_PHASEA_CI_PG_ONLY
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec018_phasea_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec018_phasea_ci
+      DB_USERNAME: postgres
+      DB_PASSWORD: SEC018_PHASEA_CI_PG_ONLY
+      PGPASSWORD: SEC018_PHASEA_CI_PG_ONLY
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test screened real functions against synthetic PG and review-only SQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GITHUB_ACTIONS=true
+          psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN BYPASSRLS;'
+          psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f tests/sec018_phasea_schema_ci.sql > /dev/null
+          psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE ON TABLE public.email_queue TO service_role;'
+          psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f supabase/review-only/20261116_sec018_runtime_role_review_only.sql > /dev/null
+          psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f supabase/review-only/20261116_sec018_signed_audit_review_only.sql > /dev/null
+          psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f tests/sec018_real_function_provenance_ci.sql
