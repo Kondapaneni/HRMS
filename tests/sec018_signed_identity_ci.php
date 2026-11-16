@@ -152,7 +152,7 @@ BEGIN
     END IF;
     issued := pieces[5]::bigint;
     expires := pieces[6]::bigint;
-    now_epoch := pg_catalog.extract(epoch FROM pg_catalog.clock_timestamp())::bigint;
+    now_epoch := pg_catalog.date_part('epoch',pg_catalog.clock_timestamp())::bigint;
     IF issued > now_epoch + 5 OR expires <= now_epoch
         OR expires <= issued OR expires - issued > 60 THEN
         RETURN NULL;
