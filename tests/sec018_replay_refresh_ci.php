@@ -322,6 +322,12 @@ for($attempt=0;$attempt<30;$attempt++) {
 $preauth->commit();
 $wait=0;
 pcntl_waitpid($pid,$wait);
+// PHP fork inherits already-open PDO handles; the child exiting may close
+// their shared PostgreSQL transports. Reconnect the parent after waitpid.
+// This does not change any synthetic transaction: the winner committed above.
+unset($admin,$preauth);
+$admin=sec018EConnection('postgres','SEC018_LOCAL_PG_CI_ONLY');
+$preauth=sec018EConnection('sec018_ci_preauth','SEC018_SYNTHETIC_PREAUTH');
 sec018EAssert($blocked,'E10 second PostgreSQL connection waited on first row lock');
 sec018EAssert(pcntl_wifexited($wait)&&pcntl_wexitstatus($wait)===0,'E10 competing refresh observes first committed rotation');
 sec018EAssert(sec018EScalar($admin,"SELECT revoked FROM sec018_2e_private.refresh_tokens WHERE id='session-race'")===true,'E10 replayed old credential revokes chain');
