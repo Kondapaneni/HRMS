@@ -1,7 +1,12 @@
 # SEC-018 remediation — review and release gates
 
-Status: implementation under isolated verification. NOT approved for deployment.
-SQL is review-only and has NOT been applied to Supabase. PR #57 is unchanged.
+Status (2026-11-16): controlled Acme HRMS DEV-only rollout in progress.
+The first restricted-role review SQL was applied to the confirmed DEV Supabase
+database after an exact real-schema transaction/ROLLBACK rehearsal. The audit
+verifier/trigger-owner SQL has NOT yet been applied. The restricted role remains
+NOLOGIN, the existing backend database credentials remain active, and the
+existing Admin login record remains intact. No production release is approved.
+PR #57 is unchanged.
 
 ## Security policy
 
@@ -332,3 +337,72 @@ than substituting permission-only stubs for a release decision.
 Then request separate authorization for a narrowly scoped Stage A read-only
 metadata collection. Do not assume that acknowledgment of Step 1I
 constitutes operational permission.
+
+## SEC-018 authorized DEV rollout evidence (2026-11-16)
+
+**Scope:** The owner gave broad authority to complete SEC-018 for the
+development HRMS only, with no real employee users and an explicit requirement
+to preserve the Admin login. Do not interpret this as permission to change
+any other Supabase project or Render service.
+
+**Source provenance:** On the confirmed Acme HRMS DEV project, catalog
+inventory matches the 38 public tables / 407 columns / 78 constraints /
+nine application triggers and all table RLS flags. Actual
+`rls_auto_enable()` and `enforce_direct_chat_two_participants()` function
+bodies were screened for sensitive constants. The active `ensure_rls`
+DDL event hook is linked to the first; the direct-chat function currently has
+no observed persistent table-trigger binding. The actual bodies and event
+behavior were exercised in new isolated PostgreSQL 16 and 17 regressions,
+with no secrets copied into the fixture.
+
+**App deployment fix:** Docker entrypoint now forwards the previously missing
+signed-audit environment variables. The PHP database factory supports
+`SEC018_DB_USE_RESTRICTED=true` with separate
+`SEC018_DB_USERNAME`/`SEC018_DB_PASSWORD`; it fails closed on a missing
+password, wrong actual PostgreSQL role, or unsigned restricted session.
+The existing `DB_USERNAME`/`DB_PASSWORD` remain unchanged for an explicit
+`SEC018_DB_USE_RESTRICTED=false` functional fallback. Both paths are
+verified in synthetic CI. Do not enable this setting before provisioning
+the restricted role and signed audit key.
+
+**Actual-schema dry-run:** Both proposed SQL files were exercised against the
+real DEV catalog inside a transaction with explicit ROLLBACK. The
+post-rollback inventory confirmed zero new roles, policies, or session-history
+columns. A successful rehearsal is NOT a substitute for recoverable backup.
+
+**Private local recovery snapshot:** A private `sec018_recovery` schema was
+created only on the confirmed DEV project. It contains one backup of the existing
+Admin account row (including sensitive authentication hashes, **never
+exported**), the original audit function definition, and six categories of
+pre-change catalog/ACL metadata. Usage was revoked from PUBLIC, anon,
+authenticated and service_role; controls were checked. This is an
+**in-database recovery point, not an independent/offsite backup**. The
+Supabase organization is on a Free plan with no database branch or managed
+backup established. Keep the snapshot private and retain it until the
+rollout and any rollback are fully verified.
+
+**First DEV migration applied and verified:** The runtime-role SQL was applied
+as `sec018_phasea_runtime_restricted_dev_20261116` through Supabase's
+migration mechanism. Post-change read-only checks verified:
+- one `hrms_runtime_restricted` NOLOGIN/non-superuser/no-BYPASSRLS role;
+- 121 restricted policies and one added NOT NULL JSONB refresh history column;
+- all 38 public tables and the one existing Admin login row still present;
+- one preserved Admin backup in the private recovery schema;
+- service_role can still update email_queue; the attendance cron job still
+  runs as postgres; the original audit function still belongs to postgres.
+
+**Next controlled action:** Merge and deploy the tested backend code while
+the restricted switch/audit feature remain OFF, then check service health;
+apply the second signed-audit migration only after this code version is
+running and the old connection remains recoverable. Provision the random
+audit key and limited role password securely outside Git, activate the
+restricted login via the *separate* opt-in variables, check the effective
+role and real HRMS functionality, and retain the functional fallback until
+owner-confirmed testing is complete. Avoid an unattended DB credential
+replacement or silent privileged fallback.
+
+**Stop conditions:** Any Admin login failure, 5xx on core HRMS routes,
+missing audit actor, broken Attendance/email worker, unexpected restricted
+table grant, or inability to return to the old DB connection means STOP,
+keep the Admin recovery snapshot and immediately disable the restricted
+switch before further changes. Do not close SEC-018 until tested end-to-end.
