@@ -9,6 +9,7 @@ on:
       - 'tests/sec018_rls_ci.php'
       - 'tests/sec018_signed_identity_ci.php'
       - 'tests/sec018_replay_refresh_ci.php'
+      - 'tests/sec018_pooler_refresh_ci.php'
       - 'docs/SEC-018-isolated-rls-test-plan.md'
   workflow_dispatch:
 
@@ -19,7 +20,7 @@ jobs:
   synthetic-postgres:
     name: Local-only role, RLS, audit, and pooler-mode mechanics
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     services:
       postgres:
         image: postgres:16
@@ -61,6 +62,7 @@ jobs:
           php -l tests/sec018_rls_ci.php
           php -l tests/sec018_signed_identity_ci.php
           php -l tests/sec018_replay_refresh_ci.php
+          php -l tests/sec018_pooler_refresh_ci.php
           node tests/sec018_source_test.mjs
       - name: Run synthetic-only role and RLS regression
         run: |
@@ -68,3 +70,59 @@ jobs:
           php tests/sec018_rls_ci.php
           php tests/sec018_signed_identity_ci.php
           php tests/sec018_replay_refresh_ci.php
+
+      - name: Start disposable localhost PgBouncer (transaction mode)
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq pgbouncer postgresql-client
+          config_dir="$RUNNER_TEMP/sec018-pgbouncer"
+          mkdir -p "$config_dir"
+          chmod 700 "$config_dir"
+          printf '"postgres" "SEC018_LOCAL_PG_CI_ONLY"\n"sec018_ci_runtime" "SEC018_SYNTHETIC_RUNTIME"\n"sec018_ci_preauth" "SEC018_SYNTHETIC_PREAUTH"\n' > "$config_dir/users.txt"
+          chmod 600 "$config_dir/users.txt"
+          cat > "$config_dir/pgbouncer.ini" <<EOF
+          [databases]
+          sec018_rls_ci = host=127.0.0.1 port=5432 dbname=sec018_rls_ci
+
+          [pgbouncer]
+          listen_addr = 127.0.0.1
+          listen_port = 6432
+          unix_socket_dir = $config_dir
+          auth_type = plain
+          auth_file = $config_dir/users.txt
+          admin_users = postgres
+          pool_mode = transaction
+          max_prepared_statements = 0
+          ignore_startup_parameters = extra_float_digits
+          max_client_conn = 70
+          default_pool_size = 6
+          logfile = $config_dir/pooler.log
+          pidfile = $config_dir/pooler.pid
+          EOF
+          pgbouncer -d "$config_dir/pgbouncer.ini"
+          ready=0
+          for attempt in $(seq 1 50); do
+            if pg_isready -h 127.0.0.1 -p 6432 -d sec018_rls_ci -U sec018_ci_runtime >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 0.2
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Disposable PgBouncer did not start"
+            sed -E 's/(password|secret|token).*/\1=[REDACTED]/Ig' "$config_dir/pooler.log" || true
+            exit 1
+          fi
+      - name: Characterize actual HRMS RefreshSessions through PgBouncer
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '6432'
+          DB_DATABASE: sec018_rls_ci
+          DB_USERNAME: sec018_ci_runtime
+          DB_PASSWORD: SEC018_SYNTHETIC_RUNTIME
+          DB_PDO_PREPARE_MODE: pooler
+        run: |
+          set -euo pipefail
+          php tests/sec018_pooler_refresh_ci.php
