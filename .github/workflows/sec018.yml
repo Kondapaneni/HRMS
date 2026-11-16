@@ -40,8 +40,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;'
-          for file in tests/sec018_phasea_schema_ci.sql supabase/review-only/20261116_sec018_runtime_role_review_only.sql supabase/review-only/20261116_sec018_signed_audit_review_only.sql; do
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN BYPASSRLS;'
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f tests/sec018_phasea_schema_ci.sql
+          # Synthetic worker role/grants exist BEFORE the SEC-018 migration.
+          # Confirm the migration preserves explicit service_role access.
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE ON TABLE public.email_queue TO service_role;'
+          for file in supabase/review-only/20261116_sec018_runtime_role_review_only.sql supabase/review-only/20261116_sec018_signed_audit_review_only.sql; do
             psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f "$file"
           done
           php tests/sec018_phasea_acceptance_ci.php
@@ -76,6 +80,7 @@ jobs:
           php tests/sec018_adversarial_ci.php 5432
           php tests/sec018_adversarial_ci.php 6432
           php tests/sec018_business_ci.php
+          php tests/sec018_worker_permissions_ci.php
       - name: Actual HTTP under restricted signed-audit runtime
         shell: bash
         run: |
