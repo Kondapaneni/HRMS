@@ -81,7 +81,7 @@ psql_db -f supabase/review-only/20261116_sec018_runtime_role_review_only.sql >/d
 psql_db -f supabase/review-only/20261116_sec018_signed_audit_review_only.sql >/dev/null
 require_count "SELECT count(*) FROM pg_roles WHERE rolname IN ('hrms_runtime_restricted','hrms_audit_verifier','hrms_audit_executor')" 3 'proposed roles not created'
 require_count "SELECT count(*) FROM pg_catalog.pg_attribute WHERE attrelid='public.hrms_refresh_sessions'::regclass AND attname='used_token_hashes' AND NOT attisdropped" 1 'refresh history migration missing'
-require_count "SELECT count(*) FROM pg_policies WHERE schemaname='public' AND policyname LIKE 'sec018_runtime_%'" 115 'expected role-specific policies missing'
+require_count "SELECT count(*) FROM pg_policies WHERE schemaname='public' AND policyname LIKE 'sec018_runtime_%'" 121 'expected role-specific policies missing'
 require_count "SELECT count(*) FROM pg_catalog.pg_namespace WHERE nspname='sec018_internal'" 1 'audit private schema missing'
 require_count "SELECT count(*) FROM pg_catalog.pg_proc p WHERE p.oid='sec018_internal.verified_audit_actor()'::regprocedure" 1 'audit verifier missing'
 # Simulate post-upgrade writes ONLY on a fixture table with a no-network trigger.
