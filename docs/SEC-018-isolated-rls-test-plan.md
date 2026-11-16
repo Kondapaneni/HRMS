@@ -132,3 +132,45 @@ The signed request context is supplied transaction-locally via set_config(...,tr
 - All tests must remain isolated to ephemeral PostgreSQL CI. A green CI job does not authorize a merge, deployment or Supabase migration.
 
 **Step 2E status:** CI and separate owner authorization are required; SEC-018 remains OPEN.
+
+## Step 2G — actual HRMS RefreshSessions through isolated PgBouncer
+
+**Status: synthetic characterization CI PASSED. No runtime remediation. SEC-018 remains OPEN.**
+
+The new tests/sec018_pooler_refresh_ci.php runs in the existing PR-only workflow after the earlier isolated suites. A separate local PgBouncer process starts in transaction mode on 127.0.0.1:16432, forwards only to the CI-only PostgreSQL 16 service on 127.0.0.1:5432, and disables server-side named prepares (max_prepared_statements=0). The CI-only PostgreSQL service and ephemeral PgBouncer configuration use hardcoded disposable credentials and **never connect to Supabase or Render**.
+
+The fixture loads **unmodified** production PHP classes directly from backend/src:
+- App\Config\Database and LoggingPDO;
+- App\Utils\RefreshSessions::rotate();
+- App\Utils\SessionVersion.
+
+It creates the minimum synthetic public.users and public.hrms_refresh_sessions shapes in the *ephemeral* database, including ENABLE RLS on both and FORCE RLS on the session table. Broad fixture-only RLS policies allow the existing refresh implementation to run under a synthetic restricted application login. These policies are **not** acceptable as real HRMS authorization policies; their only purpose here is to characterize runtime behavior without touching the live database. No real credentials or user data are copied into CI.
+
+### Coverage and results
+
+| Case | What was observed in CI |
+| --- | --- |
+| G01 | Disposable target database and PgBouncer SHOW CONFIG verify transaction mode and max_prepared_statements=0 |
+| G02 | Actual Database.php uses the synthetic runtime login, emulated PDO prepares, repeated bound queries and zero persistent server-prepared statements |
+| G03 | Unmodified RefreshSessions::rotate rejects malformed credentials and performs valid rotation |
+| G04 | Replay of an old valid secret revokes the specific refresh chain, including the newly minted token |
+| G05 | **KNOWN SECURITY GAP:** an unrelated incorrect secret paired with a valid session ID also revokes that session; potential targeted denial of service if the ID leaks |
+| G06 | Wrong web/Android client type is rejected without revocation |
+| G07 | Expired sessions, disabled accounts and stale token_version are denied |
+| G08 | A synthetic failure trigger forces a transaction exception; the actual PHP code rolls back, leaving the hash unchanged and no transaction open |
+| G09 | Step 2E signed identity (v2) works through transaction pooling; COMMIT, ROLLBACK and a second pooled client do not inherit another user's identity |
+| G10 | **KNOWN AVAILABILITY GAP:** an unobserved successful refresh response followed by a retry of the old credential revokes the session |
+| G11 | **KNOWN AVAILABILITY GAP:** two independent PHP processes call the actual RefreshSessions::rotate concurrently through PgBouncer; one succeeds, one is rejected, and the session is subsequently revoked. CI observed actual PostgreSQL row-lock contention |
+
+**CI review:** Two initial CI failures were corrected inside the test/CI harness only: a runner-default PgBouncer port conflict/authentication error, and an overly strict assertion requiring both competing workers to appear as PostgreSQL lock waiters at the same instant (one may wait at the pooler). The final test checks an observed SQL lock wait plus the two completed outcomes. Green CI establishes the *characterization* and confirms no fatal DB/driver incompatibility in these synthetic scenarios. The security findings listed above remain release blockers.
+
+### Important scope limitations
+
+- Actual HTTP API, web cookie, Android Keystore and cross-device behavior are not exercised by this PHP class-level suite. Existing SEC-012 synthetic HTTP tests continue to cover their own original scope.
+- PgBouncer transaction mode is an approximation to the Supabase shared Supavisor pooler; this **does not certify live Supavisor compatibility** or justify changing DB_PDO_PREPARE_MODE to native.
+- The signed-identity key and synthetic user/branch rows used in this test were created by earlier CI suites; the real HRMS runtime has no signed database-context integration.
+- Network response loss is simulated by discarding the result of a completed rotate; HTTP retransmission and client networking are not exercised.
+- RefreshSessions::rotate currently revokes after *any* hash mismatch for a known session ID. The separate Step 2E toy function has safer wrong-secret handling but is **not** the application implementation.
+- No change to refresh error policy, signing keys, live RLS, deployment settings, main branch, or users is authorized by these tests. Required fixes and any rollout demand separate owner approval.
+
+**SEC-018 remains OPEN. PR #57 remains DRAFT; DO NOT MERGE OR DEPLOY based on this result.**
