@@ -30,6 +30,10 @@ jobs:
   ownership:
     name: Real HTTP cross-user and cross-branch isolation
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [baseline, restricted]
     services:
       postgres:
         image: postgres:16
@@ -74,6 +78,9 @@ jobs:
         run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
       - name: Seed isolated two-branch loan and activity fixtures
         run: php tests/sec011_seed.php
+      - name: Install actual SEC-018 restricted role and signed verifier
+        if: matrix.runtime == 'restricted'
+        run: php tests/sec018_sec011_overlay_ci.php
       - name: Exercise real HTTP endpoints with synthetic JWTs
         shell: bash
         run: |
@@ -87,7 +94,12 @@ jobs:
           JWT_SECRET=SEC011_TEST_ONLY_NEVER_USE_IN_PRODUCTION
           APP_ENV=production
           SEC011_TEST_ENV
-          php -S 127.0.0.1:8771 -t backend/public backend/public/index.php > /tmp/sec011-server.log 2>&1 &
+          if [ "${{ matrix.runtime }}" = restricted ]; then
+            sed -i 's/DB_USERNAME=postgres/DB_USERNAME=hrms_runtime_restricted/;s/DB_PASSWORD=sec011_synthetic_only/DB_PASSWORD=SEC018_PHASEA_CI_RUNTIME_ONLY/' backend/.env
+            echo 'SEC018_AUDIT_CONTEXT_ENABLED=true' >> backend/.env
+            echo 'SEC018_AUDIT_HMAC_KEY=ac9f1c12ebd1677a7a32e1c79b4d2a808feca339589d302d1bdb102edc4b9e1a' >> backend/.env
+          fi
+          env -u DB_USERNAME -u DB_PASSWORD php -S 127.0.0.1:8771 -t backend/public backend/public/index.php > /tmp/sec011-server.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           ready=false
