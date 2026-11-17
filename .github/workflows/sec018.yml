@@ -83,7 +83,7 @@ jobs:
           for i in {1..20}; do pg_isready -h 127.0.0.1 -p 6432 && break; sleep 1; done
           # A second, independent PgBouncer instance exercises the session
           # mode that Supabase documents as compatible with native prepares.
-          cat > /tmp/sec018-pool/session.ini <<'INI'
+          cat <<'INI' | sudo tee /tmp/sec018-pool/session.ini >/dev/null
           [databases]
           sec018_phasea_ci = host=127.0.0.1 port=5432 dbname=sec018_phasea_ci
           [pgbouncer]
