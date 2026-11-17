@@ -6,6 +6,11 @@ on:
     paths:
       - 'backend/src/Security/EmailSecurity.php'
       - 'backend/public/admin_recruitment_routes.php'
+      - 'backend/public/sec003_file_access.php'
+      - 'frontend/src/pages/CandidateApplications.jsx'
+      - 'frontend/src/pages/CandidateMobileApplications.jsx'
+      - 'supabase/migrations/*candidate_offer_letter_portal_link.sql'
+      - 'tests/candidate_offer_portal_*'
       - 'backend/public/admin_employees_routes.php'
       - 'backend/public/index.php'
       - 'backend/src/Templates/welcome_email.html'
@@ -27,6 +32,11 @@ on:
     paths:
       - 'backend/src/Security/EmailSecurity.php'
       - 'backend/public/admin_recruitment_routes.php'
+      - 'backend/public/sec003_file_access.php'
+      - 'frontend/src/pages/CandidateApplications.jsx'
+      - 'frontend/src/pages/CandidateMobileApplications.jsx'
+      - 'supabase/migrations/*candidate_offer_letter_portal_link.sql'
+      - 'tests/candidate_offer_portal_*'
       - 'backend/public/admin_employees_routes.php'
       - 'backend/public/index.php'
       - 'backend/src/Templates/welcome_email.html'
@@ -88,7 +98,8 @@ jobs:
       - name: PHP and Node syntax
         run: |
           set -euo pipefail
-          for f in backend/src/Security/EmailSecurity.php backend/public/admin_recruitment_routes.php backend/public/admin_employees_routes.php backend/public/candidate_auth_routes.php backend/public/index.php tests/sec015_seed.php tests/sec015_policy_test.php tests/sec015_assert.php; do php -l "$f"; done
+          for f in backend/src/Security/EmailSecurity.php backend/public/admin_recruitment_routes.php backend/public/admin_employees_routes.php backend/public/sec003_file_access.php backend/public/candidate_auth_routes.php backend/public/index.php tests/sec015_seed.php tests/sec015_policy_test.php tests/sec015_assert.php tests/candidate_offer_portal_policy_test.php; do php -l "$f"; done
+          node --check tests/candidate_offer_portal_http_test.mjs
           node --check tests/candidate_activation_http_test.mjs
           node --check tests/candidate_activation_resume_source_test.mjs
           node --check tests/sec015_http_test.mjs
@@ -97,6 +108,7 @@ jobs:
         run: |
           composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
           php tests/sec015_seed.php
+          PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_DATABASE" -v ON_ERROR_STOP=1 -f supabase/migrations/20261117_candidate_offer_letter_portal_link.sql
           php tests/sec015_policy_test.php
       - name: Test anonymous/candidate/admin HTTP and queue integrity
         shell: bash
@@ -126,6 +138,14 @@ jobs:
             exit 1
           }
           php tests/sec015_assert.php || {
+            tail -n 120 /tmp/sec015-server.log
+            exit 1
+          }
+          node tests/candidate_offer_portal_http_test.mjs || {
+            tail -n 120 /tmp/sec015-server.log
+            exit 1
+          }
+          php tests/candidate_offer_portal_policy_test.php || {
             tail -n 120 /tmp/sec015-server.log
             exit 1
           }
