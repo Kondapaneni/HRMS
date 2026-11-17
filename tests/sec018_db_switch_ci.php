@@ -31,7 +31,7 @@ use App\Config\Database;
 use App\Config\LoggingPDO;
 
 $mode=$argv[1]??'';
-$cases=['default','restricted','missing-password','wrong-role','missing-audit','native','native-transaction-denied'];
+$cases=['default','restricted','missing-password','wrong-role','missing-audit','native','native-transaction-denied','native-session-optin'];
 if (!in_array($mode,$cases,true)) {
     fwrite(STDERR,"Usage: php tests/sec018_db_switch_ci.php [default|restricted|missing-password|wrong-role|missing-audit]\n");
     exit(2);
@@ -41,7 +41,9 @@ foreach (['DB_HOST','DB_PORT','DB_DATABASE','DB_USERNAME','DB_PASSWORD'] as $key
 }
 $_ENV['DB_PDO_PREPARE_MODE']=str_starts_with($mode, 'native')?'native':'pooler';
 // Simulate unsafe shared transaction-pooler settings WITHOUT a live connection.
-if ($mode==='native-transaction-denied') $_ENV['DB_PORT']='6543';
+if (in_array($mode,['native-transaction-denied','native-session-optin'],true)) $_ENV['DB_PORT']='6543';
+// Opt-in must discard the unsafe port, without modifying the legacy DB_PORT.
+$_ENV['SEC018_NATIVE_SESSION_ENABLED']=$mode==='native-session-optin'?'true':'false';
 $_ENV['SEC018_DB_USE_RESTRICTED']=$mode==='default'?'false':'true';
 $_ENV['SEC018_DB_USERNAME']=in_array($mode,['default','wrong-role'],true)?'postgres':'hrms_runtime_restricted';
 $_ENV['SEC018_DB_PASSWORD']=match($mode) {
@@ -65,6 +67,11 @@ if (in_array($mode,['missing-password','wrong-role','missing-audit','native-tran
     if ($conn->query('SELECT current_user')->fetchColumn()!==$expectedRole) {
         throw new RuntimeException("FAIL SEC-018 DB switch $mode: unexpected role");
     }
+    if ($mode==='native-session-optin'
+        && ($conn->query('SHOW port')->fetchColumn()!=='5432'
+            || $_ENV['DB_PORT']!=='6543')) {
+        throw new RuntimeException('FAIL SEC-018 session opt-in did not preserve old port');
+    }
     if ((bool)$conn->getAttribute(PDO::ATTR_EMULATE_PREPARES) !== ($mode!=='native')) {
         throw new RuntimeException("FAIL SEC-018 DB switch $mode: unexpected prepare mode");
     }
@@ -83,7 +90,8 @@ if ($entrypoint===false) throw new RuntimeException('Missing Docker entrypoint')
 foreach ([
   'DB_HOST','DB_PORT','DB_DATABASE','DB_USERNAME','DB_PASSWORD',
   'SEC018_DB_USE_RESTRICTED','SEC018_DB_USERNAME','SEC018_DB_PASSWORD',
-  'SEC018_AUDIT_CONTEXT_ENABLED','SEC018_AUDIT_HMAC_KEY','DB_PDO_PREPARE_MODE'
+  'SEC018_AUDIT_CONTEXT_ENABLED','SEC018_AUDIT_HMAC_KEY','DB_PDO_PREPARE_MODE',
+  'SEC018_NATIVE_SESSION_ENABLED'
 ] as $name) {
     if (!preg_match('/\\b'.preg_quote($name,'/').'\\b/', $entrypoint)) {
         throw new RuntimeException("FAIL SEC-018 Docker env forwarding: $name missing");
