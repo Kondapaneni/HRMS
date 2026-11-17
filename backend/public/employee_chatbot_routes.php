@@ -397,7 +397,7 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
         'suggested_actions' => $suggestedActions
     ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 /**
  * Built-in fallback intent and rule engine for offline or API limit scenarios

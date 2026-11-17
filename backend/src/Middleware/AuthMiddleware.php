@@ -58,13 +58,18 @@ class AuthMiddleware
             return $this->unauthorizedResponse('A completed sign-in session is required.');
         }
 
-        // Check roles if specified
-        $roleAllowed = false;
-        if (empty($this->requiredRoles) || in_array($decoded->role, $this->requiredRoles)) {
-            $roleAllowed = true;
+        // SEC-009: Every protected route MUST declare its allowed roles.
+        // Historically an empty role list authenticated anyone, including candidates.
+        // Deny missing policies even if a feature was supplied accidentally.
+        if (empty($this->requiredRoles)) {
+            return $this->forbiddenResponse('No access policy configured for this route.');
         }
 
-        if (!$roleAllowed && $this->requiredFeature && $decoded->role === 'employee') {
+        $roleAllowed = in_array($decoded->role, $this->requiredRoles, true);
+
+        // HR/manager accounts use the employee dashboard too. Feature grants
+        // must work for those internal roles, but NEVER for candidates.
+        if (!$roleAllowed && $this->requiredFeature && in_array($decoded->role, ['employee', 'hr', 'manager'], true)) {
             try {
                 $db = new Database();
                 $conn = $db->getConnection();

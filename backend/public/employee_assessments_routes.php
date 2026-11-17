@@ -152,7 +152,7 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware([], 'employeeAssessments'));
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 // GET /api/employee/assessments/{id} - Get assessment details for instructions page
 $app->get('/api/employee/assessments/{id}', function (Request $request, Response $response, $args) {
@@ -181,7 +181,7 @@ $app->get('/api/employee/assessments/{id}', function (Request $request, Response
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware([], 'employeeAssessments'));
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 // POST /api/employee/assessments/{id}/start - Start or resume an exam session
 $app->post('/api/employee/assessments/{id}/start', function (Request $request, Response $response, $args) {
@@ -345,7 +345,7 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware([], 'employeeAssessments'));
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 // PUT /api/employee/assessments/attempts/{attemptId}/save - Auto save progress
 $app->put('/api/employee/assessments/attempts/{attemptId}/save', function (Request $request, Response $response, $args) {
@@ -374,7 +374,7 @@ $app->put('/api/employee/assessments/attempts/{attemptId}/save', function (Reque
         $response->getBody()->write(json_encode(['error' => 'Failed to save progress: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware([], 'employeeAssessments'));
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 // POST /api/employee/assessments/attempts/{attemptId}/submit - Submit and auto-grade MCQ answers
 $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Request $request, Response $response, $args) {
@@ -541,7 +541,7 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         $response->getBody()->write(json_encode(['error' => 'Evaluation failed: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware([], 'employeeAssessments'));
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 // Helper function for cleaning array values
 function val($item) {
@@ -590,6 +590,6 @@ $app->get('/api/employee/assessments/attempts/{attemptId}/result', function (Req
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware([], 'employeeAssessments'));
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));
 
 ?>

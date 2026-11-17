@@ -421,7 +421,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
         $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch applications: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'branchOperations'));
 
 $app->post('/api/branch-operations/applications/{id}/seen', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
@@ -527,7 +527,7 @@ $app->post('/api/branch-operations/applications/{id}/seen', function (Request $r
         $response->getBody()->write(json_encode(['error' => 'An error occurred while saving application read state']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'branchOperations'));
 
 /**
  * Helper to map form keys to friendly labels for Audit Logs.
@@ -885,4 +885,4 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         $response->getBody()->write(json_encode(['error' => 'An error occurred while updating application: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'branchOperations'));

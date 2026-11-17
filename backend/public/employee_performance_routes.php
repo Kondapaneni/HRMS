@@ -132,4 +132,4 @@ $app->get('/api/employee/performance', function (Request $request, Response $res
     ]));
 
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['employee', 'hr', 'manager']));

@@ -1,0 +1,99 @@
+name: SEC-009 explicit API role and feature authorization
+
+on:
+  push:
+    branches: ['main', 'fix/sec-009-explicit-api-role-feature-gates']
+    paths:
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/public/**'
+      - 'tests/sec009_*'
+      - '.github/workflows/sec009.yml'
+  pull_request:
+    paths:
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/public/**'
+      - 'tests/sec009_*'
+      - '.github/workflows/sec009.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authorization:
+    name: Real middleware and HTTP candidate isolation
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec009_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec009_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec009_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec009_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec009_synthetic_only
+      JWT_SECRET: SEC009_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Lint affected PHP and check role declarations
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l backend/src/Middleware/AuthMiddleware.php
+          for file in backend/public/*.php tests/sec009_seed.php tests/sec009_middleware_test.php; do
+            php -l "$file"
+          done
+          node tests/sec009_route_policy_test.mjs
+      - name: Install backend dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Seed and verify real middleware against synthetic PostgreSQL
+        run: |
+          php tests/sec009_seed.php
+          php tests/sec009_middleware_test.php
+      - name: Real HTTP endpoint access denial tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Backend Dotenv initialization reads only this synthetic test env.
+          cat > backend/.env <<'SEC009_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec009_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec009_synthetic_only
+          JWT_SECRET=SEC009_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+          APP_ENV=production
+          SEC009_TEST_ENV
+          php -S 127.0.0.1:8770 -t backend/public backend/public/index.php > /tmp/sec009-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8770/version.json > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then
+            echo "Synthetic SEC-009 test server failed to start"
+            tail -n 100 /tmp/sec009-server.log
+            exit 1
+          fi
+          node tests/sec009_http_test.mjs
