@@ -1,0 +1,23 @@
+name: SEC-002 email relay security regression
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'supabase/functions/send-email/**'
+      - 'supabase/migrations/*sec_002*'
+      - 'tests/sec002_email_test.mjs'
+      - '.github/workflows/sec002.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sec002-email:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/sec002_email_test.mjs
