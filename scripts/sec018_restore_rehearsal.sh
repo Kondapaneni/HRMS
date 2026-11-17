@@ -36,7 +36,12 @@ read -r acknowledgment
 
 # Validate the encrypted archive, then create placeholder roles needed by
 # existing RLS policy metadata. They have NOLOGIN/no elevation/no passwords.
-gpg --quiet --decrypt "$SEC018_RESTORE_ARCHIVE" | pg_restore --list >/dev/null ||
+# pg_restore --list can stop reading before the end of the archive;
+# drain the GPG stream so content authentication completes without SIGPIPE.
+# This does not write decrypted data to disk.
+gpg --quiet --decrypt "$SEC018_RESTORE_ARCHIVE" | {
+  pg_restore --list >/dev/null && cat >/dev/null
+} ||
   die "Backup is unreadable or not a valid custom pg_dump archive"
 psql -X -v ON_ERROR_STOP=1 -q <<'SQL'
 DO $guard$
