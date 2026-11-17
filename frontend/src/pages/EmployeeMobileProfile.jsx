@@ -25,6 +25,31 @@ const EmployeeMobileProfile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const controls = useDragControls();
 
+  // Only offer an APK when the signing workflow has published a matching
+  // release manifest alongside the current signed binary. Never serve the
+  // older committed APK as if it included newly deployed security fixes.
+  const { data: androidRelease, isLoading: checkingAndroidRelease } = useQuery({
+    queryKey: ['android', 'signed-release'],
+    enabled: !isNativeApp && !isIOS,
+    retry: false,
+    staleTime: 0,
+    queryFn: async () => {
+      try {
+        const url = `${getAssetUrl('/downloads/android-release.json')}?t=${Date.now()}`;
+        const response = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
+        if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return null;
+        const release = await response.json();
+        if (!Number.isSafeInteger(release.versionCode) || release.versionCode <= 0
+            || release.file !== 'Acme HRMS.apk'
+            || !/^[0-9a-f]{40}$/.test(release.sourceCommit)
+            || !/^[0-9a-f]{64}$/.test(release.sha256)) return null;
+        return release;
+      } catch {
+        return null;
+      }
+    },
+  });
+
   const { data: mfaStatus } = useQuery({
     queryKey: ['mfa', 'status'],
     queryFn: async () => {
@@ -487,15 +512,28 @@ const EmployeeMobileProfile = () => {
         </div>
         {!isNativeApp && !isIOS && (
           <div className="pt-2">
-            <a
-              href={`${getAssetUrl('/downloads/Acme%20HRMS.apk')}?v=${import.meta.env.VITE_APP_VERSION || '1'}`}
-              download="Acme HRMS.apk"
-              aria-label="Download Acme HRMS Android APK"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--ink-2)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-2 cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download Mobile App (APK)</span>
-            </a>
+            {androidRelease ? (
+              <>
+                <a
+                  href={`${getAssetUrl('/downloads/Acme%20HRMS.apk')}?v=${androidRelease.versionCode}`}
+                  download="Acme HRMS.apk"
+                  aria-label="Download latest verified Acme HRMS Android APK"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--ink-2)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Mobile App (APK)</span>
+                </a>
+                <p className="mt-2 text-[11px] text-[var(--muted)]">
+                  Signed Android release {androidRelease.versionName} · build {androidRelease.versionCode}
+                </p>
+              </>
+            ) : (
+              <p role="status" className="mx-auto max-w-xs text-[12px] text-[var(--muted)]">
+                {checkingAndroidRelease
+                  ? 'Checking the latest verified Android release…'
+                  : 'Android APK update is pending verified signing. Please contact Admin; do not install an older download.'}
+              </p>
+            )}
           </div>
         )}
       </div>

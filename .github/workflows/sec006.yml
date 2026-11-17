@@ -4,12 +4,26 @@ on:
     branches: ['main', 'fix/sec-006-android-security']
     paths:
       - 'frontend/android/**'
+      - 'frontend/src/**'
+      - 'frontend/public/**'
+      - '!frontend/public/downloads/Acme HRMS.apk'
+      - '!frontend/public/downloads/android-release.json'
+      - 'frontend/index.html'
+      - 'frontend/vite.config.*'
+      - 'frontend/package*.json'
       - 'frontend/capacitor.config.json'
       - 'tests/sec006_android_security_test.mjs'
       - '.github/workflows/sec006.yml'
   pull_request:
     paths:
       - 'frontend/android/**'
+      - 'frontend/src/**'
+      - 'frontend/public/**'
+      - '!frontend/public/downloads/Acme HRMS.apk'
+      - '!frontend/public/downloads/android-release.json'
+      - 'frontend/index.html'
+      - 'frontend/vite.config.*'
+      - 'frontend/package*.json'
       - 'frontend/capacitor.config.json'
       - 'tests/sec006_android_security_test.mjs'
       - '.github/workflows/sec006.yml'
@@ -66,7 +80,13 @@ jobs:
         run: |
           npm ci
           npm run build
+          # The old website-download APK is needed for signing compatibility
+          # checks, but it must NEVER be nested inside the new Android APK.
+          # Capacitor sync copies dist into native assets; remove only this
+          # generated dist copy, not the public download tracked by Git.
+          rm -f "dist/downloads/Acme HRMS.apk"
           npx cap sync android
+          test ! -e "android/app/src/main/assets/public/downloads/Acme HRMS.apk"
       - name: Confirm Capacitor-generated Android configuration remains HTTPS only
         run: |
           node --test tests/sec006_android_security_test.mjs
@@ -192,10 +212,33 @@ jobs:
             echo "::warning::SIGNER MIGRATION APPROVED: existing installations will require uninstall/reinstall."
           fi
 
+          # Metadata is published in the SAME commit as the verified signed
+          # APK. Employee Profile must never offer an older bundled APK when
+          # signing is skipped, the signer differs, or a build is unavailable.
+          # The SHA-256 is informational provenance, not client-side attestation.
+          release_sha256="$(sha256sum "$signed" | awk '{print $1}')"
+          new_version_name="$("$AAPT" dump badging "$signed" | sed -n "s/.*versionName='\\([^']*\\)'.*/\\1/p" | head -n 1)"
+          test -n "$new_version_name"
+
           cp "$signed" "$existing"
+          node - "$new_version" "$new_version_name" "$GITHUB_SHA" "$release_sha256" <<'NODE'
+          const { writeFileSync } = require('node:fs');
+          const [versionCode, versionName, sourceCommit, sha256] = process.argv.slice(2);
+          if (!Number.isSafeInteger(Number(versionCode)) || !/^[a-f0-9]{40}$/.test(sourceCommit)
+              || !/^[a-f0-9]{64}$/.test(sha256)) process.exit(1);
+          writeFileSync('frontend/public/downloads/android-release.json',
+            JSON.stringify({
+              versionCode: Number(versionCode),
+              versionName,
+              sourceCommit,
+              sha256,
+              publishedAt: new Date().toISOString(),
+              file: 'Acme HRMS.apk'
+            }, null, 2) + '\n');
+          NODE
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$existing"
+          git add "$existing" frontend/public/downloads/android-release.json
           if ! git diff --cached --quiet; then
             git commit -m "build(android): publish signed APK to employee downloads [skip ci]"
             git push origin HEAD:main
