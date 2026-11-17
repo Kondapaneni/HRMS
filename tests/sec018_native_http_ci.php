@@ -49,6 +49,42 @@ foreach (['admin','employee','candidate'] as $role) {
     checkNative($status===200 && !empty($data['token']), "$role login with native prepares");
     $tokens[$role]=$data['token'];
 }
+// Disposable branch/lead fixture for native prepared-statement queries that
+// previously reused one :branch or :search placeholder many times.
+$owner=new PDO('pgsql:host=127.0.0.1;port=5432;dbname=sec018_phasea_ci',
+    'postgres','SEC018_PHASEA_CI_PG_ONLY',
+    [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$employeeId='44444444-4444-4444-8444-444444444444';
+$branchId='10000000-0000-4000-8000-000000000001';
+$leadId='10000000-0000-4000-8000-000000000021';
+$owner->prepare('INSERT INTO public.branches(id,name) VALUES (?,?)')
+    ->execute([$branchId,'Synthetic Native Branch']);
+$owner->prepare('UPDATE public.employee SET branch=? WHERE "userId"=?')
+    ->execute([$branchId,$employeeId]);
+$owner->prepare('INSERT INTO public.user_feature_access ("userId","canLoanOrigination","canSalesOrigination","canBranchOperations") VALUES (?,true,true,true)')
+    ->execute([$employeeId]);
+$owner->prepare("INSERT INTO public.loan_leads(id,name,phone,address,status,created_by,branch) VALUES (?,?,?,?,?,?,?)")
+    ->execute([$leadId,'Native Loan','9900000000','Synthetic Only','Converted',$employeeId,$branchId]);
+$owner->prepare("INSERT INTO public.sale_leads(name,phone,address,status,created_by,branch) VALUES (?,?,?,?,?,?)")
+    ->execute(['Native Sale','9900000001','Synthetic Only','New',$employeeId,$branchId]);
+$owner->prepare("INSERT INTO public.loan_applications(application_id,lead_id,created_by,branch) VALUES (?,?,?,?)")
+    ->execute(['LA-SEC018-NATIVE',$leadId,$employeeId,$branchId]);
+foreach ([
+  '/api/members?search=Native',
+  '/api/members/9900000000',
+  '/api/leads/list?search=Native',
+  '/api/sales/leads?search=Native',
+  '/api/branch-operations/dashboard?pipeline=all',
+  '/api/branch-operations/dashboard?pipeline=all&employee_id='.$employeeId,
+  '/api/branch-operations/dashboard?pipeline=sales',
+  '/api/branch-operations/dashboard?pipeline=loans',
+  '/api/branch-operations/leads?search=Native',
+  '/api/branch-operations/leads?search=Native&pipeline=all&employee_id='.$employeeId,
+] as $path) {
+    [$status]=nativeCall('GET',$path,$tokens['employee']);
+    checkNative($status===200, "scoped native query $path ($status)");
+}
+
 foreach ([
     ['/api/admin/assets','admin'],
     ['/api/admin/settings','admin'],
@@ -84,9 +120,7 @@ $assetId=$body['data']['id'];
     'name'=>'SEC018 native SQL CI updated',
 ]);
 checkNative($status===200,'audited asset UPDATE');
-$owner=new PDO('pgsql:host=127.0.0.1;port=5432;dbname=sec018_phasea_ci',
-    'postgres','SEC018_PHASEA_CI_PG_ONLY',
-    [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+
 $stmt=$owner->prepare('SELECT action_type, actor_user_id FROM public.audit_logs WHERE entity_id=? AND action_type IN (\'INSERT\',\'UPDATE\')');
 $stmt->execute([$assetId]);
 $entries=$stmt->fetchAll(PDO::FETCH_ASSOC);
