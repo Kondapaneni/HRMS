@@ -3,6 +3,7 @@
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
+use App\Security\OriginationAccess;
 
 /**
  * Endpoints for Loan Origination Members
@@ -23,30 +24,28 @@ $app->get('/api/members', function (Request $request, Response $response, $args)
             throw new Exception("Database connection failed");
         }
 
-        $userId = null;
-        $userRole = 'employee';
-        if (is_object($user)) {
-            $userId = isset($user->id) ? (string)$user->id : null;
-            $userRole = $user->role ?? 'employee';
-        } elseif (is_array($user)) {
-            $userId = isset($user['id']) ? (string)$user['id'] : null;
-            $userRole = $user['role'] ?? 'employee';
+        // SEC-018: The feature gate is not an object-scoped authorization
+        // gate. Both creator and *current* employee branch must match.
+        $userId = OriginationAccess::userId($user);
+        $userBranch = $userId ? OriginationAccess::branch($conn, $userId) : null;
+        if (!$userId || (!OriginationAccess::isAdmin($user) && !$userBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
+        [$memberScope, $memberArgs] = OriginationAccess::loanScope($user, $userBranch);
 
         $sql = "
             SELECT id, name, phone, address, loan_type, status, branch, created_at, created_by
             FROM public.loan_leads
             WHERE status = 'Converted'
-            AND (created_by = :uid OR :role = 'admin')
-        ";
-        $params = [
-            ':uid' => $userId,
-            ':role' => $userRole
-        ];
+        " . $memberScope;
+        $params = $memberArgs;
 
         if (!empty($search)) {
-            $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+            // Positional parameters work with real PostgreSQL native prepares.
+            $sql .= " AND (name ILIKE ? OR phone ILIKE ? OR address ILIKE ?)";
+            $term = '%' . $search . '%';
+            array_push($params, $term, $term, $term);
         }
 
         $sql .= " ORDER BY created_at DESC";
@@ -109,24 +108,24 @@ $app->get('/api/members/{phone}', function (Request $request, Response $response
             throw new Exception("Database connection failed");
         }
 
-        $userId = null;
-        $userRole = 'employee';
-        if (is_object($user)) {
-            $userId = isset($user->id) ? (string)$user->id : null;
-            $userRole = $user->role ?? 'employee';
-        } elseif (is_array($user)) {
-            $userId = isset($user['id']) ? (string)$user['id'] : null;
-            $userRole = $user['role'] ?? 'employee';
+        // SEC-018: The feature gate is not an object-scoped authorization
+        // gate. Both creator and *current* employee branch must match.
+        $userId = OriginationAccess::userId($user);
+        $userBranch = $userId ? OriginationAccess::branch($conn, $userId) : null;
+        if (!$userId || (!OriginationAccess::isAdmin($user) && !$userBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
+        [$memberScope, $memberArgs] = OriginationAccess::loanScope($user, $userBranch);
 
         $stmt = $conn->prepare("
             SELECT id, name, phone, address, loan_type, status, branch, created_at, created_by
             FROM public.loan_leads
             WHERE phone = ? AND status = 'Converted'
-            AND (created_by = ? OR ? = 'admin')
+            " . $memberScope . "
             ORDER BY created_at DESC
         ");
-        $stmt->execute([$phone, $userId, $userRole]);
+        $stmt->execute(array_merge([$phone], $memberArgs));
         $leads = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($leads)) {
@@ -166,9 +165,12 @@ $app->get('/api/members/{phone}', function (Request $request, Response $response
                 SELECT id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
                 FROM public.loan_applications
                 WHERE lead_id IN ($placeholders)
+                " . $memberScope . "
                 ORDER BY created_at DESC
             ");
-            $appStmt->execute($leadIds);
+            // Each linked application must independently pass the member's
+            // creator AND branch restrictions, even for a shared legacy lead.
+            $appStmt->execute(array_merge($leadIds, $memberArgs));
             $apps = $appStmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($apps as &$app) {
