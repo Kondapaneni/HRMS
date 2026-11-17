@@ -59,6 +59,7 @@ const AdminEmployeeEdit = () => {
 
     const cleanData = {};
     Object.keys(emp).forEach((k) => (cleanData[k] = emp[k] || ''));
+    if (emp.salary == null) delete cleanData.salary; // delegated staff must not submit redacted salary
     if (cleanData.dateOfBirth) cleanData.dateOfBirth = cleanData.dateOfBirth.split('T')[0];
     if (cleanData.joinDate) cleanData.joinDate = cleanData.joinDate.split('T')[0];
 
@@ -487,7 +488,7 @@ const AdminEmployeeEdit = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--text)] mb-1.5">Monthly salary (₹)</label>
+                <label className="block text-xs font-medium text-[var(--text)] mb-1.5">Monthly salary (₹) {employeeQuery.data?.employee?.salary == null ? "— restricted" : ""}</label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] text-xs font-medium pointer-events-none">
                     ₹
@@ -496,7 +497,8 @@ const AdminEmployeeEdit = () => {
                     type="number"
                     step="0.01"
                     name="salary"
-                    value={formData.salary}
+                    disabled={employeeQuery.data?.employee?.salary == null}
+                    value={formData.salary ?? ""}
                     onChange={handleChange}
                     className="w-full h-10 rounded-[12px] border border-[var(--line)] bg-[var(--surface)] pl-8 pr-3.5 text-xs text-[var(--text)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 outline-none transition-all"
                   />
