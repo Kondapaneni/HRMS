@@ -203,6 +203,12 @@ jobs:
       SEC018_PG_MAJOR: '${{ matrix.postgres }}'
     steps:
       - uses: actions/checkout@v4
+      - name: Syntax-check guarded local encrypted backup and restore scripts
+        run: |
+          bash -n scripts/sec018_backup_dev.sh
+          bash -n scripts/sec018_restore_rehearsal.sh
+          # NEVER connect to a real project or decrypt a real backup in CI.
+          ! grep -E '^DROP DATABASE|^TRUNCATE|--clean' scripts/sec018_restore_rehearsal.sh
       - name: Provision synthetic source schema for backup rehearsal
         shell: bash
         run: |
