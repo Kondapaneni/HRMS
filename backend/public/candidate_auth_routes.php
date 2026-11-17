@@ -85,8 +85,8 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
     $activationToken = bin2hex(random_bytes(32));
     
     $stmt = $conn->prepare('
-        INSERT INTO users ("firstName", "lastName", email, password, role, "isActive", reset_token) 
-        VALUES (:first, :last, :email, :pass, :role, :active, :token)
+        INSERT INTO users ("firstName", "lastName", email, password, role, "isActive", reset_token, reset_token_expires)
+        VALUES (:first, :last, :email, :pass, :role, :active, :token, CURRENT_TIMESTAMP + INTERVAL '24 hours')
         RETURNING id
     ');
     
@@ -160,7 +160,7 @@ $app->post('/api/candidate/resend-activation', function (Request $request, Respo
         if ($candidate) {
             $activationToken = bin2hex(random_bytes(32));
             $stmt = $conn->prepare(
-                'UPDATE users SET reset_token = ? WHERE id = ? AND role = \'candidate\' AND "isActive" = false'
+                'UPDATE users SET reset_token = ?, reset_token_expires = CURRENT_TIMESTAMP + INTERVAL \'24 hours\' WHERE id = ? AND role = \'candidate\' AND "isActive" = false'
             );
             $stmt->execute([$activationToken, $candidate['id']]);
 
@@ -205,17 +205,19 @@ $app->post('/api/candidate/activate', function (Request $request, Response $resp
     $db = new Database();
     $conn = $db->getConnection();
 
-    $stmt = $conn->prepare("SELECT id FROM users WHERE reset_token = :token AND role = 'candidate'");
+    // Atomic one-time activation; prefetching the email URL cannot consume it.
+    // Both new and resent activation links expire after 24 hours.
+    $stmt = $conn->prepare("
+        UPDATE users SET \"isActive\" = true, reset_token = NULL, reset_token_expires = NULL
+        WHERE reset_token = :token AND role = 'candidate' AND \"isActive\" = false
+          AND reset_token_expires > CURRENT_TIMESTAMP
+        RETURNING id
+    ");
     $stmt->execute(['token' => $token]);
-    $user = $stmt->fetch();
-
-    if (!$user) {
+    if (!$stmt->fetchColumn()) {
         $response->getBody()->write(json_encode(['error' => 'Invalid or expired activation token']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
-
-    $updateStmt = $conn->prepare("UPDATE users SET \"isActive\" = 'true', reset_token = NULL WHERE id = :id");
-    $updateStmt->execute(['id' => $user['id']]);
 
     $response->getBody()->write(json_encode(['message' => 'Account activated successfully! You can now sign in.']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
