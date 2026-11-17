@@ -90,7 +90,7 @@ $app->get('/api/members', function (Request $request, Response $response, $args)
 
     } catch (\Exception $e) {
         error_log("Error fetching members: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Error fetching members: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Unable to fetch members']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new \App\Middleware\AuthMiddleware(['admin'], ['loanOrigination', 'salesOrigination']));
@@ -194,7 +194,7 @@ $app->get('/api/members/{phone}', function (Request $request, Response $response
 
     } catch (\Exception $e) {
         error_log("Error fetching member details: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Error fetching member details: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Unable to fetch member details']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new \App\Middleware\AuthMiddleware(['admin'], ['loanOrigination', 'salesOrigination']));
