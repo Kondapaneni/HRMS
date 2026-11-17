@@ -6,6 +6,14 @@ for path in scripts/sec018_backup_dev.sh scripts/sec018_restore_rehearsal.sh; do
   grep -Fq 'pg_restore --list >/dev/null && cat >/dev/null' "$path" ||
     { echo "FAIL: $path lacks full-stream drain" >&2; exit 1; }
 done
+# The encrypted stream must be consumed from stdin; a bare "-" is a
+# literal filename for pg_restore and fails before any restore occurs.
+grep -Fq -- '--dbname="$PGDATABASE"' scripts/sec018_restore_rehearsal.sh ||
+  { echo "FAIL: local restore lacks explicit database target" >&2; exit 1; }
+if grep -Fq -- '--dbname="$PGDATABASE" -' scripts/sec018_restore_rehearsal.sh; then
+  echo "FAIL: pg_restore uses literal '-' filename instead of stdin" >&2
+  exit 1
+fi
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 python3 - "$tmpdir/synthetic.bin" <<'PY'
@@ -42,3 +50,33 @@ if gpg --batch --quiet --pinentry-mode loopback --passphrase "$passphrase" \
   exit 1
 fi
 echo "PASS: incomplete encrypted ciphertext remains fatal"
+
+# PostgreSQL 16/17 live CLI-in-CI smoke: actual custom pg_dump -> GPG ->
+# pg_restore reading stdin into another *disposable synthetic* CI database.
+# Both databases are isolated CI services; never run against a user DB.
+if [[ "${GITHUB_ACTIONS:-}" == "true" && "${DB_DATABASE:-}" == "sec018_phasea_ci" ]]; then
+  export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres
+  pgsrc=sec018_stream_source_ci
+  pgdest=sec018_stream_target_ci
+  createdb "$pgsrc"
+  createdb "$pgdest"
+  psql -X -v ON_ERROR_STOP=1 -d "$pgsrc" \
+    -c "CREATE TABLE public.stream_fixture (n integer NOT NULL); INSERT INTO public.stream_fixture(n) VALUES (42);" > /dev/null
+  pg_dump -Fc --no-owner --no-acl -d "$pgsrc" -n public |
+    gpg --batch --yes --pinentry-mode loopback --passphrase "$passphrase" \
+      --compress-algo none --symmetric --cipher-algo AES256 \
+      --output "$tmpdir/pgdump.gpg"
+  gpg --batch --quiet --pinentry-mode loopback --passphrase "$passphrase" \
+    --decrypt "$tmpdir/pgdump.gpg" |
+    pg_restore --exit-on-error --single-transaction --no-owner --no-acl \
+      --dbname="$pgdest"
+  value="$(psql -X -A -t -v ON_ERROR_STOP=1 -d "$pgdest" \
+    -c 'SELECT n FROM public.stream_fixture')"
+  [[ "$value" == "42" ]] || {
+    echo "FAIL: synthetic stdin restoration content mismatch" >&2
+    exit 1
+  }
+  dropdb "$pgdest"
+  dropdb "$pgsrc"
+  echo "PASS: encrypted custom-format PostgreSQL restore consumes stdin (no '-' argument)"
+fi
