@@ -21,7 +21,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     firstName: '',
     lastName: '',
     email: '',
-    password: '',
     phone: '',
     department: '',
     position: '',
@@ -34,33 +33,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  const generateRandomPassword = () => {
-    const uppers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const lowers = 'abcdefghijklmnopqrstuvwxyz';
-    const numbers = '0123456789';
-    const specials = '!@#$%^&*()';
-    const all = uppers + lowers + numbers + specials;
-    
-    let pass = '';
-    pass += uppers.charAt(Math.floor(Math.random() * uppers.length));
-    pass += lowers.charAt(Math.floor(Math.random() * lowers.length));
-    pass += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    pass += specials.charAt(Math.floor(Math.random() * specials.length));
-    
-    for (let i = 0; i < 8; i++) {
-      pass += all.charAt(Math.floor(Math.random() * all.length));
-    }
-    
-    return pass.split('').sort(() => 0.5 - Math.random()).join('');
-  };
-
   useEffect(() => {
     if (isOpen) {
       fetchBranches();
-      setFormData({ 
-        ...initialFormState, 
-        password: generateRandomPassword() 
-      });
+      setFormData(initialFormState);
     } else {
       setFormData(initialFormState);
       setError(null);
@@ -124,7 +100,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
         ...(avatarUrl && { avatar: avatarUrl })
       });
       setLoading(false);
-      toast.success('Employee created successfully!');
+      toast.success('Employee created. Secure account setup email queued.');
       onSuccess();
       
       if (res.data && res.data.id) {
@@ -307,8 +283,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             </div>
 
-            {/* Salary & Auto Password */}
-            <div className="grid grid-cols-2 gap-3.5">
+            {/* Salary & secure onboarding invitation */}
+            <div className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-[var(--text)] mb-1">Monthly Salary (₹) *</label>
                 <div className="relative">
@@ -325,17 +301,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Initial Password *</label>
-                <input 
-                  required 
-                  type="text" 
-                  readOnly 
-                  name="password" 
-                  value={formData.password} 
-                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] text-xs bg-[var(--surface-alt)] text-[var(--muted)] cursor-not-allowed outline-none transition-all font-mono" 
-                />
-              </div>
+              <p className="text-xs leading-relaxed text-[var(--muted)]">
+                The employee will receive a one-time password setup invitation,
+                valid for one hour. No initial password is generated or displayed to HR.
+              </p>
             </div>
 
           </form>

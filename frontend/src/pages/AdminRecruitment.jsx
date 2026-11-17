@@ -31,10 +31,6 @@ import {
   CalendarDays
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import shortlistedEmailTemplateHtml from "../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
-import rejectedEmailTemplateHtml from "../../../backend/src/Templates/candidate_rejected_email.html?raw";
-import interviewEmailTemplateHtml from "../../../backend/src/Templates/candidate_interview_email.html?raw";
-import offerEmailTemplateHtml from "../../../backend/src/Templates/candidate_offer_email.html?raw";
 import { pdf, PDFViewer } from '@react-pdf/renderer';
 import OfferLetterPDF from '../components/offerLetter/OfferLetterPDF';
 import StatCard from '../components/ui/StatCard';
@@ -197,66 +193,14 @@ const AdminRecruitment = () => {
         notes: additionalNotes || `Application status updated to ${newStatus}` 
       });
       
-      // Queue email notification based on status
-      if (userInfo?.email) {
-        let subject = `Update on your application for ${app.jobs?.title}`;
-        let emailBody = '';
-        const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-        const dashboardLink = frontendUrl + "/candidate/applications";
-        
-        if (newStatus === 'Shortlisted') {
-          subject = `Good News! You've been shortlisted for ${app.jobs?.title}`;
-          emailBody = shortlistedEmailTemplateHtml
-            .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
-            .replace(/{{jobTitle}}/g, app.jobs?.title)
-            .replace(/{{dashboardLink}}/g, dashboardLink)
-            .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
-        } else if (newStatus === 'Rejected') {
-          subject = `Update regarding your application for ${app.jobs?.title}`;
-          emailBody = rejectedEmailTemplateHtml
-            .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
-            .replace(/{{jobTitle}}/g, app.jobs?.title)
-            .replace(/{{dashboardLink}}/g, dashboardLink)
-            .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
-        } else if (newStatus.includes('Interview')) {
-          subject = `Interview Invitation for ${app.jobs?.title}`;
-          emailBody = interviewEmailTemplateHtml
-            .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
-            .replace(/{{jobTitle}}/g, app.jobs?.title)
-            .replace(/{{interviewRound}}/g, newStatus)
-            .replace(/{{additionalNotes}}/g, additionalNotes || `You have been invited for a ${newStatus}.`)
-            .replace(/{{dashboardLink}}/g, dashboardLink)
-            .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
-        } else if ((newStatus === 'Selected' || newStatus === 'Hired') && offerLetterUrl) {
-          subject = `Job Offer: ${app.jobs?.title}`;
-          emailBody = offerEmailTemplateHtml
-            .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
-            .replace(/{{jobTitle}}/g, app.jobs?.title)
-            .replace(/{{offerLetterUrl}}/g, offerLetterUrl)
-            .replace(/{{dashboardLink}}/g, dashboardLink)
-            .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
-        } else {
-          let bodyContent = `<p>Your application status has been updated to: <strong>${newStatus}</strong>.</p>`;
-          if (newStatus === 'Selected' || newStatus === 'Hired') {
-            bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
-          }
-          
-          emailBody = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #5B86C2;">Application Update</h2>
-              <p>Hi ${userInfo?.firstName},</p>
-              ${bodyContent}
-              <p>Best regards,<br>The Acme HR Team</p>
-            </div>
-          `;
-        }
-        
-        await api.post('/admin/send-email', {
-          to: userInfo.email,
-          subject: subject,
-          body: emailBody
-        });
-      }
+      // SEC-015: only application identity and an approved notification category.
+      // Server owns the recipient, subject, escaping, and HTML template.
+      const type = newStatus === 'Shortlisted' ? 'shortlisted'
+        : newStatus === 'Rejected' ? 'rejected'
+        : newStatus.includes('Interview') ? 'interview'
+        : (newStatus === 'Selected' || newStatus === 'Hired') && offerLetterUrl ? 'offer'
+        : 'status';
+      await api.post('/admin/send-email', { applicationId: app.id, type });
       return newStatus;
     },
     onSuccess: (newStatus) => {

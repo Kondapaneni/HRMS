@@ -21,7 +21,6 @@ import {
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import documentVerifiedEmailTemplateHtml from '../../../backend/src/Templates/candidate_documents_verified_email.html?raw';
 import { useAuth } from '../contexts/AuthContext';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -229,20 +228,11 @@ const AdminVerifyDocuments = () => {
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
-      const userInfo = candidatesInfo.find((u) => u.id === application?.candidate_id);
-      const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-      const dashboardLink = frontendUrl + '/candidate/applications';
-
-      const emailBody = documentVerifiedEmailTemplateHtml
-        .replace(/{{firstName}}/g, userInfo?.firstName || application?.users?.firstName || 'Candidate')
-        .replace(/{{jobTitle}}/g, application?.jobs?.title || 'the')
-        .replace(/{{dashboardLink}}/g, dashboardLink)
-        .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
-
+      // SEC-015: the server verifies this application's candidate and
+      // required documents, then renders the approved HTML template.
       const res = await api.post('/admin/send-email', {
-        to: userInfo?.email || application?.users?.email,
-        subject: 'Document Verification Successful',
-        body: emailBody
+        applicationId: id,
+        type: 'documents_verified'
       });
 
       await api.post(`/admin/applications/${id}/timeline`, {
