@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'backend/public/admin_employees_routes.php'
+      - 'frontend/src/pages/AdminRecruitment.jsx'
       - 'backend/src/Utils/EmployeeId.php'
       - 'supabase/migrations/20261117192545_sec019_reconcile_integrity_after_dev_reset.sql'
       - 'tests/sec019_*'
@@ -56,6 +57,7 @@ jobs:
           php -l scripts/sec019_bootstrap_admin.php
           php tests/sec019_employee_id_test.php
           node tests/sec019_source_test.mjs
+          node tests/sec019_candidate_conversion_source_test.mjs
           node --check frontend/scripts/sec019_purge_storage.mjs
           node tests/sec019_reset_guard_test.mjs
           node tests/sec019_bootstrap_guard_test.mjs
