@@ -35,6 +35,12 @@ CREATE TABLE applications (
  id uuid primary key, job_id uuid, candidate_id uuid, status text,
  updated_at timestamp default CURRENT_TIMESTAMP
 );
+CREATE SCHEMA storage;
+CREATE TABLE storage.objects (
+ bucket_id text NOT NULL,
+ name text NOT NULL,
+ PRIMARY KEY (bucket_id, name)
+);
 CREATE TABLE branches (id uuid primary key, name text not null);
 INSERT INTO branches (id, name) VALUES
 ('00000000-0000-4000-8000-00000000d501', 'Test Branch');
