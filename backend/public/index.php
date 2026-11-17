@@ -13,6 +13,7 @@ use Firebase\JWT\JWT;
 
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/sec007_cors.php';
+require_once __DIR__ . '/sec008_mfa_guard.php';
 
 // Load environment variables
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
@@ -83,7 +84,7 @@ $app->add(function (Request $request, $handler) {
     if (!str_starts_with($path, '/api/') || $response->getStatusCode() >= 400) return $response;
     $auth = trim($request->getHeaderLine('Authorization'));
     if (!preg_match('/\ABearer\s+([A-Za-z0-9._-]+)\z/i', $auth, $matches)) return $response;
-    $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+    $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
     if ($secret === '') return $response;
     try {
         $claims = JWT::decode($matches[1], new \Firebase\JWT\Key($secret, 'HS256'));
@@ -172,36 +173,12 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
 
-        // Check if MFA is enabled and confirmed for this account
-        $mfaEnabled = ($user['mfaEnabled'] === true || $user['mfaEnabled'] === 'true' || $user['mfaEnabled'] === 't' || $user['mfaEnabled'] == 1);
-        if ($mfaEnabled) {
-            $mfaStmt = $conn->prepare('SELECT confirmed FROM mfa_secrets WHERE user_id = ? AND confirmed = true');
-            $mfaStmt->execute([$user['id']]);
-            $hasConfirmedMfa = (bool)$mfaStmt->fetchColumn();
-
-            if ($hasConfirmedMfa) {
-                $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
-                $mfaPayload = [
-                    'iss' => 'acme_hrms',
-                    'iat' => time(),
-                    'exp' => time() + 300, // 5 minutes
-                    'type' => 'mfa_pending',
-                    'id' => $user['id'],
-                    'email' => $user['email']
-                ];
-                $mfaToken = JWT::encode($mfaPayload, $secret, 'HS256');
-
-                $response->getBody()->write(json_encode([
-                    'mfaRequired' => true,
-                    'mfaToken' => $mfaToken,
-                    'email' => $user['email']
-                ]));
-                return $response
-                    ->withHeader('Content-Type', 'application/json')
-                    ->withStatus(200);
-            }
+        // SEC-008: Password and email-OTP login use one confirmed-MFA policy.
+        if (sec008MfaRequired($conn, $user)) {
+            $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
+            return sec008MfaChallenge($response, $user, $secret);
         }
-        
+
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
         
         $payload = [
@@ -364,7 +341,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u.otp_code, u.otp_expires_at
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u."mfaEnabled", u.otp_code, u.otp_expires_at
         FROM users u
         WHERE LOWER(u.email) = LOWER(?)
     ');
@@ -404,6 +381,14 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     // OTP matched! Clear OTP immediately
     $clearStmt = $conn->prepare('UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE id = ?');
     $clearStmt->execute([$user['id']]);
+
+    // SEC-008: A valid email OTP proves only the first factor.
+    // Do not return a privileged session when confirmed authenticator MFA is active.
+    if (sec008MfaRequired($conn, $user)) {
+        RateLimiter::clearAttempts($conn, $ip, $action);
+        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
+        return sec008MfaChallenge($response, $user, $secret);
+    }
 
     // Fetch session settings
     $settingsStmt = $conn->query('SELECT session_timeout FROM global_settings ORDER BY id ASC LIMIT 1');

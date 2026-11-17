@@ -309,6 +309,18 @@ const Login = () => {
     try {
       const userData = await signInWithOtp(email.trim(), otpCode);
 
+      // SEC-008: Reuse the existing Authenticator / backup-code UI after OTP.
+      if (userData?.mfaRequired) {
+        setMfaPending(true);
+        setMfaToken(userData.mfaToken);
+        setMfaCode(['', '', '', '', '', '']);
+        setBackupCode('');
+        setMfaMethod('totp');
+        setSuccessMessage('Email verified. Enter the 6-digit code from your Authenticator app to finish signing in.');
+        setTimeout(() => mfaInputsRef.current[0]?.focus(), 150);
+        return;
+      }
+
       if (userData.forcePasswordChange) {
         navigate('/change-password');
       } else if (ADMIN_ROLES.includes(userData.role)) {
