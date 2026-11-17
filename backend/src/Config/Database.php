@@ -19,6 +19,16 @@ class Database
             $password = $_ENV['DB_PASSWORD'] ?? '';
 
             try {
+                // SEC-018 final opt-in: switch both port and prepare mode as ONE
+                // reversible unit, leaving DB_PORT, DB_PDO_PREPARE_MODE, DB_HOST
+                // and all credential variables unchanged for immediate rollback.
+                // Supabase's shared session pooler uses the same hostname as
+                // the transaction pooler, but listens on 5432 rather than 6543.
+                $nativeSessionOptIn = (string) ($_ENV['SEC018_NATIVE_SESSION_ENABLED']
+                    ?? (getenv('SEC018_NATIVE_SESSION_ENABLED') ?: 'false')) === 'true';
+                if ($nativeSessionOptIn) {
+                    $port = '5432';
+                }
                 // SEC-018: A separately enabled limited database identity keeps
                 // the current credentials intact for safe failback.
                 $restrictedEnabled = (string) ($_ENV['SEC018_DB_USE_RESTRICTED']
@@ -43,7 +53,7 @@ class Database
                 // Preserve safe PDO binding in pooler mode; only opt in to native
                 // prepares after moving to a verified direct/session connection.
                 // No Render database setting or credential change is required here.
-                $prepareMode = (string) ($_ENV['DB_PDO_PREPARE_MODE']
+                $prepareMode = $nativeSessionOptIn ? 'native' : (string) ($_ENV['DB_PDO_PREPARE_MODE']
                     ?? (getenv('DB_PDO_PREPARE_MODE') ?: 'pooler'));
                 if (!in_array($prepareMode, ['pooler', 'native'], true)) {
                     error_log('Invalid DB_PDO_PREPARE_MODE; using pooler-safe prepares');
