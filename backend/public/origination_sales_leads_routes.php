@@ -3,6 +3,7 @@
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
+use App\Security\OriginationAccess;
 
 $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
 
@@ -21,12 +22,21 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                 throw new Exception("Database connection failed");
             }
 
+            $userBranch = OriginationAccess::branch($conn, (string)$user->id);
+            if (!OriginationAccess::isAdmin($user) && !$userBranch) {
+                $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
             $sql = "
                 SELECT id, name, phone, address, status, product_type, branch, created_at, created_by
                 FROM public.sale_leads
                 WHERE created_by = :uid
             ";
             $bindings = [':uid' => $user->id];
+            if (!OriginationAccess::isAdmin($user)) {
+                $sql .= " AND branch = :user_branch";
+                $bindings[':user_branch'] = $userBranch;
+            }
 
             if ($status && $status !== 'all' && $status !== 'All') {
                 $sql .= " AND status = :status";
@@ -34,8 +44,11 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
             }
 
             if ($search !== '') {
-                $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search OR product_type ILIKE :search)";
-                $bindings[':search'] = '%' . $search . '%';
+                // Unique placeholders support native PostgreSQL server prepares.
+                $sql .= " AND (name ILIKE :search_name OR phone ILIKE :search_phone OR address ILIKE :search_address OR product_type ILIKE :search_product)";
+                foreach ([':search_name', ':search_phone', ':search_address', ':search_product'] as $placeholder) {
+                    $bindings[$placeholder] = '%' . $search . '%';
+                }
             }
 
             $sql .= " ORDER BY created_at DESC";
@@ -71,7 +84,8 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
         $address = trim($data['address'] ?? '');
         $status = trim($data['status'] ?? 'New');
         $productType = isset($data['product_type']) && !empty(trim($data['product_type'])) ? trim($data['product_type']) : null;
-        $branch = trim($data['branch'] ?? ($user->branch ?? ''));
+        // A delegated employee cannot assign a new lead to a caller-chosen branch.
+        $branch = trim($data['branch'] ?? '');
 
         if (empty($name) || empty($phone) || empty($address)) {
             $response->getBody()->write(json_encode(['error' => 'Name, Phone, and Address are Required']));
@@ -86,12 +100,14 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                 throw new Exception("Database connection failed");
             }
 
-            // Resolve branch from employee record if missing
-            if (empty($branch)) {
-                $branchStmt = $conn->prepare('SELECT branch FROM public.employee WHERE "userId" = ? LIMIT 1');
-                $branchStmt->execute([$user->id]);
-                $emp = $branchStmt->fetch(PDO::FETCH_ASSOC);
-                $branch = $emp['branch'] ?? 'Main Branch';
+            if (!OriginationAccess::isAdmin($user)) {
+                $branch = OriginationAccess::branch($conn, (string)$user->id) ?? '';
+                if ($branch === '') {
+                    $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+                    return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+                }
+            } elseif ($branch === '') {
+                $branch = OriginationAccess::branch($conn, (string)$user->id) ?? 'Main Branch';
             }
 
             $stmt = $conn->prepare("
@@ -151,22 +167,22 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                 throw new Exception("Database connection failed");
             }
 
-            if (!empty($productType)) {
-                $stmt = $conn->prepare("UPDATE public.sale_leads SET status = :status, product_type = :product_type WHERE id = :id AND created_by = :uid RETURNING *");
-                $stmt->execute([
-                    ':status' => $status,
-                    ':product_type' => $productType,
-                    ':id' => $id,
-                    ':uid' => $user->id
-                ]);
-            } else {
-                $stmt = $conn->prepare("UPDATE public.sale_leads SET status = :status WHERE id = :id AND created_by = :uid RETURNING *");
-                $stmt->execute([
-                    ':status' => $status,
-                    ':id' => $id,
-                    ':uid' => $user->id
-                ]);
+            $userBranch = OriginationAccess::branch($conn, (string)$user->id);
+            if (!OriginationAccess::isAdmin($user) && !$userBranch) {
+                $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
+            $scope = OriginationAccess::isAdmin($user) ? '' : ' AND branch = :user_branch';
+            $bindings = [':status'=>$status, ':id'=>$id, ':uid'=>$user->id];
+            if (!OriginationAccess::isAdmin($user)) $bindings[':user_branch']=$userBranch;
+            if (!empty($productType)) {
+                $sql="UPDATE public.sale_leads SET status = :status, product_type = :product_type WHERE id = :id AND created_by = :uid" . $scope . " RETURNING *";
+                $bindings[':product_type']=$productType;
+            } else {
+                $sql="UPDATE public.sale_leads SET status = :status WHERE id = :id AND created_by = :uid" . $scope . " RETURNING *";
+            }
+            $stmt=$conn->prepare($sql);
+            $stmt->execute($bindings);
 
             $updatedLead = $stmt->fetch(PDO::FETCH_ASSOC);
 
