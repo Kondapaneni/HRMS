@@ -14,15 +14,14 @@ use Psr\Http\Message\ResponseInterface;
  * The database stores SHA-256 digests of 256-bit random refresh secrets,
  * and a stable random session identifier. A used or unknown secret is
  * rejected without issuing another credential. Never revoke merely because
- * the caller knows a session ID: this would enable a targeted DoS and would
- * also terminate legitimate sessions after lost responses or refresh races.
+ * the caller knows a session ID: that would enable targeted denial of service.
+ * Reuse of a previously consumed full secret, however, is positive proof of
+ * replay and immediately revokes ONLY that refresh-session family. Clients
+ * must serialize refresh; a lost rotation response requires a fresh sign-in.
  */
 final class RefreshSessions
 {
     public const TTL_SECONDS = 14 * 86400;
-    // Duplicate requests get no replacement; outside this fixed window a
-    // proven used secret revokes the family. Never extend the window on retry.
-    public const REPLAY_GRACE_SECONDS = 30;
     private const COOKIE_NAME = 'hrms_refresh';
 
     public static function isAndroid(ServerRequestInterface $request): bool
@@ -90,12 +89,18 @@ final class RefreshSessions
 
             $hash = hash('sha256', $matches[2]);
             if (!hash_equals((string)$row['token_hash'], $hash)) {
-                // SEC-018 G05/G10/G11: only a known, consumed secret is proof
-                // of replay. A random secret + public session id cannot revoke.
+                // SEC-018 R01: A previously consumed *secret* is definitive
+                // replay, even milliseconds after rotation. Revoke only this
+                // refresh-session family, never the user's other sessions or
+                // account-wide token_version. A guessed token for a known,
+                // possibly public session ID must not revoke anything.
                 $used = json_decode((string)$row['used_token_hashes'], true, 512, JSON_THROW_ON_ERROR);
-                if (isset($used[$hash]) && (float)$row['db_now'] - (float)$used[$hash] > self::REPLAY_GRACE_SECONDS) {
-                    $conn->prepare('UPDATE public.hrms_refresh_sessions SET revoked_at = COALESCE(revoked_at, NOW()) WHERE id = ?')
-                        ->execute([$matches[1]]);
+                if (isset($used[$hash])) {
+                    $conn->prepare(
+                        'UPDATE public.hrms_refresh_sessions
+                         SET revoked_at = COALESCE(revoked_at, NOW())
+                         WHERE id = ?'
+                    )->execute([$matches[1]]);
                     $conn->commit();
                 } else {
                     $conn->rollBack();
