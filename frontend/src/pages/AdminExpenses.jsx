@@ -47,6 +47,19 @@ function numberToWords(num) {
   return str.trim();
 }
 
+// Employee expense receipts use the application's /Bills/ proxy path.
+// Resolve it on this origin instead of trusting arbitrary URLs stored in a claim.
+const getBillReceiptUrl = (billUrl) => {
+  if (!billUrl || typeof billUrl !== 'string') return null;
+  try {
+    const { pathname } = new URL(billUrl, window.location.origin);
+    if (!pathname.startsWith('/Bills/') || pathname.length <= '/Bills/'.length) return null;
+    return `${window.location.origin}${pathname}`;
+  } catch {
+    return null;
+  }
+};
+
 const AdminExpenses = () => {
   const queryClient = useQueryClient();
   
@@ -340,15 +353,27 @@ const AdminExpenses = () => {
                     </td>
 
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                        {getBillReceiptUrl(exp.bill_url) && (
+                          <a
+                            href={getBillReceiptUrl(exp.bill_url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="View uploaded bill"
+                            className="inline-flex h-[36px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-[var(--line)] bg-[var(--surface)] px-3.5 text-[13px] font-medium text-[var(--brand-deep)] hover:bg-[var(--surface-alt)]"
+                          >
+                            <Receipt className="h-3.5 w-3.5 shrink-0" />
+                            <span>View Bill</span>
+                          </a>
+                        )}
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={() => openReviewDrawer(exp, exp.status === 'Pending' ? 'Approved' : exp.status)}
-                          className="text-xs"
+                          className="shrink-0 whitespace-nowrap text-xs"
                         >
-                          <Eye className="w-3.5 h-3.5 mr-1" />
-                          {exp.status === 'Pending' ? 'Review Claim' : 'Details'}
+                          <Eye className="w-3.5 h-3.5 mr-1 shrink-0" />
+                          <span className="whitespace-nowrap">{exp.status === 'Pending' ? 'Review Claim' : 'Details'}</span>
                         </Button>
 
                         {exp.status === 'Pending' && (
@@ -510,18 +535,18 @@ const AdminExpenses = () => {
                 </div>
               </div>
 
-              {/* Attached Receipt */}
-              {selectedExpense.receipt_url && (
+              {/* Attached bill saved by the employee as bill_url */}
+              {getBillReceiptUrl(selectedExpense.bill_url) && (
                 <div className="border border-[var(--line)] rounded-[16px] p-4 bg-[var(--surface-alt)] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[var(--text)]">Attached Receipt Document</span>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-semibold text-[var(--text)]">Attached Bill / Receipt</span>
                     <a
-                      href={selectedExpense.receipt_url}
+                      href={getBillReceiptUrl(selectedExpense.bill_url)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[var(--brand-deep)] hover:underline font-semibold"
+                      className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[var(--brand-deep)] hover:underline font-semibold"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" /> View Receipt
+                      <ExternalLink className="w-3.5 h-3.5 shrink-0" /> View Bill
                     </a>
                   </div>
                 </div>
