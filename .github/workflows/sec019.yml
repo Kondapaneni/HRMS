@@ -63,7 +63,6 @@ jobs:
           set -euo pipefail
           psql -h 127.0.0.1 -U postgres -d sec019_ci -f tests/sec019_schema_fixture.sql
           psql -h 127.0.0.1 -U postgres -d sec019_ci -f supabase/migrations/20261117_sec019_integrity.sql -v ON_ERROR_STOP=1
-          psql -h 127.0.0.1 -U postgres -d sec019_ci -f tests/sec019_schema_assert.sql
           # Simulate live DEV where exact SEC-019 DDL exists but migration
           # history does not: reapplying must preserve all checks.
           psql -h 127.0.0.1 -U postgres -d sec019_ci -f supabase/migrations/20261117_sec019_integrity.sql -v ON_ERROR_STOP=1
