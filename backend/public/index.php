@@ -12,6 +12,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Firebase\JWT\JWT;
 
 require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/sec007_cors.php';
 
 // Load environment variables
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
@@ -38,47 +39,34 @@ $app->add(new \App\Middleware\PerformanceLoggingMiddleware());
 // Add GZIP compression middleware
 $app->add(new \App\Middleware\GzipMiddleware());
 
-// Security & CORS Middleware
+// SEC-007: Only explicitly configured trusted origins can read cross-origin
+// API responses. The same-origin SPA/native WebView needs no CORS permission.
+// Apache applies browser security headers to ALL static and PHP responses.
 $app->add(function (Request $request, $handler) {
     $response = $handler->handle($request);
-    
-    // Ensure origin matches configured FRONTEND_URL or native mobile/local environments
-    $configuredFrontend = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
     $origin = $request->getHeaderLine('Origin');
-    
-    $allowedOrigin = $configuredFrontend;
-    if (!empty($origin)) {
-        $allowedOrigins = [
-            $configuredFrontend,
-            'https://localhost',
-            'http://localhost',
-            'capacitor://localhost',
-            'http://localhost:5173',
-            'http://localhost:3000'
-        ];
-        
-        if (
-            in_array($origin, $allowedOrigins) || 
-            str_starts_with($origin, 'capacitor://') || 
-            str_starts_with($origin, 'http://localhost:') || 
-            str_starts_with($origin, 'https://localhost:')
-        ) {
-            $allowedOrigin = $origin;
-        } else {
-            $allowedOrigin = 'null'; // Invalidate unknown origins
-        }
+
+    // Strip any wildcard headers set by individual routes. Never emit
+    // Access-Control-Allow-Credentials when the origin is not allowlisted.
+    $response = $response
+        ->withoutHeader('Access-Control-Allow-Origin')
+        ->withoutHeader('Access-Control-Allow-Credentials')
+        ->withoutHeader('Access-Control-Allow-Headers')
+        ->withoutHeader('Access-Control-Allow-Methods')
+        ->withAddedHeader('Vary', 'Origin');
+
+    $configuredFrontend = (string) ($_ENV['FRONTEND_URL'] ?? getenv('FRONTEND_URL') ?: '');
+    $extraAllowed = (string) ($_ENV['CORS_ALLOWED_ORIGINS'] ?? getenv('CORS_ALLOWED_ORIGINS') ?: '');
+    $allowedOrigin = sec007AllowedCorsOrigin($origin, $configuredFrontend, $extraAllowed);
+    if ($allowedOrigin === null) {
+        return $response;
     }
-    
+
     return $response
         ->withHeader('Access-Control-Allow-Origin', $allowedOrigin)
         ->withHeader('Access-Control-Allow-Credentials', 'true')
         ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
-        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-        ->withHeader('X-Frame-Options', 'SAMEORIGIN')
-        ->withHeader('X-XSS-Protection', '1; mode=block')
-        ->withHeader('X-Content-Type-Options', 'nosniff')
-        ->withHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
-        ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 });
 
 // SEC-003: browser <img>, <a>, and <video> cannot attach Bearer headers.
@@ -118,7 +106,7 @@ $app->get('/', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
-// App version check endpoint (supports CORS for all origins)
+// App version check endpoint (uses the centralized SEC-007 CORS allowlist)
 $app->get('/version.json', function (Request $request, Response $response, $args) {
     $versionFile = __DIR__ . '/version.json';
     if (file_exists($versionFile)) {
@@ -131,10 +119,7 @@ $app->get('/version.json', function (Request $request, Response $response, $args
             'commit' => 'live'
         ]));
     }
-    return $response
-        ->withHeader('Content-Type', 'application/json')
-        ->withHeader('Access-Control-Allow-Origin', '*')
-        ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    return $response->withHeader('Content-Type', 'application/json');
 });
 
 use App\Utils\RateLimiter;
@@ -847,7 +832,6 @@ function streamSupabaseFile($supabaseUrl, Response $response, $filename, $dispos
     
     return $response
         ->withBody($slimStream)
-        ->withHeader('Access-Control-Allow-Origin', '*')
         ->withHeader('Content-Type', getMimeType($filename))
         ->withHeader('Content-Disposition', $disposition . '; filename="' . basename($filename) . '"')
         ->withHeader('Cache-Control', 'public, max-age=31536000, immutable')
