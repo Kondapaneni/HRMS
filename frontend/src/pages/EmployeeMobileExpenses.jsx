@@ -29,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 const CATEGORY_OPTIONS = ['Travel', 'Meals', 'Supplies', 'Software', 'Hardware', 'Other'];
 
@@ -42,6 +43,7 @@ const getCategoryIcon = (category) => {
 };
 
 const EmployeeMobileExpenses = () => {
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -86,7 +88,8 @@ const EmployeeMobileExpenses = () => {
       let bill_url = null;
       if (billFile) {
         const fileExt = billFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        if (!profile?.id) throw new Error('Login required');
+        const fileName = `${profile.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from('expenses')
           .upload(fileName, billFile);

@@ -404,11 +404,11 @@ const AdminRecruitment = () => {
       
       const safeFirstName = pdfData.firstName.trim().replace(/\s+/g, '-');
       const safeLastName = pdfData.lastName.trim().replace(/\s+/g, '-');
-      const fileName = `${safeFirstName}-${safeLastName}.pdf`;
+      const fileName = `${safeFirstName}-${safeLastName}-${Date.now()}.pdf`;
       
       const { error: uploadError } = await supabase.storage.from('offer_letters').upload(fileName, blob, {
         contentType: 'application/pdf',
-        upsert: true
+        upsert: false
       });
       
       if (uploadError) throw uploadError;

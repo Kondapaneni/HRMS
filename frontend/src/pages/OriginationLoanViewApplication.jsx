@@ -187,7 +187,7 @@ export default function OriginationLoanViewApplication() {
           .from('loan_signatures')
           .upload(fileName, fileToUpload, {
             cacheControl: '3600',
-            upsert: true,
+            upsert: false,
           });
 
         if (uploadError) throw new Error(uploadError.message);

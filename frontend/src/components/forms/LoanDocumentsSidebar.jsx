@@ -157,7 +157,7 @@ export function LoanDocumentsSidebar({
         .from('loan_documents')
         .upload(filePath, optimizedFile, {
           cacheControl: '3600',
-          upsert: true
+          upsert: false
         });
 
       if (uploadError) {

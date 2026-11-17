@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { supabase } from '../lib/supabase';
 import PageLoader from '../components/PageLoader';
 import { compressVideo, uploadToSupabaseWithProgress, formatBytes } from '../utils/videoCompressor';
 import { StatCard, Button, Avatar } from '../components/ui';
@@ -187,15 +186,10 @@ const AdminTrainingVideos = () => {
       const cleanFileName = fileToUpload.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const fileName = `${Date.now()}_${cleanFileName}`;
 
-      const { publicUrl } = await uploadToSupabaseWithProgress(
-        supabase,
-        'training-videos',
-        fileName,
-        fileToUpload,
-        (progress) => {
-          setUploadProgress(progress);
-        }
-      );
+      const { publicUrl } = await uploadToSupabaseWithProgress({
+        bucket: 'training_videos', fileName, fileBlob: fileToUpload,
+        onProgress: progress => setUploadProgress(progress)
+      });
 
       addVideoMutation.mutate({
         title,
