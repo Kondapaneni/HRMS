@@ -60,12 +60,18 @@ $owner->exec("ALTER FUNCTION sec018_internal.verified_audit_actor() RENAME TO di
 try { $denied=false; try {$c->query('SELECT 1');}catch(Throwable $e){$denied=true;} check($denied,'missing verifier fails closed'); }
 finally {$owner->exec("ALTER FUNCTION sec018_internal.disabled_audit_actor() RENAME TO verified_audit_actor");}
 $c->clearSec018AuditIdentity(); $d->clearSec018AuditIdentity();
-// Independent sockets race for one row; exactly one may get a replacement.
+// Independent sockets race for one row; at most one may mint a token.
+// SEC-018 R01 STRICT: its winning refresh family is revoked immediately when
+// the losing (known used) credential is seen. A true race can require re-login
+// but never leaves a 30-second replay window or touches unrelated sessions.
 $user=['id'=>$a,'token_version'=>1];
 $token=RefreshSessions::issue($c,$user,'web');
 $id=explode('.',$token)[0];
-check(RefreshSessions::rotate($d,$id.'.'.str_repeat('0',64),'web')===null,'random secret denied');
-check($owner->query("SELECT revoked_at IS NULL FROM public.hrms_refresh_sessions WHERE id='$id'")->fetchColumn()===true,'random secret does not revoke known id');
+$sibling=RefreshSessions::issue($c,$user,'web');
+check(RefreshSessions::rotate($d,$id.'.'.str_repeat('0',64),'web')===null,
+    'random guessed secret denied');
+check($owner->query("SELECT revoked_at IS NULL FROM public.hrms_refresh_sessions WHERE id='$id'")->fetchColumn()===true,
+    'random guessed secret cannot revoke a known session id');
 $children=[];
 for($i=0;$i<2;$i++) {
  $proc=proc_open([PHP_BINARY,__FILE__,(string)$port,'rotate'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
@@ -74,15 +80,37 @@ for($i=0;$i<2;$i++) {
 }
 foreach($children as [$proc,$pipes]) {fwrite($pipes[0],$token."\n");fclose($pipes[0]);}
 $results=[];
-foreach($children as [$proc,$pipes]) {$out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);check(proc_close($proc)===0,'concurrent PHP child succeeds: '.$err);$results[]=json_decode($out,true,512,JSON_THROW_ON_ERROR);}
+foreach($children as [$proc,$pipes]) {
+ $out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);
+ fclose($pipes[1]);fclose($pipes[2]);
+ check(proc_close($proc)===0,'concurrent PHP child succeeds: '.$err);
+ $results[]=json_decode($out,true,512,JSON_THROW_ON_ERROR);
+}
 $winners=array_values(array_filter($results));
 check(count($winners)===1,'exactly one concurrent refresh issues replacement');
-check(RefreshSessions::rotate($c,$token,'web')===null,'lost-response retry cannot mint another replacement');
-check(RefreshSessions::rotate($c,$winners[0]['refreshToken'],'web')!==null,'winning replacement survives duplicate and lost-response retry');
-$hash=hash('sha256',explode('.',$token)[1]);
-$owner->prepare("UPDATE public.hrms_refresh_sessions SET used_token_hashes=jsonb_set(used_token_hashes,ARRAY[?],to_jsonb(EXTRACT(EPOCH FROM clock_timestamp())-60)) WHERE id=?")->execute([$hash,$id]);
-check(RefreshSessions::rotate($c,$token,'web')===null,'proven replay denied outside grace');
-check($owner->query("SELECT revoked_at IS NOT NULL FROM public.hrms_refresh_sessions WHERE id='$id'")->fetchColumn()===true,'proven old replay revokes session family');
+check(RefreshSessions::rotate($c,$token,'web')===null,
+    'reused known secret always denied without grace');
+check($owner->query("SELECT revoked_at IS NOT NULL FROM public.hrms_refresh_sessions WHERE id='$id'")->fetchColumn()===true,
+    'concurrent known reuse immediately revokes only the affected family');
+check(RefreshSessions::rotate($c,$winners[0]['refreshToken'],'web')===null,
+    'winning replacement no longer works after confirmed parallel replay');
+check(RefreshSessions::rotate($c,$sibling,'web')!==null,
+    'separate refresh session for same user survives confirmed replay');
+
+// Serialized normal browser/native rotation succeeds. Only actual known old
+// secret reuse revokes the family immediately, within the same second.
+$serial=RefreshSessions::issue($c,$user,'web');
+$serialId=explode('.',$serial)[0];
+$first=RefreshSessions::rotate($d,$serial,'web');
+check($first!==null,'serialized first refresh succeeds');
+$second=RefreshSessions::rotate($c,$first['refreshToken'],'web');
+check($second!==null,'serialized second refresh succeeds');
+check(RefreshSessions::rotate($d,$serial,'web')===null,
+    'first consumed refresh replay immediately denied');
+check($owner->query("SELECT revoked_at IS NOT NULL FROM public.hrms_refresh_sessions WHERE id='$serialId'")->fetchColumn()===true,
+    'confirmed replay immediately revokes serialized chain without waiting 30 seconds');
+check(RefreshSessions::rotate($d,$second['refreshToken'],'web')===null,
+    'current secret from compromised chain cannot be refreshed');
 foreach(['anon','authenticated'] as $role) {
  $owner->beginTransaction();$owner->exec('SET LOCAL ROLE '.$role);
  try { $denied=false;try {$owner->query('SELECT * FROM public.users');}catch(PDOException $e){$denied=true;}check($denied,"$role cannot read application data"); }
