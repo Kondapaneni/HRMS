@@ -66,7 +66,7 @@ SQL
 # proof that Supabase-managed role ownership/grants have been recreated.
 gpg --quiet --decrypt "$SEC018_RESTORE_ARCHIVE" |
   pg_restore --exit-on-error --single-transaction --no-owner --no-acl \
-    --dbname="$PGDATABASE" -
+    --dbname="$PGDATABASE"
 
 counts="$(psql -X -A -t -v ON_ERROR_STOP=1 -F '|' -c "
  SELECT
