@@ -17,7 +17,7 @@ BEGIN
       ADD CONSTRAINT applications_offer_letter_path_scope_ck
       CHECK (
         offer_letter_path IS NULL OR (
-          offer_letter_path ~ '^[0-9a-f-]{36}/offer-[0-9a-f-]{36}-[0-9a-f]{32}\\.pdf$'
+          offer_letter_path ~ '^[0-9a-f-]{36}/offer-[0-9a-f-]{36}-[0-9a-f]{32}\.pdf$'
           AND split_part(offer_letter_path, '/', 1) = id::text
         )
       );
