@@ -65,7 +65,7 @@ $fakeDatabase = new class {
         return new class {
             public function execute(array $params): void {}
             public function fetch(int $mode): array {
-                return ['role' => 'admin', 'isActive' => 't'];
+                return ['role' => 'admin', 'isActive' => 't', 'token_version' => 0];
             }
         };
     }

@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import AuthSideCarousel from '../components/AuthSideCarousel';
 
 const ChangePassword = () => {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,9 +18,8 @@ const ChangePassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
-  const { profile, fetchProfile, signOut } = useAuth();
+  const { signOut } = useAuth();
 
-  const ADMIN_ROLES = ['admin'];
 
   const passwordRequirements = [
     { id: 'length', text: 'At least 8 characters', regex: /.{8,}/ },
@@ -63,15 +64,13 @@ const ChangePassword = () => {
     setIsLoading(true);
 
     try {
-      await api.put('/change-password', { newPassword });
-      await fetchProfile();
-      toast.success('Password updated successfully!');
-
-      if (profile && ADMIN_ROLES.includes(profile.role)) {
-        navigate('/admin');
-      } else {
-        navigate('/employee');
-      }
+      await api.put('/change-password', { currentPassword, newPassword });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      await signOut({ localOnly: true });
+      toast.success('Password updated. Please sign in again.');
+      navigate('/login', { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to update password');
     } finally {
@@ -121,7 +120,7 @@ const ChangePassword = () => {
                 Update password
               </h1>
               <p className="text-xs sm:text-sm text-neutral-500 mt-2 leading-relaxed font-normal">
-                Please set a strong compliant password before proceeding to your workspace.
+                Verify your current password, then choose a strong new password. You will need to sign in again after the update.
               </p>
             </div>
 
@@ -141,6 +140,27 @@ const ChangePassword = () => {
             </AnimatePresence>
 
             <form onSubmit={handleSubmit} className="space-y-3.5">
+              {/* SEC-012: Current-password proof is required, even for mandatory changes. */}
+              <div className="relative">
+                <input
+                  id="change-currentPassword"
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Current password"
+                  required
+                  autoComplete="current-password"
+                  className="w-full h-12 pl-5 pr-12 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors p-1 cursor-pointer"
+                  aria-label={showCurrentPassword ? 'Hide current password' : 'Show current password'}
+                >
+                  {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {/* New Password */}
               <div className="relative">
                 <input
@@ -222,13 +242,13 @@ const ChangePassword = () => {
 
               <button
                 type="submit"
-                disabled={isLoading || !isPasswordValid}
+                disabled={isLoading || !isPasswordValid || !currentPassword}
                 className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99] mt-2"
               >
                 {isLoading ? (
                   <RefreshCw size={16} className="animate-spin" />
                 ) : (
-                  'Update and continue to workspace'
+                  'Update password and sign in again'
                 )}
               </button>
             </form>

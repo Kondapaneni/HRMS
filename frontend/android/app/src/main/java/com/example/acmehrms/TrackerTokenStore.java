@@ -24,6 +24,7 @@ import javax.crypto.spec.GCMParameterSpec;
 final class TrackerTokenStore {
     private static final String PREFS = "hrms_tracker_prefs";
     private static final String SECURE_KEY = "auth_token_secure_v1";
+    private static final String REFRESH_KEY = "refresh_token_secure_v1";
     private static final String LEGACY_KEY = "auth_token";
     private static final String KEY_ALIAS = "hrms_tracker_jwt_v1";
     private static final String CIPHER = "AES/GCM/NoPadding";
@@ -50,16 +51,66 @@ final class TrackerTokenStore {
     }
 
 
-    static void save(Context context, String token) throws Exception {
-        if (token == null || token.isEmpty()) throw new IllegalArgumentException("Missing tracker credential");
+    /**
+     * Store a newly signed access JWT and one-use refresh credential together.
+     * Both secrets are AES-GCM sealed under AndroidKeyStore before persisting.
+     */
+    static synchronized void saveSession(Context context, String access, String refresh) throws Exception {
+        if (access == null || access.isEmpty() || refresh == null
+                || !refresh.matches("[0-9a-f-]{36}\\.[0-9a-f]{64}")) {
+            throw new IllegalArgumentException("Missing or malformed native session");
+        }
+        String encryptedAccess = encrypt(access);
+        String encryptedRefresh = encrypt(refresh);
+        if (!context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(SECURE_KEY, encryptedAccess)
+                .putString(REFRESH_KEY, encryptedRefresh)
+                .remove(LEGACY_KEY)
+                .commit()) {
+            throw new IllegalStateException("Could not persist encrypted native session");
+        }
+    }
 
+    static synchronized String loadRefresh(Context context) {
+        String sealed = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(REFRESH_KEY, null);
+        if (sealed == null) return null;
+        try {
+            return decrypt(sealed);
+        } catch (Exception failure) {
+            clearSession(context);
+            return null;
+        }
+    }
+
+    static synchronized void clearSession(Context context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit().remove(SECURE_KEY).remove(LEGACY_KEY).remove(REFRESH_KEY).commit();
+    }
+
+    private static String encrypt(String token) throws Exception {
         Cipher cipher = Cipher.getInstance(CIPHER);
         cipher.init(Cipher.ENCRYPT_MODE, key());
         byte[] iv = cipher.getIV();
         if (iv == null || iv.length != 12) throw new IllegalStateException("Invalid GCM nonce");
-
-        String sealed = Base64.encodeToString(iv, Base64.NO_WRAP) + ":" +
+        return Base64.encodeToString(iv, Base64.NO_WRAP) + ":" +
                 Base64.encodeToString(cipher.doFinal(token.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
+    }
+
+    private static String decrypt(String ciphertext) throws Exception {
+        String[] parts = ciphertext.split(":", -1);
+        if (parts.length != 2) throw new IllegalArgumentException("Invalid encrypted credential");
+        byte[] iv = Base64.decode(parts[0], Base64.NO_WRAP);
+        if (iv.length != 12) throw new IllegalArgumentException("Invalid GCM nonce");
+        Cipher cipher = Cipher.getInstance(CIPHER);
+        cipher.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, iv));
+        return new String(cipher.doFinal(Base64.decode(parts[1], Base64.NO_WRAP)), StandardCharsets.UTF_8);
+    }
+
+    static void save(Context context, String token) throws Exception {
+        if (token == null || token.isEmpty()) throw new IllegalArgumentException("Missing tracker credential");
+
+        String sealed = encrypt(token);
 
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         if (!prefs.edit().putString(SECURE_KEY, sealed).remove(LEGACY_KEY).commit()) {
@@ -72,14 +123,7 @@ final class TrackerTokenStore {
         try {
             String ciphertext = prefs.getString(SECURE_KEY, null);
             if (ciphertext != null) {
-                String[] parts = ciphertext.split(":", -1);
-                if (parts.length != 2) throw new IllegalArgumentException("Invalid encrypted credential");
-                byte[] iv = Base64.decode(parts[0], Base64.NO_WRAP);
-                if (iv.length != 12) throw new IllegalArgumentException("Invalid GCM nonce");
-                byte[] encrypted = Base64.decode(parts[1], Base64.NO_WRAP);
-                Cipher cipher = Cipher.getInstance(CIPHER);
-                cipher.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, iv));
-                return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
+                return decrypt(ciphertext);
             }
 
             // One-time migration from an older app version. Never leave the

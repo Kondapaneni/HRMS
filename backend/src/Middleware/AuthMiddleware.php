@@ -10,6 +10,8 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Exception;
 use App\Config\Database;
+use App\Utils\SessionVersion;
+use App\Utils\AccessToken;
 
 class AuthMiddleware
 {
@@ -71,7 +73,7 @@ class AuthMiddleware
         try {
             $decoded = JWT::decode($token, new Key($secret, 'HS256'));
         } catch (Exception $e) {
-            return $this->unauthorizedResponse("Invalid or expired token: " . $e->getMessage() . " (Secret empty? " . (empty($secret) ? 'yes' : 'no') . ")");
+            return $this->unauthorizedResponse('Invalid or expired session token.');
         }
 
         // SEC-008: A first-factor MFA challenge JWT must NEVER authorize
@@ -81,6 +83,7 @@ class AuthMiddleware
             (isset($decoded->type) && $decoded->type !== 'session') ||
             empty($decoded->id) ||
             empty($decoded->role)
+            || !AccessToken::bounded($decoded)
         ) {
             return $this->unauthorizedResponse('A completed sign-in session is required.');
         }
@@ -137,7 +140,7 @@ class AuthMiddleware
                 }
             }
 
-            $stmtCheck = $conn->prepare('SELECT "isActive" FROM users WHERE id = :uid');
+            $stmtCheck = $conn->prepare('SELECT role, "isActive", token_version FROM users WHERE id = :uid');
             $stmtCheck->execute([':uid' => $decoded->id]);
             $userRow = $stmtCheck->fetch();
 
@@ -146,6 +149,12 @@ class AuthMiddleware
             }
             if (!$this->isTrueFlag($userRow['isActive'] ?? null)) {
                 return $this->forbiddenResponse('Your account has been deactivated. Please contact your administrator.');
+            }
+            // SEC-012: Revoked sessions, prior-password tokens, and stale role
+            // claims never authorize the API, even when JWT exp is in the future.
+            if (($userRow['role'] ?? '') !== $decoded->role
+                || !SessionVersion::matches($decoded, $userRow)) {
+                return $this->unauthorizedResponse('Session revoked. Please sign in again.');
             }
         } catch (\Throwable $e) {
             error_log('AuthMiddleware: Authorization database check failed: ' . $e->getMessage());

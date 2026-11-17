@@ -10,6 +10,10 @@ use Dotenv\Dotenv;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Firebase\JWT\JWT;
+use App\Utils\SessionVersion;
+use App\Utils\OtpCode;
+use App\Utils\AccessToken;
+use App\Utils\RefreshSessions;
 
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/sec007_cors.php';
@@ -70,7 +74,7 @@ $app->add(function (Request $request, $handler) {
     return $response
         ->withHeader('Access-Control-Allow-Origin', $allowedOrigin)
         ->withHeader('Access-Control-Allow-Credentials', 'true')
-        ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+        ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization, X-HRMS-Client, X-HRMS-Refresh')
         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 });
 
@@ -92,7 +96,7 @@ $app->add(function (Request $request, $handler) {
     if ($secret === '') return $response;
     try {
         $claims = JWT::decode($matches[1], new \Firebase\JWT\Key($secret, 'HS256'));
-        if (empty($claims->id) || empty($claims->role)) return $response;
+        if (empty($claims->id) || empty($claims->role) || !AccessToken::bounded($claims)) return $response;
     } catch (Throwable $e) {
         return $response;
     }
@@ -163,7 +167,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u."mfaEnabled"
+        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u."mfaEnabled", u.token_version
         FROM users u
         WHERE u.email = ?
     ');
@@ -185,16 +189,9 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
         
-        $payload = [
-            'iss' => 'acme_hrms',
-            'iat' => time(),
-            'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60), // Dynamic expiration
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'role' => $user['role']
-        ];
-        
-        $jwt = JWT::encode($payload, $secret, 'HS256');
+        [$response, $session] = RefreshSessions::newSession(
+            $conn, $user, (string)$secret, $sessionTimeout, $request, $response
+        );
 
         unset($user['password']); // Don't return password hash
 
@@ -218,10 +215,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             ];
         }
 
-        $response->getBody()->write(json_encode([
-            'token' => $jwt,
-            'user' => $user
-        ]));
+        $response->getBody()->write(json_encode(array_merge($session, ['user' => $user])));
         
         RateLimiter::clearAttempts($conn, $ip, $action);
         
@@ -287,7 +281,8 @@ $app->post('/api/auth/otp/send', function (Request $request, Response $response,
 
     // Save OTP to user record
     $updateStmt = $conn->prepare('UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE id = ?');
-    $updateStmt->execute([$otp, $expiresAt, $user['id']]);
+    $otpSecret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+    $updateStmt->execute([OtpCode::digest($otp, $otpSecret), $expiresAt, $user['id']]);
 
     // Load and render OTP email template
     $templatePath = __DIR__ . '/../src/Templates/otp_login_email.html';
@@ -345,7 +340,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u."mfaEnabled", u.otp_code, u.otp_expires_at
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u."themePreference", u."mfaEnabled", u.token_version, u.otp_code, u.otp_expires_at
         FROM users u
         WHERE LOWER(u.email) = LOWER(?)
     ');
@@ -376,7 +371,8 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    if ($user['otp_code'] !== $otp) {
+    $otpSecret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+    if (!OtpCode::matches((string)$user['otp_code'], $otp, $otpSecret)) {
         RateLimiter::recordAttempt($conn, $ip, $action);
         $response->getBody()->write(json_encode(['error' => 'Invalid verification code. Please check your email.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
@@ -401,16 +397,9 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
 
     $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
 
-    $payload = [
-        'iss' => 'acme_hrms',
-        'iat' => time(),
-        'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
-        'id' => $user['id'],
-        'email' => $user['email'],
-        'role' => $user['role']
-    ];
-
-    $jwt = JWT::encode($payload, $secret, 'HS256');
+    [$response, $session] = RefreshSessions::newSession(
+        $conn, $user, (string)$secret, $sessionTimeout, $request, $response
+    );
 
     unset($user['otp_code'], $user['otp_expires_at']);
 
@@ -437,19 +426,97 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
 
     RateLimiter::clearAttempts($conn, $ip, $action);
 
-    $response->getBody()->write(json_encode([
-        'token' => $jwt,
-        'user' => $user
-    ]));
+    $response->getBody()->write(json_encode(array_merge($session, ['user' => $user])));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
-$app->post('/api/logout', function (Request $request, Response $response, $args) {
-    $response->getBody()->write(json_encode(['message' => 'Logged out']));
-    return $response
-        ->withHeader('Content-Type', 'application/json')
-        ->withStatus(200);
+/**
+ * SEC-012: Refresh a short-lived JWT using one-use rotated credentials.
+ * Web credentials are scoped HttpOnly/Secure/SameSite cookies. Native Android
+ * credentials are separately encrypted with Android Keystore; never returned
+ * to a web localStorage-based session.
+ */
+$app->post('/api/auth/refresh', function (Request $request, Response $response) {
+    if ($request->getHeaderLine('X-HRMS-Refresh') !== '1') {
+        $response->getBody()->write(json_encode(['error' => 'Refresh request not permitted.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(403);
+    }
+    $origin = $request->getHeaderLine('Origin');
+    if ($origin !== '') {
+        $originHost = parse_url($origin, PHP_URL_HOST);
+        $targetHost = $request->getUri()->getHost();
+        if (!is_string($originHost) || strcasecmp($originHost, $targetHost) !== 0
+            || parse_url($origin, PHP_URL_SCHEME) !== 'https') {
+            $response->getBody()->write(json_encode(['error' => 'Cross-origin refresh denied.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+    }
+    $client = RefreshSessions::isAndroid($request) ? 'android' : 'web';
+    $body = $request->getParsedBody() ?: [];
+    $provided = $client === 'android'
+        ? ($body['refreshToken'] ?? null)
+        : ($request->getCookieParams()['hrms_refresh'] ?? null);
+    if (!is_string($provided) || strlen($provided) > 256) {
+        $response->getBody()->write(json_encode(['error' => 'Refresh session required.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(401);
+    }
+    try {
+        $conn = (new Database())->getConnection();
+        if (!$conn) throw new RuntimeException('Refresh database unavailable');
+        $result = RefreshSessions::rotate($conn, $provided, $client);
+        if (!$result) {
+            $response->getBody()->write(json_encode(['error' => 'Refresh session invalid or revoked.']));
+            if ($client === 'web') {
+                $response = $response->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie());
+            }
+            return $response->withHeader('Content-Type', 'application/json')
+                ->withHeader('Cache-Control', 'no-store')->withStatus(401);
+        }
+        $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+        $access = AccessToken::mint($result['user'], $secret, $setting['session_timeout'] ?? '30');
+        $payload = ['token' => $access];
+        if ($client === 'android') {
+            $payload['refreshToken'] = $result['refreshToken'];
+        } else {
+            $remaining = max(1, strtotime((string)$result['expiresAt']) - time());
+            $response = $response->withAddedHeader(
+                'Set-Cookie', RefreshSessions::cookie($result['refreshToken'], $remaining)
+            );
+        }
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(200);
+    } catch (Throwable $e) {
+        error_log('SEC-012 refresh unavailable: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Refresh service temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(503);
+    }
 });
+
+$app->post('/api/logout', function (Request $request, Response $response, $args) {
+    // SEC-012 stage 1: revoke ALL signed sessions belonging to this account.
+    $claims = $request->getAttribute('user');
+    try {
+        $conn = (new Database())->getConnection();
+        if (!$conn) throw new RuntimeException('Database unavailable');
+        if (!SessionVersion::revokeAll($conn, (string)$claims->id)) {
+            $response->getBody()->write(json_encode(['error' => 'Session not found.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+        }
+        $response->getBody()->write(json_encode(['message' => 'Logged out and all sessions revoked.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie())
+            ->withHeader('Cache-Control', 'no-store')->withStatus(200);
+    } catch (Throwable $e) {
+        error_log('SEC-012 logout revocation unavailable: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Session revocation temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
 
 // Get global news headlines & maintenance status (Public)
 $app->get('/api/news', function (Request $request, Response $response, $args) {
@@ -558,43 +625,64 @@ $app->put('/api/user/theme', function (Request $request, Response $response, $ar
     }
 })->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
 
-// Change password endpoint (Protected)
+// SEC-012 stage 1: Require the current password and revoke old JWTs atomically.
 $app->put('/api/change-password', function (Request $request, Response $response, $args) {
-    $decodedToken = $request->getAttribute('user');
-    $data = $request->getParsedBody();
+    $claims = $request->getAttribute('user');
+    $data = $request->getParsedBody() ?: [];
+    $currentPassword = $data['currentPassword'] ?? '';
     $newPassword = $data['newPassword'] ?? '';
 
-    if (empty($newPassword)) {
-        $response->getBody()->write(json_encode(['error' => 'New password is required']));
+    if (!is_string($currentPassword) || $currentPassword === '' || !is_string($newPassword)) {
+        $response->getBody()->write(json_encode(['error' => 'Current password and new password are required.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
-
     if (!\App\Utils\PasswordValidator::validate($newPassword)) {
         $response->getBody()->write(json_encode(['error' => \App\Utils\PasswordValidator::getPolicyMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    $db = new Database();
-    $conn = $db->getConnection();
-    
+    $conn = (new Database())->getConnection();
+    if (!$conn) {
+        $response->getBody()->write(json_encode(['error' => 'Password service unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
     try {
-        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-        
-        $stmt = $conn->prepare('UPDATE users SET password = ?, "forcePasswordChange" = false WHERE id = ?');
-        $stmt->execute([$hashedPassword, $decodedToken->id]);
-        
-        $userStmt = $conn->prepare('SELECT role FROM users WHERE id = ?');
-        $userStmt->execute([$decodedToken->id]);
-        $user = $userStmt->fetch(PDO::FETCH_ASSOC);
-        
+        $conn->beginTransaction();
+        $stmt = $conn->prepare('SELECT password, role, "isActive", token_version FROM public.users WHERE id = ? FOR UPDATE');
+        $stmt->execute([(string)$claims->id]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$user || !in_array($user['isActive'], [true, 1, '1', 't', 'true'], true)
+            || !SessionVersion::matches($claims, $user)) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Session expired. Please sign in again.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+        }
+        if (!password_verify($currentPassword, $user['password'])) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Current password is incorrect.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        if (password_verify($newPassword, $user['password'])) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'New password must differ from the current password.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+        $update = $conn->prepare('UPDATE public.users SET password = ?, "forcePasswordChange" = false, token_version = token_version + 1 WHERE id = ?');
+        $update->execute([password_hash($newPassword, PASSWORD_DEFAULT), (string)$claims->id]);
+        $conn->commit();
+
         $response->getBody()->write(json_encode([
-            'message' => 'Password updated successfully',
+            'message' => 'Password updated successfully. Please sign in again.',
             'role' => $user['role']
         ]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => 'Failed to update password']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie())
+            ->withHeader('Cache-Control', 'no-store')->withStatus(200);
+    } catch (Throwable $e) {
+        if ($conn->inTransaction()) $conn->rollBack();
+        error_log('SEC-012 password update failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Failed to update password.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 })->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
 
@@ -753,7 +841,7 @@ $app->post('/api/reset-password', function (Request $request, Response $response
     $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
     // Update password and clear token
-    $updateStmt = $conn->prepare("UPDATE users SET password = :hash, reset_token = NULL, reset_token_expires = NULL, \"forcePasswordChange\" = false WHERE id = :id");
+    $updateStmt = $conn->prepare("UPDATE users SET password = :hash, reset_token = NULL, reset_token_expires = NULL, \"forcePasswordChange\" = false, token_version = token_version + 1 WHERE id = :id");
     $updateStmt->execute([
         'hash' => $passwordHash,
         'id' => $user['id']

@@ -26,7 +26,7 @@ const expected = [
   ['employee_training_routes.php', "new AuthMiddleware(['employee', 'hr', 'manager'])", 3],
   ['employee_performance_routes.php', "new AuthMiddleware(['employee', 'hr', 'manager'])", 1],
   ['employee_chatbot_routes.php', "new AuthMiddleware(['employee', 'hr', 'manager'])", 1],
-  ['index.php', "new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate'])", 3],
+  ['index.php', "new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate'])", 4],
   ['mfa_routes.php', "new AuthMiddleware(['admin', 'employee', 'hr', 'manager'])", 5],
   ['origination_loans_dashboard_routes.php', "new \\App\\Middleware\\AuthMiddleware(['admin'], 'loanOrigination')", 1],
   ['origination_loans_leads_routes.php', "new \\App\\Middleware\\AuthMiddleware(['admin'], 'loanOrigination')", 3],
