@@ -29,6 +29,11 @@ on:
       - '.github/workflows/sec006.yml'
   workflow_dispatch:
     inputs:
+      build_final_apk:
+        description: 'Build Android APK only after all security issues and final release checks are complete'
+        type: boolean
+        required: true
+        default: false
       allow_signer_migration:
         description: 'One-time migration ONLY: existing HRMS installs must uninstall before installing'
         type: boolean
@@ -50,6 +55,9 @@ jobs:
         run: node --test tests/sec006_android_security_test.mjs
 
   android-native-build:
+    # Do not spend Actions minutes or generate APKs on PRs / routine pushes.
+    # APK compilation is reserved for the owner-approved final release run.
+    if: github.event_name == 'workflow_dispatch' && inputs.build_final_apk == true
     runs-on: ubuntu-latest
     env:
       HRMS_ANDROID_VERSION_CODE: ${{ github.run_number }}
@@ -124,7 +132,7 @@ jobs:
   publish-website-apk:
     name: Publish signed APK to Employee Profile (only when safe)
     needs: [static-security, android-native-build]
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.build_final_apk == true
     runs-on: ubuntu-latest
     permissions:
       contents: write
