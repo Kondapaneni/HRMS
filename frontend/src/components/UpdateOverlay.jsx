@@ -69,11 +69,10 @@ export default function UpdateOverlay() {
         return;
       }
 
-      const isDevBypassed = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
       const rawMode = newsData?.maintenance_mode;
       const isMaint = rawMode === true || rawMode === 'true' || rawMode === 1 || rawMode === '1';
 
-      if (isMaint && !isDevBypassed) {
+      if (isMaint) {
         setUpdateAvailable(false);
         return;
       }
@@ -130,9 +129,8 @@ export default function UpdateOverlay() {
     }, 800);
   };
 
-  const isDevBypassedNow = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
   const shouldShowUpdate = isAuthenticated && !isPublicRoute &&
-    updateAvailable && (!isMaintenanceMode || isDevBypassedNow) && !isAssessmentActive;
+    updateAvailable && !isMaintenanceMode && !isAssessmentActive;
 
   return (
     <AnimatePresence>

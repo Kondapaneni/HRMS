@@ -1,0 +1,112 @@
+name: SEC-020 maintenance bypass removal and admin-only server enforcement
+
+on:
+  push:
+    branches: ['main', 'fix/sec-020-remove-client-maintenance-bypass', 'fix/sec-020-maintenance-ui-across-all-employee-modules']
+    paths:
+      - 'frontend/src/App.jsx'
+      - 'frontend/src/components/MaintenanceGate.jsx'
+      - 'frontend/src/components/maintenancePolicy.js'
+      - 'frontend/src/components/MaintenanceOverlay.jsx'
+      - 'frontend/src/components/EmployeeLayout.jsx'
+      - 'frontend/src/components/CandidateLayout.jsx'
+      - 'frontend/src/components/UpdateOverlay.jsx'
+      - 'backend/src/Middleware/MaintenanceMiddleware.php'
+      - 'backend/public/index.php'
+      - 'backend/public/admin_settings_routes.php'
+      - 'tests/sec020_*'
+      - '.github/workflows/sec020.yml'
+  pull_request:
+    paths:
+      - 'frontend/src/App.jsx'
+      - 'frontend/src/components/MaintenanceGate.jsx'
+      - 'frontend/src/components/maintenancePolicy.js'
+      - 'frontend/src/components/MaintenanceOverlay.jsx'
+      - 'frontend/src/components/EmployeeLayout.jsx'
+      - 'frontend/src/components/CandidateLayout.jsx'
+      - 'frontend/src/components/UpdateOverlay.jsx'
+      - 'backend/src/Middleware/MaintenanceMiddleware.php'
+      - 'backend/public/index.php'
+      - 'backend/public/admin_settings_routes.php'
+      - 'tests/sec020_*'
+      - '.github/workflows/sec020.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  server-authorization:
+    name: Synthetic maintenance API and verified administrator policy
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec020_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec020_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec020_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec020_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec020_synthetic_only
+      JWT_SECRET: SEC020_TEST_ONLY_FOR_CI_NOT_PRODUCTION
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate source, PHP syntax and browser bypass removal
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in backend/src/Middleware/MaintenanceMiddleware.php backend/public/index.php tests/sec020_*.php; do
+            php -l "$file"
+          done
+          node tests/sec020_policy_test.mjs
+          node tests/sec020_maintenance_ui_test.mjs
+      - name: Install backend PHP dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Test dynamic maintenance states, admin MFA, forged/deactivated roles and recovery routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tests/sec020_seed.php
+          php tests/sec020_middleware_test.php
+
+  browser-build:
+    name: Frontend production build and bundled-secret absence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Frontend source policy and MFA/back-navigation regression
+        run: |
+          node tests/sec020_policy_test.mjs
+          node tests/sec020_maintenance_ui_test.mjs
+          node tests/sec008_frontend_security_test.mjs
+          node tests/sec008_login_reset_test.mjs
+      - name: Build production frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Verify compiled assets have no hardcoded maintenance credential or bypass flag
+        run: node tests/sec020_policy_test.mjs --built

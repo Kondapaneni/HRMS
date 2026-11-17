@@ -38,7 +38,8 @@ CREATE TABLE mfa_backup_codes (
 );
 CREATE TABLE global_settings (
     id INTEGER PRIMARY KEY, session_timeout TEXT,
-    login_rate_limit_attempts INTEGER, login_rate_limit_window INTEGER
+    login_rate_limit_attempts INTEGER, login_rate_limit_window INTEGER,
+    maintenance_mode BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE TABLE rate_limits (
     id SERIAL PRIMARY KEY, ip_address TEXT, action TEXT,
@@ -54,7 +55,7 @@ CREATE TABLE user_feature_access (
     "canBranchOperations" BOOLEAN DEFAULT false,
     "canAdminAssessments" BOOLEAN DEFAULT false
 );
-INSERT INTO global_settings VALUES (1, '30', 5, 15);
+INSERT INTO global_settings (id, session_timeout, login_rate_limit_attempts, login_rate_limit_window, maintenance_mode) VALUES (1, '30', 5, 15, FALSE);
 SQL);
 
 $users = [
