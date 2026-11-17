@@ -27,6 +27,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import toast from 'react-hot-toast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -108,10 +109,12 @@ const EmployeeMobileExpenses = () => {
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Expense claim submitted successfully!');
+      // Return to the mobile claim history as soon as the API saves the expense.
+      handleCloseForm();
+      setFilterStatus('all');
       queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
       queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
-      handleCloseForm();
+      toast.success('Expense claim submitted successfully!');
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to submit expense claim');
