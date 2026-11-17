@@ -1,0 +1,57 @@
+name: SEC-003 private file access regression
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'backend/public/index.php'
+      - 'backend/public/sec003_file_access.php'
+      - 'frontend/src/pages/AdminRecruitment.jsx'
+      - 'tests/sec003_file_access_test.php'
+      - 'supabase/migrations/*sec_003*'
+      - '.github/workflows/sec003.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-sec003:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, fileinfo, pdo_pgsql
+      - run: php -l backend/public/index.php
+      - run: php -l backend/public/sec003_file_access.php
+      - run: php tests/sec003_file_access_test.php
+      - run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Anonymous private file routes reject before touching database
+        shell: bash
+        run: |
+          php -S 127.0.0.1:8766 -t backend/public backend/public/index.php > /tmp/sec003-server.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          sleep 2
+          for route in Bills Resume Attendance Candidate-Document Loan-Document Loan-Signature Offer-Letter Avatar Training-Video; do
+            status=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:8766/$route/sec003-test.jpg")
+            if [ "$status" != "401" ]; then
+              echo "Unexpected anonymous status for $route: $status"
+              cat /tmp/sec003-server.log
+              exit 1
+            fi
+          done
+  react-sec003:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
