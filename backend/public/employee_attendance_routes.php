@@ -299,15 +299,12 @@ $app->get('/api/employee/geofences', function (Request $request, Response $respo
         $stmt = $conn->query('SELECT id, name, latitude, longitude, radius FROM geofences ORDER BY id ASC');
         $geofences = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        $apiKey = $_ENV['GOOGLE_GEOCODING_API_KEY'] ?? '';
-        
         $stmtEmp = $conn->prepare('SELECT "geoFenceEnabled" FROM employee WHERE "userId" = ?');
         $stmtEmp->execute([$decodedToken->id]);
         $emp = $stmtEmp->fetch(PDO::FETCH_ASSOC);
         
         $response->getBody()->write(json_encode([
             'geofences' => $geofences,
-            'googleMapsApiKey' => $apiKey,
             'geoFenceEnabled' => $emp ? $emp['geoFenceEnabled'] : false
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
