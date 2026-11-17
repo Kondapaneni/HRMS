@@ -9,6 +9,7 @@ on:
       - 'tests/sec019_*'
       - 'docs/SEC-019-remediation.md'
       - 'scripts/sec019_dev_public_reset_review_only.sql'
+      - 'scripts/sec019_bootstrap_admin.php'
       - 'frontend/scripts/sec019_purge_storage.mjs'
       - '.github/workflows/sec019.yml'
   workflow_dispatch:
@@ -51,10 +52,12 @@ jobs:
           set -euo pipefail
           php -l backend/src/Utils/EmployeeId.php
           php -l backend/public/admin_employees_routes.php
+          php -l scripts/sec019_bootstrap_admin.php
           php tests/sec019_employee_id_test.php
           node tests/sec019_source_test.mjs
           node --check frontend/scripts/sec019_purge_storage.mjs
           node tests/sec019_reset_guard_test.mjs
+          node tests/sec019_bootstrap_guard_test.mjs
       - name: Apply integrity migration against isolated legacy schema
         run: |
           set -euo pipefail

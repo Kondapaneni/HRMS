@@ -61,9 +61,20 @@ Two **review-only** reset helpers are staged:
   dependencies, and performs one transactional TRUNCATE **without CASCADE**.
   It is **not** applied by deployment, CI, or migrations.
 
-**Important:** A total data wipe removes the only Admin account, and the
-app cannot be used afterward until an approved secure Admin bootstrap is
-prepared and performed. Pause all live DEV writers and confirm that plan
+A third reviewed helper, `scripts/sec019_bootstrap_admin.php`, provides
+a local CLI-only Admin bootstrap AFTER the reset. It refuses to run if users,
+employees or Storage objects remain; it requires an exact DEV confirmation
+and a private Admin email in local environment variables. The new Admin
+gets a 192-bit random temporary password printed **only locally** once,
+with mandatory password change on first login. DB credentials and password
+are never written into the repository. An Admin insertion will produce a
+new signed-audit-compatible historical row with unknown actor unless an
+approved actor context is provided; no previous audit history is restored.
+
+**Important:** A total data wipe removes the only Admin account. The app
+is unusable until the bootstrap has completed successfully. The operator
+must have access to the reviewed DB setup credentials and be able to run
+this CLI helper before starting the destructive reset. Pause all live DEV writers and confirm that plan
 before either reset helper is executed. The connected Supabase SQL connector
 does **not** provide an object-delete API or service-role credentials.
 No Storage or public-table reset has been executed in this PR.
