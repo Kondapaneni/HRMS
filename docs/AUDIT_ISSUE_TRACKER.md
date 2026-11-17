@@ -1,26 +1,27 @@
 # HRMS Audit Issue Tracker — Checklist
 
-**As of:** 2026-11-14  
+**As of:** 2026-11-14 (reconciled with screenshot of earlier HRMS audit progress supplied by the project owner)  
 **Baseline:** [AUDIT_REPORT.md](../AUDIT_REPORT.md) (2026-11-11), [GitHub commits](https://github.com/Kondapaneni/HRMS/commits/main), CI runs and owner-confirmed Android 14 testing.  
 **Important:** Original audit is a historical baseline, not an up-to-date closure record. "Pending / not verified" does **not** prove a vulnerability is still exploitable; it means no completed remediation and verification were established in this progress review.
 
 ## Progress
 
 - **39 total:** 24 SEC, 8 PERF, 7 QUAL.
-- **2 closed for development:** SEC-005 (with accepted residual risk) and SEC-006 (verified for current fresh-install development setup).
-- **2 code merged, live validation pending:** SEC-002 and SEC-004.
-- **4 partially remediated:** SEC-001, SEC-003, SEC-017, QUAL-002.
+- **6 findings previously recorded as Fixed / development closed:** SEC-001 through SEC-006. The owner's earlier audit screenshot explicitly labels SEC-001 through SEC-004 "Fixed"; SEC-005 and SEC-006 were subsequently closed for development.
+- **2 development closures supported by completed scope-limited verification:** SEC-005 (owner-accepted residual risk) and SEC-006 (Android 14 release-device testing).
+- **4 fixes needing deployment / live security verification to establish full closure:** SEC-001, SEC-002, SEC-003, SEC-004. Their *previously recorded Fixed* designation is preserved; it is **not** proof that live database migrations, Edge Function deployment or security regression checks happened.
+- **2 partially remediated:** SEC-017 and QUAL-002.
 - **31 pending / not verified:** no completed fix/verification established by this review.
-- **0 of 7 critical findings verified closed.** This tracker does not declare HRMS production ready.
+- **0 of 7 critical findings independently verified fully closed.** This tracker does not declare HRMS production ready.
 
-Legend: `[x]` = development closed; `[ ]` = still open for audit tracking. A merged fix alone is not automatically closed.
+Legend: `[x]` = **previously recorded Fixed in owner-provided audit history or closed for development**; `[ ]` = not so recorded. This checkbox is a **fix-progress marker, not a production security sign-off**. See each item's remaining deployment/verification requirements.
 
 ## Security — SEC-001 to SEC-024
 
-- [ ] **SEC-001** — Broad Supabase RLS and anonymous client access (**CRITICAL**) · **Partial** — New backend protections merged; Supabase RLS policy migration and live access-denial tests remain. [Remediation](SEC-001-remediation.md)
-- [ ] **SEC-002** — Unauthenticated Supabase email Edge Function (**CRITICAL**) · **Code merged; deployment pending** — Email webhook hardened in code; apply queue-token database migration, deploy Edge Function, and live-test. [Commit](https://github.com/Kondapaneni/HRMS/commit/ca2d13fcdc)
-- [ ] **SEC-003** — Public document proxies and predictable sensitive filenames (**HIGH**) · **Partial** — Access-controlled PHP file proxies merged; private-bucket migration and live owner/anonymous access tests remain. [Remediation](SEC-003-remediation.md)
-- [ ] **SEC-004** — Insecure Gemini TLS and external personal-data exposure (**HIGH**) · **Code merged; live validation pending** — Gemini TLS/PII safeguards and FAQ fallback merged; complete live chatbot/transport verification. [Remediation](SEC-004-remediation.md)
+- [x] **SEC-001** — Broad Supabase RLS and anonymous client access (**CRITICAL**) · **Fixed (previous audit record); deployment verification pending** — Earlier tracker screenshot marks Fixed and new backend protections are merged. Still need to confirm Supabase RLS migration was applied and unauthorized live access is denied. [Remediation](SEC-001-remediation.md)
+- [x] **SEC-002** — Unauthenticated Supabase email Edge Function (**CRITICAL**) · **Fixed (previous audit record); deployment verification pending** — Earlier tracker screenshot marks Fixed and email webhook hardening is committed. Still need to confirm queue-token migration, Edge Function deployment and live relay-denial tests. [Commit](https://github.com/Kondapaneni/HRMS/commit/ca2d13fcdc)
+- [x] **SEC-003** — Public document proxies and predictable sensitive filenames (**HIGH**) · **Fixed (previous audit record); deployment verification pending** — Earlier tracker screenshot marks Fixed; access-controlled PHP file proxies are merged. Still need to confirm private-bucket migration and live cross-user/anonymous access tests. [Remediation](SEC-003-remediation.md)
+- [x] **SEC-004** — Insecure Gemini TLS and external personal-data exposure (**HIGH**) · **Fixed (previous audit record); live validation pending** — Earlier tracker screenshot marks Fixed; Gemini TLS/PII safeguards and FAQ fallback are merged and focused CI passed. Still confirm live chatbot and transport behavior. [Remediation](SEC-004-remediation.md)
 - [x] **SEC-005** — Tracked sensitive files and unsafe Docker build context (**HIGH**) · **Closed for development** — Current-tree and Docker secret exposure mitigated; accepted residual historical risk, credential rotation and history/image review before production. [Remediation](SEC-005-remediation.md)
 - [x] **SEC-006** — Android backup, HTTP, native JWT storage and Logcat (**HIGH**) · **Closed for development** — Five original Android native vulnerabilities fixed; signed APK and Android 14 tracking/security/recovery tested. Legacy token migration not runtime-tested; fresh-install rollout. [Remediation](SEC-006-remediation.md)
 - [ ] **SEC-007** — Missing HTTP security headers and wildcard CORS (**MEDIUM**) · **Pending / not verified** — No completed remediation plus verification established in this review.
@@ -65,10 +66,11 @@ Legend: `[x]` = development closed; `[ ]` = still open for audit tracking. A mer
 
 ## Development closure and production caveats
 
+- **Historical status reconciliation:** The project owner supplied an image of the earlier audit tracker showing SEC-001, SEC-002, SEC-003 and SEC-004 as "Fixed". Those are now checked as *recorded fixed*. This is evidence of a prior progress assessment, not evidence of the live production configuration. Do not interpret `[x]` for these four findings as security validation or permission to launch.
 - **SEC-005:** The project owner accepted historical-secret exposure risks during development. Historical Git/cache/image review and credential rotation remain mandatory before using real production data.
 - **SEC-006:** The user successfully tested the signed APK on Android 14, native tracking, app reopening, Android process crash recovery, checkout, and targeted Logcat leak patterns. The original native fixes are present in source and GitHub build checks passed. A legacy plaintext-token migration runtime test is not necessary for a fresh-install-only development rollout; perform it if upgrading legacy employee devices. Targeted checks are not a full independent penetration test.
-- **SEC-001, SEC-002, SEC-003:** SQL migrations and live Supabase/Edge configuration must be separately applied and verified; GitHub merges do not execute migrations automatically.
-- **SEC-004:** Source/CI verified, but live chatbot validation and third-party telemetry validation remain.
+- **SEC-001, SEC-002, SEC-003:** Prior tracker marks Fixed. SQL migrations and live Supabase/Edge configuration must still be verified independently; GitHub merges do not execute migrations automatically.
+- **SEC-004:** Prior tracker marks Fixed and source/CI verified, but live chatbot validation and third-party telemetry validation remain.
 - **SEC-017, QUAL-002:** Existing changes address only part of their original audit scope.
 
 ## Evidence
