@@ -163,6 +163,22 @@ jobs:
           done
           if [ "$ready" != 1 ]; then tail -n 80 /tmp/sec018-native-http.log || true; exit 1; fi
           php tests/sec018_native_http_ci.php || { tail -n 100 /tmp/sec018-native-http.log; exit 1; }
+      - name: Verify Free-plan operator backup tools fail closed in CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/sec018_backup_dev.sh scripts/sec018_restore_rehearsal.sh
+          if bash scripts/sec018_backup_dev.sh > /tmp/sec018-backup-refusal.log 2>&1; then
+            echo "ERROR: backup helper ran inside CI" >&2
+            exit 1
+          fi
+          if bash scripts/sec018_restore_rehearsal.sh > /tmp/sec018-restore-refusal.log 2>&1; then
+            echo "ERROR: restore helper ran inside CI" >&2
+            exit 1
+          fi
+          grep -q 'No backups in CI' /tmp/sec018-backup-refusal.log
+          grep -q 'not a GitHub CI job' /tmp/sec018-restore-refusal.log
+          echo "PASS backup/restore scripts syntax and CI block guards"
       - name: Upload isolated evidence
         if: always()
         uses: actions/upload-artifact@v4
