@@ -32,8 +32,12 @@ CREATE TABLE rate_limits (
 );
 CREATE TABLE jobs (id uuid primary key, title text not null);
 CREATE TABLE applications (
- id uuid primary key, job_id uuid, candidate_id uuid, status text
+ id uuid primary key, job_id uuid, candidate_id uuid, status text,
+ updated_at timestamp default CURRENT_TIMESTAMP
 );
+CREATE TABLE branches (id uuid primary key, name text not null);
+INSERT INTO branches (id, name) VALUES
+('00000000-0000-4000-8000-00000000d501', 'Test Branch');
 CREATE TABLE application_timeline (
  id uuid primary key default gen_random_uuid(), application_id uuid,
  status_change text, notes text, created_at timestamp default CURRENT_TIMESTAMP

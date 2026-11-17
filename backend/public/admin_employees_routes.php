@@ -406,42 +406,91 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
 
-// Convert candidate to employee
+// Convert an eligible hired candidate to a staff account atomically.
+// SEC-019: never accept a caller-generated employee code or convert arbitrary
+// user IDs. The hired application is the authority for eligible transitions.
 $app->post('/api/admin/employees/convert', function (Request $request, Response $response, $args) {
-    $data = $request->getParsedBody();
-    
-    $userId = $data['userId'] ?? '';
-    // The server assigns an eight-digit code during the insert, not from request data.
-    $firstName = $data['firstName'] ?? '';
-    $lastName = $data['lastName'] ?? '';
-    $email = $data['email'] ?? '';
-    $phone = $data['phone'] ?? '';
-    $department = $data['department'] ?? '';
-    $position = $data['position'] ?? '';
-    $branch = $data['branch'] ?? '';
-    $joinDate = $data['joinDate'] ?? null;
-    $salary = $data['salary'] ?? 0;
-    $status = $data['status'] ?? 'active';
-    $managerId = $data['managerId'] ?? null;
+    $data = $request->getParsedBody() ?? [];
+    $userId = trim((string) ($data['userId'] ?? ''));
+    $applicationId = trim((string) ($data['applicationId'] ?? ''));
+    $firstName = trim((string) ($data['firstName'] ?? ''));
+    $lastName = trim((string) ($data['lastName'] ?? ''));
+    $phone = trim((string) ($data['phone'] ?? ''));
+    $department = trim((string) ($data['department'] ?? ''));
+    $position = trim((string) ($data['position'] ?? ''));
+    $branch = trim((string) ($data['branch'] ?? ''));
+    $joinDate = trim((string) ($data['joinDate'] ?? ''));
+    $salary = $data['salary'] ?? null;
+    $status = strtolower(trim((string) ($data['status'] ?? 'active')));
+    $managerId = empty($data['managerId']) ? null : trim((string) $data['managerId']);
 
-    if (empty($userId) || empty($firstName)) {
-        $response->getBody()->write(json_encode(['error' => 'Required fields are missing.']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-    }
-
-    $db = new Database();
-    $conn = $db->getConnection();
-
+    $conn = (new Database())->getConnection();
     try {
-        if (array_key_exists('salary', (array)$data)
-            && !CompensationAccess::allowed($conn, $request->getAttribute('user'))) {
+        if (!CompensationAccess::allowed($conn, $request->getAttribute('user'))) {
             $response->getBody()->write(json_encode(['error' => 'Payroll permission required to set compensation.']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
+
+    $uuid = '/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/iD';
+    if (!preg_match($uuid, $userId) || !preg_match($uuid, $applicationId)
+        || !preg_match($uuid, $branch) || $firstName === '' || $lastName === ''
+        || $department === '' || $position === '' || $joinDate === ''
+        || !preg_match('/\A\d{4}-\d{2}-\d{2}\z/D', $joinDate)
+        || !is_numeric($salary) || (float)$salary < 0
+        || !in_array($status, ['active', 'inactive'], true)) {
+        $response->getBody()->write(json_encode(['error' => 'Valid candidate, application, branch and employee details are required.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
         $conn->beginTransaction();
 
-        // 1. Insert using the employee code UNIQUE constraint as the authority.
-        // DO NOTHING is scoped ONLY to a code collision; another DB error aborts.
+        // Lock the user first so a second request cannot convert the same
+        // candidate concurrently, even through a different application.
+        $stmtUser = $conn->prepare('SELECT id, email, role, "isActive" FROM users WHERE id = ? FOR UPDATE');
+        $stmtUser->execute([$userId]);
+        $candidate = $stmtUser->fetch(PDO::FETCH_ASSOC);
+        if (!$candidate || $candidate['role'] !== 'candidate' || !in_array(
+            $candidate['isActive'], [true, 1, '1', 't', 'true'], true
+        )) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Candidate is not eligible for conversion or has already been converted.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+        }
+
+        // Protect against converting the wrong candidate/application or
+        // processing an application which is not selected/hired.
+        $stmtApplication = $conn->prepare(
+            'SELECT status FROM applications WHERE id = ? AND candidate_id = ? FOR UPDATE'
+        );
+        $stmtApplication->execute([$applicationId, $userId]);
+        $application = $stmtApplication->fetch(PDO::FETCH_ASSOC);
+        if (!$application) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Application does not belong to this candidate.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+        if (!in_array($application['status'], ['Selected', 'Hired'], true)) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Only Selected or Hired candidates can be converted.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+        }
+
+        $stmtExists = $conn->prepare('SELECT id FROM employee WHERE "userId" = ? LIMIT 1');
+        $stmtExists->execute([$userId]);
+        if ($stmtExists->fetchColumn()) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Employee record already exists for this candidate.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+        }
+
+        $stmtBranch = $conn->prepare('SELECT id FROM branches WHERE id = ? LIMIT 1');
+        $stmtBranch->execute([$branch]);
+        if (!$stmtBranch->fetchColumn()) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Please select an existing branch.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
         $stmtEmp = $conn->prepare('
             INSERT INTO employee (
                 "employeeId", "userId", "firstName", "lastName", email, phone,
@@ -451,40 +500,67 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
             RETURNING id
         ');
         [$employeeId, $employeeRowId] = \App\Utils\EmployeeId::insertUnique(
-            function (string $candidateCode) use (
-                $stmtEmp, $userId, $firstName, $lastName, $email, $phone,
-                $department, $position, $branch, $joinDate, $salary, $status, $managerId
+            function (string $code) use (
+                $stmtEmp, $userId, $firstName, $lastName, $candidate,
+                $phone, $department, $position, $branch, $joinDate, $salary, $status, $managerId
             ) {
                 $stmtEmp->execute([
-                    $candidateCode, $userId, $firstName, $lastName, $email, $phone,
-                    $department, $position, $branch, $joinDate, $salary,
-                    strtolower($status), $managerId
+                    $code, $userId, $firstName, $lastName, $candidate['email'],
+                    $phone, $department, $position, $branch, $joinDate,
+                    $salary, $status, $managerId
                 ]);
                 return $stmtEmp->fetchColumn();
             }
         );
 
-        // 2. Update users table role and info
-        $stmtUser = $conn->prepare('
-            UPDATE users SET 
-                role = ?, "firstName" = ?, "lastName" = ?, department = ?, position = ?
-            WHERE id = ?
+        // Any candidate session must be invalidated when the role changes.
+        $stmtUpdateUser = $conn->prepare('
+            UPDATE users SET role = ?, "firstName" = ?, "lastName" = ?,
+                department = ?, position = ?, token_version = token_version + 1
+            WHERE id = ? AND role = ?
         ');
-        $stmtUser->execute(['employee', $firstName, $lastName, $department, $position, $userId]);
+        $stmtUpdateUser->execute(['employee', $firstName, $lastName,
+            $department, $position, $userId, 'candidate']);
+        if ($stmtUpdateUser->rowCount() !== 1) {
+            throw new \RuntimeException('Candidate role changed during conversion');
+        }
+
+        $stmtStatus = $conn->prepare(
+            'UPDATE applications SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND candidate_id = ?'
+        );
+        $stmtStatus->execute(['Converted to Employee', $applicationId, $userId]);
+        if ($stmtStatus->rowCount() !== 1) {
+            throw new \RuntimeException('Application state update failed');
+        }
+
+        $stmtTimeline = $conn->prepare(
+            'INSERT INTO application_timeline (application_id, status_change, notes) VALUES (?, ?, ?)'
+        );
+        $stmtTimeline->execute([
+            $applicationId,
+            'Converted to Employee',
+            'Candidate converted to employee via the approved recruitment workflow.'
+        ]);
 
         $conn->commit();
-        \App\Utils\Cache::delete('dashboard_stats');
+        // Cache refresh is best-effort: never report an error after commit.
+        try {
+            \App\Utils\Cache::delete('dashboard_stats');
+        } catch (\Throwable $cacheError) {
+            error_log('SEC-019 candidate conversion cache invalidation failed');
+        }
 
         $response->getBody()->write(json_encode([
             'message' => 'Candidate converted to employee successfully',
+            'id' => $employeeRowId,
             'employeeId' => $employeeId,
             'userId' => $userId
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
-
-    } catch (\Exception $e) {
-        $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => 'An error occurred while converting the candidate: ' . $e->getMessage()]));
+    } catch (\Throwable $e) {
+        if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+        error_log('SEC-019 candidate conversion transaction failed');
+        $response->getBody()->write(json_encode(['error' => 'Unable to convert candidate. No changes were committed.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));

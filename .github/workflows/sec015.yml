@@ -21,6 +21,7 @@ on:
       - 'frontend/src/pages/AdminVerifyDocuments.jsx'
       - 'frontend/src/components/AddEmployeeModal.jsx'
       - 'tests/sec015_*'
+      - 'tests/sec019_candidate_conversion_http_test.mjs'
       - '.github/workflows/sec015.yml'
   pull_request:
     paths:
@@ -41,6 +42,7 @@ on:
       - 'frontend/src/pages/AdminVerifyDocuments.jsx'
       - 'frontend/src/components/AddEmployeeModal.jsx'
       - 'tests/sec015_*'
+      - 'tests/sec019_candidate_conversion_http_test.mjs'
       - '.github/workflows/sec015.yml'
   workflow_dispatch:
 
@@ -90,6 +92,7 @@ jobs:
           node --check tests/candidate_activation_http_test.mjs
           node --check tests/candidate_activation_resume_source_test.mjs
           node --check tests/sec015_http_test.mjs
+          node --check tests/sec019_candidate_conversion_http_test.mjs
       - name: Install backend dependencies and run isolated policy tests
         run: |
           composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
@@ -123,6 +126,10 @@ jobs:
             exit 1
           }
           php tests/sec015_assert.php || {
+            tail -n 120 /tmp/sec015-server.log
+            exit 1
+          }
+          node tests/sec019_candidate_conversion_http_test.mjs || {
             tail -n 120 /tmp/sec015-server.log
             exit 1
           }

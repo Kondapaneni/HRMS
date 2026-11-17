@@ -238,40 +238,38 @@ const AdminRecruitment = () => {
 
   const convertEmployeeMutation = useMutation({
     mutationFn: async () => {
+      if (!selectedApp?.id || !selectedApp?.candidate_id) {
+        throw new Error('Select a valid hired candidate application.');
+      }
       const payload = {
+        applicationId: selectedApp.id,
         userId: selectedApp.candidate_id,
         firstName: convertData.firstName,
         lastName: convertData.lastName,
-        email: convertData.email,
         phone: convertData.phone,
         department: convertData.department,
         position: convertData.position,
-        branchId: convertData.branch,
-        joiningDate: convertData.joinDate,
+        branch: convertData.branch,
+        joinDate: convertData.joinDate,
         salary: convertData.salary,
         status: convertData.status,
         managerId: convertData.managerId || null
       };
-
-      await api.post('/admin/convert-candidate', payload);
+      // The API atomically creates the employee, changes the user's role and
+      // marks the application Converted to Employee with a timeline record.
+      const response = await api.post('/admin/employees/convert', payload);
+      return response.data;
     },
-    onSuccess: () => {
-      const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
-      updateStatusMutation.mutate({ 
-        app: selectedApp, 
-        userInfo, 
-        newStatus: 'Converted to Employee', 
-        additionalNotes: `Candidate converted to employee. Designation: ${convertData.position}, Department: ${convertData.department}` 
-      }, {
-        onSuccess: () => {
-          setIsConvertModalOpen(false);
-          toast.success('Successfully converted candidate to employee');
-        }
-      });
+    onSuccess: ({ employeeId }) => {
+      setIsConvertModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'candidates_info'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+      toast.success(`Candidate converted to employee (ID: ${employeeId})`);
     },
     onError: (error) => {
       console.error(error);
-      toast.error('Failed to convert to employee');
+      toast.error(error.response?.data?.error || error.message || 'Failed to convert to employee');
     }
   });
 
@@ -1041,7 +1039,7 @@ const AdminRecruitment = () => {
                 </div>
                 <div>
                   <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Email *</label>
-                  <input type="email" required value={convertData.email} onChange={e => setConvertData({...convertData, email: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
+                  <input type="email" required readOnly value={convertData.email} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                 </div>
                 <div>
                   <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Phone number *</label>
