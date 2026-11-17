@@ -74,13 +74,13 @@ const CandidateDocuments = () => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${profile.id}/${docTypeId}_${Date.now()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('candidate_documents')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      const proxyUrl = window.location.origin + "/Candidate-Document/" + filePath;
+      const proxyUrl = window.location.origin + "/Candidate-Document/" + uploadData.path;
 
       // Delete existing from storage
       const res = await api.get('/candidate/documents');

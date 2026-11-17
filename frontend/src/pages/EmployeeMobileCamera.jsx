@@ -188,14 +188,14 @@ const EmployeeMobileCamera = () => {
       const blob = b64toBlob(photoDataUrl, 'image/jpeg');
       const fileName = `attendance-${profile?.employeeId || 'emp'}-${Date.now()}.jpg`;
 
-      const { error: uploadError } = await supabase.storage.from('attendance').upload(fileName, blob, {
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('attendance').upload(fileName, blob, {
         contentType: 'image/jpeg',
         upsert: false
       });
 
       if (uploadError) throw new Error('Failed to upload photo: ' + uploadError.message);
 
-      const publicUrl = window.location.origin + "/Attendance/" + fileName;
+      const publicUrl = window.location.origin + "/Attendance/" + uploadData.path;
 
       // 2. Submit Punch to backend
       const punchRes = await api.post('/employee/attendance/punch', {

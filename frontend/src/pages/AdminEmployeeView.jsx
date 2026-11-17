@@ -193,13 +193,13 @@ const AdminEmployeeView = () => {
         }
       }
 
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      const avatarUrl = window.location.origin + '/Avatar/' + fileName;
+      const avatarUrl = window.location.origin + '/Avatar/' + uploadData.path;
 
       await api.put(`/admin/employees/${id}`, { avatar: avatarUrl });
 
