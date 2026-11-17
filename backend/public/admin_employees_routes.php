@@ -424,6 +424,13 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
     $status = strtolower(trim((string) ($data['status'] ?? 'active')));
     $managerId = empty($data['managerId']) ? null : trim((string) $data['managerId']);
 
+    $conn = (new Database())->getConnection();
+    try {
+        if (!CompensationAccess::allowed($conn, $request->getAttribute('user'))) {
+            $response->getBody()->write(json_encode(['error' => 'Payroll permission required to set compensation.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+
     $uuid = '/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/iD';
     if (!preg_match($uuid, $userId) || !preg_match($uuid, $applicationId)
         || !preg_match($uuid, $branch) || $firstName === '' || $lastName === ''
@@ -434,13 +441,6 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
         $response->getBody()->write(json_encode(['error' => 'Valid candidate, application, branch and employee details are required.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
-
-    $conn = (new Database())->getConnection();
-    try {
-        if (!CompensationAccess::allowed($conn, $request->getAttribute('user'))) {
-            $response->getBody()->write(json_encode(['error' => 'Payroll permission required to set compensation.']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
-        }
 
         $conn->beginTransaction();
 
