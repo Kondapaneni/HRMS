@@ -26,7 +26,7 @@ existing="$(psql -X -A -t -v ON_ERROR_STOP=1 -c "
 SELECT
   (SELECT count(*) FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','f')),
   (SELECT count(*) FROM pg_catalog.pg_namespace WHERE nspname IN ('sec018_internal','sec018_recovery'));")" || die "Could not verify disposable destination"
-[[ "$existing" == $'0\n0' ]] || die "Restore destination is not empty: refusing to overwrite data"
+[[ "$existing" == '0|0' ]] || die "Restore destination is not empty: refusing to overwrite data"
 
 printf 'This will write ONLY to LOCAL disposable PostgreSQL %s at %s:%s.\n' "$PGDATABASE" "$PGHOST" "$PGPORT"
 printf 'Do not point any production or development application at this database.\n'
