@@ -42,10 +42,22 @@ ALTER TABLE public.leaves ADD CONSTRAINT "leaves_employeeId_fkey"
 -- Loan audit rows already have two references to the corresponding
 -- application and an optional editor user. Keep historical audit rows
 -- attached; no silent cascade or SET NULL when an account is removed.
+-- Draft audit writers use the application UUID as the display identifier
+-- until a business code exists. Keep that identifier available to API reads.
+ALTER TABLE public.loan_application_audit_logs
+  ADD COLUMN sec019_application_code text
+  GENERATED ALWAYS AS (NULLIF(application_id, loan_application_id::text)) STORED;
+
+ALTER TABLE public.loan_applications
+  ADD CONSTRAINT sec019_loan_application_identity_key UNIQUE (application_id, id);
 ALTER TABLE public.loan_application_audit_logs
   ADD CONSTRAINT sec019_loan_audit_app_code_fkey
-  FOREIGN KEY (application_id) REFERENCES public.loan_applications(application_id)
+  FOREIGN KEY (sec019_application_code) REFERENCES public.loan_applications(application_id)
   ON DELETE RESTRICT;
+ALTER TABLE public.loan_application_audit_logs
+  ADD CONSTRAINT sec019_loan_audit_app_identity_fkey
+  FOREIGN KEY (sec019_application_code, loan_application_id)
+  REFERENCES public.loan_applications(application_id, id) ON DELETE RESTRICT;
 ALTER TABLE public.loan_application_audit_logs
   ADD CONSTRAINT sec019_loan_audit_app_uuid_fkey
   FOREIGN KEY (loan_application_id) REFERENCES public.loan_applications(id)
@@ -56,7 +68,7 @@ ALTER TABLE public.loan_application_audit_logs
   ON DELETE RESTRICT;
 
 CREATE INDEX IF NOT EXISTS sec019_loan_audit_app_code_idx
-  ON public.loan_application_audit_logs(application_id);
+  ON public.loan_application_audit_logs(sec019_application_code, loan_application_id);
 CREATE INDEX IF NOT EXISTS sec019_loan_audit_app_uuid_idx
   ON public.loan_application_audit_logs(loan_application_id);
 CREATE INDEX IF NOT EXISTS sec019_loan_audit_editor_idx

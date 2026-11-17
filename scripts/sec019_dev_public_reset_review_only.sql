@@ -70,7 +70,7 @@ TRUNCATE TABLE
  public.portal_item_reads,public.rate_limits,public.sale_leads,
  public.shift_times,public.training_videos,public.user_feature_access,
  public.users
- RESTART IDENTITY;
+ CONTINUE IDENTITY;
 COMMIT;
 -- Storage buckets/permissions, migrations, auth service infrastructure,
 -- extensions, roles and SEC-018 protected internal/recovery schemas remain.

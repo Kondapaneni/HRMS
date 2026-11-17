@@ -23,7 +23,9 @@
 - Change only three verified history cascades to RESTRICT.
 - Add loan application audit references (application UUID, business code and
   editor UUID) that protect audit relationships and prevent accidental parent
-  deletion. Never attach a foreign key to generic varchar audit actor fields.
+  deletion. A composite reference keeps the business code and UUID tied to
+  the same application. Drafts can retain the UUID fallback used by existing
+  API responses. Generic varchar audit actor fields remain separate.
 - Automated tests use **disposable local PostgreSQL**; no live accounts,
   invitations or data are touched by CI.
 
@@ -58,7 +60,8 @@ Two **review-only** reset helpers are staged:
 - `scripts/sec019_dev_public_reset_review_only.sql` lists exactly 38
   reviewed public application tables, has a session-bound approval latch,
   checks that Storage is empty, checks table-inventory drift and private
-  dependencies, and performs one transactional TRUNCATE **without CASCADE**.
+  dependencies, and performs one transactional TRUNCATE **without CASCADE**
+  while preserving sequence positions.
   It is **not** applied by deployment, CI, or migrations.
 
 A third reviewed helper, `scripts/sec019_bootstrap_admin.php`, provides

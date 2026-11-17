@@ -12,5 +12,5 @@ assert.doesNotMatch(reset, /TRUNCATE TABLE auth\./);
 assert.doesNotMatch(reset, /CASCADE;/);
 assert.match(reset, /current_setting\('application_name'/);
 assert.match(reset, /SELECT count\(\*\) FROM storage\.objects/);
-assert.match(reset, /RESTART IDENTITY/);
+assert.match(reset, /CONTINUE IDENTITY/);
 console.log('SEC-019 reset safety guards PASS');

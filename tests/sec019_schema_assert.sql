@@ -39,6 +39,22 @@ BEGIN
         AND contype='f' AND confdeltype='r') <> 3 THEN
     RAISE EXCEPTION 'SEC-019 history RESTRICT rules missing';
   END IF;
+  INSERT INTO public.loan_applications(id, application_id)
+    VALUES ('99999999-9999-4999-8999-999999999999', NULL);
+  INSERT INTO public.loan_application_audit_logs(id, application_id, loan_application_id)
+    VALUES ('88888888-8888-4888-8888-888888888888',
+            '99999999-9999-4999-8999-999999999999', '99999999-9999-4999-8999-999999999999');
+  UPDATE public.loan_applications SET application_id = 'LN-ISSUED'
+    WHERE id = '99999999-9999-4999-8999-999999999999';
+  blocked := false;
+  BEGIN
+    INSERT INTO public.loan_application_audit_logs(id, application_id, loan_application_id)
+      VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+              'LN-EXISTING', '99999999-9999-4999-8999-999999999999');
+  EXCEPTION WHEN foreign_key_violation THEN
+    blocked := true;
+  END;
+  IF NOT blocked THEN RAISE EXCEPTION 'SEC-019 allowed different loan identities in one audit row'; END IF;
   RAISE NOTICE 'SEC-019 constraint and retention tests PASS';
 END
 $sec019_assert$;
