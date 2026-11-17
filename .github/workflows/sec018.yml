@@ -216,6 +216,21 @@ jobs:
           psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN BYPASSRLS;'
           psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f tests/sec018_phasea_schema_ci.sql > /dev/null
           psql -X -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE ON public.email_queue TO service_role;'
+      - name: Rehearse symmetric encryption and in-memory archive listing on FAKE data
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PGPASSWORD=SEC018_PHASEA_CI_PG_ONLY
+          ci_pass='SEC018_CI_ONLY_ENCRYPTION_NOT_FOR_REAL_DATA'
+          encrypted=/tmp/sec018-ci-synthetic.pgdump.gpg
+          pg_dump -Fc -h 127.0.0.1 -p 5432 -U postgres -d sec018_phasea_ci -n public \
+            | gpg --batch --yes --pinentry-mode loopback --passphrase "$ci_pass" \
+                --symmetric --cipher-algo AES256 --output "$encrypted"
+          test -s "$encrypted"
+          gpg --batch --pinentry-mode loopback --passphrase "$ci_pass" --quiet \
+              --decrypt "$encrypted" | pg_restore --list >/dev/null
+          rm -f "$encrypted"
+          echo "SEC-018 isolated synthetic encrypted archive stream PASS"
       - name: Rehearse synthetic custom backup, proposed migration and exact restoration
         shell: bash
         run: |
