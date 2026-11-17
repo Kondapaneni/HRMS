@@ -10,7 +10,7 @@ assert.equal(
   'Both Admin onboarding and candidate conversion must use server-generated IDs and collision retries'
 );
 assert.equal(
-  (src.match(/ON CONFLICT ("employeeId") DO NOTHING/g) || []).length,
+  (src.match(/ON CONFLICT \("employeeId"\) DO NOTHING/g) || []).length,
   2,
   'Only a duplicate employee display ID can trigger safe retry'
 );
