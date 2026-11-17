@@ -30,7 +30,7 @@ CREATE TABLE rate_limits (
  id bigserial primary key, ip_address text, action text,
  created_at timestamp default CURRENT_TIMESTAMP
 );
-CREATE TABLE jobs (id uuid primary key, title text not null);
+CREATE TABLE jobs (id uuid primary key, title text not null, department text);
 CREATE TABLE applications (
  id uuid primary key, job_id uuid, candidate_id uuid, status text,
  updated_at timestamp default CURRENT_TIMESTAMP
