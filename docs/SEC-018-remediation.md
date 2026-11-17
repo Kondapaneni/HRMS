@@ -1,12 +1,16 @@
 # SEC-018 remediation — review and release gates
 
-Status (2026-11-16): controlled Acme HRMS DEV-only rollout in progress.
-The first restricted-role review SQL was applied to the confirmed DEV Supabase
-database after an exact real-schema transaction/ROLLBACK rehearsal. The audit
-verifier/trigger-owner SQL has NOT yet been applied. The restricted role remains
-NOLOGIN, the existing backend database credentials remain active, and the
-existing Admin login record remains intact. No production release is approved.
-PR #57 is unchanged.
+Status (2026-11-17): SEC-018 deployed and DEV smoke-verified, but OPEN.
+PR #58 was merged to main and the confirmed Acme HRMS DEV Supabase database
+now has the restricted login and signed-audit verifier/key enabled. Render is
+using the restricted role with the shared transaction pooler; the original
+database credentials remain available as a functional rollback. One existing
+Admin login was preserved and verified, 28 live test cases passed at their
+documented scope, and independent audit INSERT/UPDATE attribution passed.
+The prior Step 1I and rollout notes below describe HISTORICAL checkpoints,
+not the current deployment state. Remaining native-prepares, authorization
+and independent backup gates are in docs/SEC-018-final-hardening.md and
+DRAFT PR #59. No production release or SEC-018 closure is approved.
 
 ## Security policy
 

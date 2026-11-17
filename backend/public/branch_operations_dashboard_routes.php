@@ -82,18 +82,22 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                        bool_or(is_loan) as has_loans,
                        bool_or(is_sale) as has_sales
                 FROM (
-                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_leads WHERE branch = :branch AND created_by IS NOT NULL
+                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_leads WHERE branch = :creator_branch_loan AND created_by IS NOT NULL
                     UNION ALL
-                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_applications WHERE branch = :branch AND created_by IS NOT NULL
+                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_applications WHERE branch = :creator_branch_app AND created_by IS NOT NULL
                     UNION ALL
-                    SELECT created_by::uuid as uid, false as is_loan, true as is_sale FROM public.sale_leads WHERE branch = :branch AND created_by IS NOT NULL
+                    SELECT created_by::uuid as uid, false as is_loan, true as is_sale FROM public.sale_leads WHERE branch = :creator_branch_sale AND created_by IS NOT NULL
                 ) combined
                 GROUP BY uid
             ) active_creators
             JOIN public.employee e ON active_creators.uid = e.\"userId\"
             ORDER BY e.\"firstName\" ASC, e.\"lastName\" ASC
         ");
-        $creatorsStmt->execute([':branch' => $userBranch]);
+        $creatorsStmt->execute([
+            ':creator_branch_loan' => $userBranch,
+            ':creator_branch_app' => $userBranch,
+            ':creator_branch_sale' => $userBranch,
+        ]);
         $creatorsRows = $creatorsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         $creators = array_map(function($c) {
@@ -126,11 +130,19 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
         } elseif ($selectedPipeline === 'loans') {
             $leadsTable = "(SELECT id, name, phone, address, status, loan_type, branch, created_at, created_by, false as is_sale, 'Loans' as pipeline_name FROM public.loan_leads WHERE branch = :branch $empFilter)";
         } else {
+            // Each UNION arm needs unique named binds in native PDO mode.
+            $loanEmployeeFilter = $empFilter !== '' ? ' AND created_by = :emp_loan' : '';
+            $saleEmployeeFilter = $empFilter !== '' ? ' AND created_by = :emp_sale' : '';
             $leadsTable = "(
-                SELECT id, name, phone, address, status, loan_type, branch, created_at, created_by, false as is_sale, 'Loans' as pipeline_name FROM public.loan_leads WHERE branch = :branch $empFilter
+                SELECT id, name, phone, address, status, loan_type, branch, created_at, created_by, false as is_sale, 'Loans' as pipeline_name FROM public.loan_leads WHERE branch = :branch_loan $loanEmployeeFilter
                 UNION ALL
-                SELECT id, name, phone, address, status, product_type as loan_type, branch, created_at, created_by, true as is_sale, 'Sales' as pipeline_name FROM public.sale_leads WHERE branch = :branch $empFilter
+                SELECT id, name, phone, address, status, product_type as loan_type, branch, created_at, created_by, true as is_sale, 'Sales' as pipeline_name FROM public.sale_leads WHERE branch = :branch_sale $saleEmployeeFilter
             )";
+            $params = [':branch_loan' => $userBranch, ':branch_sale' => $userBranch];
+            if ($empFilter !== '') {
+                $params[':emp_loan'] = $selectedEmployee;
+                $params[':emp_sale'] = $selectedEmployee;
+            }
         }
 
         // 1. Total Leads This Month
@@ -252,7 +264,11 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 ORDER BY a.created_at DESC
                 LIMIT 10
             ");
-            $recentAppsStmt->execute($params);
+            // The recent-applications statement is not the UNION: it needs
+            // the original per-app branch/employee binds, not UNION binds.
+            $appParams = [':branch' => $userBranch];
+            if ($empFilter !== '') $appParams[':emp_id'] = $selectedEmployee;
+            $recentAppsStmt->execute($appParams);
             $recentApps = $recentAppsStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
@@ -408,18 +424,22 @@ $app->get('/api/branch-operations/leads', function (Request $request, Response $
                        bool_or(is_loan) as has_loans,
                        bool_or(is_sale) as has_sales
                 FROM (
-                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_leads WHERE branch = :branch AND created_by IS NOT NULL
+                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_leads WHERE branch = :creator_branch_loan AND created_by IS NOT NULL
                     UNION ALL
-                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_applications WHERE branch = :branch AND created_by IS NOT NULL
+                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_applications WHERE branch = :creator_branch_app AND created_by IS NOT NULL
                     UNION ALL
-                    SELECT created_by::uuid as uid, false as is_loan, true as is_sale FROM public.sale_leads WHERE branch = :branch AND created_by IS NOT NULL
+                    SELECT created_by::uuid as uid, false as is_loan, true as is_sale FROM public.sale_leads WHERE branch = :creator_branch_sale AND created_by IS NOT NULL
                 ) combined
                 GROUP BY uid
             ) active_creators
             JOIN public.employee e ON active_creators.uid = e.\"userId\"
             ORDER BY e.\"firstName\" ASC, e.\"lastName\" ASC
         ");
-        $creatorsStmt->execute([':branch' => $userBranch]);
+        $creatorsStmt->execute([
+            ':creator_branch_loan' => $userBranch,
+            ':creator_branch_app' => $userBranch,
+            ':creator_branch_sale' => $userBranch,
+        ]);
         $creatorsRows = $creatorsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         $creators = array_map(function($c) {
@@ -454,11 +474,19 @@ $app->get('/api/branch-operations/leads', function (Request $request, Response $
         } elseif ($selectedPipeline === 'loans') {
             $leadsTable = "(SELECT id, name, phone, address, status, loan_type, branch, created_at, created_by, false as is_sale, 'Loans' as pipeline_name FROM public.loan_leads WHERE branch = :branch $empFilter)";
         } else {
+            // Each UNION arm needs unique named binds in native PDO mode.
+            $loanEmployeeFilter = $empFilter !== '' ? ' AND created_by = :emp_loan' : '';
+            $saleEmployeeFilter = $empFilter !== '' ? ' AND created_by = :emp_sale' : '';
             $leadsTable = "(
-                SELECT id, name, phone, address, status, loan_type, branch, created_at, created_by, false as is_sale, 'Loans' as pipeline_name FROM public.loan_leads WHERE branch = :branch $empFilter
+                SELECT id, name, phone, address, status, loan_type, branch, created_at, created_by, false as is_sale, 'Loans' as pipeline_name FROM public.loan_leads WHERE branch = :branch_loan $loanEmployeeFilter
                 UNION ALL
-                SELECT id, name, phone, address, status, product_type as loan_type, branch, created_at, created_by, true as is_sale, 'Sales' as pipeline_name FROM public.sale_leads WHERE branch = :branch $empFilter
+                SELECT id, name, phone, address, status, product_type as loan_type, branch, created_at, created_by, true as is_sale, 'Sales' as pipeline_name FROM public.sale_leads WHERE branch = :branch_sale $saleEmployeeFilter
             )";
+            $baseParams = [':branch_loan' => $userBranch, ':branch_sale' => $userBranch];
+            if ($empFilter !== '') {
+                $baseParams[':emp_loan'] = $selectedEmployee;
+                $baseParams[':emp_sale'] = $selectedEmployee;
+            }
         }
 
         // Calculate status and pipeline counts for this branch (respecting employee filter)
@@ -501,15 +529,18 @@ $app->get('/api/branch-operations/leads', function (Request $request, Response $
 
         if (!empty($searchTerm)) {
             $whereClauses[] = "(
-                l.name ILIKE :search
-                OR l.phone ILIKE :search
-                OR l.address ILIKE :search
-                OR l.loan_type ILIKE :search
-                OR e.\"firstName\" ILIKE :search
-                OR e.\"lastName\" ILIKE :search
-                OR CONCAT(e.\"firstName\", ' ', e.\"lastName\") ILIKE :search
+                l.name ILIKE :search_name
+                OR l.phone ILIKE :search_phone
+                OR l.address ILIKE :search_address
+                OR l.loan_type ILIKE :search_type
+                OR e.\"firstName\" ILIKE :search_first
+                OR e.\"lastName\" ILIKE :search_last
+                OR CONCAT(e.\"firstName\", ' ', e.\"lastName\") ILIKE :search_full
             )";
-            $queryParamsList[':search'] = '%' . $searchTerm . '%';
+            foreach ([':search_name', ':search_phone', ':search_address',
+                      ':search_type', ':search_first', ':search_last', ':search_full'] as $placeholder) {
+                $queryParamsList[$placeholder] = '%' . $searchTerm . '%';
+            }
         }
 
         $extraWhere = !empty($whereClauses) ? " WHERE " . implode(" AND ", $whereClauses) : "";

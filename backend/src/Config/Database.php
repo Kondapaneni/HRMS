@@ -49,7 +49,21 @@ class Database
                     error_log('Invalid DB_PDO_PREPARE_MODE; using pooler-safe prepares');
                     $prepareMode = 'pooler';
                 }
+                // The Supabase shared transaction pooler on port 6543
+                // cannot retain PostgreSQL native prepared statements.
+                // Fail closed rather than silently falling back to emulation.
+                // Direct and shared session-pooler connections on 5432 can be
+                // rehearsed with native statements before the Render switch.
+                if ($prepareMode === 'native' && (int) $port === 6543) {
+                    throw new \RuntimeException(
+                        'SEC-018 native prepares require a direct/session PostgreSQL connection'
+                    );
+                }
                 self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, $prepareMode !== 'native');
+                if ($prepareMode === 'native'
+                    && self::$conn->getAttribute(PDO::ATTR_EMULATE_PREPARES) !== false) {
+                    throw new \RuntimeException('SEC-018 native PDO prepare mode unavailable');
+                }
                 // Statement objects retain their own connection (configured by LoggingPDO).
                 // Refuse any wrong-identity connection when the restricted
                 // switch is enabled; never silently use privileged fallback.
