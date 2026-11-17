@@ -56,13 +56,22 @@ echo "PASS: incomplete encrypted ciphertext remains fatal"
 # Both databases are isolated CI services; never run against a user DB.
 if [[ "${GITHUB_ACTIONS:-}" == "true" && "${DB_DATABASE:-}" == "sec018_phasea_ci" ]]; then
   export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres
+  server_major="$(psql -X -A -t -v ON_ERROR_STOP=1 -d sec018_phasea_ci -c 'SHOW server_version_num')"
+  # Ubuntu runner has pg_dump 17; PG17 dumps can include session settings
+  # unknown to a PG16 target. Exercise full restore on matching PG17 only.
+  if (( server_major < 170000 )); then
+    echo "PASS: PG16 validated static stream guard; PG17 runner performs full encrypted restore"
+    exit 0
+  fi
   pgsrc=sec018_stream_source_ci
   pgdest=sec018_stream_target_ci
   createdb "$pgsrc"
   createdb "$pgdest"
   psql -X -v ON_ERROR_STOP=1 -d "$pgsrc" \
-    -c "CREATE TABLE public.stream_fixture (n integer NOT NULL); INSERT INTO public.stream_fixture(n) VALUES (42);" > /dev/null
-  pg_dump -Fc --no-owner --no-acl -d "$pgsrc" -n public |
+    -c "CREATE SCHEMA sec018_ci_stream; CREATE TABLE sec018_ci_stream.stream_fixture (n integer NOT NULL); INSERT INTO sec018_ci_stream.stream_fixture(n) VALUES (42);" > /dev/null
+  # A fresh PostgreSQL DB already has public. Use a distinct synthetic schema
+  # so the archive may restore transactionally without any --clean or DROP.
+  pg_dump -Fc --no-owner --no-acl -d "$pgsrc" -n sec018_ci_stream |
     gpg --batch --yes --pinentry-mode loopback --passphrase "$passphrase" \
       --compress-algo none --symmetric --cipher-algo AES256 \
       --output "$tmpdir/pgdump.gpg"
@@ -71,7 +80,7 @@ if [[ "${GITHUB_ACTIONS:-}" == "true" && "${DB_DATABASE:-}" == "sec018_phasea_ci
     pg_restore --exit-on-error --single-transaction --no-owner --no-acl \
       --dbname="$pgdest"
   value="$(psql -X -A -t -v ON_ERROR_STOP=1 -d "$pgdest" \
-    -c 'SELECT n FROM public.stream_fixture')"
+    -c 'SELECT n FROM sec018_ci_stream.stream_fixture')"
   [[ "$value" == "42" ]] || {
     echo "FAIL: synthetic stdin restoration content mismatch" >&2
     exit 1
