@@ -1,0 +1,102 @@
+name: SEC-005 git and Docker secret exclusion
+on:
+  push:
+    branches: ['main', 'fix/sec-005-git-docker-secrets']
+    paths:
+      - '.dockerignore'
+      - '.gitignore'
+      - 'chat_backup/**'
+      - 'scratch_queries.txt'
+      - 'server.log'
+      - '.github/workflows/sec005.yml'
+      - 'docs/SEC-005-remediation.md'
+  pull_request:
+    paths:
+      - '.dockerignore'
+      - '.gitignore'
+      - 'chat_backup/**'
+      - 'scratch_queries.txt'
+      - 'server.log'
+      - '.github/workflows/sec005.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sec005-docker-context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No private artifacts tracked in current HEAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files | grep -E '(^chat_backup/|(^|/)(scratch_queries\.txt|server\.log)$|(^|/)\.env(\.|$))'; then
+            echo "SEC-005 FAILED: private artifact tracked in current tree"
+            exit 1
+          fi
+          test -f .dockerignore
+          test -f .gitignore
+          git check-ignore --no-index -q backend/.env
+          git check-ignore --no-index -q frontend/src/.env.production.local
+          git check-ignore --no-index -q chat_backup/private.sql
+          git check-ignore --no-index -q server.log
+          git check-ignore --no-index -q scratch_queries.txt
+          if git check-ignore --no-index -q supabase/migrations/sec005_example.sql; then
+            echo "SEC-005 FAILED: legitimate SQL migrations should remain trackable"
+            exit 1
+          fi
+
+      - name: Prove Docker excludes synthetic secrets in build context
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > backend/.env
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > frontend/.env.production.local
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > .env
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > server.log
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > scratch_queries.txt
+          mkdir -p chat_backup
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > chat_backup/private.sql
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > backend/debug.sql
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > backend/server.log
+          printf 'SEC005_TEST_SENTINEL=DO_NOT_BAKE_THIS_IN\n' > backend/private.key
+
+          cat >/tmp/sec005-context.Dockerfile <<'DOCKERFILE'
+          FROM alpine:3.20
+          COPY . /context
+          RUN test -f /context/backend/public/index.php \
+            && test -f /context/frontend/package.json \
+            && test -f /context/frontend/public/downloads/'Acme HRMS.apk' \
+            && test ! -e /context/backend/.env \
+            && test ! -e /context/frontend/.env.production.local \
+            && test ! -e /context/.env \
+            && test ! -e /context/server.log \
+            && test ! -e /context/scratch_queries.txt \
+            && test ! -e /context/chat_backup \
+            && test ! -e /context/backend/debug.sql \
+            && test ! -e /context/backend/server.log \
+            && test ! -e /context/backend/private.key \
+            && test ! -e /context/backend/composer.phar \
+            && test ! -e /context/.git
+          DOCKERFILE
+
+          docker build --progress=plain --no-cache -f /tmp/sec005-context.Dockerfile -t sec005-context .
+          echo "SEC-005: synthetic private files excluded; required app assets retained."
+
+      - name: Verify production Dockerfile never bakes secrets into final image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --progress=plain -t sec005-hrms .
+          docker run --rm --entrypoint sh sec005-hrms -ec '
+            test ! -e /var/www/html/.env
+            test ! -e /var/www/html/debug.sql
+            test ! -e /var/www/html/server.log
+            test ! -e /var/www/html/private.key
+            test ! -e /var/www/html/composer.phar
+            test -f /var/www/html/public/index.php
+            test -f /var/www/html/vendor/autoload.php
+            test -f "/var/www/html/public/downloads/Acme HRMS.apk"
+          '
