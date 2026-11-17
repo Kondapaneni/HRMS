@@ -54,7 +54,12 @@ pg_dump --format=custom --no-owner --no-acl \
 
 [[ -s "$outfile" ]] || die "Encrypted file is empty"
 # Decrypt only in memory and validate that the archive is parseable.
-gpg --quiet --decrypt "$outfile" | pg_restore --list >/dev/null || die "Encrypted archive failed integrity/list check"
+# pg_restore --list may stop reading after the TOC. Drain the remaining
+# decrypted stream so GPG can complete authentication instead of reporting a
+# false SIGPIPE/broken-pipe failure. Never write plaintext backup to disk.
+gpg --quiet --decrypt "$outfile" | {
+  pg_restore --list >/dev/null && cat >/dev/null
+} || die "Encrypted archive failed integrity/list check"
 completed=1
 trap - EXIT
 printf 'SEC-018 LOCAL ENCRYPTED BACKUP CAPTURED AND ARCHIVE LIST VERIFIED.\n'
