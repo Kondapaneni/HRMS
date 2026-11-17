@@ -135,7 +135,8 @@ $app->post('/api/candidate/resend-activation', function (Request $request, Respo
 
     $conn = (new Database())->getConnection();
     if (!$conn) {
-        return sec001Reply($response, 503, ['error' => 'Activation email service unavailable.']);
+        $response->getBody()->write(json_encode(['error' => 'Activation email service unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 
     $action = 'candidate_activation_resend';
