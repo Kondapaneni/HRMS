@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+// Regenerate native Android launcher icons from the latest web/PWA branding.
+apply from: 'sync-launcher-icon.gradle'
+
 android {
     namespace = "com.example.acmehrms"
     compileSdk = rootProject.ext.compileSdkVersion
