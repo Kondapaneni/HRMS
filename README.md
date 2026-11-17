@@ -1,662 +1,275 @@
 <div align="center">
+  <img src="frontend/public/favicon.png" alt="Acme HRMS application icon" width="78" />
 
-# 🏢 ACME HRMS
+  # ACME HRMS
 
-### *Enterprise-Grade Human Resource Management System*
+  **Human resources, workforce attendance, recruitment and branch-origination workflows in one application.**
 
-[![Built with React](https://img.shields.io/badge/Frontend-React_19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
-[![PHP Backend](https://img.shields.io/badge/Backend-PHP_8.2-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
-[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Docker](https://img.shields.io/badge/Deploy-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
-[![Supabase](https://img.shields.io/badge/BaaS-Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
-[![Render](https://img.shields.io/badge/Hosted_on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
+  A React web client, PHP/Slim API, Supabase-backed data services and a Capacitor Android client.
 
-<br/>
+  [![React 19](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](frontend/package.json)
+  [![Vite 8](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](frontend/package.json)
+  [![PHP 8.2 container](https://img.shields.io/badge/PHP_container-8.2-777BB4?logo=php&logoColor=white)](Dockerfile)
+  [![Slim 4](https://img.shields.io/badge/Slim-4-59666C)](backend/composer.json)
+  [![Capacitor 8](https://img.shields.io/badge/Capacitor-8-119EFF?logo=capacitor&logoColor=white)](frontend/package.json)
 
-[![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)](LICENSE)
-[![GitHub repo size](https://img.shields.io/github/repo-size/Kondapaneni/HRMS?style=flat-square&color=blue)](https://github.com/Kondapaneni/HRMS)
-[![GitHub last commit](https://img.shields.io/github/last-commit/Kondapaneni/HRMS?style=flat-square&color=green)](https://github.com/Kondapaneni/HRMS/commits/main)
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Kondapaneni/HRMS?style=flat-square&color=orange)](https://github.com/Kondapaneni/HRMS/commits/main)
-
-<br/>
-
-> **A full-stack, production-ready HRMS platform powering employee management, payroll, attendance with face recognition, loan origination, branch operations, recruitment, and more — with dedicated mobile-first experiences for every module.**
-
-<br/>
-
-[🚀 Live Demo](#-deployment) · [📖 Documentation](#-api-modules) · [⚡ Quick Start](#-quick-start) · [🐳 Docker](#-docker-deployment)
-
+  [**Features**](#workspaces) · [**Architecture**](#architecture) · [**Getting started**](#getting-started) · [**Android**](#android-app) · [**Security & status**](#security-and-project-status) · [**Audit report**](AUDIT_REPORT.md)
 </div>
 
 ---
 
-<br/>
+> [!IMPORTANT]
+> **Development and security status:** The [consolidated audit](AUDIT_REPORT.md) tracks 39 original findings. Its **2026-11-17** snapshot records SEC-001–SEC-020 closed at their documented scopes, while SEC-021–SEC-024, eight performance findings, and seven quality findings remain open (QUAL-002 is partial). Closures include scoped owner-reported verification and accepted residual risks; **they do not constitute blanket production-readiness or an independent penetration-test certification**. Recheck the report and live environment before any real-user release.
 
-## 📊 Platform at a Glance
+## What this repository contains
 
-<div align="center">
+Acme HRMS is a multi-workspace application for company administrators, employees, HR/managers, applicants and operational teams. The primary browser experience is a React single-page application. The backend implements authentication, authorization, domain APIs, database access and protected file operations in PHP. The Android application uses Capacitor and a native location-tracking service.
 
-| 📈 Metric | Value |
-|:---|:---|
-| 🗂️ **Total Pages** | 99+ React Components |
-| 🔌 **API Routes** | 34 PHP Route Files |
-| 🧩 **Modules** | 5 Major Workspaces |
-| 📱 **Mobile Views** | Dedicated for Every Module |
-| 🔐 **Auth** | JWT + Supabase + Face Recognition |
-| ☁️ **Deployment** | Dockerized on Render |
+| Layer | Implementation | Where to inspect |
+| --- | --- | --- |
+| Web UI | React 19, React Router 7, Vite 8, Tailwind CSS 4, TanStack Query 5, Axios | [`frontend/package.json`](frontend/package.json), [`frontend/src/App.jsx`](frontend/src/App.jsx) |
+| API | PHP 8.2 in Docker, Slim 4, Composer, JWT authentication and route middleware | [`Dockerfile`](Dockerfile), [`backend/composer.json`](backend/composer.json), [`backend/public/index.php`](backend/public/index.php) |
+| Data | PostgreSQL hosted through Supabase; versioned SQL migrations | [`backend/src/Config/Database.php`](backend/src/Config/Database.php), [`supabase/migrations`](supabase/migrations) |
+| Private files | Supabase Storage accessed through authenticated PHP upload, deletion and file-proxy endpoints | [`backend/public/storage_routes.php`](backend/public/storage_routes.php), [`frontend/src/lib/supabase.js`](frontend/src/lib/supabase.js) |
+| Email | Database-backed email queue and a guarded Supabase Edge Function using Nodemailer | [`supabase/functions/send-email`](supabase/functions/send-email), [`backend/src/Security/EmailSecurity.php`](backend/src/Security/EmailSecurity.php) |
+| Android | Capacitor 8, Java native foreground location service, protected native session storage | [`frontend/capacitor.config.json`](frontend/capacitor.config.json), [`LocationTrackerService.java`](frontend/android/app/src/main/java/com/example/acmehrms/LocationTrackerService.java) |
+| Hosting / CI | Docker image with Apache, Render configuration and GitHub Actions security checks | [`render.yaml`](render.yaml), [`.github/workflows`](.github/workflows) |
 
-</div>
+## Workspaces
 
-<br/>
+These are **implemented routes and backend capabilities**, not an assertion that every workflow is ready for unrestricted production use.
 
----
+| Workspace | Code-backed capabilities | Entry points |
+| --- | --- | --- |
+| **Administration** | Dashboard, employee directory and settings, attendance/geofences/shifts, leave approvals, payroll, expenses, assets, holidays, performance, audit logs, reports, feature access, recruitment, assessments and training | [Admin routes](frontend/src/App.jsx), [PHP admin modules](backend/public/admin_employees_routes.php) |
+| **Employees / HR / managers** | Employee dashboard, attendance, profile, leave, expenses, payroll, performance, assessment sessions, assigned training and birthdays; selected admin-layout features are permission-gated | [Employee routes](frontend/src/App.jsx), [employee API](backend/public/employee_attendance_routes.php) |
+| **Candidates** | Account activation and login, job browsing, application tracking, document submission and secure download of a linked offer letter | [Candidate pages](frontend/src/pages/CandidateApplications.jsx), [candidate API](backend/public/candidate_recruitment_routes.php) |
+| **Loan origination** | Leads, member lookup, loan applications, associated documents, statuses and activities with server-side access restrictions | [Loan routes](backend/public/origination_loans_application_routes.php), [access rules](backend/src/Security/OriginationAccess.php) |
+| **Sales origination & branch operations** | Sales leads and activities; branch dashboards, lead views, application review, seen-status and authorized updates | [Sales API](backend/public/origination_sales_leads_routes.php), [branch API](backend/public/branch_operations_application_routes.php) |
 
-## 🏗️ System Architecture
+The web UI includes desktop and mobile layouts. It also contains employee/admin chatbot endpoints; the optional external Gemini path is restricted to predefined, non-personal FAQ prompts rather than arbitrary HR records ([policy](backend/public/sec004_gemini_security.php)).
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         CLIENT LAYER                                │
-│  ┌─────────────────────────────────────────────────────────────┐    │
-│  │              React 19 + Vite 8 + TailwindCSS 4              │    │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐   │    │
-│  │  │  Admin   │ │ Employee │ │Candidate │ │  Branch Ops  │   │    │
-│  │  │  Portal  │ │  Portal  │ │  Portal  │ │   & Loans    │   │    │
-│  │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └──────┬───────┘   │    │
-│  │       │             │            │              │           │    │
-│  │  ┌────┴─────────────┴────────────┴──────────────┴───────┐   │    │
-│  │  │         TanStack React Query (Offline Cache)         │   │    │
-│  │  └──────────────────────┬───────────────────────────────┘   │    │
-│  └─────────────────────────┼───────────────────────────────────┘    │
-│                            │ Axios HTTP                             │
-├────────────────────────────┼────────────────────────────────────────┤
-│                     API GATEWAY LAYER                               │
-│  ┌─────────────────────────┴───────────────────────────────────┐    │
-│  │              Slim Framework 4 (PHP 8.2 / Apache)            │    │
-│  │  ┌──────────┐ ┌─────────────┐ ┌──────────────────────┐     │    │
-│  │  │   JWT    │ │   CORS &    │ │   Route Middleware   │     │    │
-│  │  │  Auth    │ │  Security   │ │   & Validation       │     │    │
-│  │  └────┬─────┘ └──────┬──────┘ └──────────┬───────────┘     │    │
-│  │       └──────────────┬┘                   │                 │    │
-│  │              ┌───────┴───────────────────┐│                 │    │
-│  │              │    34 Route Controllers   ││                 │    │
-│  │              └───────────────────────────┘│                 │    │
-│  └──────────────────────┬────────────────────┘                 │    │
-├─────────────────────────┼──────────────────────────────────────────┤
-│                   DATA & SERVICES LAYER                             │
-│  ┌──────────┐  ┌────────┴────────┐  ┌──────────────────────┐       │
-│  │ Supabase │  │   PostgreSQL    │  │   Google Maps API    │       │
-│  │   Auth   │  │   (Supabase)    │  │   & Geocoding API    │       │
-│  └──────────┘  └─────────────────┘  └──────────────────────┘       │
-└─────────────────────────────────────────────────────────────────────┘
+## Architecture
+
+```mermaid
+flowchart TB
+  subgraph Clients["Clients"]
+    WEB["React + Vite web app"]
+    AND["Capacitor Android app<br/>hosted web view + native tracking"]
+  end
+  API["PHP 8.2 / Slim 4 API<br/>JWT, role + feature checks, business rules"]
+  DB[("Supabase PostgreSQL")]
+  STORE[("Private Supabase Storage")]
+  EDGE["Supabase Edge email webhook"]
+  SMTP["Configured SMTP delivery"]
+  MAPS["Google Maps / Geocoding"]
+
+  AND -->|"HTTPS-hosted UI and API"| WEB
+  WEB -->|"/api and authenticated file routes"| API
+  API -->|"PDO"| DB
+  API -->|"server-authorized file operations"| STORE
+  DB -->|"email_queue webhook (when configured)"| EDGE
+  EDGE --> SMTP
+  WEB -->|"restricted browser Maps key"| MAPS
+  API -->|"server Geocoding key"| MAPS
 ```
 
-<br/>
-
----
-
-## ⚡ Feature Breakdown
-
-### 👤 Employee Workspace
-
-<table>
-<tr>
-<td width="50%">
-
-#### 📊 Smart Dashboard
-- Personalized stats & notifications
-- Birthday & holiday widgets
-- Live company news ticker
-- Quick-action shortcuts
-
-#### ⏰ Attendance System
-- **GPS-based** check-in/check-out
-- **Face recognition** via webcam
-- Interactive map view with location pins
-- Attendance calendar & history
-
-#### 📝 Leave Management
-- Apply for leaves with category selection
-- Real-time approval status tracking
-- Leave balance dashboard
-- Mobile-optimized application form
-
-</td>
-<td width="50%">
-
-#### 💰 Payroll & Expenses
-- Detailed salary breakdown view
-- Downloadable PDF payslips
-- Expense claim submission with receipts
-- Monthly payment history
-
-#### 🎯 Performance & Assessments
-- Performance review dashboards
-- Timed skill assessments with anti-cheat
-- Question randomization engine
-- Instant result & score cards
-
-#### 👤 Profile & Training
-- Comprehensive profile management
-- Document upload & verification
-- Training video library access
-- Password & security settings
-
-</td>
-</tr>
-</table>
-
----
-
-### 🔧 Admin Control Center
-
-<table>
-<tr>
-<td width="50%">
-
-#### 👥 Employee Management
-- Full employee directory with search & filters
-- Add, edit, view employee profiles
-- Role & feature access control per employee
-- Document verification workflows
-
-#### 📅 Attendance & Leaves
-- Organization-wide attendance monitoring
-- Configurable attendance rules & locations
-- Leave approval/rejection workflows
-- Attendance regularization handling
-
-#### 💳 Payroll Processing
-- Individual & bulk payroll processing
-- Salary component configuration
-- Payslip generation & distribution
-- Payment history & audit trail
-
-</td>
-<td width="50%">
-
-#### 🎯 Recruitment Pipeline
-- End-to-end recruitment management
-- Job posting & candidate tracking
-- Interview scheduling & evaluation
-- Candidate portal with self-service
-
-#### 📊 Analytics & Compliance
-- Organization-wide dashboard analytics
-- Complete audit log system
-- Holiday calendar management
-- Email template configuration
-
-#### 🏢 Asset & Training
-- Company asset tracking & assignment
-- Training video management
-- Performance review administration
-- Assessment creation with question banks
-
-</td>
-</tr>
-</table>
-
----
-
-### 🏦 Loan Origination Module
-
-<table>
-<tr>
-<td width="50%">
-
-#### 📋 Lead Management
-- Capture & categorize loan leads
-- Lead status pipeline tracking
-- Mobile lead entry form
-- Lead-to-application conversion
-
-#### 📄 Loan Applications
-- Personal & Business loan forms
-- Multi-step application workflows
-- Document collection & verification
-- Application status tracking
-
-</td>
-<td width="50%">
-
-#### 👥 Member Directory
-- Loan applicant profile management
-- Member detail views with loan history
-- Mobile-optimized member browsing
-- Quick search & filtering
-
-#### 📊 Origination Dashboard
-- Pipeline analytics & conversion rates
-- Application status distribution
-- Team performance metrics
-- Real-time KPI tracking
-
-</td>
-</tr>
-</table>
-
----
-
-### 🏗️ Branch Operations Module
-
-<table>
-<tr>
-<td width="50%">
-
-#### 📊 Branch Dashboard
-- Branch-level loan analytics
-- Real-time application metrics
-- Performance KPIs per branch
-- Status distribution overview
-
-</td>
-<td width="50%">
-
-#### 📋 Loan Application Management
-- View & edit branch applications
-- Detailed application view with documents
-- Audit logging for all operations
-- Batch-optimized data loading (N+1 eliminated)
-
-</td>
-</tr>
-</table>
-
----
-
-### 🎯 Candidate Portal
-
-<table>
-<tr>
-<td width="50%">
-
-#### 🏠 Candidate Dashboard
-- Application status overview
-- Upcoming interview notifications
-- Document upload reminders
-- Profile completion tracker
-
-</td>
-<td width="50%">
-
-#### 💼 Job & Application Management
-- Browse open positions with filters
-- One-click job application
-- Track application progress
-- Upload required documents
-
-</td>
-</tr>
-</table>
-
----
-
-### 📱 Mobile Experience
-
-> Every single module has a **dedicated mobile-optimized** counterpart — not just responsive, but purpose-built for touch interactions.
-
-<div align="center">
-
-| Feature | Description |
-|:---|:---|
-| 🧊 **Liquid Glass Navigation** | iOS-inspired frosted glass bottom navigation bar |
-| 👆 **Swipe Gestures** | Swipe between navigation tabs |
-| 📐 **Orientation Detection** | Landscape warning with animated phone rotation |
-| ⚡ **Offline Support** | TanStack Query persistence for offline-first experience |
-| 🎭 **Framer Motion** | Smooth page transitions and micro-animations |
-| 📷 **Camera Integration** | Native camera access for face recognition attendance |
-| 🗺️ **GPS & Maps** | Real-time location tracking with Google Maps |
-
-</div>
-
-<br/>
-
----
-
-## 🛠️ Tech Stack Deep Dive
-
-<div align="center">
-
-### Frontend
-
-![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?style=flat-square&logo=vite&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4.3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![React Router](https://img.shields.io/badge/React_Router-7.17-CA4245?style=flat-square&logo=reactrouter&logoColor=white)
-![TanStack Query](https://img.shields.io/badge/TanStack_Query-5.x-FF4154?style=flat-square&logo=reactquery&logoColor=white)
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-12.x-0055FF?style=flat-square&logo=framer&logoColor=white)
-![Recharts](https://img.shields.io/badge/Recharts-3.8-22B5BF?style=flat-square)
-![Axios](https://img.shields.io/badge/Axios-1.17-5A29E4?style=flat-square&logo=axios&logoColor=white)
-
-### Backend
-
-![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?style=flat-square&logo=php&logoColor=white)
-![Slim](https://img.shields.io/badge/Slim_Framework-4.x-74A045?style=flat-square)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat-square&logo=postgresql&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)
-![Apache](https://img.shields.io/badge/Apache-2.4-D22128?style=flat-square&logo=apache&logoColor=white)
-
-### Infrastructure & Services
-
-![Docker](https://img.shields.io/badge/Docker-Multi_Stage-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Render](https://img.shields.io/badge/Render-Cloud-46E3B7?style=flat-square&logo=render&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-BaaS-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
-![Google Maps](https://img.shields.io/badge/Google_Maps-API-4285F4?style=flat-square&logo=googlemaps&logoColor=white)
-
-</div>
-
-<br/>
-
----
-
-## 📁 Project Structure
-
-```
-📦 Acme HRMS
-├── 🎨 frontend/                          # React Single Page Application
-│   ├── src/
-│   │   ├── api/                          # Axios instance & interceptors
-│   │   ├── components/                   # Shared UI components
-│   │   │   ├── forms/                    # Dynamic loan application forms
-│   │   │   ├── AdminLayout.jsx           # Admin shell with sidebar
-│   │   │   ├── EmployeeLayout.jsx        # Employee shell with navigation
-│   │   │   ├── BranchOperationsLayout.jsx # Branch ops shell
-│   │   │   ├── OriginationLayout.jsx     # Loan origination shell
-│   │   │   └── CandidateLayout.jsx       # Candidate portal shell
-│   │   ├── contexts/                     # Auth & global state providers
-│   │   ├── pages/                        # 99+ page components
-│   │   │   ├── Admin*.jsx                # Admin portal pages (25+)
-│   │   │   ├── Employee*.jsx             # Employee portal pages (20+)
-│   │   │   ├── BranchOperations*.jsx     # Branch operations pages (7)
-│   │   │   ├── Origination*.jsx          # Loan origination pages (14)
-│   │   │   ├── Candidate*.jsx            # Candidate portal pages (10)
-│   │   │   └── Assessment*.jsx           # Assessment engine pages (4)
-│   │   ├── services/                     # API service layer
-│   │   └── App.jsx                       # Root routing & providers
-│   ├── package.json                      # Dependencies & scripts
-│   └── vite.config.js                    # Build configuration
-│
-├── ⚙️ backend/                            # PHP REST API
-│   ├── public/                           # Apache document root
-│   │   ├── index.php                     # Slim app bootstrap & middleware
-│   │   ├── admin_*_routes.php            # 16 admin route files
-│   │   ├── employee_*_routes.php         # 8 employee route files
-│   │   ├── origination_*_routes.php      # 4 origination route files
-│   │   ├── branch_operations_*_routes.php # 2 branch ops route files
-│   │   └── candidate_*_routes.php        # 2 candidate route files
-│   ├── src/
-│   │   ├── Config/Database.php           # PDO connection manager
-│   │   └── Middleware/AuthMiddleware.php  # JWT authentication guard
-│   ├── cron/                             # Scheduled background tasks
-│   ├── scripts/                          # Database & utility scripts
-│   └── composer.json                     # PHP dependencies
-│
-├── 🐳 Dockerfile                          # Multi-stage production build
-├── 🚀 docker-entrypoint.sh                # Container env injection
-├── ☁️ render.yaml                          # Render deployment blueprint
-└── 📖 SYSTEM_DOCUMENTATION.md             # 118KB detailed documentation
+**Important implementation details**
+
+- **Authentication authority:** HRMS uses its **PHP-issued JWT and database identity**, not a browser Supabase Auth session. The frontend's Storage adapter calls backend routes rather than issuing anonymous direct Storage writes.
+- **Access control:** Protected APIs use role, feature and record/branch checks on the server. Frontend route guards are only an additional UI gate.
+- **Sessions:** Normal access tokens are bounded; refresh sessions rotate. Web refresh uses a restricted HttpOnly cookie, while Android uses native secure session storage.
+- **Attendance:** Geofence rules apply server-side to configured check-in/check-out cases. Android interval/location punches are a separate roaming tracking workflow.
+- **Email:** Recruitment notification types and templates are server-controlled. The Edge endpoint is intended for database webhook delivery, not direct public mailing.
+- **Maintenance:** A server-side maintenance middleware restricts protected APIs for non-admin sessions while preserving configured admin recovery paths.
+
+Source: [auth middleware](backend/src/Middleware/AuthMiddleware.php) · [session utilities](backend/src/Utils/RefreshSessions.php) · [geofence policy](backend/src/Security/AttendanceGeofence.php) · [maintenance middleware](backend/src/Middleware/MaintenanceMiddleware.php).
+
+## Repository layout
+
+```text
+HRMS/
+├── .github/workflows/    # Security, Android and regression CI workflows
+├── backend/
+│   ├── public/           # Slim entry point, API routes and Apache rewrites
+│   └── src/              # Middleware, security helpers, templates, utilities
+├── frontend/
+│   ├── android/          # Capacitor Android native project and Java tracker
+│   ├── public/           # App icons, static assets and Android release files
+│   └── src/              # React pages, components, API client and services
+├── scripts/              # Restricted, purpose-built maintenance utilities
+├── supabase/
+│   ├── functions/        # Guarded send-email Edge Function
+│   ├── migrations/       # Versioned database changes
+│   └── review-only/      # Security review SQL; not normal app startup
+├── tests/                # Focused security and regression test fixtures
+├── AUDIT_REPORT.md       # Consolidated security, performance, quality audit
+├── Dockerfile
+├── docker-entrypoint.sh
+├── render.yaml
+└── README.md
 ```
 
-<br/>
-
----
-
-## 🔌 API Modules
-
-<div align="center">
-
-| Module | Routes | Endpoints | Description |
-|:---|:---:|:---:|:---|
-| 🔧 **Admin Dashboard** | 1 | 5+ | Org-wide analytics & stats |
-| 👥 **Admin Employees** | 1 | 10+ | CRUD, search, directory |
-| ⏰ **Admin Attendance** | 1 | 15+ | Config, locations, regularize |
-| 📝 **Admin Leaves** | 1 | 8+ | Policies, approvals, balance |
-| 💳 **Admin Payroll** | 1 | 10+ | Processing, payslips, bulk |
-| 🎯 **Admin Recruitment** | 1 | 12+ | Jobs, candidates, pipeline |
-| 📊 **Admin Performance** | 1 | 6+ | Reviews, ratings, reports |
-| 🎓 **Admin Assessments** | 1 | 8+ | Create, manage, results |
-| 📅 **Admin Holidays** | 1 | 5+ | Calendar CRUD, archives |
-| 💰 **Admin Expenses** | 1 | 4+ | Review, approve, reject |
-| 🏢 **Admin Assets** | 1 | 6+ | Track, assign, manage |
-| 🎬 **Admin Training** | 1 | 4+ | Video management |
-| 📧 **Admin Email** | 1 | 3+ | Template configuration |
-| 🔍 **Admin Audit** | 1 | 3+ | Activity logs & trails |
-| ⚙️ **Admin Settings** | 1 | 5+ | System configuration |
-| 🔐 **Admin Feature Access** | 1 | 3+ | Role-based permissions |
-| 👤 **Employee Profile** | 1 | 8+ | Profile, avatar, documents |
-| ⏰ **Employee Attendance** | 1 | 6+ | Check-in/out, history |
-| 📝 **Employee Leave** | 1 | 5+ | Apply, cancel, balance |
-| 💳 **Employee Payroll** | 1 | 3+ | View payslips, history |
-| 💰 **Employee Expenses** | 1 | 4+ | Submit, track claims |
-| 📊 **Employee Performance** | 1 | 4+ | View reviews, ratings |
-| 🎓 **Employee Assessments** | 1 | 6+ | Take, submit, results |
-| 🎬 **Employee Training** | 1 | 2+ | Watch training content |
-| 🏦 **Origination Dashboard** | 1 | 4+ | Pipeline analytics |
-| 📋 **Origination Leads** | 1 | 6+ | Lead CRUD, conversion |
-| 📄 **Origination Loans** | 1 | 8+ | Application processing |
-| 👥 **Origination Members** | 1 | 5+ | Member management |
-| 🏗️ **Branch Ops Dashboard** | 1 | 4+ | Branch analytics |
-| 📋 **Branch Ops Applications** | 1 | 6+ | Loan app management |
-| 🔐 **Candidate Auth** | 1 | 4+ | Login, register, activate |
-| 💼 **Candidate Recruitment** | 1 | 8+ | Jobs, apply, documents |
-
-</div>
-
-<br/>
-
----
-
-## 🚀 Quick Start
+## Getting started
 
 ### Prerequisites
 
-| Tool | Version | Purpose |
-|:---|:---|:---|
-| Node.js | ≥ 20.x | Frontend runtime |
-| PHP | ≥ 8.0 | Backend runtime |
-| Composer | Latest | PHP dependency manager |
-| PostgreSQL | ≥ 15 | Database (or use Supabase) |
+- **Docker** for the closest match to the repository's container build; or **Node.js 20+**, npm, **PHP with PDO PostgreSQL / cURL extensions**, and Composer for split frontend/backend development. The published container uses Node 20 to build assets and PHP 8.2 with Apache.
+- An **existing, appropriately provisioned PostgreSQL/Supabase environment** (schema, migration state, Storage buckets/policies, and development accounts). The repository contains migrations, **not a complete empty-database bootstrap**.
+- Your own server credentials and, for optional integrations, correctly restricted Google API keys and email delivery configuration.
 
-### 1️⃣ Clone
+> [!CAUTION]
+> Use a dedicated development database and test accounts. Do not run reset scripts, apply migrations, purge Storage or change production security settings just to bring up a local instance. Never commit real `.env` files, signing keys or credentials.
+
+### Option A — Docker (recommended for an integrated local preview)
+
+1. Clone the repository.
+2. Create a **local, untracked** `.env` in the project root using your development environment's credentials (see [configuration](#configuration)).
+3. From the repository root:
 
 ```bash
 git clone https://github.com/Kondapaneni/HRMS.git
 cd HRMS
+docker build -t acme-hrms .
+docker run --rm --env-file .env -p 8080:80 acme-hrms
 ```
 
-### 2️⃣ Frontend Setup
+Open [http://localhost:8080](http://localhost:8080). The multi-stage [Dockerfile](Dockerfile) builds the React assets and serves the SPA and API together through Apache. It does **not** create the database, accounts or Supabase resources.
 
-```bash
-cd frontend
-npm install
-```
+### Option B — Separate development servers
 
-Create `frontend/.env`:
+The Vite development proxy sends `/api` and protected file paths to `http://127.0.0.1:8080` ([config](frontend/vite.config.js)). For this workflow, create an **untracked `backend/.env`** with the applicable backend variables.
 
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_API_URL=http://localhost:8080
-```
-
-```bash
-npm run dev
-# → http://localhost:5173
-```
-
-### 3️⃣ Backend Setup
+**Terminal 1 — API**
 
 ```bash
 cd backend
 composer install
+php -S 127.0.0.1:8080 -t public public/index.php
 ```
 
-Create `backend/.env`:
-
-```env
-DB_HOST=your_db_host
-DB_PORT=5432
-DB_DATABASE=your_db_name
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_db_password
-JWT_SECRET=your_super_secret_jwt_key
-GOOGLE_MAPS_API_KEY=your_google_maps_key
-GOOGLE_GEOCODING_API_KEY=your_geocoding_key
-FRONTEND_URL=http://localhost:5173
-```
+**Terminal 2 — React**
 
 ```bash
-php -S localhost:8080 -t public
-# → API ready at http://localhost:8080
+cd frontend
+npm ci
+npm run dev
 ```
 
-<br/>
+Open the local Vite URL printed in the terminal. PHP's built-in server is for development; Apache-specific response headers and rewrite behavior should be checked in the Docker deployment.
 
----
-
-## 🐳 Docker Deployment
-
-The project uses a **multi-stage Docker build** for optimized production images:
-
-```
-Stage 1: node:20-alpine     →  Build React frontend with Vite
-Stage 2: php:8.2-apache     →  Serve PHP API + static frontend
-```
-
-### Build & Run
+For a standalone web build:
 
 ```bash
-# Build the image
-docker build \
-  --build-arg VITE_SUPABASE_URL=https://your-project.supabase.co \
-  --build-arg VITE_SUPABASE_ANON_KEY=your_key \
-  --build-arg VITE_API_URL=https://your-api.onrender.com \
-  -t acme-hrms .
-
-# Run the container
-docker run -p 80:80 \
-  -e DB_HOST=your_host \
-  -e DB_PORT=5432 \
-  -e DB_DATABASE=your_db \
-  -e DB_USERNAME=your_user \
-  -e DB_PASSWORD=your_pass \
-  -e JWT_SECRET=your_secret \
-  -e GOOGLE_MAPS_API_KEY=your_key \
-  -e GOOGLE_GEOCODING_API_KEY=your_key \
-  -e FRONTEND_URL=https://your-app.onrender.com \
-  acme-hrms
+cd frontend
+npm ci
+npm run build
+npm run preview
 ```
 
-> 💡 The `docker-entrypoint.sh` automatically generates a `.env` file from container environment variables at startup, ensuring seamless deployment on platforms like Render.
+A Vite preview of static assets does **not** provision or start the PHP API. Authentication and real business functionality require the backend and database.
 
-<br/>
+## Configuration
 
----
+The backend reads environment values via [phpdotenv](backend/public/index.php); [`docker-entrypoint.sh`](docker-entrypoint.sh) creates the container's runtime `.env` from available OS environment variables when needed. [`render.yaml`](render.yaml) declares a subset of required deployment secrets. These are **variable names only**, never real values.
 
-## ☁️ Deployment
+| Variable | Purpose |
+| --- | --- |
+| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | PostgreSQL connection used by PHP |
+| `JWT_SECRET` | Server-side access-token signing secret |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | Backend Storage integration; secret key **must remain server-side** |
+| `FRONTEND_URL`, `CORS_ALLOWED_ORIGINS` | Frontend origin and approved cross-origin requests |
+| `GOOGLE_MAPS_BROWSER_API_KEY` | Separately restricted browser Maps JavaScript key, returned only by an authenticated config endpoint |
+| `GOOGLE_GEOCODING_API_KEY` | Server-side geocoding; keep separate from the browser key |
+| `GOOGLE_MAPS_API_KEY` | Legacy server-side Maps configuration where still required |
+| `DB_PDO_PREPARE_MODE`, `SEC018_NATIVE_SESSION_ENABLED` | Database prepare/session-pooler compatibility controls; do not change without validating the target connection |
+| `SEC018_DB_USE_RESTRICTED`, `SEC018_DB_USERNAME`, `SEC018_DB_PASSWORD` | Optional restricted database identity |
+| `VITE_API_URL` / `VITE_BACKEND_URL` | Frontend API endpoint configuration where applicable; Vite uses `/api` by default on the web |
 
-### Render (Recommended)
+Additional mailer / integration settings may be needed for a working deployment; inspect the relevant [Edge Function](supabase/functions/send-email/index.ts) and application configuration rather than guessing credentials.
 
-This project includes a [`render.yaml`](render.yaml) blueprint for **one-click deployment**:
+**Safeguards:** Keep `SUPABASE_SECRET_KEY`, `JWT_SECRET`, database passwords and Android signing secrets out of any `VITE_`-prefixed frontend variable, Git commits, screenshots and build logs. Only enable SEC-018 database connection switches after testing the actual pooler and rollback plan ([audit details](AUDIT_REPORT.md#sec-018-remediation-and-verification)).
 
-1. Fork this repository
-2. Connect to [Render Dashboard](https://dashboard.render.com)
-3. Create a new **Blueprint** and select your fork
-4. Configure the environment variables
-5. Deploy 🚀
+## API overview
 
-### Environment Variables Reference
+The backend entry point is [`backend/public/index.php`](backend/public/index.php) and registers the per-workspace route modules under [`backend/public/`](backend/public). Representative existing endpoints:
 
-<details>
-<summary><b>📋 Click to expand full environment variable list</b></summary>
+| Purpose | Examples |
+| --- | --- |
+| Authentication and recovery | `POST /api/login`, `POST /api/auth/otp/send`, `POST /api/auth/otp/verify`, `POST /api/auth/mfa/verify`, `POST /api/auth/refresh`, `POST /api/logout` |
+| Current session | `GET /api/me`, `PUT /api/change-password` |
+| Employee attendance | `GET /api/employee/attendance`, `POST /api/employee/attendance/punch` |
+| Administration | `GET /api/admin/dashboard/stats`, `GET /api/admin/employees`, `POST /api/admin/feature-access`, `GET /api/admin/reports/payroll` |
+| Recruitment / candidate | `GET /api/admin/jobs`, `POST /api/candidate/activate`, `GET /api/candidate/applications` |
+| Origination | `GET /api/loans/applications`, `GET /api/branch-operations/applications`, sales/lead and activity routes |
+| Protected files | `POST /api/storage/upload`, `DELETE /api/storage/object`, and guarded `/Offer-Letter/`, `/Resume/` and other file proxy routes |
+| Status / web assets | `GET /api/news`, `GET /version.json` |
 
-| Variable | Required | Description |
-|:---|:---:|:---|
-| `DB_HOST` | ✅ | PostgreSQL database host |
-| `DB_PORT` | ✅ | PostgreSQL port (default: `5432`) |
-| `DB_DATABASE` | ✅ | Database name |
-| `DB_USERNAME` | ✅ | Database user |
-| `DB_PASSWORD` | ✅ | Database password |
-| `JWT_SECRET` | ✅ | Secret key for JWT token signing |
-| `GOOGLE_MAPS_API_KEY` | ✅ | Google Maps JavaScript API key |
-| `GOOGLE_GEOCODING_API_KEY` | ✅ | Google Geocoding API key |
-| `VITE_SUPABASE_URL` | ✅ | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | ✅ | Supabase anonymous/public key |
-| `VITE_API_URL` | ✅ | Backend API base URL |
-| `FRONTEND_URL` | ✅ | Frontend URL (for CORS configuration) |
+**Authorization varies per endpoint**. A valid login does not grant automatic Admin, payroll, cross-branch or candidate-document access. The frontend's route visibility is not a substitute for backend authorization.
 
-</details>
+## Android app
 
-<br/>
+The Android project lives under [`frontend/android/`](frontend/android); [Capacitor configuration](frontend/capacitor.config.json) points the native WebView at a configured HTTPS-hosted HRMS URL. It is **not an independently bundled offline server**.
 
----
+- Attendance background updates use a Java **foreground location service** with notification, location and battery-permission handling ([service](frontend/android/app/src/main/java/com/example/acmehrms/LocationTrackerService.java), [plugin](frontend/android/app/src/main/java/com/example/acmehrms/LocationTrackerPlugin.java)).
+- The recurring tracking interval comes from application settings, with a **15-minute fallback** in the client; individual testing may temporarily use shorter intervals. The service is intended to operate during an active check-in and stop after checkout, subject to Android permissions and OS behavior.
+- Native refresh credentials are transferred into Keystore-backed handling ([native session adapter](frontend/src/api/nativeSession.js)); the browser uses a different refresh-cookie path.
+- `npm run cap:sync` builds and syncs the web assets to the Android project; `npm run cap:open` opens Android Studio. The `cap:apk` npm script invokes `gradlew.bat` and is Windows-oriented.
+- [Android CI](.github/workflows/sec006.yml) builds test artifacts; public employee-profile APK download is gated by a **verified signed release manifest** in `frontend/public/downloads/android-release.json`. Do not assume that any local debug APK is a valid in-place upgrade.
 
-## 🔒 Security
+```bash
+cd frontend
+npm ci
+npm run cap:sync
+npm run cap:open
+```
 
-- 🔐 **JWT Authentication** — Stateless token-based auth for all API endpoints
-- 🛡️ **Role-Based Access Control** — Granular feature access per employee
-- 🔑 **Supabase Auth** — Managed authentication with email verification
-- 🧱 **CORS Protection** — Configurable cross-origin policies
-- 📝 **Audit Logging** — Complete trail of all admin & branch operations
-- 🔒 **Environment Isolation** — Secrets injected at runtime, never in code
-- 📸 **Face Recognition** — Biometric attendance verification
+Releasing an APK with a different signing certificate can require a coordinated uninstall/reinstall migration. The consolidated [APK signing and rollout guide](AUDIT_REPORT.md#android-apk-distribution-and-signing-guide) documents the existing flow. Avoid uploading signing keys or distributing unsigned builds as production releases.
 
-<br/>
+## Quality checks and change control
 
----
+The repository has focused source, HTTP, database-fixture, frontend and Android security regressions in [`tests/`](tests), orchestrated by [GitHub Actions](.github/workflows). Some database tests deliberately use **isolated PostgreSQL fixtures** and must not target real HRMS data.
 
-## ⚡ Performance Optimizations
+Useful source-level commands already exercised by repository workflows:
 
-- **Batch Database Queries** — Eliminated N+1 query patterns across loan & branch modules
-- **TanStack Query Caching** — Intelligent client-side caching with offline persistence
-- **Multi-Stage Docker Build** — Minimal production image size
-- **Optimized Composer Autoloader** — Classmap-based autoloading in production
-- **Apache mod_rewrite** — Efficient URL rewriting for SPA routing
-- **Code Splitting** — Vite-powered lazy loading for optimal bundle sizes
+```bash
+# From the repository root (Node.js and PHP available)
+node --test tests/sec006_android_security_test.mjs
+node tests/sec019_source_test.mjs
+php tests/sec019_employee_id_test.php
 
-<br/>
+# Frontend checks
+cd frontend
+npm ci
+npm run build
+npm run lint
+```
 
----
+The commands above are **available**, not a claim that every check currently passes in every environment. For database/HTTP suites, follow the corresponding workflow's exact setup and guard conditions. In particular, never run SEC-019 dev-reset utilities as routine tests.
 
-## 📖 Documentation
+Security changes follow [the documented one-issue-per-PR/squash policy](AUDIT_REPORT.md#security-change-control-and-historical-mapping). Reviews, required CI, staging tests and release approval are separate gates; do not rewrite published `main` history to tidy commit logs.
 
-The repository includes a comprehensive **118KB System Documentation** file ([`SYSTEM_DOCUMENTATION.md`](SYSTEM_DOCUMENTATION.md)) covering:
+## Security and project status
 
-- Complete database schema reference
-- API endpoint documentation
-- Authentication & authorization flows
-- Module-specific business logic
-- Deployment procedures
+The implementation includes JWT/session and MFA protections, role/feature authorization, server-side record ownership checks, guarded file proxies, explicit CORS policy, maintenance gating and targeted security regression workflows. **These mechanisms have limitations and should not be described as comprehensive security certification.**
 
-<br/>
+The [consolidated audit report](AUDIT_REPORT.md) is the authoritative issue-by-issue history. Its 2026-11-17 snapshot identifies:
 
----
+- **20 scoped security closures** (SEC-001–SEC-020), based on source, CI and the indicated owner-confirmed live checks.
+- **Open:** SEC-021–SEC-024, PERF-001–PERF-008 and QUAL-001–QUAL-007; QUAL-002 is partially improved.
+- **Residual release work:** backup/restore recovery evidence for SEC-018 was not verified, historical secret/queued-credential considerations remain, and other release gates are separate from issue closure.
 
-<div align="center">
+For security concerns, avoid sharing tokens, personal records, signing material or exploit payloads in public issues. Coordinate privately with repository maintainers. **No production-readiness assertion or uptime guarantee is made here.**
 
-## 🤝 Contributing
+## Deployment and maintenance
 
-Contributions, issues, and feature requests are welcome!
+- [`render.yaml`](render.yaml) declares a Docker-backed Render web service tracking `main`. The [Dockerfile](Dockerfile) builds frontend assets with Node and runs PHP 8.2/Apache for the API and SPA.
+- The [Capacitor config](frontend/capacitor.config.json) and [email-link helper](backend/src/Security/EmailSecurity.php) refer to `https://hrms-qwv3.onrender.com`. That is a **configured host**, not independently verified availability or production clearance.
+- Database changes live in [`supabase/migrations/`](supabase/migrations); approval, backups, migration history verification and target-environment selection are deployment responsibilities.
+- React emits a version file ([Vite config](frontend/vite.config.js)), while maintenance is enforced server-side for protected API calls ([middleware](backend/src/Middleware/MaintenanceMiddleware.php)).
 
----
+## Documentation and usage
 
-<br/>
+The repository's complete security remediation, testing history, Android signing notes, candidate offer-letter download design, employee ID format and change-control policy are consolidated in **[AUDIT_REPORT.md](AUDIT_REPORT.md)**. The README intentionally gives an approachable, current code map instead of duplicating hundreds of pages of historical findings.
 
-**Built with ❤️ by the Acme Team**
-
-<br/>
-
-![React](https://img.shields.io/badge/-React-61DAFB?style=flat&logo=react&logoColor=black)
-![PHP](https://img.shields.io/badge/-PHP-777BB4?style=flat&logo=php&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
-![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat&logo=docker&logoColor=white)
-![Tailwind](https://img.shields.io/badge/-TailwindCSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
-![Supabase](https://img.shields.io/badge/-Supabase-3FCF8E?style=flat&logo=supabase&logoColor=white)
-![Vite](https://img.shields.io/badge/-Vite-646CFF?style=flat&logo=vite&logoColor=white)
-![JWT](https://img.shields.io/badge/-JWT-000000?style=flat&logo=jsonwebtokens&logoColor=white)
-
-<br/>
-
-⭐ **Star this repo if you found it useful!** ⭐
-
-</div>
+**Source review:** This README was checked against repository commit [`4df0af4`](https://github.com/Kondapaneni/HRMS/commit/4df0af4d16232fdc65b6038263b25494d38ebad4) on **2026-11-17**. Source and deployed environments can change; verify the current commit, migrations, CI results and operational settings before relying on any claim. No `LICENSE` file was present in that reviewed tree; confirm redistribution terms with the maintainer.
