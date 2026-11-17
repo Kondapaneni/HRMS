@@ -187,10 +187,11 @@ const AdminRecruitment = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterUrl = null }) => {
-      await api.put(`/admin/applications/${app.id}/status`, { 
-        status: newStatus, 
-        notes: additionalNotes || `Application status updated to ${newStatus}` 
+    mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterPath = null }) => {
+      await api.put(`/admin/applications/${app.id}/status`, {
+        status: newStatus,
+        notes: additionalNotes || `Application status updated to ${newStatus}`,
+        ...(offerLetterPath ? { offerLetterPath } : {})
       });
       
       // SEC-015: only application identity and an approved notification category.
@@ -198,7 +199,7 @@ const AdminRecruitment = () => {
       const type = newStatus === 'Shortlisted' ? 'shortlisted'
         : newStatus === 'Rejected' ? 'rejected'
         : newStatus.includes('Interview') ? 'interview'
-        : (newStatus === 'Selected' || newStatus === 'Hired') && offerLetterUrl ? 'offer'
+        : (newStatus === 'Selected' || newStatus === 'Hired') && offerLetterPath ? 'offer'
         : 'status';
       await api.post('/admin/send-email', { applicationId: app.id, type });
       return newStatus;
@@ -345,7 +346,7 @@ const AdminRecruitment = () => {
       const blob = await pdf(<OfferLetterPDF data={pdfData} />).toBlob();
       
       // SEC-003: do not embed candidate names or predictable timestamps in file paths.
-      const fileName = `offer-${crypto.randomUUID()}.pdf`;
+      const fileName = `${selectedApp.id}/offer-${crypto.randomUUID()}.pdf`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage.from('offer_letters').upload(fileName, blob, {
         contentType: 'application/pdf',
@@ -354,15 +355,17 @@ const AdminRecruitment = () => {
       
       if (uploadError) throw uploadError;
       
-      const proxyUrl = window.location.origin + "/Offer-Letter/" + uploadData.path;
-      
+      // Associate the actual server-minted Storage path with this application
+      // when committing Hired status; never send a caller-controlled URL.
+      const offerLetterPath = uploadData.path;
+
       const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
       updateStatusMutation.mutate({ 
         app: selectedApp, 
         userInfo, 
         newStatus: 'Hired',
         additionalNotes: `Candidate hired and offer letter generated.`,
-        offerLetterUrl: proxyUrl
+        offerLetterPath
       }, {
         onSuccess: () => {
           setIsOfferModalOpen(false);
