@@ -447,7 +447,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
                 "employeeId", "userId", "firstName", "lastName", email, phone,
                 department, position, branch, "joinDate", salary, status, "managerId"
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT ON CONSTRAINT "employee_employeeId_key" DO NOTHING
+            ON CONFLICT ("employeeId") DO NOTHING
             RETURNING id
         ');
         [$employeeId, $employeeRowId] = \App\Utils\EmployeeId::insertUnique(
@@ -565,7 +565,7 @@ SQL
                 "employeeId", "userId", "firstName", "lastName", email, phone,
                 branch, department, position, "joinDate", salary, status, "managerId"
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT ON CONSTRAINT "employee_employeeId_key" DO NOTHING
+            ON CONFLICT ("employeeId") DO NOTHING
             RETURNING id
         ');
         [$employeeId, $empPkId] = \App\Utils\EmployeeId::insertUnique(
