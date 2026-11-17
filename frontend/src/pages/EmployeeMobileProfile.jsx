@@ -105,10 +105,10 @@ const EmployeeMobileProfile = () => {
         }
       }
 
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      const avatarUrl = window.location.origin + "/Avatar/" + fileName;
+      const avatarUrl = window.location.origin + "/Avatar/" + uploadData.path;
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
 
       toast.success('Profile photo updated successfully!');

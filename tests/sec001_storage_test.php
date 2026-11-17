@@ -31,6 +31,17 @@ check001(sec001ValidPath('user123/id.pdf'), 'accept valid path');
 foreach (['../x.pdf', '/abs.jpg', 'two//slashes.pdf', 'with spaces.png', 'a/../file', ''] as $path) {
     check001(!sec001ValidPath($path), "reject unsafe path");
 }
+// CSPRNG-generated object paths must retain ownership prefixes and extensions.
+$firstPath = sec017GeneratedPath('candidate-user123-sec017.png');
+$secondPath = sec017GeneratedPath('candidate-user123-sec017.png');
+check001(is_string($firstPath) &&
+    preg_match('/^candidate-user123-sec017-[a-f0-9]{32}\\.png$/', $firstPath) === 1,
+    'server mints a 128-bit random suffix');
+check001($firstPath !== $secondPath, 'separate uploads never reuse client filename');
+check001(sec001ValidPath($firstPath), 'generated filename preserves safe path rules');
+check001(sec017GeneratedPath('user123/id.pdf') !== null, 'nested ownership path retained');
+check001(sec017GeneratedPath(str_repeat('a', 225) . '.pdf') === null,
+    'reject names too long after random suffix');
 check001(sec001Flag('t') && sec001Flag(true) && !sec001Flag('f') && !sec001Flag(false), 'parse postgres boolean strings');
 $u = (object)['id' => 'user123', 'role' => 'candidate'];
 check001(sec001Permission(new MockDb([]), $u, 'resumes', 'Resume-user123-001-file.pdf'), 'allow own candidate resume');
@@ -53,8 +64,31 @@ check001(sec001Permission(new MockDb([
 check001(!sec001Permission(new MockDb([]), (object)['id'=>'a','role'=>'admin'],'unknown','file.pdf'), 'block unknown bucket');
 $pdf = "%PDF-1.4\n1 0 obj <</Type/Catalog>> endobj\n%%EOF\n";
 check001(sec001Mime('offer_letters','doc.pdf',$pdf) === 'application/pdf', 'accept PDF signature');
+$avifHeader = "\x00\x00\x00\x18ftypavif\x00\x00\x00\x00avifmif1";
+check001(sec001Mime('avatars', 'historic.avif', $avifHeader) === 'image/avif',
+    'accept AVIF image signature for historical format compatibility');
+check001(sec001Mime('avatars', 'spoofed.avif', '<svg onload="x"/>') === null,
+    'reject fake AVIF with SVG content');
 check001(sec001Mime('avatars','fake.jpg',$pdf) === null, 'reject disguised upload');
 check001(sec001Mime('avatars','unsafe.svg','<svg></svg>') === null, 'reject SVG upload');
+// SEC-017: Supabase bulk DELETE may return 2xx with an empty or unrelated list.
+$removed = json_encode([['name' => 'owner/test.png', 'bucket_id' => 'expenses', 'id' => 'synthetic']]);
+check001(sec017DeleteResponseConfirmsPath($removed, 'expenses', 'owner/test.png'),
+    'confirm exact deleted file and bucket from response');
+check001(sec017DeleteResponseConfirmsPath(json_encode([['name' => 'owner/test.png']]),
+    'expenses', 'owner/test.png'), 'accept omitted deprecated bucket_id field');
+check001(!sec017DeleteResponseConfirmsPath('[]', 'expenses', 'owner/test.png'),
+    'reject successful empty deletion list');
+check001(!sec017DeleteResponseConfirmsPath(json_encode([['name' => 'owner/other.png',
+    'bucket_id' => 'expenses']]), 'expenses', 'owner/test.png'),
+    'reject unrelated deleted path');
+check001(!sec017DeleteResponseConfirmsPath(json_encode([['name' => 'owner/test.png',
+    'bucket_id' => 'holidays']]), 'expenses', 'owner/test.png'),
+    'reject wrong deleted bucket');
+check001(!sec017DeleteResponseConfirmsPath('{"message":"Successfully deleted"}',
+    'expenses', 'owner/test.png'), 'reject non-list response body');
+check001(!sec017DeleteResponseConfirmsPath('{broken-json', 'expenses', 'owner/test.png'),
+    'reject malformed deletion response');
 $sql = file_get_contents(dirname(__DIR__) . '/supabase/migrations/20261113_sec_001_lock_down_rls.sql');
 check001(str_contains($sql, 'DROP POLICY IF EXISTS') && str_contains($sql, 'REVOKE ALL PRIVILEGES'), 'migration revokes permissive rules');
 echo "Focused SEC-001 regression checks passed.\n";
