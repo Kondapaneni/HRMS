@@ -151,8 +151,8 @@ const AdminSettings = () => {
       <div className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           title="Session expiry" 
-          value={settings.sessionTimeout === 'never' ? 'Indefinite' : `${settings.sessionTimeout}m`} 
-          subtitle="Inactivity logout window" 
+          value={settings.sessionTimeout === 'never' ? '1h (auto-renew)' : `${settings.sessionTimeout}m`} 
+          subtitle="Short-lived access JWT" 
           icon={Clock} 
         />
         <StatCard 
@@ -189,14 +189,14 @@ const AdminSettings = () => {
               </div>
               <div>
                 <h3 className="text-[15px] font-medium text-[var(--text)]">Access & session authentication</h3>
-                <p className="text-[13px] text-[var(--muted)]">Configure inactivity timeout and session revocation policies</p>
+                <p className="text-[13px] text-[var(--muted)]">Configure short-lived access tokens and secure session renewal</p>
               </div>
             </div>
 
             <div className="space-y-4 pt-1">
               <div className="max-w-md">
                 <label className="block text-[13px] font-medium text-[var(--muted)] mb-1.5">
-                  Automatic session timeout
+                  Access token lifetime
                 </label>
                 <select
                   name="sessionTimeout"
@@ -208,10 +208,10 @@ const AdminSettings = () => {
                   <option value="30">30 minutes (Recommended)</option>
                   <option value="60">1 hour (Standard)</option>
                   <option value="240">4 hours (Extended)</option>
-                  <option value="never">Never (Not recommended)</option>
+                  <option value="never">1 hour access + 14-day secure refresh (legacy setting)</option>
                 </select>
                 <p className="text-[12px] text-[var(--muted)] mt-1.5">
-                  Employees will be automatically logged out after this period of continuous inactivity.
+                  Access tokens expire after this duration (maximum 8 hours). Secure refresh can renew sessions for up to 14 days. A revoked or expired refresh session requires sign-in again.
                 </p>
               </div>
             </div>
@@ -553,7 +553,7 @@ const AdminSettings = () => {
               <Shield className="w-4 h-4" /> Compliance recommendation
             </h3>
             <p className="text-[12px] text-[var(--warning-text)] leading-relaxed">
-              ISO/IEC 27001 and SOC 2 guidelines mandate session timeouts not exceed <strong>30 minutes</strong> for administrative portals. Selecting "Never" disables inactivity protection.
+              Short-lived access JWTs and server-backed session revocation reduce stolen-session risk. The legacy "Never" setting no longer permits an indefinite access token; it uses a one-hour token with secure renewal.
             </p>
           </div>
 

@@ -54,8 +54,8 @@ assert(bootstrap.includes('$app->add(new \\App\\Middleware\\MaintenanceMiddlewar
   'global maintenance middleware is installed by the PHP API router');
 assert(middleware.includes('SELECT maintenance_mode FROM public.global_settings'),
   'maintenance status is loaded from live server database');
-assert(middleware.includes('SELECT role, "isActive" FROM public.users'),
-  'admin bypass requires live, active, database-verified role');
+assert(middleware.includes('SELECT role, "isActive", token_version FROM public.users'),
+  'admin bypass requires live, active, database-verified role and session version');
 assert(middleware.includes("($claims->role ?? null) !== 'admin'"),
   'admin session claim must match admin role');
 assert(middleware.includes("isset($claims->type) && $claims->type !== 'session'"),

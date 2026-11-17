@@ -26,6 +26,7 @@ CREATE TABLE users (
     "forcePasswordChange" BOOLEAN NOT NULL DEFAULT false,
     "themePreference" TEXT DEFAULT 'light',
     "mfaEnabled" BOOLEAN NOT NULL DEFAULT false,
+    token_version INTEGER NOT NULL DEFAULT 0,
     otp_code TEXT, otp_expires_at TIMESTAMP
 );
 CREATE TABLE mfa_secrets (
@@ -44,6 +45,13 @@ CREATE TABLE global_settings (
 CREATE TABLE rate_limits (
     id SERIAL PRIMARY KEY, ip_address TEXT, action TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE public.hrms_refresh_sessions (
+    id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
+    token_hash CHAR(64) NOT NULL, session_version INTEGER NOT NULL,
+    client_type TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(),
+    last_used_at TIMESTAMPTZ, expires_at TIMESTAMPTZ NOT NULL,
+    revoked_at TIMESTAMPTZ
 );
 CREATE TABLE user_feature_access (
     "userId" TEXT PRIMARY KEY, "canAttendance" BOOLEAN DEFAULT false,

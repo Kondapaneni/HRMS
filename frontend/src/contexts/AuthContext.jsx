@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
+import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
 import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext({});
@@ -102,6 +103,7 @@ export const AuthProvider = ({ children }) => {
     }
     const { token, user: userData } = response.data;
     if (token) {
+      await saveNativeSession(response.data);
       localStorage.setItem('token', token);
     }
     await fetchProfile();
@@ -112,6 +114,7 @@ export const AuthProvider = ({ children }) => {
     const response = await api.post('/auth/mfa/verify', { mfaToken, code, isBackupCode });
     const { token, user: userData } = response.data;
     if (token) {
+      await saveNativeSession(response.data);
       localStorage.setItem('token', token);
     }
     await fetchProfile();
@@ -136,17 +139,27 @@ export const AuthProvider = ({ children }) => {
     }
     const { token, user: userData } = response.data;
     if (token) {
+      await saveNativeSession(response.data);
       localStorage.setItem('token', token);
     }
     await fetchProfile();
     return userData;
   };
 
-  const signOut = async () => {
+  const signOut = async (options = {}) => {
+    // When the password was just changed, the server already invalidated
+    // the JWT. Clear local state without making an obsolete logout call.
+    if (!options?.localOnly) {
+      try {
+        await api.post('/logout');
+      } catch (err) {
+        console.error('Logout revocation could not be confirmed:', err);
+      }
+    }
     try {
-      await api.post('/logout');
+      await clearNativeSession();
     } catch (err) {
-      console.error('Logout error', err);
+      console.error('Could not clear Android secure session:', err);
     }
     localStorage.removeItem('token');
     setProfile(null);

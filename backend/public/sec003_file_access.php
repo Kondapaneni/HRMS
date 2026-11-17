@@ -5,6 +5,8 @@
  * HttpOnly, same-site cookie minted from an already authenticated API request.
  */
 use App\Config\Database;
+use App\Utils\SessionVersion;
+use App\Utils\AccessToken;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -52,13 +54,16 @@ function sec003Principal(Request $request, $conn): ?array {
         if (
             (isset($claims->type) && $claims->type !== 'session') ||
             empty($claims->role)
+            || !AccessToken::bounded($claims)
         ) return null;
         $id = (string) ($claims->id ?? '');
         if (!preg_match('/\A[0-9a-f-]{36}\z/i', $id)) return null;
-        $stmt = $conn->prepare('SELECT role, "isActive" FROM public.users WHERE id::text = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT role, "isActive", token_version FROM public.users WHERE id::text = ? LIMIT 1');
         $stmt->execute([$id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$user || !in_array($user['isActive'], [true, 1, '1', 't', 'true'], true)) return null;
+        if (($user['role'] ?? '') !== $claims->role
+            || !SessionVersion::matches($claims, $user)) return null;
         return ['id' => $id, 'role' => (string) $user['role']];
     } catch (Throwable $e) {
         return null;

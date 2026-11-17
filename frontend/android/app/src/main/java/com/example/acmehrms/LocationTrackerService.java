@@ -412,6 +412,25 @@ public class LocationTrackerService extends Service implements LocationListener 
 
     @SuppressLint("MissingPermission")
     private void sendPunchRequest() {
+        sendPunchRequest(false);
+    }
+
+    @SuppressLint("MissingPermission")
+    private void sendPunchRequest(boolean retriedAfterRefresh) {
+        // SEC-012: A native foreground service must renew its token itself;
+        // the WebView may be killed for hours while the employee is checked in.
+        // A transient network outage postpones this punch, NOT the schedule.
+        try {
+            authToken = NativeSessionClient.accessOrRefresh(this);
+        } catch (NativeSessionClient.InvalidSession revoked) {
+            if (BuildConfig.DEBUG) Log.w(TAG, "Tracking session expired; employee must sign in again");
+            new Handler(getMainLooper()).post(() -> stopTracking());
+            return;
+        } catch (java.io.IOException temporarilyUnavailable) {
+            if (BuildConfig.DEBUG) Log.w(TAG, "Session renewal unavailable; retry on next scheduled punch");
+            return;
+        }
+
         // Ensure wake lock is held during punch
         if (wakeLock != null && !wakeLock.isHeld()) {
             try {
@@ -478,14 +497,32 @@ public class LocationTrackerService extends Service implements LocationListener 
             conn.disconnect();
 
             String timeStr = new SimpleDateFormat("hh:mm:ss a", Locale.getDefault()).format(new Date());
-            punchCount++;
 
             if (code == 200) {
+                punchCount++;
                 if (BuildConfig.DEBUG) Log.i(TAG, "Punch accepted by HRMS (HTTP 200)");
                 updateNotification("Duty Active • Punch #" + punchCount + " at " + timeStr);
             } else {
                 if (BuildConfig.DEBUG) Log.w(TAG, "Punch request rejected (HTTP " + code + ")");
                 String respStr = response.toString().toLowerCase();
+
+                // A 401 can mean an expired short-lived access JWT.
+                // Refresh once and retry this *rejected* request only; never
+                // retry a successful punch, so duplicate attendance is avoided.
+                if (code == 401 && !retriedAfterRefresh) {
+                    try {
+                        authToken = NativeSessionClient.refresh(this);
+                        sendPunchRequest(true);
+                        return;
+                    } catch (NativeSessionClient.InvalidSession revoked) {
+                        new Handler(getMainLooper()).post(() -> stopTracking());
+                        return;
+                    } catch (java.io.IOException temporarilyUnavailable) {
+                        // Keep the duty notification and scheduled interval.
+                        if (BuildConfig.DEBUG) Log.w(TAG, "Refresh temporarily unavailable after 401");
+                        return;
+                    }
+                }
 
                 // If day/shift ended or checked out, automatically stop background service
                 if (respStr.contains("cannot punch after checking out") ||
