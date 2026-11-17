@@ -51,7 +51,9 @@ $app->add(function (Request $request, $handler) {
         ->withoutHeader('Content-Encoding');
 });
 
-$app->addErrorMiddleware(true, true, true);
+// SEC-024: Never return file paths, SQL diagnostics, or stack traces to
+// clients. Error details belong in server logs, including DEV deployments.
+$app->addErrorMiddleware(false, true, true);
 
 // Add custom audit middleware
 $app->add(new AuditMiddleware());
