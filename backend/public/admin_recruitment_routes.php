@@ -397,7 +397,7 @@ $app->put('/api/admin/applications/{id}/status', function (Request $request, Res
         $conn->commit();
         $response->getBody()->write(json_encode(['message' => 'Application status updated']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (\\Throwable $e) {
+    } catch (\Throwable $e) {
         if ($conn && $conn->inTransaction()) $conn->rollBack();
         error_log('Candidate offer letter status association failed');
         $response->getBody()->write(json_encode(['error' => 'Unable to update application status']));
