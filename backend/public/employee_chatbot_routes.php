@@ -5,6 +5,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
+require_once __DIR__ . '/sec004_gemini_security.php';
+
 /** @var \Slim\App $app */
 $app->post('/api/employee/chatbot/query', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
@@ -12,7 +14,6 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
 
     $body = (array)$request->getParsedBody();
     $message = trim($body['message'] ?? '');
-    $history = is_array($body['history'] ?? null) ? $body['history'] : [];
 
     if (empty($message)) {
         $response->getBody()->write(json_encode(['error' => 'Message is required']));
@@ -172,98 +173,8 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
             ? $employee['branch']
             : 'Corporate Office');
 
-    $contextText = "CURRENT LOGGED-IN EMPLOYEE DATA (Answer all self inquiries directly from this data):\n";
-    $contextText .= "- Full Name: {$fullName}\n";
-    $contextText .= "- Employee Code / ID: {$employee['employeeId']}\n";
-    $contextText .= "- Primary / Login Email: {$employee['email']}\n";
-    if (!empty($employee['workEmail'])) {
-        $contextText .= "- Work Email: {$employee['workEmail']}\n";
-    }
-    if (!empty($employee['phone'])) {
-        $contextText .= "- Phone Number: {$employee['phone']}\n";
-    }
-    $contextText .= "- Department: {$employee['department']}\n";
-    $contextText .= "- Position / Designation / Role: {$employee['position']}\n";
-    $contextText .= "- Assigned Branch / Location: {$resolvedBranch}\n";
-    $contextText .= "- Date of Joining: {$employee['joinDate']}\n";
-    $contextText .= "- Employment Type: " . ($employee['employmentType'] ?: 'Full-Time') . "\n";
-    $contextText .= "- Employment Status: " . ($employee['status'] ?: 'Active') . "\n";
-    $contextText .= "- Shift Schedule / Timings: " . ($employee['shiftTime'] ?: 'Standard 09:30 AM - 06:30 PM') . "\n";
-    $contextText .= "- Designated Weekly Off: " . ($employee['weekOff'] ?: 'Sunday') . "\n";
-    $contextText .= "- Work Mode: " . ($employee['workMode'] ?: 'On-site') . "\n";
-    $contextText .= "- Reporting Manager: {$managerName}" . (!empty($employee['managerEmail']) ? " ({$employee['managerEmail']})" : '') . "\n";
-    if (!empty($employee['address'])) {
-        $contextText .= "- Residential Address: {$employee['address']}\n";
-    }
-    if (!empty($employee['dateOfBirth'])) {
-        $contextText .= "- Date of Birth: {$employee['dateOfBirth']}\n";
-    }
-    if (!empty($employee['gender'])) {
-        $contextText .= "- Gender: {$employee['gender']}\n";
-    }
-    if (!empty($employee['maritalStatus'])) {
-        $contextText .= "- Marital Status: {$employee['maritalStatus']}\n";
-    }
-    if (!empty($employee['bloodGroup'])) {
-        $contextText .= "- Blood Group: {$employee['bloodGroup']}\n";
-    }
-    if (!empty($employee['emergencyContact'])) {
-        $contextText .= "- Emergency Contact: {$employee['emergencyContact']}" . (!empty($employee['emergencyPhone']) ? " ({$employee['emergencyPhone']})" : '') . "\n";
-    }
-    if (!empty($employee['panNumber'])) {
-        $contextText .= "- PAN Number: {$employee['panNumber']}\n";
-    }
-
-    $contextText .= "\nLEAVE BALANCES & HISTORY:\n";
-    $contextText .= "- Paid Leave Balance: {$paidRemaining} remaining (Total Quota: {$paidTotal}, Used: {$paidUsed})\n";
-    $contextText .= "- Unpaid Leaves Used: {$unpaidUsed}\n";
-    if (!empty($recentLeaves)) {
-        $contextText .= "- Recent Leave Applications:\n";
-        foreach ($recentLeaves as $lv) {
-            $contextText .= "  * {$lv['leaveType']} ({$lv['startDate']} to {$lv['endDate']}, {$lv['days']} day(s)) - Status: {$lv['status']} (Reason: {$lv['reason']})\n";
-        }
-    } else {
-        $contextText .= "- Recent Leave Applications: None on record.\n";
-    }
-
-    $contextText .= "\nATTENDANCE SUMMARY (TODAY & THIS MONTH):\n";
-    $contextText .= "- Today ({$today}): " . ($todayAtt ? "Status: {$todayAtt['status']}, Check-in: " . ($todayAtt['checkIn'] ?: 'None') . ", Check-out: " . ($todayAtt['checkOut'] ?: 'Pending') . ", Hours: {$todayAtt['hours']}" : "Not checked in yet.") . "\n";
-    $contextText .= "- This Month (" . date('F Y') . "): {$monthPresent} days marked present, {$monthLeaves} days leave, {$monthLateCount} late arrivals, {$monthTotalHours} total logged hours.\n";
-
-    $contextText .= "\nPAYROLL & COMPENSATION:\n";
-    if ($latestPayslip) {
-        $monthName = date('F', mktime(0, 0, 0, (int)$latestPayslip['month'], 10));
-        $contextText .= "- Latest Payslip: {$monthName} {$latestPayslip['year']}\n";
-        $contextText .= "- Net Salary: ₹" . number_format((float)$latestPayslip['netSalary'], 2) . " (Status: {$latestPayslip['status']})\n";
-    } else {
-        $contextText .= "- Base Salary: " . ($employee['salary'] ? "₹" . number_format((float)$employee['salary'], 2) : "Configured by HR") . "\n";
-        $contextText .= "- Latest Payslip: No generated payslips found yet.\n";
-    }
-
-    $contextText .= "\nASSIGNED HARDWARE / ASSETS:\n";
-    if (!empty($assignedAssets)) {
-        foreach ($assignedAssets as $ast) {
-            $contextText .= "- {$ast['name']} ({$ast['category']}, Serial: {$ast['serial_number']}, Status: {$ast['status']})\n";
-        }
-    } else {
-        $contextText .= "- No company assets currently assigned.\n";
-    }
-
-    $contextText .= "\nUPCOMING COMPANY HOLIDAYS:\n";
-    if (!empty($upcomingHolidays)) {
-        foreach ($upcomingHolidays as $h) {
-            $contextText .= "- {$h['holidayDate']}: {$h['holidayName']}\n";
-        }
-    } else {
-        $contextText .= "- No upcoming company holidays scheduled for the rest of the year.\n";
-    }
-
-    if (!empty($recentExpenses)) {
-        $contextText .= "\nRECENT EXPENSE CLAIMS:\n";
-        foreach ($recentExpenses as $exp) {
-            $contextText .= "- {$exp['title']} (₹{$exp['amount']}, Category: {$exp['category']}, Status: {$exp['status']})\n";
-        }
-    }
+    // SEC-004: Employee records stay server-side for authenticated local answers.
+    // Never construct an outbound AI prompt containing HRMS personal data.
 
     // 8. Fetch Feature Access & Business Apps Data (if permitted)
     $userRole = $user->role ?? 'employee';
@@ -422,67 +333,18 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
         'userVideos' => $userVideos,
     ];
 
-    $contextText .= "\nBUSINESS APPS ACCESS & DATA (Scope: Authenticated User Only):\n";
-    $contextText .= "- Loans Origination: " . ($canLoanOrigination ? "ENABLED (Access Granted)" : "DISABLED (No Access)") . "\n";
-    if ($canLoanOrigination) {
-        $contextText .= "  * Total Loan Applications Created: {$loansStats['total']}\n";
-        if (!empty($loansStats['by_status'])) {
-            $contextText .= "  * Status Counts: " . json_encode($loansStats['by_status']) . "\n";
-        }
-        if (!empty($userLoans)) {
-            $contextText .= "  * Recent Applications:\n";
-            foreach ($userLoans as $l) {
-                $contextText .= "    - App ID: {$l['application_id']}, Applicant: {$l['applicant_name']}, Type: {$l['loan_type']}, Status: {$l['status']}, Date: {$l['created_at']}\n";
-            }
-        }
-    }
-
-    $contextText .= "- Sales Origination: " . ($canSalesOrigination ? "ENABLED (Access Granted)" : "DISABLED (No Access)") . "\n";
-    if ($canSalesOrigination) {
-        $contextText .= "  * Total Sales Leads: {$salesStats['total']}\n";
-        if (!empty($salesStats['by_status'])) {
-            $contextText .= "  * Status Counts: " . json_encode($salesStats['by_status']) . "\n";
-        }
-        if (!empty($userSales)) {
-            $contextText .= "  * Recent Leads:\n";
-            foreach ($userSales as $s) {
-                $contextText .= "    - Name: {$s['name']}, Product: {$s['product_type']}, Status: {$s['status']}, Date: {$s['created_at']}\n";
-            }
-        }
-    }
-
-    $contextText .= "- Branch Operations: " . ($canBranchOperations ? "ENABLED (Access Granted for branch: {$resolvedBranch})" : "DISABLED (No Access)") . "\n";
-    if ($canBranchOperations) {
-        $contextText .= "  * Total Applications at Branch: {$branchAppsStats['total']}\n";
-        if (!empty($branchAppsStats['by_status'])) {
-            $contextText .= "  * Status Counts: " . json_encode($branchAppsStats['by_status']) . "\n";
-        }
-        if (!empty($branchApps)) {
-            $contextText .= "  * Recent Branch Applications:\n";
-            foreach ($branchApps as $ba) {
-                $contextText .= "    - App ID: {$ba['application_id']}, Applicant: {$ba['applicant_name']}, Type: {$ba['loan_type']}, Status: {$ba['status']}\n";
-            }
-        }
-    }
-
-    if (!empty($userAssessments)) {
-        $contextText .= "- Assigned Assessments: " . count($userAssessments) . " active\n";
-        foreach ($userAssessments as $a) {
-            $contextText .= "  * Title: {$a['title']}, Date: " . ($a['assessment_date'] ?: 'Open') . ", Duration: {$a['duration_minutes']} min, Questions: {$a['questions_count']}\n";
-        }
-    }
-
-    if (!empty($userVideos)) {
-        $completedVids = count(array_filter($userVideos, fn($v) => !empty($v['is_completed'])));
-        $contextText .= "- Assigned Training Videos: " . count($userVideos) . " total, {$completedVids} completed.\n";
-    }
-
     // Try Gemini API first if configured
     $geminiApiKey = $_ENV['GEMINI_API_KEY'] ?? $_SERVER['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?? '';
     $aiResponseText = null;
 
     if (!empty($geminiApiKey)) {
-        $aiResponseText = callGeminiAssistant($geminiApiKey, $contextText, $message, $history);
+        $aiResponseText = sec004CallGeminiPublicFaq($geminiApiKey, $message);
+    }
+
+    // SEC-004: A general HR FAQ must remain a definition even if Gemini is
+    // disabled or unavailable; personal questions continue to the local engine.
+    if (empty($aiResponseText)) {
+        $aiResponseText = sec004LocalFaqResponse($message);
     }
 
     // If Gemini wasn't called or failed, fall back to our rich local rule-based intent engine
@@ -536,102 +398,6 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
     ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 })->add(new AuthMiddleware());
-
-/**
- * Call Gemini models with prompt grounding and multi-model fallback
- */
-function callGeminiAssistant($apiKey, $contextText, $userMessage, array $history = []) {
-    $models = [
-        'gemini-3.5-flash-lite',
-        'gemini-3.6-flash',
-        'gemini-3.1-flash-lite',
-        'gemini-3.8-flash'
-    ];
-
-    $systemInstruction = "You are the Acme HRMS AI Assistant. You are currently chatting with the logged-in employee inside their corporate portal.
-
-CORE SCOPE & SELF DATA INSTRUCTION:
-- You answer all questions regarding THIS authenticated employee's data only.
-- When they ask about themselves (such as \"what is my name\", \"who am I\", \"what is my employee ID\", \"what is my email\", \"what is my phone number\", \"what is my designation / role\", \"what is my department\", \"who is my manager\", \"what branch do I work in\", \"what is my shift / week off\", \"what is my salary\", \"how many leaves do I have\", \"what is my attendance today\", \"what hardware/laptop is assigned to me\", etc.), answer immediately, directly, and accurately using the employee data provided below.
-
-STRICT PRIVACY & DATA ISOLATION (THIS EMPLOYEE ONLY):
-- You ONLY have authorization to answer questions about THIS authenticated employee.
-- Under NO circumstances disclose, speculate, or answer questions about other employees (e.g., if asked \"what is Rahul's salary?\", \"tell me about John\", \"show all employees\", etc., politely refuse). State: \"For data security and confidentiality, I can only provide information directly concerning your own employee records.\"
-- CRITICAL: Never display or mention database UUIDs, technical codes, internal hash IDs, or \"branch code\" (e.g. 55b41227-9025-4204-9088-e1762f3096e0). Always use friendly human-readable names (e.g. for branch, simply state the branch name such as 'Corporate Office'). Do NOT refer to it as a 'branch code' or output any alphanumeric IDs.
-- CRITICAL FORMATTING RULE: Do NOT include any emojis, emoticons, or symbol icons in your responses. Keep headers, lists, and status indicators purely textual, professional, and clean.
-- BUSINESS APPS ACCESS PERMISSIONS:
-  * When the employee inquires about Business Apps (Loan Origination, Sales Origination, Branch Operations, Assessments, Training Videos):
-    - If the feature is ENABLED / Access Granted for them, give comprehensive answers, status breakdowns, counts, and recent records strictly from the data provided in their context.
-    - If the feature is DISABLED / No Access, politely inform them that their user account does not currently have permission to access that business app, and advise them to contact an administrator if they require access.
-    - If asked \"what business apps do I have access to\" or \"my apps\", summarize the apps they have permission for.
-- Be concise, professional, friendly, and structured. Use markdown formatting (bold text, bullet points, numbers) for readability.
-- If the employee asks how to take an action (e.g. apply for leave, punch attendance, download payslip, claim expense, view business apps), guide them to the appropriate portal page (e.g. Leaves > Apply Leave, Attendance punch button, Payroll > Download Payslip, Business Apps section in sidebar).
-
-" . $contextText;
-
-    $payload = [
-        "system_instruction" => [
-            "parts" => [["text" => $systemInstruction]]
-        ],
-        "contents" => []
-    ];
-
-    // Append history (last 6 turns max to keep token cost low and latency fast)
-    $slicedHistory = array_slice($history, -6);
-    foreach ($slicedHistory as $h) {
-        $role = ($h['role'] ?? '') === 'user' ? 'user' : 'model';
-        $text = trim($h['content'] ?? '');
-        if (!empty($text)) {
-            $payload['contents'][] = [
-                "role" => $role,
-                "parts" => [["text" => $text]]
-            ];
-        }
-    }
-
-    // Current user message
-    $payload['contents'][] = [
-        "role" => "user",
-        "parts" => [["text" => $userMessage]]
-    ];
-
-    $jsonPayload = json_encode($payload);
-
-    foreach ($models as $modelName) {
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$modelName}:generateContent?key=" . $apiKey;
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Content-Type: application/json",
-            "x-goog-api-key: " . $apiKey
-        ]);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-
-        $raw = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode === 200 && !empty($raw)) {
-            $res = json_decode($raw, true);
-            $parts = $res['candidates'][0]['content']['parts'] ?? [];
-            $textParts = [];
-            foreach ($parts as $p) {
-                if (!empty($p['text']) && empty($p['thought'])) {
-                    $textParts[] = $p['text'];
-                }
-            }
-            if (!empty($textParts)) {
-                return trim(implode("\n", $textParts));
-            }
-        }
-    }
-
-    return null;
-}
 
 /**
  * Built-in fallback intent and rule engine for offline or API limit scenarios
