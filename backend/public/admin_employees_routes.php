@@ -411,7 +411,8 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
     $data = $request->getParsedBody();
     
     $userId = $data['userId'] ?? '';
-    $employeeId = $data['employeeId'] ?? '';
+    // SEC-019: conversion IDs are assigned by the server, never by the request.
+    $employeeId = \App\Utils\EmployeeId::generate();
     $firstName = $data['firstName'] ?? '';
     $lastName = $data['lastName'] ?? '';
     $email = $data['email'] ?? '';
@@ -424,7 +425,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
     $status = $data['status'] ?? 'active';
     $managerId = $data['managerId'] ?? null;
 
-    if (empty($userId) || empty($employeeId) || empty($firstName)) {
+    if (empty($userId) || empty($firstName)) {
         $response->getBody()->write(json_encode(['error' => 'Required fields are missing.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
@@ -547,7 +548,8 @@ SQL
         $userId = $stmtUser->fetchColumn();
 
         // 2. Insert into employee table
-        $employeeId = 'EMP-' . strtoupper(substr(uniqid(), -6));
+        // SEC-019: 128-bit cryptographically random identifier; unique constraint remains authoritative.
+        $employeeId = \App\Utils\EmployeeId::generate();
         
         $stmtEmp = $conn->prepare('
             INSERT INTO employee (
