@@ -208,7 +208,7 @@ jobs:
           bash -n scripts/sec018_backup_dev.sh
           bash -n scripts/sec018_restore_rehearsal.sh
           # NEVER connect to a real project or decrypt a real backup in CI.
-          ! grep -E '^DROP DATABASE|^TRUNCATE|--clean' scripts/sec018_restore_rehearsal.sh
+          ! grep -E '^[[:space:]]*(DROP DATABASE|TRUNCATE)|pg_restore.*--clean' scripts/sec018_restore_rehearsal.sh
       - name: Provision synthetic source schema for backup rehearsal
         shell: bash
         run: |
