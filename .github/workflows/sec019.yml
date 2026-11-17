@@ -7,6 +7,7 @@ on:
       - 'backend/src/Utils/EmployeeId.php'
       - 'supabase/migrations/20261117192545_sec019_reconcile_integrity_after_dev_reset.sql'
       - 'tests/sec019_*'
+      - 'tests/employee_numeric_id_db_test.sql'
       - 'docs/SEC-019-remediation.md'
       - 'scripts/sec019_dev_public_reset_review_only.sql'
       - 'scripts/sec019_bootstrap_admin.php'
@@ -67,3 +68,4 @@ jobs:
           # history does not: reapplying must preserve all checks.
           psql -h 127.0.0.1 -U postgres -d sec019_ci -f supabase/migrations/20261117192545_sec019_reconcile_integrity_after_dev_reset.sql -v ON_ERROR_STOP=1
           psql -h 127.0.0.1 -U postgres -d sec019_ci -f tests/sec019_schema_assert.sql
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -f tests/employee_numeric_id_db_test.sql

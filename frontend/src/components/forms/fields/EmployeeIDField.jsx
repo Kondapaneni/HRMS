@@ -2,7 +2,7 @@ import React from 'react';
 import { TextField } from './TextField';
 import { autoUppercase } from '../utils/formatters';
 
-export const EmployeeIDField = React.memo(({ onChange, value = '', placeholder = 'EMP-001', ...props }) => {
+export const EmployeeIDField = React.memo(({ onChange, value = '', placeholder = '12345678', ...props }) => {
   const handleChange = (val) => {
     const clean = autoUppercase(val);
     if (onChange) {
