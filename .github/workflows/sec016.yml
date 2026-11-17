@@ -74,6 +74,7 @@ jobs:
       GOOGLE_GEOCODING_API_KEY: SEC016_GEOCODE_TEST_SECRET_NEVER_SEND
       GOOGLE_MAPS_API_KEY: SEC016_LEGACY_TEST_SECRET_NEVER_SEND
       APP_ENV: production
+      DB_PDO_PREPARE_MODE: native
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -86,7 +87,7 @@ jobs:
       - name: Syntax and source checks
         run: |
           set -euo pipefail
-          for f in backend/src/Security/MapsConfig.php backend/src/Config/Database.php backend/src/Utils/HierarchyHelper.php backend/public/admin_employees_routes.php backend/public/index.php backend/public/storage_routes.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php tests/sec016_role_seed.php tests/sec018_db_test.php; do php -l "$f"; done
+          for f in backend/src/Security/MapsConfig.php backend/src/Config/Database.php backend/src/Utils/HierarchyHelper.php backend/public/admin_employees_routes.php backend/public/index.php backend/public/storage_routes.php backend/public/employee_attendance_routes.php backend/public/admin_attendance_routes.php tests/sec016_policy_test.php tests/sec016_role_seed.php tests/sec018_db_test.php tests/sec018_pooler_mode_test.php; do php -l "$f"; done
           node --check tests/sec016_http_test.mjs
           node --check tests/sec016_source_test.mjs
           node --check tests/sec017_storage_source_test.mjs
@@ -105,6 +106,7 @@ jobs:
           php tests/sec016_policy_test.php
           php tests/sec014_seed.php
           php tests/sec016_role_seed.php
+          php tests/sec018_pooler_mode_test.php
           php tests/sec018_db_test.php
           cat > backend/.env <<'SEC016_TEST_ENV'
           DB_HOST=127.0.0.1

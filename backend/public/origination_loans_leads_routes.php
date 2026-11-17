@@ -3,6 +3,7 @@
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
+use App\Security\OriginationAccess;
 
 // Protect these routes with AuthMiddleware if needed
 $app->post('/api/leads', function (Request $request, Response $response, $args) {
@@ -32,6 +33,10 @@ $app->post('/api/leads', function (Request $request, Response $response, $args) 
         $branchStmt->execute([$user->id]);
         $emp = $branchStmt->fetch(PDO::FETCH_ASSOC);
         $userBranch = $emp['branch'] ?? null;
+        if (!OriginationAccess::isAdmin($user) && !$userBranch) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
 
         $stmt = $conn->prepare('
             INSERT INTO public.loan_leads (name, phone, address, loan_type, status, branch, created_by, created_at)
@@ -72,16 +77,28 @@ $app->get('/api/leads/list', function (Request $request, Response $response, $ar
             throw new Exception("Database connection failed");
         }
 
+        $userBranch = OriginationAccess::branch($conn, (string)$user->id);
+        if (!OriginationAccess::isAdmin($user) && !$userBranch) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
         $sql = "
             SELECT id, name, phone, address, loan_type, status, branch, created_at
             FROM public.loan_leads
             WHERE created_by = :uid
         ";
         $params = [':uid' => $user->id];
+        if (!OriginationAccess::isAdmin($user)) {
+            $sql .= " AND branch = :user_branch";
+            $params[':user_branch'] = $userBranch;
+        }
 
         if (!empty($search)) {
-            $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search OR loan_type ILIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+            // Native PostgreSQL cannot bind one repeated named placeholder.
+            $sql .= " AND (name ILIKE :search_name OR phone ILIKE :search_phone OR address ILIKE :search_address OR loan_type ILIKE :search_loan_type)";
+            foreach ([':search_name', ':search_phone', ':search_address', ':search_loan_type'] as $placeholder) {
+                $params[$placeholder] = '%' . $search . '%';
+            }
         }
 
         $sql .= " ORDER BY created_at DESC";
@@ -128,28 +145,28 @@ $app->put('/api/leads/{id}/status', function (Request $request, Response $respon
             throw new Exception("Database connection failed");
         }
 
-        // Verify ownership (optional but good practice)
-        $checkStmt = $conn->prepare('SELECT id FROM public.loan_leads WHERE id = ? AND created_by = ?');
-        $checkStmt->execute([$leadId, $user->id]);
-        if (!$checkStmt->fetch()) {
-            $response->getBody()->write(json_encode(['error' => 'Lead not found or access denied']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        $userBranch = OriginationAccess::branch($conn, (string)$user->id);
+        if (!OriginationAccess::isAdmin($user) && !$userBranch) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
 
-        if (!empty($loan_type)) {
-            $stmt = $conn->prepare('
-                UPDATE public.loan_leads 
-                SET status = ?, loan_type = ?
-                WHERE id = ?
-            ');
-            $stmt->execute([$status, $loan_type, $leadId]);
-        } else {
-            $stmt = $conn->prepare('
-                UPDATE public.loan_leads 
-                SET status = ? 
-                WHERE id = ?
-            ');
-            $stmt->execute([$status, $leadId]);
+        // The UPDATE itself repeats ownership and current branch restrictions.
+        // A separate SELECT followed by an unscoped UPDATE would be vulnerable
+        // to ownership/branch changes between those two statements.
+        $scope = OriginationAccess::isAdmin($user) ? '' : ' AND branch = ?';
+        $args = !empty($loan_type)
+            ? [$status, $loan_type, $leadId, $user->id]
+            : [$status, $leadId, $user->id];
+        if (!OriginationAccess::isAdmin($user)) $args[] = $userBranch;
+        $sql = !empty($loan_type)
+            ? 'UPDATE public.loan_leads SET status = ?, loan_type = ? WHERE id = ? AND created_by = ?' . $scope
+            : 'UPDATE public.loan_leads SET status = ? WHERE id = ? AND created_by = ?' . $scope;
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($args);
+        if ($stmt->rowCount() === 0) {
+            $response->getBody()->write(json_encode(['error' => 'Lead not found or access denied']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
 
         $response->getBody()->write(json_encode([

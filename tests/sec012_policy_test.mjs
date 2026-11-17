@@ -63,11 +63,21 @@ assert(index.includes('RefreshSessions::rotate($conn'), 'refresh must rotate');
 assert(index.includes("'X-HRMS-Refresh'"), 'CSRF-resistant custom header required');
 assert(refresh.includes("hash('sha256', $secret)"), 'server stores only hash');
 assert(refresh.includes('hash_equals('), 'constant-time rotation comparison');
-assert(refresh.includes('SET revoked_at = NOW()'), 'refresh replay invalidates session');
+assert(refresh.includes('SEC-018 R01') && refresh.includes('if (isset($used[$hash]))'),
+  'only a previously consumed full secret may trigger immediate refresh-family revocation');
+assert(!refresh.includes('REPLAY_GRACE_SECONDS'), 'no 30-second replay revocation exemption remains');
+assert(!refresh.includes('token_version = token_version + 1'),
+  'refresh replay must not revoke unrelated account sessions or Admin logins');
+assert(refresh.includes('$conn->rollBack();'), 'unknown guessed secret must not revoke refresh family');
 assert(refresh.includes('HttpOnly; SameSite=Strict'), 'browser refresh uses strict HttpOnly cookie');
 assert(schema.includes('ENABLE ROW LEVEL SECURITY'), 'refresh table RLS enabled');
 assert(schema.includes('REVOKE ALL PRIVILEGES'), 'refresh secrets not accessible to public Data API');
 assert(axios.includes('sharedRefresh'), 'browser dedupes concurrent refresh attempts');
+assert(axios.includes('navigator.locks.request'), 'browser coordinates cross-tab refresh where supported');
+assert(axios.includes(String.raw`replace(/^Bearer\s+/i`),
+  'browser must strip real Bearer whitespace before comparing stale access JWTs');
+assert(!axios.includes(String.raw`replace(/^Bearer\\s+/i`),
+  'double-escaped Bearer pattern silently breaks cross-tab refresh dedupe');
 assert(axios.includes("'/api/auth/refresh'"), 'browser sends cookie-only refresh');
 assert(native.includes('static synchronized String refresh('), 'Android must serialize native refresh');
 assert(native.includes('TrackerTokenStore.saveSession('), 'native refresh secret stored in Keystore');

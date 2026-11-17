@@ -202,3 +202,30 @@ await verify(200,'admin','PATCH','/api/origination/activities/'+acts.carol+'/tog
 await verify(404,'alice','DELETE','/api/loans/applications/'+loans.transferred);
 await verify(200,'alice','DELETE','/api/loans/applications/'+loans.alice);
 console.log('SEC-011 real authenticated route-level object ownership and branch isolation PASSED');
+
+// SEC-018: A converted member's linked applications cannot be resolved from
+// an authorized lead alone. Shared phone/lead aliases must not disclose loans
+// belonging to colleagues or a different branch.
+for (const [actor,lead] of [['alice',leads.alice],['bob',leads.bob],['carol',leads.carol]]) {
+  await verify(200,actor,'PUT','/api/leads/'+lead+'/status',{status:'Converted'});
+}
+const membersForAlice = await verify(200,'alice','GET','/api/members?search=0000000000');
+assert.equal(membersForAlice.members.length,1,'Alice sees only her converted member');
+assert.equal(membersForAlice.members[0].loans.length,1,'Alice member group excludes Bob/Carol lead');
+const memberA = await verify(200,'alice','GET','/api/members/0000000000');
+const aLinked=new Set((memberA.member.applications??[]).map(x=>x.application_id));
+assert(aLinked.has('LA-BRANCH'),'Alice sees her authorized linked application');
+assert(!aLinked.has('LA-SHARED'),'Alice cannot read Bob linked application via shared lead ID');
+assert(!aLinked.has('LA-C1'),'Alice cannot read Carol cross-branch loan');
+const memberB = await verify(200,'bob','GET','/api/members/0000000000');
+const bLinked=new Set((memberB.member.applications??[]).map(x=>x.application_id));
+assert(bLinked.has('LA-B1'),'Bob sees his own linked application');
+assert(!bLinked.has('LA-BRANCH'),'Bob cannot read Alice application with shared phone');
+const memberC = await verify(200,'carol','GET','/api/members/0000000000');
+const cLinked=new Set((memberC.member.applications??[]).map(x=>x.application_id));
+assert(cLinked.has('LA-C1'),'Carol sees own branch loan');
+assert(!cLinked.has('LA-B1'),'Carol cannot read Bob cross-branch loan');
+const adminMembers=await verify(200,'admin','GET','/api/members/0000000000',undefined,'admin');
+assert(adminMembers.member.applications.length>=4,'Admin retains explicit global member overview');
+await verify(403,'noProfile','GET','/api/members/0000000000');
+console.log('SEC-018 converted-member, shared phone/lead and linked application isolation PASSED');
