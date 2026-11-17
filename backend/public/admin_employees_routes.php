@@ -411,8 +411,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
     $data = $request->getParsedBody();
     
     $userId = $data['userId'] ?? '';
-    // SEC-019: conversion IDs are assigned by the server, never by the request.
-    $employeeId = \App\Utils\EmployeeId::generate();
+    // The server assigns an eight-digit code during the insert, not from request data.
     $firstName = $data['firstName'] ?? '';
     $lastName = $data['lastName'] ?? '';
     $email = $data['email'] ?? '';
@@ -441,17 +440,29 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
         }
         $conn->beginTransaction();
 
-        // 1. Insert into employee table
+        // 1. Insert using the employee code UNIQUE constraint as the authority.
+        // DO NOTHING is scoped ONLY to a code collision; another DB error aborts.
         $stmtEmp = $conn->prepare('
             INSERT INTO employee (
-                "employeeId", "userId", "firstName", "lastName", email, phone, 
+                "employeeId", "userId", "firstName", "lastName", email, phone,
                 department, position, branch, "joinDate", salary, status, "managerId"
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT ON CONSTRAINT "employee_employeeId_key" DO NOTHING
+            RETURNING id
         ');
-        $stmtEmp->execute([
-            $employeeId, $userId, $firstName, $lastName, $email, $phone, 
-            $department, $position, $branch, $joinDate, $salary, strtolower($status), $managerId
-        ]);
+        [$employeeId, $employeeRowId] = \App\Utils\EmployeeId::insertUnique(
+            function (string $candidateCode) use (
+                $stmtEmp, $userId, $firstName, $lastName, $email, $phone,
+                $department, $position, $branch, $joinDate, $salary, $status, $managerId
+            ) {
+                $stmtEmp->execute([
+                    $candidateCode, $userId, $firstName, $lastName, $email, $phone,
+                    $department, $position, $branch, $joinDate, $salary,
+                    strtolower($status), $managerId
+                ]);
+                return $stmtEmp->fetchColumn();
+            }
+        );
 
         // 2. Update users table role and info
         $stmtUser = $conn->prepare('
@@ -547,22 +558,28 @@ SQL
         
         $userId = $stmtUser->fetchColumn();
 
-        // 2. Insert into employee table
-        // SEC-019: 128-bit cryptographically random identifier; unique constraint remains authoritative.
-        $employeeId = \App\Utils\EmployeeId::generate();
-        
+        // 2. Allocate an eight-digit display code; retry uniqueness collisions
+        // inside the existing transaction without duplicating the account/email.
         $stmtEmp = $conn->prepare('
             INSERT INTO employee (
-                "employeeId", "userId", "firstName", "lastName", email, phone, 
+                "employeeId", "userId", "firstName", "lastName", email, phone,
                 branch, department, position, "joinDate", salary, status, "managerId"
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT ON CONSTRAINT "employee_employeeId_key" DO NOTHING
+            RETURNING id
         ');
-        
-        $stmtEmp->execute([
-            $employeeId, $userId, $firstName, $lastName, $email, $phone,
-            $branch, $department, $position, $joinDate, $salary, $status, $managerId
-        ]);
-        $empPkId = $stmtEmp->fetchColumn();
+        [$employeeId, $empPkId] = \App\Utils\EmployeeId::insertUnique(
+            function (string $candidateCode) use (
+                $stmtEmp, $userId, $firstName, $lastName, $email, $phone,
+                $branch, $department, $position, $joinDate, $salary, $status, $managerId
+            ) {
+                $stmtEmp->execute([
+                    $candidateCode, $userId, $firstName, $lastName, $email, $phone,
+                    $branch, $department, $position, $joinDate, $salary, $status, $managerId
+                ]);
+                return $stmtEmp->fetchColumn();
+            }
+        );
 
         // 3. Queue setup invitation atomically with the new account.
         // An email-queue reader can never recover an initial account password.
