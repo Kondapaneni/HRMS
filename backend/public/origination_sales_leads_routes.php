@@ -140,7 +140,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
 
         } catch (\Exception $e) {
             error_log("Error creating sales lead: " . $e->getMessage());
-            $response->getBody()->write(json_encode(['error' => 'Failed to create sales lead: ' . $e->getMessage()]));
+            $response->getBody()->write(json_encode(['error' => 'Unable to create sales lead']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
     });
