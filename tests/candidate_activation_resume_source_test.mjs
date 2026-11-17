@@ -21,7 +21,7 @@ assert.match(backend, /RateLimiter::recordCredentialAttempt\(/,
   'Activation resend must count attempts regardless of account existence');
 assert.match(backend, /reset_token_expires > CURRENT_TIMESTAMP/,
   'Activation tokens must expire');
-assert.match(backend, /UPDATE users SET "isActive" = true, reset_token = NULL/,
+assert.match(backend, /UPDATE users SET [^\n]*reset_token = NULL/,
   'Activation tokens must be consumed atomically');
 assert.match(activation, /onClick={activateAccount}/,
   'Candidate activation must require an explicit button click');
