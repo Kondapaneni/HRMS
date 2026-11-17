@@ -329,7 +329,7 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
         $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch dashboard data']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'branchOperations'));
 
 /**
  * Branch Operations Leads Listing Route
@@ -557,5 +557,5 @@ $app->get('/api/branch-operations/leads', function (Request $request, Response $
         $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching leads']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin'], 'branchOperations'));
 

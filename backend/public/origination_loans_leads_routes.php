@@ -57,7 +57,7 @@ $app->post('/api/leads', function (Request $request, Response $response, $args) 
         $response->getBody()->write(json_encode(['error' => 'An error occurred while saving the lead']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));
 
 $app->get('/api/leads/list', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
@@ -106,7 +106,7 @@ $app->get('/api/leads/list', function (Request $request, Response $response, $ar
         $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching leads']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));
 
 $app->put('/api/leads/{id}/status', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
@@ -166,4 +166,4 @@ $app->put('/api/leads/{id}/status', function (Request $request, Response $respon
         $response->getBody()->write(json_encode(['error' => 'An error occurred while updating status']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], 'loanOrigination'));

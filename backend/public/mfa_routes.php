@@ -218,7 +218,7 @@ $app->get('/api/mfa/status', function (Request $request, Response $response, $ar
         'lastUpdated' => $row['updated_at'] ?? null
     ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 /**
  * Protected Endpoint: Begin MFA Setup
@@ -267,7 +267,7 @@ $app->post('/api/mfa/setup', function (Request $request, Response $response, $ar
         'issuer' => 'Acme HRMS'
     ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 /**
  * Protected Endpoint: Confirm MFA Setup with Initial 6-digit Code
@@ -353,7 +353,7 @@ $app->post('/api/mfa/confirm', function (Request $request, Response $response, $
         $response->getBody()->write(json_encode(['error' => 'Failed to enable MFA: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 /**
  * Protected Endpoint: Regenerate Backup Codes
@@ -412,7 +412,7 @@ $app->post('/api/mfa/backup-codes/regenerate', function (Request $request, Respo
         $response->getBody()->write(json_encode(['error' => 'Failed to regenerate backup codes: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 /**
  * Protected Endpoint: Disable MFA (by User)
@@ -477,5 +477,5 @@ $app->post('/api/mfa/disable', function (Request $request, Response $response, $
         $response->getBody()->write(json_encode(['error' => 'Failed to disable MFA: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 

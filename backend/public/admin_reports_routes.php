@@ -107,7 +107,7 @@ $app->get('/api/admin/reports/employees', function (Request $request, Response $
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin']));
 
 // GET /api/admin/reports/attendance
 $app->get('/api/admin/reports/attendance', function (Request $request, Response $response, $args) {
@@ -185,7 +185,7 @@ $app->get('/api/admin/reports/attendance', function (Request $request, Response 
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin']));
 
 // GET /api/admin/reports/payroll
 $app->get('/api/admin/reports/payroll', function (Request $request, Response $response, $args) {
@@ -266,4 +266,4 @@ $app->get('/api/admin/reports/payroll', function (Request $request, Response $re
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware());
+})->add(new AuthMiddleware(['admin']));

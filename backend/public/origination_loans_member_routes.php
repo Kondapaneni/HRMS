@@ -94,7 +94,7 @@ $app->get('/api/members', function (Request $request, Response $response, $args)
         $response->getBody()->write(json_encode(['error' => 'Error fetching members: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], ['loanOrigination', 'salesOrigination']));
 
 // GET /api/members/{phone} - Get member details by phone
 $app->get('/api/members/{phone}', function (Request $request, Response $response, $args) {
@@ -195,4 +195,4 @@ $app->get('/api/members/{phone}', function (Request $request, Response $response
         $response->getBody()->write(json_encode(['error' => 'Error fetching member details: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new \App\Middleware\AuthMiddleware(['admin'], ['loanOrigination', 'salesOrigination']));
