@@ -152,12 +152,14 @@ function sec003CanRead($conn, array $user, string $bucket, string $path): bool {
                     [$id, $needle]);
         }
         if ($bucket === 'offer_letters') {
-            // An old offer can be read by the candidate it was actually emailed to.
-            $needle = '/Offer-Letter/' . $path;
-            return sec003HasRow($conn, 'SELECT 1 FROM public.email_queue q
-                JOIN public.users u ON LOWER(u.email) = LOWER(q.to_email)
-                WHERE u.id::text = ? AND q.subject LIKE \'Job Offer:%\'
-                AND POSITION(? IN q.body) > 0 LIMIT 1', [$id, $needle]);
+            // A stored offer may be downloaded only by the candidate whose
+            // application owns the exact PDF path. Never infer ownership from
+            // a guessed filename or the email queue.
+            return sec003HasRow($conn,
+                'SELECT 1 FROM public.applications
+                 WHERE candidate_id::text = ? AND offer_letter_path = ? LIMIT 1',
+                [$id, $path]
+            );
         }
         return false;
     }
