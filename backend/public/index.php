@@ -147,7 +147,6 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 
-    $ip = RateLimiter::getClientIp();
     $action = 'login';
     
     // Fetch dynamic settings from global_settings
@@ -157,8 +156,8 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     $windowMinutes = $settings['login_rate_limit_window'] ?? 15;
     $sessionTimeout = $settings['session_timeout'] ?? '30';
 
-    if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
-        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, $maxAttempts, $windowMinutes);
+    $secondsRemaining = RateLimiter::credentialLockout($conn, (string)$email, $action, (int)$maxAttempts, (int)$windowMinutes);
+    if ($secondsRemaining !== null) {
         $response->getBody()->write(json_encode([
             'error' => "Too Many Login Attempts. Please Try Again Later.",
             'secondsRemaining' => $secondsRemaining
@@ -217,14 +216,14 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 
         $response->getBody()->write(json_encode(array_merge($session, ['user' => $user])));
         
-        RateLimiter::clearAttempts($conn, $ip, $action);
+        RateLimiter::clearCredentialAccountAttempts($conn, (string)$email, $action);
         
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
     }
 
-    RateLimiter::recordAttempt($conn, $ip, $action);
+    RateLimiter::recordCredentialAttempt($conn, (string)$email, $action);
 
     $response->getBody()->write(json_encode(['error' => 'Invalid email or password']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
@@ -244,12 +243,11 @@ $app->post('/api/auth/otp/send', function (Request $request, Response $response,
     $db = new Database();
     $conn = $db->getConnection();
 
-    $ip = RateLimiter::getClientIp();
     $action = 'otp_send';
 
     // Rate limit check: max 5 OTP requests per 10 minutes
-    if (!RateLimiter::checkLimit($conn, $ip, $action, 5, 10)) {
-        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, 5, 10);
+    $secondsRemaining = RateLimiter::credentialLockout($conn, (string)$email, $action, 5, 10);
+    if ($secondsRemaining !== null) {
         $response->getBody()->write(json_encode([
             'error' => "Too many verification attempts. Please wait before requesting another code.",
             'secondsRemaining' => $secondsRemaining
@@ -257,7 +255,7 @@ $app->post('/api/auth/otp/send', function (Request $request, Response $response,
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
-    RateLimiter::recordAttempt($conn, $ip, $action);
+    RateLimiter::recordCredentialAttempt($conn, (string)$email, $action);
 
     // Verify user exists and is active
     $stmt = $conn->prepare('SELECT id, email, "firstName", "lastName", "isActive" FROM users WHERE LOWER(email) = LOWER(?)');
@@ -326,12 +324,11 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     $db = new Database();
     $conn = $db->getConnection();
 
-    $ip = RateLimiter::getClientIp();
     $action = 'otp_verify';
 
     // Rate limit check
-    if (!RateLimiter::checkLimit($conn, $ip, $action, 6, 15)) {
-        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, 6, 15);
+    $secondsRemaining = RateLimiter::credentialLockout($conn, (string)$email, $action, 6, 15);
+    if ($secondsRemaining !== null) {
         $response->getBody()->write(json_encode([
             'error' => "Too Many Login Attempts. Please Try Again Later.",
             'secondsRemaining' => $secondsRemaining
@@ -348,7 +345,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
-        RateLimiter::recordAttempt($conn, $ip, $action);
+        RateLimiter::recordCredentialAttempt($conn, (string)$email, $action);
         $response->getBody()->write(json_encode(['error' => 'Invalid email or verification code']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
     }
@@ -360,20 +357,20 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     }
 
     if (empty($user['otp_code']) || empty($user['otp_expires_at'])) {
-        RateLimiter::recordAttempt($conn, $ip, $action);
+        RateLimiter::recordCredentialAttempt($conn, (string)$email, $action);
         $response->getBody()->write(json_encode(['error' => 'No active verification code found. Please request a new code.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
     if (strtotime($user['otp_expires_at']) < time()) {
-        RateLimiter::recordAttempt($conn, $ip, $action);
+        RateLimiter::recordCredentialAttempt($conn, (string)$email, $action);
         $response->getBody()->write(json_encode(['error' => 'Verification code has expired. Please request a new one.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
     $otpSecret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
     if (!OtpCode::matches((string)$user['otp_code'], $otp, $otpSecret)) {
-        RateLimiter::recordAttempt($conn, $ip, $action);
+        RateLimiter::recordCredentialAttempt($conn, (string)$email, $action);
         $response->getBody()->write(json_encode(['error' => 'Invalid verification code. Please check your email.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
     }
@@ -385,7 +382,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
     // SEC-008: A valid email OTP proves only the first factor.
     // Do not return a privileged session when confirmed authenticator MFA is active.
     if (sec008MfaRequired($conn, $user)) {
-        RateLimiter::clearAttempts($conn, $ip, $action);
+        RateLimiter::clearCredentialAccountAttempts($conn, (string)$email, $action);
         $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
         return sec008MfaChallenge($response, $user, $secret);
     }
@@ -424,7 +421,7 @@ $app->post('/api/auth/otp/verify', function (Request $request, Response $respons
         ];
     }
 
-    RateLimiter::clearAttempts($conn, $ip, $action);
+    RateLimiter::clearCredentialAccountAttempts($conn, (string)$email, $action);
 
     $response->getBody()->write(json_encode(array_merge($session, ['user' => $user])));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
@@ -741,7 +738,6 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
     $db = new Database();
     $conn = $db->getConnection();
 
-    $ip = RateLimiter::getClientIp();
     $action = 'forgot_password';
 
     // Fetch dynamic rate limits from global_settings
@@ -750,8 +746,8 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
     $maxAttempts = $settings['forgot_password_rate_limit_attempts'] ?? 3;
     $windowMinutes = $settings['forgot_password_rate_limit_window'] ?? 60;
 
-    if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
-        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, $maxAttempts, $windowMinutes);
+    $secondsRemaining = RateLimiter::credentialLockout($conn, (string)$email, $action, (int)$maxAttempts, (int)$windowMinutes);
+    if ($secondsRemaining !== null) {
         $response->getBody()->write(json_encode([
             'error' => "Too Many Reset Attempts. Please Try Again Later.",
             'secondsRemaining' => $secondsRemaining
@@ -759,7 +755,7 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
     
-    RateLimiter::recordAttempt($conn, $ip, $action);
+    RateLimiter::recordCredentialAttempt($conn, (string)$email, $action);
 
     // Check if user exists
     $stmt = $conn->prepare('SELECT id, "firstName", "lastName" FROM users WHERE email = :email');

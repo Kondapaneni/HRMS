@@ -239,7 +239,9 @@ const EmployeeMobileMap = () => {
         setIsInsideGeofence(isInsideAny);
         setDistanceToNearest(minDistance);
       } else {
-        setIsInsideGeofence(true);
+        // SEC-014: No configured office is not an allow-all geofence.
+        setIsInsideGeofence(false);
+        setDistanceToNearest(null);
       }
     };
 
