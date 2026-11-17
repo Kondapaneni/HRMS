@@ -625,16 +625,3 @@ body.hide-mobile-nav [data-mobile-nav] {
     max-width: 100% !important;
   }
 }
-
-/* Suppress default HTML5 video play button & controls on mobile WebViews */
-video::-webkit-media-controls,
-video::-webkit-media-controls-enclosure,
-video::-webkit-media-controls-panel,
-video::-webkit-media-controls-play-button,
-video::-webkit-media-controls-start-playback-button,
-video::-webkit-media-controls-overlay-play-button {
-  display: none !important;
-  -webkit-appearance: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}

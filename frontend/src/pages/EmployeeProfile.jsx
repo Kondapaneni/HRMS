@@ -383,7 +383,15 @@ const EmployeeProfile = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center flex-wrap gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => navigate('/change-password')}
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Lock className="w-4 h-4 shrink-0 text-[var(--brand-deep)]" />
+              <span>Change Password</span>
+            </button>
             {mfaStatus?.authorized && (
               <button 
                 type="button"

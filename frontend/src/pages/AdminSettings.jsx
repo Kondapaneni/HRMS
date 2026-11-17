@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLoader from '../components/PageLoader';
 import { 
   Save, 
@@ -25,6 +26,7 @@ import Button from '../components/ui/Button';
 import MfaSecurityCard from '../components/MfaSecurityCard';
 
 const AdminSettings = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const [settings, setSettings] = useState({
@@ -215,6 +217,24 @@ const AdminSettings = () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Account credentials are separate from global system settings. */}
+          <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-3 border border-[var(--line)]">
+            <div className="flex items-center gap-3">
+              <KeyRound className="w-5 h-5 text-[var(--brand-deep)]" />
+              <div>
+                <h3 className="text-[15px] font-medium text-[var(--text)]">Your account password</h3>
+                <p className="text-[13px] text-[var(--muted)]">Change your own sign-in password. Your other sessions will be signed out.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/change-password')}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-full text-[13px] font-semibold bg-[var(--ink)] text-white hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              Change Password
+            </button>
           </div>
 
           {/* Card: Administrator Two-Factor Authentication */}

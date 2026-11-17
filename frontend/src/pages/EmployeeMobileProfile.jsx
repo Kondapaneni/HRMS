@@ -6,7 +6,7 @@ import {
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Camera, ChevronRight, FileText,
   X, Edit2, Sparkles, Building, CheckCircle2, AlertCircle,
-  Download, RefreshCw, ShieldCheck
+  Download, RefreshCw, ShieldCheck, Lock
 } from 'lucide-react';
 import MfaSecurityCard from '../components/MfaSecurityCard';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +24,31 @@ const EmployeeMobileProfile = () => {
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const controls = useDragControls();
+
+  // Only offer an APK when the signing workflow has published a matching
+  // release manifest alongside the current signed binary. Never serve the
+  // older committed APK as if it included newly deployed security fixes.
+  const { data: androidRelease, isLoading: checkingAndroidRelease } = useQuery({
+    queryKey: ['android', 'signed-release'],
+    enabled: !isNativeApp && !isIOS,
+    retry: false,
+    staleTime: 0,
+    queryFn: async () => {
+      try {
+        const url = `${getAssetUrl('/downloads/android-release.json')}?t=${Date.now()}`;
+        const response = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
+        if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return null;
+        const release = await response.json();
+        if (!Number.isSafeInteger(release.versionCode) || release.versionCode <= 0
+            || release.file !== 'Acme HRMS.apk'
+            || !/^[0-9a-f]{40}$/.test(release.sourceCommit)
+            || !/^[0-9a-f]{64}$/.test(release.sha256)) return null;
+        return release;
+      } catch {
+        return null;
+      }
+    },
+  });
 
   const { data: mfaStatus } = useQuery({
     queryKey: ['mfa', 'status'],
@@ -129,6 +154,7 @@ const EmployeeMobileProfile = () => {
     { id: 'my-team', label: 'My Team & Manager', icon: Users, color: 'text-[var(--status-success-text)]', bg: 'bg-[var(--status-success-bg)]' },
     { id: 'assets', label: 'Assigned Assets', icon: Laptop, color: 'text-[var(--brand-deep)]', bg: 'bg-[var(--brand-tint)]' },
     { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-[var(--text-2)]', bg: 'bg-[var(--surface-alt)]' },
+    { id: 'password', label: 'Change Password', icon: Lock, color: 'text-[var(--brand-deep)]', bg: 'bg-[var(--brand-tint)]' },
     ...(mfaStatus?.authorized ? [{
       id: 'security',
       label: 'Two-Factor Auth (2FA)',
@@ -451,7 +477,7 @@ const EmployeeMobileProfile = () => {
               <button
                 key={section.id}
                 type="button"
-                onClick={() => setActiveSection(section.id)}
+                onClick={() => section.id === 'password' ? navigate('/change-password') : setActiveSection(section.id)}
                 className="w-full bg-[var(--surface)] p-4 rounded-[20px] border border-[var(--line)] shadow-xs flex items-center justify-between hover:bg-[var(--surface-alt)] active:scale-[0.98] transition-all cursor-pointer text-left"
               >
                 <div className="flex items-center gap-3">
@@ -484,20 +510,30 @@ const EmployeeMobileProfile = () => {
             Acme HRMS {import.meta.env.VITE_APP_SEMVER || 'v2.4.0'}
           </span>
         </div>
-        <p className="text-[10px] text-[var(--muted)] font-medium">
-          Build {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
-        </p>
-
         {!isNativeApp && !isIOS && (
-          <div className="pt-1">
-            <a
-              href={getAssetUrl('/downloads/Acme%20HRMS.apk')}
-              download="Acme HRMS.apk"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer active:scale-95 transition-all"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Mobile App (APK)</span>
-            </a>
+          <div className="pt-2">
+            {androidRelease ? (
+              <>
+                <a
+                  href={`${getAssetUrl('/downloads/Acme%20HRMS.apk')}?v=${androidRelease.versionCode}`}
+                  download="Acme HRMS.apk"
+                  aria-label="Download latest verified Acme HRMS Android APK"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--ink-2)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Mobile App (APK)</span>
+                </a>
+                <p className="mt-2 text-[11px] text-[var(--muted)]">
+                  Signed Android release {androidRelease.versionName} · build {androidRelease.versionCode}
+                </p>
+              </>
+            ) : (
+              <p role="status" className="mx-auto max-w-xs text-[12px] text-[var(--muted)]">
+                {checkingAndroidRelease
+                  ? 'Checking the latest verified Android release…'
+                  : 'Android APK update is pending verified signing. Please contact Admin; do not install an older download.'}
+              </p>
+            )}
           </div>
         )}
       </div>
