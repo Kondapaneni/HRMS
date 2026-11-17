@@ -75,17 +75,17 @@ public class LocationTrackerService extends Service implements LocationListener 
         @Override
         public void run() {
             if (!isTracking) return;
-            Log.d(TAG, "Executing punchTickRunnable...");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Executing punchTickRunnable...");
             try {
                 fetchDynamicIntervalFromServer();
                 sendPunchRequest();
             } catch (Exception e) {
-                Log.e(TAG, "Error in punchTickRunnable: " + e.getMessage(), e);
+                if (BuildConfig.DEBUG) Log.e(TAG, "Error in punchTickRunnable: " + e.getMessage(), e);
             } finally {
                 if (isTracking && bgHandler != null) {
                     bgHandler.removeCallbacks(this);
                     bgHandler.postDelayed(this, intervalMs);
-                    Log.i(TAG, "Scheduled next Handler tick in " + (intervalMs / 1000) + "s (" + (intervalMs / 60000) + " min)");
+                    if (BuildConfig.DEBUG) Log.i(TAG, "Scheduled next Handler tick in " + (intervalMs / 1000) + "s (" + (intervalMs / 60000) + " min)");
                     // Also schedule AlarmManager as watchdog in case CPU sleeps
                     scheduleNextPunchAlarm();
                 }
@@ -97,10 +97,11 @@ public class LocationTrackerService extends Service implements LocationListener 
         try {
             SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
             serverUrl = prefs.getString("server_url", serverUrl);
-            authToken = prefs.getString("auth_token", authToken);
+            String restored = TrackerTokenStore.load(this);
+            authToken = restored != null ? restored : "";
             intervalMs = prefs.getLong("interval_ms", intervalMs);
         } catch (Exception e) {
-            Log.w(TAG, "Error restoring prefs: " + e.getMessage());
+            if (BuildConfig.DEBUG) Log.w(TAG, "Error restoring prefs: " + e.getMessage());
         }
     }
 
@@ -123,26 +124,31 @@ public class LocationTrackerService extends Service implements LocationListener 
         }
 
         restoreFromPreferences();
-        Log.i(TAG, "Service created. WakeLock acquired. Loaded interval=" + (intervalMs / 60000) + "m");
+        if (BuildConfig.DEBUG) Log.i(TAG, "Service created. WakeLock acquired. Loaded interval=" + (intervalMs / 60000) + "m");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // A React WebView reload can send ACTION_START again while the native
+        // service is already running. Preserve the existing punch deadline
+        // unless the configured interval actually changes.
+        final long previousIntervalMs = intervalMs;
         if (intent != null) {
             String action = intent.getAction();
             if (ACTION_STOP.equals(action)) {
-                Log.i(TAG, "Received STOP action");
+                if (BuildConfig.DEBUG) Log.i(TAG, "Received STOP action");
                 stopTracking();
                 return START_NOT_STICKY;
             }
 
             if (ACTION_PUNCH_TICK.equals(action)) {
-                Log.d(TAG, "Received ACTION_PUNCH_TICK from AlarmManager (Watchdog/Wakeup)");
+                if (BuildConfig.DEBUG) Log.d(TAG, "Received ACTION_PUNCH_TICK from AlarmManager (Watchdog/Wakeup)");
                 restoreFromPreferences();
                 SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
                 boolean isActive = prefs.getBoolean("is_active", false);
 
-                if (isActive) {
+                if (isActive && TrackerTokenStore.trustedEndpoint(serverUrl)
+                        && authToken != null && !authToken.isEmpty()) {
                     if (!isTracking) {
                         startForegroundServiceNotification();
                         startLocationTracking();
@@ -150,6 +156,11 @@ public class LocationTrackerService extends Service implements LocationListener 
                         bgHandler.removeCallbacks(punchTickRunnable);
                         bgHandler.post(punchTickRunnable);
                     }
+                } else {
+                    // A migrated/corrupt credential must never restart tracking.
+                    prefs.edit().putBoolean("is_active", false).apply();
+                    stopSelf();
+                    return START_NOT_STICKY;
                 }
                 return START_STICKY;
             }
@@ -164,15 +175,24 @@ public class LocationTrackerService extends Service implements LocationListener 
                 intervalMs = intent.getLongExtra(EXTRA_INTERVAL_MS, 15 * 60 * 1000);
             }
 
-            // Persist to SharedPreferences so service can resume if restarted by OS
+            // Persist only AES-GCM ciphertext. Existing installations are
+            // migrated by TrackerTokenStore.load() on first restart.
             SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
             if (authToken != null && !authToken.isEmpty()) {
-                prefs.edit()
-                        .putString("server_url", serverUrl)
-                        .putString("auth_token", authToken)
-                        .putLong("interval_ms", intervalMs)
-                        .putBoolean("is_active", true)
-                        .apply();
+                try {
+                    TrackerTokenStore.save(this, authToken);
+                    prefs.edit()
+                            .putString("server_url", serverUrl)
+                            .putLong("interval_ms", intervalMs)
+                            .putBoolean("is_active", true)
+                            .apply();
+                } catch (Exception e) {
+                    TrackerTokenStore.clear(this);
+                    prefs.edit().putBoolean("is_active", false).apply();
+                    authToken = "";
+                    stopSelf();
+                    return START_NOT_STICKY;
+                }
             } else {
                 restoreFromPreferences();
             }
@@ -187,19 +207,36 @@ public class LocationTrackerService extends Service implements LocationListener 
             }
         }
 
+        // SEC-006: never resume native telemetry with a missing token or an
+        // untrusted URL, even if old preferences survived an app upgrade.
+        if (!TrackerTokenStore.trustedEndpoint(serverUrl)
+                || authToken == null || authToken.isEmpty()) {
+            TrackerTokenStore.clear(this);
+            getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE)
+                    .edit().putBoolean("is_active", false).apply();
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
         if (!isTracking) {
             startForegroundServiceNotification();
             startLocationTracking();
         } else {
-            // Service already running: dynamically refresh notification text and reschedule next tick immediately
-            int mins = Math.max(1, (int)(intervalMs / 60000));
-            updateNotification("Duty Active • Tracking every " + mins + " min(s)");
-            if (bgHandler != null) {
-                bgHandler.removeCallbacks(punchTickRunnable);
-                bgHandler.postDelayed(punchTickRunnable, intervalMs);
+            // Idempotent START: reopening HRMS must not postpone the next punch.
+            // Only an actual interval change reschedules Handler and watchdog.
+            if (intervalMs != previousIntervalMs) {
+                int mins = Math.max(1, (int)(intervalMs / 60000));
+                updateNotification("Duty Active • Tracking every " + mins + " min(s)");
+                if (bgHandler != null) {
+                    bgHandler.removeCallbacks(punchTickRunnable);
+                    bgHandler.postDelayed(punchTickRunnable, intervalMs);
+                }
+                scheduleNextPunchAlarm();
+                if (BuildConfig.DEBUG) Log.i(TAG, "Tracking interval changed to " + mins + " min(s); next punch rescheduled.");
+            } else {
+                // Also avoid needlessly reposting a dismissed notification.
+                if (BuildConfig.DEBUG) Log.d(TAG, "Duplicate START ignored; existing punch deadline preserved.");
             }
-            scheduleNextPunchAlarm();
-            Log.i(TAG, "Service already running. Interval dynamically updated to " + mins + " min(s) and tick rescheduled.");
         }
 
         return START_STICKY;
@@ -214,7 +251,7 @@ public class LocationTrackerService extends Service implements LocationListener 
             startForeground(NOTIFICATION_ID, notification);
         }
         isTracking = true;
-        Log.i(TAG, "Foreground service started with notification");
+        if (BuildConfig.DEBUG) Log.i(TAG, "Foreground service started with notification");
     }
 
     private Notification buildNotification(String statusText) {
@@ -242,7 +279,7 @@ public class LocationTrackerService extends Service implements LocationListener 
                 manager.notify(NOTIFICATION_ID, buildNotification(statusText));
             }
         } catch (Exception e) {
-            Log.w(TAG, "Failed to update notification", e);
+            if (BuildConfig.DEBUG) Log.w(TAG, "Failed to update notification", e);
         }
     }
 
@@ -268,11 +305,11 @@ public class LocationTrackerService extends Service implements LocationListener 
             // Request continuous location updates every 30s to keep GPS warm
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30000, 0, this, handlerThread.getLooper());
-                Log.d(TAG, "GPS provider location updates started");
+                if (BuildConfig.DEBUG) Log.d(TAG, "GPS provider location updates started");
             }
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 30000, 0, this, handlerThread.getLooper());
-                Log.d(TAG, "Network provider location updates started");
+                if (BuildConfig.DEBUG) Log.d(TAG, "Network provider location updates started");
             }
 
             Location lastGps = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -281,13 +318,13 @@ public class LocationTrackerService extends Service implements LocationListener 
             else if (lastNet != null) lastKnownLocation = lastNet;
 
         } catch (SecurityException se) {
-            Log.e(TAG, "Location permission missing", se);
+            if (BuildConfig.DEBUG) Log.e(TAG, "Location permission missing", se);
         } catch (Exception e) {
-            Log.e(TAG, "Failed to start location updates", e);
+            if (BuildConfig.DEBUG) Log.e(TAG, "Failed to start location updates", e);
         }
 
         // Trigger immediate first punch and start the recurring loop
-        Log.d(TAG, "Starting recurring punch loop via bgHandler");
+        if (BuildConfig.DEBUG) Log.d(TAG, "Starting recurring punch loop via bgHandler");
         if (bgHandler != null) {
             bgHandler.removeCallbacks(punchTickRunnable);
             bgHandler.post(punchTickRunnable);
@@ -315,10 +352,10 @@ public class LocationTrackerService extends Service implements LocationListener 
                 } else {
                     alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pi);
                 }
-                Log.d(TAG, "Watchdog alarm set for " + (intervalMs / 1000) + "s");
+                if (BuildConfig.DEBUG) Log.d(TAG, "Watchdog alarm set for " + (intervalMs / 1000) + "s");
             }
         } catch (Exception e) {
-            Log.e(TAG, "Failed to schedule punch alarm: " + e.getMessage(), e);
+            if (BuildConfig.DEBUG) Log.e(TAG, "Failed to schedule punch alarm: " + e.getMessage(), e);
         }
     }
 
@@ -332,6 +369,7 @@ public class LocationTrackerService extends Service implements LocationListener 
             String newsUrl = serverUrl.replace("/employee/attendance/punch", "/news");
             URL url = new URL(newsUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setInstanceFollowRedirects(false);
             conn.setRequestMethod("GET");
             if (authToken != null && !authToken.isEmpty()) {
                 conn.setRequestProperty("Authorization", "Bearer " + authToken);
@@ -340,7 +378,7 @@ public class LocationTrackerService extends Service implements LocationListener 
             conn.setReadTimeout(10000);
 
             int code = conn.getResponseCode();
-            if (code >= 200 && code < 400) {
+            if (code >= 200 && code < 300) {
                 StringBuilder sb = new StringBuilder();
                 try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
                     String line;
@@ -362,13 +400,13 @@ public class LocationTrackerService extends Service implements LocationListener 
 
                         int oldMins = (int)(oldIntervalMs / 60000);
                         updateNotification("Duty Active • Tracking every " + serverMins + " min(s)");
-                        Log.i(TAG, "Dynamic interval updated from server: " + oldMins + " min(s) -> " + serverMins + " min(s)");
+                        if (BuildConfig.DEBUG) Log.i(TAG, "Dynamic interval updated from server: " + oldMins + " min(s) -> " + serverMins + " min(s)");
                     }
                 }
             }
             conn.disconnect();
         } catch (Exception e) {
-            Log.w(TAG, "Failed to fetch dynamic interval from server (using current): " + e.getMessage());
+            if (BuildConfig.DEBUG) Log.w(TAG, "Failed to fetch dynamic interval from server (using current): " + e.getMessage());
         }
     }
 
@@ -397,17 +435,18 @@ public class LocationTrackerService extends Service implements LocationListener 
             } catch (Exception ignored) {}
 
             if (bestLocation == null) {
-                Log.w(TAG, "No GPS location available yet. Will retry on next tick.");
+                if (BuildConfig.DEBUG) Log.w(TAG, "No GPS location available yet. Will retry on next tick.");
                 return;
             }
 
             if (authToken == null || authToken.trim().isEmpty()) {
-                Log.w(TAG, "No auth token available for punch.");
+                if (BuildConfig.DEBUG) Log.w(TAG, "No auth token available for punch.");
                 return;
             }
 
             URL url = new URL(serverUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setInstanceFollowRedirects(false);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", "Bearer " + authToken);
@@ -442,12 +481,10 @@ public class LocationTrackerService extends Service implements LocationListener 
             punchCount++;
 
             if (code == 200) {
-                Log.i(TAG, "✓ Punch #" + punchCount + " at " + timeStr +
-                        " | Lat:" + String.format("%.5f", bestLocation.getLatitude()) +
-                        " Lng:" + String.format("%.5f", bestLocation.getLongitude()));
+                if (BuildConfig.DEBUG) Log.i(TAG, "Punch accepted by HRMS (HTTP 200)");
                 updateNotification("Duty Active • Punch #" + punchCount + " at " + timeStr);
             } else {
-                Log.e(TAG, "✗ Punch FAILED HTTP " + code + " at " + timeStr + ": " + response);
+                if (BuildConfig.DEBUG) Log.w(TAG, "Punch request rejected (HTTP " + code + ")");
                 String respStr = response.toString().toLowerCase();
 
                 // If day/shift ended or checked out, automatically stop background service
@@ -458,14 +495,14 @@ public class LocationTrackerService extends Service implements LocationListener 
                     respStr.contains("maximum working duration") ||
                     respStr.contains("unauthorized") ||
                     code == 401 || code == 403) {
-                    Log.i(TAG, "Auto-stopping: " + respStr);
+                    if (BuildConfig.DEBUG) Log.i(TAG, "Auto-stopping native tracking after server rejection");
                     // Post to main thread for safe service teardown
                     new Handler(getMainLooper()).post(() -> stopTracking());
                 }
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Exception during punch: " + e.getMessage(), e);
+            if (BuildConfig.DEBUG) Log.e(TAG, "Exception during punch: " + e.getMessage(), e);
         }
     }
 
@@ -500,7 +537,7 @@ public class LocationTrackerService extends Service implements LocationListener 
                 locationManager.removeUpdates(this);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error removing location updates", e);
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error removing location updates", e);
         }
 
         // Release wake lock
@@ -517,10 +554,12 @@ public class LocationTrackerService extends Service implements LocationListener 
 
         SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
         prefs.edit().putBoolean("is_active", false).apply();
+        TrackerTokenStore.clear(this);
+        authToken = "";
 
         stopForeground(true);
         stopSelf();
-        Log.i(TAG, "Service stopped. Total punches sent: " + punchCount);
+        if (BuildConfig.DEBUG) Log.i(TAG, "Service stopped. Total punches sent: " + punchCount);
     }
 
     @Override
@@ -534,7 +573,7 @@ public class LocationTrackerService extends Service implements LocationListener 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         // When user swipes the app away from recent tasks, DO NOT kill the foreground service.
-        Log.i(TAG, "App swiped away. Foreground service continues tracking.");
+        if (BuildConfig.DEBUG) Log.i(TAG, "App swiped away. Foreground service continues tracking.");
         super.onTaskRemoved(rootIntent);
     }
 
@@ -542,19 +581,18 @@ public class LocationTrackerService extends Service implements LocationListener 
     public void onLocationChanged(Location location) {
         if (location != null) {
             lastKnownLocation = location;
-            Log.d(TAG, "Location updated: " + location.getLatitude() + ", " + location.getLongitude() +
-                    " (provider: " + location.getProvider() + ")");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Location callback received");
         }
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        Log.d(TAG, "Provider enabled: " + provider);
+        if (BuildConfig.DEBUG) Log.d(TAG, "Provider enabled: " + provider);
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        Log.d(TAG, "Provider disabled: " + provider);
+        if (BuildConfig.DEBUG) Log.d(TAG, "Provider disabled: " + provider);
     }
 
     @Override

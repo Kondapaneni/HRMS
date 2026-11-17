@@ -32,6 +32,13 @@ public class LocationTrackerPlugin extends Plugin {
         String serverUrl = call.getString("serverUrl", "");
         String token = call.getString("token", "");
 
+        // SEC-006: reject HTTP and foreign destinations before passing any JWT
+        // to the foreground service. A malformed URL must fail closed.
+        if (!TrackerTokenStore.trustedEndpoint(serverUrl) || token == null || token.trim().isEmpty()) {
+            call.reject("Location tracking requires a secure HRMS endpoint and an authenticated session");
+            return;
+        }
+
         // Safely extract intervalMs — JS numbers may arrive as Integer, not Long.
         // call.getLong() fails silently in that case and returns the default.
         long intervalMs = 15L * 60 * 1000; // fallback
@@ -41,10 +48,10 @@ public class LocationTrackerPlugin extends Plugin {
                 intervalMs = ((Number) raw).longValue();
             }
         } catch (Exception e) {
-            Log.w(TAG, "Failed to parse intervalMs, using default: " + e.getMessage());
+            if (BuildConfig.DEBUG) Log.w(TAG, "Failed to parse intervalMs, using default: " + e.getMessage());
         }
 
-        Log.i(TAG, "startTracking called: serverUrl=" + serverUrl + ", intervalMs=" + intervalMs);
+        if (BuildConfig.DEBUG) Log.i(TAG, "startTracking called (interval minutes: " + (intervalMs / 60000) + ")");
 
         Intent intent = new Intent(context, LocationTrackerService.class);
         intent.setAction(LocationTrackerService.ACTION_START);
@@ -106,7 +113,7 @@ public class LocationTrackerPlugin extends Plugin {
                 }
             }
         } catch (Exception e) {
-            Log.w(TAG, "Error checking battery optimization: " + e.getMessage());
+            if (BuildConfig.DEBUG) Log.w(TAG, "Error checking battery optimization: " + e.getMessage());
         }
 
         // 3. Foreground Location
@@ -151,7 +158,7 @@ public class LocationTrackerPlugin extends Plugin {
             ret.put("success", true);
             call.resolve(ret);
         } catch (Exception e) {
-            Log.e(TAG, "Error requesting battery optimization: " + e.getMessage());
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error requesting battery optimization: " + e.getMessage());
             // Fallback to general battery saver settings
             try {
                 Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
