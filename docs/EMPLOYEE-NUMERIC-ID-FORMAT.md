@@ -16,7 +16,7 @@ The eight-digit space has **90 million** possibilities (about 26.4 bits,
 far less than the previous 128-bit code). Codes can be guessed or collide:
 the existing database unique constraint enforces uniqueness. Both Admin
 employee creation and candidate conversion use
-`ON CONFLICT ON CONSTRAINT "employee_employeeId_key" DO NOTHING RETURNING id`
+`ON CONFLICT ("employeeId") DO NOTHING RETURNING id`
 and retry at most 12 times. Unrelated database errors fail the entire
 transaction rather than silently producing a duplicate account, partial
 conversion or invitation.
