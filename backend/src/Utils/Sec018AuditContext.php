@@ -72,7 +72,23 @@ final class Sec018AuditContext
         $stmt->execute([$payload, $mac]);
         // Exercise the installed verifier before any application statement,
         // including statements whose tables do not have audit triggers.
-        if (!$conn->query('SELECT sec018_internal.verified_audit_actor() IS NOT NULL')->fetchColumn()) {
+        // Both names are temporarily supported during the coordinated
+        // security-schema rename. Check catalog presence first: attempting
+        // a missing function would abort this active PostgreSQL transaction.
+        $verifierSchema = $conn->query(<<<'SQL'
+            SELECT CASE
+              WHEN to_regprocedure('hrms_security.verified_audit_actor()') IS NOT NULL
+                THEN 'hrms_security'
+              WHEN to_regprocedure('sec018_internal.verified_audit_actor()') IS NOT NULL
+                THEN 'sec018_internal'
+              ELSE NULL
+            END
+            SQL)->fetchColumn();
+        // The chosen schema comes only from our fixed SQL literal allowlist.
+        if (!in_array($verifierSchema, ['hrms_security', 'sec018_internal'], true)) {
+            throw new RuntimeException('SEC-018 audit verifier unavailable');
+        }
+        if (!$conn->query("SELECT {$verifierSchema}.verified_audit_actor() IS NOT NULL")->fetchColumn()) {
             throw new RuntimeException('SEC-018 audit verification failed');
         }
     }
