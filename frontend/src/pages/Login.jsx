@@ -37,8 +37,9 @@ const Login = () => {
   const [backupCode, setBackupCode] = useState('');
   const mfaInputsRef = useRef([]);
   const otpInputsRef = useRef([]);
-
-  
+  // Browser credential-manager autofill should run on first load, not refill
+  // credentials after a deliberate Back / Change email / method-switch reset.
+  const allowAutofillSyncRef = useRef(true);
 
   useEffect(() => {
     let timer;
@@ -63,6 +64,7 @@ const Login = () => {
   // Sync autofill values from browser credential managers
   useEffect(() => {
     const syncAutofill = () => {
+      if (!allowAutofillSyncRef.current) return;
       const emailEl = document.getElementById('login-email') || document.getElementById('otp-email');
       const passEl = document.getElementById('login-password');
       if (emailEl && emailEl.value) {
@@ -106,6 +108,39 @@ const Login = () => {
     return <Navigate to={ADMIN_ROLES.includes(profile.role) ? '/admin' : '/employee'} replace />;
   }
 
+  // Leaving the MFA screen starts a fresh login attempt. Do not retain a
+  // password, email OTP, Authenticator code, backup code, or MFA challenge JWT.
+  // Keep server-enforced lockoutSeconds so Back cannot bypass a rate limit.
+  const resetLoginFlow = (nextMethod = 'password') => {
+    allowAutofillSyncRef.current = false;
+    setEmail('');
+    setPassword('');
+    setShowPassword(false);
+    setOtp(['', '', '', '', '', '']);
+    setOtpSent(false);
+    setOtpCountdown(0);
+    setMfaPending(false);
+    setMfaToken('');
+    setMfaCode(['', '', '', '', '', '']);
+    setMfaMethod('totp');
+    setBackupCode('');
+    setError('');
+    setSuccessMessage('');
+    setLoginMethod(nextMethod);
+  };
+
+  // "Change email" returns to an empty email-OTP entry screen, not a screen
+  // prefilled with the previous account or its now-irrelevant verification code.
+  const handleChangeOtpEmail = () => {
+    allowAutofillSyncRef.current = false;
+    setEmail('');
+    setOtp(['', '', '', '', '', '']);
+    setOtpSent(false);
+    setOtpCountdown(0);
+    setError('');
+    setSuccessMessage('');
+  };
+
   const handlePasswordLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -116,6 +151,8 @@ const Login = () => {
       const res = await signIn(email, password);
 
       if (res?.mfaRequired) {
+        // The password has already been verified; don't keep it in page state.
+        setPassword('');
         setMfaPending(true);
         setMfaToken(res.mfaToken);
         setMfaCode(['', '', '', '', '', '']);
@@ -244,6 +281,8 @@ const Login = () => {
 
     try {
       const res = await sendLoginOtp(email.trim());
+      // A resend invalidates the prior code. Never leave the old digits visible.
+      setOtp(['', '', '', '', '', '']);
       setOtpSent(true);
       setOtpCountdown(60);
       setSuccessMessage(res.message || 'Verification code sent to your email.');
@@ -311,6 +350,10 @@ const Login = () => {
 
       // SEC-008: Reuse the existing Authenticator / backup-code UI after OTP.
       if (userData?.mfaRequired) {
+        // Email OTP is consumed before the MFA challenge. Clear it immediately.
+        setOtp(['', '', '', '', '', '']);
+        setOtpSent(false);
+        setOtpCountdown(0);
         setMfaPending(true);
         setMfaToken(userData.mfaToken);
         setMfaCode(['', '', '', '', '', '']);
@@ -471,9 +514,12 @@ const Login = () => {
                 <div className="flex flex-col items-center gap-2 pt-2 text-xs">
                   <button
                     type="button"
+                    disabled={isLoading}
                     onClick={() => {
                       const nextMethod = mfaMethod === 'totp' ? 'backup' : 'totp';
                       setMfaMethod(nextMethod);
+                      setMfaCode(['', '', '', '', '', '']);
+                      setBackupCode('');
                       setError('');
                       if (nextMethod === 'backup') {
                         setSuccessMessage('Enter one of your emergency 8-character backup recovery codes.');
@@ -488,14 +534,8 @@ const Login = () => {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setMfaPending(false);
-                      setMfaToken('');
-                      setMfaCode(['', '', '', '', '', '']);
-                      setBackupCode('');
-                      setError('');
-                      setSuccessMessage('');
-                    }}
+                    onClick={() => resetLoginFlow()}
+                    disabled={isLoading}
                     className="inline-flex items-center gap-1 text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer mt-1"
                   >
                     <ArrowLeft size={13} />
@@ -620,11 +660,8 @@ const Login = () => {
                         <div className="flex items-center justify-between text-xs text-neutral-500 pt-1">
                           <button
                             type="button"
-                            onClick={() => {
-                              setOtpSent(false);
-                              setOtp(['', '', '', '', '', '']);
-                              setError('');
-                            }}
+                            onClick={handleChangeOtpEmail}
+                            disabled={isLoading}
                             className="inline-flex items-center gap-1 text-neutral-500 hover:text-black cursor-pointer"
                           >
                             <ArrowLeft size={13} />
@@ -668,11 +705,8 @@ const Login = () => {
                 <div className="text-center pt-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
-                      setError('');
-                      setSuccessMessage('');
-                    }}
+                    onClick={() => resetLoginFlow(loginMethod === 'password' ? 'otp' : 'password')}
+                    disabled={isLoading}
                     className="text-xs text-neutral-400 hover:text-neutral-700 font-medium transition-colors cursor-pointer"
                   >
                     {loginMethod === 'password' ? 'Sign in with Email OTP instead' : 'Sign in with Password instead'}
