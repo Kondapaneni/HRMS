@@ -51,16 +51,26 @@ let again = await refreshWeb(secondCookie);
 const thirdCookie = cookieOnly(again.cookie);
 assert.notEqual(thirdCookie, secondCookie, 'consecutive rotations issue distinct credentials');
 
-// A single replay invalidates this refresh chain, but not other sessions.
-await refreshWeb(firstCookie, 401);
-await refreshWeb(thirdCookie, 401);
-console.log('PASS: web refresh cookie is HttpOnly/Strict and single-use replay revokes chain');
-
+// SEC-018 R01: Guessing a secret for an otherwise valid session ID must
+// NEVER revoke a family. A consumed *full* refresh secret, however, revokes
+// its own chain immediately; there is no 30-second attack window.
 const other = await request('/api/login', {
   email: employeeEmail, password: 'SEC012-Reset-Password3!',
 });
 const otherCookie = cookieOnly(other.cookie);
-await refreshWeb(otherCookie);
+const guessed = firstCookie.split('.')[0] + '.' + '0'.repeat(64);
+await refreshWeb(guessed, 401);
+const guessSurvivor = await refreshWeb(thirdCookie);
+const fourthCookie = cookieOnly(guessSurvivor.cookie);
+assert.notEqual(fourthCookie, thirdCookie, 'guessed secret did not revoke valid refresh');
+console.log('PASS: guessed web secret denied without destroying active chain');
+
+const staleWeb = await refreshWeb(firstCookie, 401);
+assert(!staleWeb.cookie?.includes('Max-Age=0'), 'stale denial cannot clear another in-flight cookie');
+await refreshWeb(fourthCookie, 401);
+const unaffected = await refreshWeb(otherCookie);
+assert(unaffected.data.token, 'replay must not revoke sibling login of same user');
+console.log('PASS: known web refresh replay revokes its chain immediately, not sibling sessions');
 await request('/api/auth/refresh', {}, { Cookie: otherCookie }, 403);
 await request('/api/auth/refresh', {}, {
   Cookie: otherCookie,
@@ -84,9 +94,15 @@ const nativeRefresh = async (secret, expected = 200) =>
 const nativeRotated = await nativeRefresh(native.data.refreshToken);
 assert(nativeRotated.data.token && nativeRotated.data.refreshToken);
 assert.notEqual(nativeRotated.data.refreshToken, native.data.refreshToken);
+const nativeOther = await request('/api/candidate/login', {
+  email: 'sec012-candidate@example.invalid',
+  password: 'SEC012-Candidate-Password1!',
+}, { 'X-HRMS-Client': 'android' });
 await nativeRefresh(native.data.refreshToken, 401);
 await nativeRefresh(nativeRotated.data.refreshToken, 401);
-console.log('PASS: Android refresh rotates in JSON and replay revokes native chain');
+const stillGood = await nativeRefresh(nativeOther.data.refreshToken);
+assert(stillGood.data.refreshToken !== nativeOther.data.refreshToken);
+console.log('PASS: known Android replay immediately revokes only the affected native session');
 
 // The server must reject a *validly signed* ten-year access JWT even when
 // version 0 and role are otherwise valid.

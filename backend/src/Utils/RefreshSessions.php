@@ -12,8 +12,12 @@ use Psr\Http\Message\ResponseInterface;
  *
  * The raw secret exists only in an HttpOnly web cookie or Android Keystore.
  * The database stores SHA-256 digests of 256-bit random refresh secrets,
- * and a stable random session identifier. A replay of a rotated token revokes
- * that individual refresh session (not the whole user's account).
+ * and a stable random session identifier. A used or unknown secret is
+ * rejected without issuing another credential. Never revoke merely because
+ * the caller knows a session ID: that would enable targeted denial of service.
+ * Reuse of a previously consumed full secret, however, is positive proof of
+ * replay and immediately revokes ONLY that refresh-session family. Clients
+ * must serialize refresh; a lost rotation response requires a fresh sign-in.
  */
 final class RefreshSessions
 {
@@ -69,11 +73,12 @@ final class RefreshSessions
         try {
             $stmt = $conn->prepare(
                 'SELECT s.id, s.token_hash, s.session_version, s.client_type,
-                        s.expires_at, s.revoked_at,
+                        s.expires_at, s.revoked_at, s.used_token_hashes,
+                        EXTRACT(EPOCH FROM clock_timestamp()) AS db_now,
                         u.id AS user_id, u.email, u.role, u."isActive", u.token_version
                  FROM public.hrms_refresh_sessions s
                  JOIN public.users u ON u.id = s.user_id
-                 WHERE s.id = ? FOR UPDATE OF s'
+                 WHERE s.id = ? FOR UPDATE OF s, u'
             );
             $stmt->execute([$matches[1]]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -84,11 +89,22 @@ final class RefreshSessions
 
             $hash = hash('sha256', $matches[2]);
             if (!hash_equals((string)$row['token_hash'], $hash)) {
-                // An old secret for a known session ID was replayed. Revoke
-                // the whole refresh chain to prevent session theft.
-                $conn->prepare('UPDATE public.hrms_refresh_sessions SET revoked_at = NOW() WHERE id = ?')
-                    ->execute([$matches[1]]);
-                $conn->commit();
+                // SEC-018 R01: A previously consumed *secret* is definitive
+                // replay, even milliseconds after rotation. Revoke only this
+                // refresh-session family, never the user's other sessions or
+                // account-wide token_version. A guessed token for a known,
+                // possibly public session ID must not revoke anything.
+                $used = json_decode((string)$row['used_token_hashes'], true, 512, JSON_THROW_ON_ERROR);
+                if (isset($used[$hash])) {
+                    $conn->prepare(
+                        'UPDATE public.hrms_refresh_sessions
+                         SET revoked_at = COALESCE(revoked_at, NOW())
+                         WHERE id = ?'
+                    )->execute([$matches[1]]);
+                    $conn->commit();
+                } else {
+                    $conn->rollBack();
+                }
                 return null;
             }
 
@@ -103,12 +119,14 @@ final class RefreshSessions
                 return null;
             }
 
+            $used = json_decode((string)$row['used_token_hashes'], true, 512, JSON_THROW_ON_ERROR);
+            $used[$hash] = (float)$row['db_now'];
             $newSecret = self::newSecret();
             $update = $conn->prepare(
-                'UPDATE public.hrms_refresh_sessions SET token_hash = ?, last_used_at = NOW()
+                'UPDATE public.hrms_refresh_sessions SET token_hash = ?, last_used_at = NOW(), used_token_hashes = ?::jsonb
                  WHERE id = ?'
             );
-            $update->execute([hash('sha256', $newSecret), $matches[1]]);
+            $update->execute([hash('sha256', $newSecret), json_encode($used, JSON_THROW_ON_ERROR), $matches[1]]);
             $conn->commit();
             return [
                 'user' => [

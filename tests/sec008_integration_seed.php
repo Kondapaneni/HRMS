@@ -47,6 +47,7 @@ CREATE TABLE rate_limits (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE public.hrms_refresh_sessions (
+ used_token_hashes jsonb NOT NULL DEFAULT '{}'::jsonb,
     id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
     token_hash CHAR(64) NOT NULL, session_version INTEGER NOT NULL,
     client_type TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(),

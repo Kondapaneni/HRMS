@@ -14,6 +14,9 @@ on:
       - '.github/workflows/sec013.yml'
   pull_request:
     paths:
+      - 'backend/src/Config/**'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/src/Utils/Sec018AuditContext.php'
       - 'backend/src/Security/CompensationAccess.php'
       - 'backend/public/admin_employees_routes.php'
       - 'backend/public/employee_assessments_routes.php'

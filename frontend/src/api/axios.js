@@ -142,7 +142,7 @@ api.interceptors.response.use(
       && !isPublicAuthCall(request.url)) {
       request._sec012Retried = true;
       if (!sharedRefresh) {
-        sharedRefresh = renewAccess(request.headers.Authorization?.replace(/^Bearer\\s+/i, '') || localStorage.getItem('token')).finally(() => { sharedRefresh = null; });
+        sharedRefresh = renewAccess(request.headers.Authorization?.replace(/^Bearer\s+/i, '') || localStorage.getItem('token')).finally(() => { sharedRefresh = null; });
       }
       try {
         const token = await sharedRefresh;

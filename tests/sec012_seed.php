@@ -40,6 +40,7 @@ CREATE TABLE public.rate_limits (
 );
 CREATE TABLE public.mfa_secrets (user_id TEXT PRIMARY KEY, secret TEXT, confirmed BOOLEAN DEFAULT FALSE);
 CREATE TABLE public.hrms_refresh_sessions (
+ used_token_hashes jsonb NOT NULL DEFAULT '{}'::jsonb,
     id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
     token_hash CHAR(64) NOT NULL, session_version INTEGER NOT NULL,
     client_type TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(),
