@@ -424,11 +424,11 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
     $status = strtolower(trim((string) ($data['status'] ?? 'active')));
     $managerId = empty($data['managerId']) ? null : trim((string) $data['managerId']);
 
-    $uuid = '/\\A[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\z/iD';
+    $uuid = '/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/iD';
     if (!preg_match($uuid, $userId) || !preg_match($uuid, $applicationId)
         || !preg_match($uuid, $branch) || $firstName === '' || $lastName === ''
         || $department === '' || $position === '' || $joinDate === ''
-        || !preg_match('/\\A\\d{4}-\\d{2}-\\d{2}\\z/D', $joinDate)
+        || !preg_match('/\A\d{4}-\d{2}-\d{2}\z/D', $joinDate)
         || !is_numeric($salary) || (float)$salary < 0
         || !in_array($status, ['active', 'inactive'], true)) {
         $response->getBody()->write(json_encode(['error' => 'Valid candidate, application, branch and employee details are required.']));
@@ -499,7 +499,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
             ON CONFLICT ("employeeId") DO NOTHING
             RETURNING id
         ');
-        [$employeeId, $employeeRowId] = \\App\\Utils\\EmployeeId::insertUnique(
+        [$employeeId, $employeeRowId] = \App\Utils\EmployeeId::insertUnique(
             function (string $code) use (
                 $stmtEmp, $userId, $firstName, $lastName, $candidate,
                 $phone, $department, $position, $branch, $joinDate, $salary, $status, $managerId
@@ -522,7 +522,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
         $stmtUpdateUser->execute(['employee', $firstName, $lastName,
             $department, $position, $userId, 'candidate']);
         if ($stmtUpdateUser->rowCount() !== 1) {
-            throw new \\RuntimeException('Candidate role changed during conversion');
+            throw new \RuntimeException('Candidate role changed during conversion');
         }
 
         $stmtStatus = $conn->prepare(
@@ -530,7 +530,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
         );
         $stmtStatus->execute(['Converted to Employee', $applicationId, $userId]);
         if ($stmtStatus->rowCount() !== 1) {
-            throw new \\RuntimeException('Application state update failed');
+            throw new \RuntimeException('Application state update failed');
         }
 
         $stmtTimeline = $conn->prepare(
@@ -543,7 +543,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
         ]);
 
         $conn->commit();
-        \\App\\Utils\\Cache::delete('dashboard_stats');
+        \App\Utils\Cache::delete('dashboard_stats');
 
         $response->getBody()->write(json_encode([
             'message' => 'Candidate converted to employee successfully',
@@ -552,7 +552,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
             'userId' => $userId
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
-    } catch (\\Throwable $e) {
+    } catch (\Throwable $e) {
         if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
         error_log('SEC-019 candidate conversion transaction failed');
         $response->getBody()->write(json_encode(['error' => 'Unable to convert candidate. No changes were committed.']));
