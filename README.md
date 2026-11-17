@@ -13,13 +13,13 @@
   [![Slim 4](https://img.shields.io/badge/Slim-4-59666C)](backend/composer.json)
   [![Capacitor 8](https://img.shields.io/badge/Capacitor-8-119EFF?logo=capacitor&logoColor=white)](frontend/package.json)
 
-  [**Features**](#workspaces) · [**Architecture**](#architecture) · [**Getting started**](#getting-started) · [**Android**](#android-app) · [**Security & status**](#security-and-project-status) · [**Audit report**](AUDIT_REPORT.md)
+  [**Workspaces**](#workspaces) · [**Architecture**](#architecture) · [**Getting started**](#getting-started) · [**Android**](#android-app) · [**Security**](#security-and-operations) · [**Deployment**](#deployment-and-maintenance)
 </div>
 
 ---
 
-> [!IMPORTANT]
-> **Development and security status:** The [consolidated audit](AUDIT_REPORT.md) tracks 39 original findings. Its **2026-11-17** snapshot records SEC-001–SEC-020 closed at their documented scopes, while SEC-021–SEC-024, eight performance findings, and seven quality findings remain open (QUAL-002 is partial). Closures include scoped owner-reported verification and accepted residual risks; **they do not constitute blanket production-readiness or an independent penetration-test certification**. Recheck the report and live environment before any real-user release.
+> [!NOTE]
+> **About this project:** This README describes functionality visible in the repository source code. Availability of any feature depends on the configured backend, database, permissions, native platform and external services. Review deployment configuration and run application tests before enabling real-user access.
 
 ## What this repository contains
 
@@ -103,7 +103,6 @@ HRMS/
 │   ├── migrations/       # Versioned database changes
 │   └── review-only/      # Security review SQL; not normal app startup
 ├── tests/                # Focused security and regression test fixtures
-├── AUDIT_REPORT.md       # Consolidated security, performance, quality audit
 ├── Dockerfile
 ├── docker-entrypoint.sh
 ├── render.yaml
@@ -188,7 +187,7 @@ The backend reads environment values via [phpdotenv](backend/public/index.php); 
 
 Additional mailer / integration settings may be needed for a working deployment; inspect the relevant [Edge Function](supabase/functions/send-email/index.ts) and application configuration rather than guessing credentials.
 
-**Safeguards:** Keep `SUPABASE_SECRET_KEY`, `JWT_SECRET`, database passwords and Android signing secrets out of any `VITE_`-prefixed frontend variable, Git commits, screenshots and build logs. Only enable SEC-018 database connection switches after testing the actual pooler and rollback plan ([audit details](AUDIT_REPORT.md#sec-018-remediation-and-verification)).
+**Safeguards:** Keep `SUPABASE_SECRET_KEY`, `JWT_SECRET`, database passwords and Android signing secrets out of any `VITE_`-prefixed frontend variable, Git commits, screenshots and build logs. Change database prepare mode or connection pooling settings only after testing the target connection and a rollback plan; see the [database adapter](backend/src/Config/Database.php).
 
 ## API overview
 
@@ -224,42 +223,39 @@ npm run cap:sync
 npm run cap:open
 ```
 
-Releasing an APK with a different signing certificate can require a coordinated uninstall/reinstall migration. The consolidated [APK signing and rollout guide](AUDIT_REPORT.md#android-apk-distribution-and-signing-guide) documents the existing flow. Avoid uploading signing keys or distributing unsigned builds as production releases.
+Releasing an APK with a different signing certificate can require a coordinated uninstall/reinstall migration. The signed release and publishing rules are implemented in the [Android GitHub Actions workflow](.github/workflows/sec006.yml) and the [employee profile download UI](frontend/src/pages/EmployeeMobileProfile.jsx). Never share signing keys or distribute an unsigned/debug APK as a production release.
 
 ## Quality checks and change control
 
-The repository has focused source, HTTP, database-fixture, frontend and Android security regressions in [`tests/`](tests), orchestrated by [GitHub Actions](.github/workflows). Some database tests deliberately use **isolated PostgreSQL fixtures** and must not target real HRMS data.
+The repository contains source, HTTP, PostgreSQL fixture, frontend and Android regression tests under [`tests/`](tests), run by the [GitHub Actions workflows](.github/workflows). Several tests expect disposable databases or fixtures and must never be directed at real HRMS records.
 
-Useful source-level commands already exercised by repository workflows:
+For a basic local source check:
 
 ```bash
-# From the repository root (Node.js and PHP available)
-node --test tests/sec006_android_security_test.mjs
-node tests/sec019_source_test.mjs
-php tests/sec019_employee_id_test.php
-
-# Frontend checks
+# Frontend
 cd frontend
 npm ci
 npm run build
 npm run lint
+
+# Backend (from the repository root, with PHP installed)
+cd ..
+php -l backend/public/index.php
 ```
 
-The commands above are **available**, not a claim that every check currently passes in every environment. For database/HTTP suites, follow the corresponding workflow's exact setup and guard conditions. In particular, never run SEC-019 dev-reset utilities as routine tests.
+These commands are available in the project; they do not imply that every CI workflow has been executed or passed in your local environment. Follow the individual workflow configuration before running database-dependent or Android-specific tests. Review and test source changes before merging them; protect signing credentials and published commit history.
 
-Security changes follow [the documented one-issue-per-PR/squash policy](AUDIT_REPORT.md#security-change-control-and-historical-mapping). Reviews, required CI, staging tests and release approval are separate gates; do not rewrite published `main` history to tidy commit logs.
+## Security and operations
 
-## Security and project status
+Application security is enforced primarily in the PHP backend and native Android integration. The repository currently implements:
 
-The implementation includes JWT/session and MFA protections, role/feature authorization, server-side record ownership checks, guarded file proxies, explicit CORS policy, maintenance gating and targeted security regression workflows. **These mechanisms have limitations and should not be described as comprehensive security certification.**
+- **Authentication and MFA:** signed access JWTs, email OTP and TOTP challenge flows, bounded access-token lifetime and rotating refresh credentials ([authentication](backend/public/index.php), [MFA routes](backend/public/mfa_routes.php), [session handling](backend/src/Utils/RefreshSessions.php)).
+- **Role and record authorization:** explicit allowed roles, feature grants and ownership/branch checks for protected APIs ([middleware](backend/src/Middleware/AuthMiddleware.php), [origination access policy](backend/src/Security/OriginationAccess.php)).
+- **Protected storage:** authenticated backend upload/deletion and guarded file-download routes rather than open client-side Storage writes ([storage routes](backend/public/storage_routes.php)).
+- **Attendance validation:** server-side geofence handling for configured check-in/check-out flows; Android interval punches have a separate policy ([geofence module](backend/src/Security/AttendanceGeofence.php)).
+- **Maintenance and browser protections:** server-side maintenance gating and configured HTTP/CORS protections ([maintenance middleware](backend/src/Middleware/MaintenanceMiddleware.php), [Apache headers](backend/public/.htaccess)).
 
-The [consolidated audit report](AUDIT_REPORT.md) is the authoritative issue-by-issue history. Its 2026-11-17 snapshot identifies:
-
-- **20 scoped security closures** (SEC-001–SEC-020), based on source, CI and the indicated owner-confirmed live checks.
-- **Open:** SEC-021–SEC-024, PERF-001–PERF-008 and QUAL-001–QUAL-007; QUAL-002 is partially improved.
-- **Residual release work:** backup/restore recovery evidence for SEC-018 was not verified, historical secret/queued-credential considerations remain, and other release gates are separate from issue closure.
-
-For security concerns, avoid sharing tokens, personal records, signing material or exploit payloads in public issues. Coordinate privately with repository maintainers. **No production-readiness assertion or uptime guarantee is made here.**
+These are descriptions of implemented controls, **not a claim that the application has passed every security or release requirement**. Validate your environment, permissions, HTTPS, secret rotation, backup/restore procedures and operational monitoring before a real-user rollout. Report potential security issues privately without posting credentials or personal information.
 
 ## Deployment and maintenance
 
@@ -268,8 +264,8 @@ For security concerns, avoid sharing tokens, personal records, signing material 
 - Database changes live in [`supabase/migrations/`](supabase/migrations); approval, backups, migration history verification and target-environment selection are deployment responsibilities.
 - React emits a version file ([Vite config](frontend/vite.config.js)), while maintenance is enforced server-side for protected API calls ([middleware](backend/src/Middleware/MaintenanceMiddleware.php)).
 
-## Documentation and usage
+## Source and maintenance notes
 
-The repository's complete security remediation, testing history, Android signing notes, candidate offer-letter download design, employee ID format and change-control policy are consolidated in **[AUDIT_REPORT.md](AUDIT_REPORT.md)**. The README intentionally gives an approachable, current code map instead of duplicating hundreds of pages of historical findings.
+For implementation details, follow the linked [frontend application](frontend/src/App.jsx), [backend API](backend/public/index.php), [database migrations](supabase/migrations), [deployment configuration](render.yaml) and [CI workflows](.github/workflows).
 
-**Source review:** This README was checked against repository commit [`4df0af4`](https://github.com/Kondapaneni/HRMS/commit/4df0af4d16232fdc65b6038263b25494d38ebad4) on **2026-11-17**. Source and deployed environments can change; verify the current commit, migrations, CI results and operational settings before relying on any claim. No `LICENSE` file was present in that reviewed tree; confirm redistribution terms with the maintainer.
+**Source review:** This README was checked against repository commit [`4df0af4`](https://github.com/Kondapaneni/HRMS/commit/4df0af4d16232fdc65b6038263b25494d38ebad4) on **2026-11-17**. Deployed behavior may differ from code until the appropriate configuration and release are applied. No `LICENSE` file was present in that reviewed tree; confirm redistribution terms with the maintainer.
