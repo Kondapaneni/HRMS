@@ -27,16 +27,16 @@ $sec019_preflight$;
 
 -- Financial/timekeeping history must not vanish as a side effect of deleting
 -- a public.users account. These are confirmed legacy CASCADE constraints.
-ALTER TABLE public.payslips DROP CONSTRAINT payslips_employeeId_fkey;
-ALTER TABLE public.payslips ADD CONSTRAINT payslips_employeeId_fkey
+ALTER TABLE public.payslips DROP CONSTRAINT "payslips_employeeId_fkey";
+ALTER TABLE public.payslips ADD CONSTRAINT "payslips_employeeId_fkey"
   FOREIGN KEY ("employeeId") REFERENCES public.users(id) ON DELETE RESTRICT;
 
-ALTER TABLE public.attendance DROP CONSTRAINT attendance_employeeId_fkey;
-ALTER TABLE public.attendance ADD CONSTRAINT attendance_employeeId_fkey
+ALTER TABLE public.attendance DROP CONSTRAINT "attendance_employeeId_fkey";
+ALTER TABLE public.attendance ADD CONSTRAINT "attendance_employeeId_fkey"
   FOREIGN KEY ("employeeId") REFERENCES public.users(id) ON DELETE RESTRICT;
 
-ALTER TABLE public.leaves DROP CONSTRAINT leaves_employeeId_fkey;
-ALTER TABLE public.leaves ADD CONSTRAINT leaves_employeeId_fkey
+ALTER TABLE public.leaves DROP CONSTRAINT "leaves_employeeId_fkey";
+ALTER TABLE public.leaves ADD CONSTRAINT "leaves_employeeId_fkey"
   FOREIGN KEY ("employeeId") REFERENCES public.users(id) ON DELETE RESTRICT;
 
 -- Loan audit rows already have two references to the corresponding
