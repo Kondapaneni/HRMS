@@ -33,6 +33,7 @@ CREATE TABLE rate_limits (
 CREATE TABLE jobs (id uuid primary key, title text not null, department text);
 CREATE TABLE applications (
  id uuid primary key, job_id uuid, candidate_id uuid, status text,
+ applied_date timestamp default CURRENT_TIMESTAMP,
  updated_at timestamp default CURRENT_TIMESTAMP
 );
 CREATE SCHEMA storage;
