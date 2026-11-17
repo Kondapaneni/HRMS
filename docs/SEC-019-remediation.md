@@ -46,9 +46,27 @@ Then clear application rows in a reviewed transaction without
 security policies, migration history, and internal SEC-018 schemas.
 Verify object counts and each application-table count afterward.
 
-The connected Supabase SQL connector does **not** provide an object-delete
-endpoint or app-service-role secret. No reset has been executed by this PR.
-Never claim full wipe completion from an SQL-only storage metadata deletion.
+Two **review-only** reset helpers are staged:
+- `frontend/scripts/sec019_purge_storage.mjs` uses the official Supabase
+  Storage `emptyBucket` API for the exact, reviewed 12 DEV buckets. It has a
+  no-delete inventory mode by default, verifies exact project URL and bucket
+  names, and requires an explicit independent environment confirmation for
+  `--execute`. Its service key is read **only from local environment**,
+  never a browser/Vite variable. Run it only from an owner-controlled terminal
+  with Node dependencies installed. Empty requests may be queued; verify actual
+  object counts before advancing.
+- `scripts/sec019_dev_public_reset_review_only.sql` lists exactly 38
+  reviewed public application tables, has a session-bound approval latch,
+  checks that Storage is empty, checks table-inventory drift and private
+  dependencies, and performs one transactional TRUNCATE **without CASCADE**.
+  It is **not** applied by deployment, CI, or migrations.
+
+**Important:** A total data wipe removes the only Admin account, and the
+app cannot be used afterward until an approved secure Admin bootstrap is
+prepared and performed. Pause all live DEV writers and confirm that plan
+before either reset helper is executed. The connected Supabase SQL connector
+does **not** provide an object-delete API or service-role credentials.
+No Storage or public-table reset has been executed in this PR.
 
 ## Still to verify before closing
 - CI: both supported PostgreSQL versions, PHP tests and prior security jobs.
