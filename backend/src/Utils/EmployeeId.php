@@ -20,7 +20,7 @@ final class EmployeeId
 
     /**
      * The caller's INSERT must use:
-     *   ON CONFLICT ON CONSTRAINT "employee_employeeId_key" DO NOTHING RETURNING id
+     *   ON CONFLICT ("employeeId") DO NOTHING RETURNING id
      *
      * A collision returns false without aborting the surrounding PostgreSQL
      * transaction; any other database constraint failure still propagates.
