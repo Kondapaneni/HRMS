@@ -80,12 +80,35 @@ must have access to the reviewed DB setup credentials and be able to run
 this CLI helper before starting the destructive reset. Pause all live DEV writers and confirm that plan
 before either reset helper is executed. The connected Supabase SQL connector
 does **not** provide an object-delete API or service-role credentials.
-No Storage or public-table reset has been executed in this PR.
+The reset was an independent owner-authorized operation, not part of this PR's code or CI.
+
+## Owner-approved DEV reset and live checks (2026-11-17)
+- Confirmed all 12 approved Supabase Storage buckets still exist, with **zero**
+  object records (previously 232 across 11 nonempty buckets). Storage cleanup
+  was performed separately using the supported Supabase Storage API/UI.
+- Confirmed all 38 public HRMS tables exist and test-business data has been
+  reset: 33 tables had zero rows at inspection; remaining rows were newly
+  created admin, settings, audit, refresh-session and rate-limit records.
+- New Admin account bootstrapped separately; owner confirmed that the Admin
+  login, Dashboard and Settings work after the reset.
+- Confirmed live SEC-019 history FKs are ON DELETE RESTRICT; four loan audit
+  foreign keys, an application identity UNIQUE rule and related indexes exist.
+- Supabase had the DDL applied before migration history was registered. The
+  migration was made safe to replay and PG 16/17 CI now tests application twice.
+- Supabase migration `20261117192545_sec019_reconcile_integrity_after_dev_reset`
+  was applied successfully through the migration API; its file name now matches
+  the recorded version. Post-apply constraints were independently verified.
+- Supabase security advisor reported zero active lints at time of inspection.
+- Temporary `sec019-dev-storage-purge-once` Edge Function has been replaced
+  with a nonfunctional HTTP 410 response and JWT verification enabled. It is
+  not a cleanup endpoint anymore; its function record awaits later deletion.
+- All prior audit risk notes concerning legacy loan-document aliases remain
+  in scope for future investigation, not silently cast to a stronger FK.
 
 ## Still to verify before closing
-- CI: both supported PostgreSQL versions, PHP tests and prior security jobs.
-- Reviewed, explicitly authorized DEV migration; post-apply FK/index checks.
-- Storage/object reset and app-table reset verified separately, if still desired.
-- Admin account bootstrap and login after the reset.
-- One-step-at-a-time live Admin, employee, loan, attendance and payroll checks.
-- Preserve the earlier accepted SEC-018 residual risks in their own notes.
+- All required GitHub branch checks pass for the final head commit.
+- One protected-main squash merge and Render deployment of the reviewed code.
+- Verify new Admin employee creation emits a server-owned opaque employee code,
+  including live API authorization checks, without exposing invitation secrets.
+- Verify candidate conversion and loan audit flows safely when suitable test
+  fixtures exist; preserve prior SEC-018 accepted residual risks separately.
