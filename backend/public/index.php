@@ -690,19 +690,24 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
             'id' => $user['id']
         ]);
 
-        // Build reset link from environment variable
-        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
-        $resetLink = !empty($frontendUrl) ? ($frontendUrl . "/reset-password?token=" . $token) : ("/reset-password?token=" . $token);
+        // Email clients need an absolute reset URL, even if FRONTEND_URL isn't set.
+        // Never derive this origin from user-controlled Host / X-Forwarded-Host headers.
+        $frontendUrl = rtrim(trim($_ENV['FRONTEND_URL'] ?? ''), '/');
+        if ($frontendUrl === '') {
+            $frontendUrl = 'https://hrms-qwv3.onrender.com';
+        }
+        $resetLink = $frontendUrl . "/reset-password?token=" . rawurlencode($token);
 
-        // Load and prepare email template
+        // Escape the URL before inserting it into HTML attributes and visible text.
+        $safeResetLink = htmlspecialchars($resetLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $templatePath = __DIR__ . '/../src/Templates/reset_password.html';
         $emailContent = '';
         if (file_exists($templatePath)) {
             $emailContent = file_get_contents($templatePath);
-            $emailContent = str_replace('{{resetLink}}', $resetLink, $emailContent);
+            $emailContent = str_replace('{{resetLink}}', $safeResetLink, $emailContent);
             $emailContent = str_replace('{{currentYear}}', date('Y'), $emailContent);
         } else {
-            $emailContent = "Please click this link to reset your password: " . $resetLink;
+            $emailContent = '<p>Reset your password using this link:</p><p><a href="' . $safeResetLink . '">Reset your password</a></p>';
         }
 
         // Queue email
