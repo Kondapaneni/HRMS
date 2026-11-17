@@ -8,6 +8,8 @@ for path in scripts/sec018_backup_dev.sh scripts/sec018_restore_rehearsal.sh; do
 done
 # The encrypted stream must be consumed from stdin; a bare "-" is a
 # literal filename for pg_restore and fails before any restore occurs.
+grep -Fq -- 'DROP SCHEMA IF EXISTS public' scripts/sec018_restore_rehearsal.sh ||
+  { echo "FAIL: local empty public schema collision not guarded" >&2; exit 1; }
 grep -Fq -- '--dbname="$PGDATABASE"' scripts/sec018_restore_rehearsal.sh ||
   { echo "FAIL: local restore lacks explicit database target" >&2; exit 1; }
 if grep -Fq -- '--dbname="$PGDATABASE" -' scripts/sec018_restore_rehearsal.sh; then
@@ -68,10 +70,11 @@ if [[ "${GITHUB_ACTIONS:-}" == "true" && "${DB_DATABASE:-}" == "sec018_phasea_ci
   createdb "$pgsrc"
   createdb "$pgdest"
   psql -X -v ON_ERROR_STOP=1 -d "$pgsrc" \
-    -c "CREATE SCHEMA sec018_ci_stream; CREATE TABLE sec018_ci_stream.stream_fixture (n integer NOT NULL); INSERT INTO sec018_ci_stream.stream_fixture(n) VALUES (42);" > /dev/null
-  # A fresh PostgreSQL DB already has public. Use a distinct synthetic schema
-  # so the archive may restore transactionally without any --clean or DROP.
-  pg_dump -Fc --no-owner --no-acl -d "$pgsrc" -n sec018_ci_stream |
+    -c "CREATE TABLE public.stream_fixture (n integer NOT NULL); INSERT INTO public.stream_fixture(n) VALUES (42);" > /dev/null
+  # Match a real HRMS export containing CREATE SCHEMA public. Only the
+  # disposable local target's EMPTY default public schema may be removed.
+  psql -X -v ON_ERROR_STOP=1 -d "$pgdest" -c 'DROP SCHEMA IF EXISTS public' >/dev/null
+  pg_dump -Fc --no-owner --no-acl -d "$pgsrc" -n public |
     gpg --batch --yes --pinentry-mode loopback --passphrase "$passphrase" \
       --compress-algo none --symmetric --cipher-algo AES256 \
       --output "$tmpdir/pgdump.gpg"
@@ -80,7 +83,7 @@ if [[ "${GITHUB_ACTIONS:-}" == "true" && "${DB_DATABASE:-}" == "sec018_phasea_ci
     pg_restore --exit-on-error --single-transaction --no-owner --no-acl \
       --dbname="$pgdest"
   value="$(psql -X -A -t -v ON_ERROR_STOP=1 -d "$pgdest" \
-    -c 'SELECT n FROM sec018_ci_stream.stream_fixture')"
+    -c 'SELECT n FROM public.stream_fixture')"
   [[ "$value" == "42" ]] || {
     echo "FAIL: synthetic stdin restoration content mismatch" >&2
     exit 1
