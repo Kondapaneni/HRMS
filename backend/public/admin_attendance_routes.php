@@ -1068,8 +1068,7 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
         $response->getBody()->write(json_encode([
             'record' => $record,
             'employee' => $employee,
-            'punches' => $punches,
-            'googleMapsApiKey' => $_ENV['GOOGLE_MAPS_API_KEY'] ?? ''
+            'punches' => $punches
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         
