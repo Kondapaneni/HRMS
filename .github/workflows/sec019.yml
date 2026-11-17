@@ -1,0 +1,69 @@
+name: SEC-019 opaque employee IDs and database record integrity
+
+on:
+  pull_request:
+    paths:
+      - 'backend/public/admin_employees_routes.php'
+      - 'backend/src/Utils/EmployeeId.php'
+      - 'supabase/migrations/20261117192545_sec019_reconcile_integrity_after_dev_reset.sql'
+      - 'tests/sec019_*'
+      - 'docs/SEC-019-remediation.md'
+      - 'scripts/sec019_dev_public_reset_review_only.sql'
+      - 'scripts/sec019_bootstrap_admin.php'
+      - 'frontend/scripts/sec019_purge_storage.mjs'
+      - '.github/workflows/sec019.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-sec019:
+    name: Employee ID and retained-record checks (PG ${{ matrix.postgres }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: ['16', '17']
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_DB: sec019_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec019_test_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec019_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: sec019_test_only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify PHP syntax and random IDs
+        run: |
+          set -euo pipefail
+          php -l backend/src/Utils/EmployeeId.php
+          php -l backend/public/admin_employees_routes.php
+          php -l scripts/sec019_bootstrap_admin.php
+          php tests/sec019_employee_id_test.php
+          node tests/sec019_source_test.mjs
+          node --check frontend/scripts/sec019_purge_storage.mjs
+          node tests/sec019_reset_guard_test.mjs
+          node tests/sec019_bootstrap_guard_test.mjs
+      - name: Apply integrity migration against isolated legacy schema
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -f tests/sec019_schema_fixture.sql
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -f supabase/migrations/20261117192545_sec019_reconcile_integrity_after_dev_reset.sql -v ON_ERROR_STOP=1
+          # Simulate live DEV where exact SEC-019 DDL exists but migration
+          # history does not: reapplying must preserve all checks.
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -f supabase/migrations/20261117192545_sec019_reconcile_integrity_after_dev_reset.sql -v ON_ERROR_STOP=1
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -f tests/sec019_schema_assert.sql
