@@ -1,0 +1,53 @@
+name: Security PR issue scope
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  single-security-issue:
+    name: Security PR issue scope
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require one SEC issue in security PR title and commit subjects
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")"
+          uppercase_title="$(printf '%s' "$title" | tr '[:lower:]' '[:upper:]')"
+
+          # General maintenance/Android/release PRs may have no SEC issue.
+          if ! grep -Eq 'SEC-[0-9]{3}' <<< "$uppercase_title"; then
+            echo "Non-SEC PR; security issue scope check not applicable."
+            exit 0
+          fi
+
+          # Disallow mixed subjects like "SEC-016/017/018" or loose references.
+          if ! [[ "$uppercase_title" =~ ^(SEC-[0-9]{3}|(FIX|FEAT|TEST|DOCS|CI|CHORE|REFACTOR)\(SEC-[0-9]{3}\)):[[:space:]]+.+$ ]]; then
+            echo "::error::Security PR title must begin 'SEC-019: ...' or 'fix(SEC-019): ...' and identify one issue."
+            exit 1
+          fi
+
+          expected="$(grep -Eo 'SEC-[0-9]{3}' <<< "$uppercase_title" | head -n 1)"
+
+          # Read only the first line of each commit message. Regression-test
+          # details mentioning earlier issues may remain in the PR body.
+          subjects="$(gh api "repos/$REPO/pulls/$PR_NUMBER/commits" --paginate \
+              --jq '.[].commit.message | split("\n")[0]')"
+          references="$(printf '%s\n%s\n' "$uppercase_title" "$subjects" |
+              tr '[:lower:]' '[:upper:]' | grep -Eo 'SEC-[0-9]{3}' | sort -u || true)"
+
+          if [[ "$references" != "$expected" ]]; then
+            echo "::error::One security issue per PR required. Title indicates $expected; distinct issue IDs in title/commit subjects: $references"
+            exit 1
+          fi
+
+          echo "PASS: all declared security issue references match $expected."
