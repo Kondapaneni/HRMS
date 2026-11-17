@@ -484,18 +484,15 @@ const EmployeeMobileProfile = () => {
             Acme HRMS {import.meta.env.VITE_APP_SEMVER || 'v2.4.0'}
           </span>
         </div>
-        <p className="text-[10px] text-[var(--muted)] font-medium">
-          Build {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
-        </p>
-
         {!isNativeApp && !isIOS && (
-          <div className="pt-1">
+          <div className="pt-2">
             <a
               href={`${getAssetUrl('/downloads/Acme%20HRMS.apk')}?v=${import.meta.env.VITE_APP_VERSION || '1'}`}
               download="Acme HRMS.apk"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer active:scale-95 transition-all"
+              aria-label="Download Acme HRMS Android APK"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--ink-2)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-2 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-4 h-4" />
               <span>Download Mobile App (APK)</span>
             </a>
           </div>
