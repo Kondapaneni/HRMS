@@ -108,7 +108,7 @@ jobs:
         run: |
           composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
           php tests/sec015_seed.php
-          PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_DATABASE" -v ON_ERROR_STOP=1 -f supabase/migrations/20261117_candidate_offer_letter_portal_link.sql
+          PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_DATABASE" -v ON_ERROR_STOP=1 -f supabase/migrations/20261117224142_candidate_offer_letter_portal_link.sql
           php tests/sec015_policy_test.php
       - name: Test anonymous/candidate/admin HTTP and queue integrity
         shell: bash
