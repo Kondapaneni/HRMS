@@ -543,7 +543,12 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
         ]);
 
         $conn->commit();
-        \App\Utils\Cache::delete('dashboard_stats');
+        // Cache refresh is best-effort: never report an error after commit.
+        try {
+            \App\Utils\Cache::delete('dashboard_stats');
+        } catch (\Throwable $cacheError) {
+            error_log('SEC-019 candidate conversion cache invalidation failed');
+        }
 
         $response->getBody()->write(json_encode([
             'message' => 'Candidate converted to employee successfully',
