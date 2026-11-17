@@ -28,10 +28,10 @@ $sec019_preflight$;
 -- exact already-hardened ON DELETE RESTRICT definitions untouched.
 DO $sec019_history_fks$
 DECLARE row_ record;
-DECLARE found_definition text;
-DECLARE expected_definition text :=
+        found_definition text;
+        expected_definition text :=
   'FOREIGN KEY ("employeeId") REFERENCES users(id) ON DELETE RESTRICT';
-DECLARE previous_definition text :=
+        previous_definition text :=
   'FOREIGN KEY ("employeeId") REFERENCES users(id) ON DELETE CASCADE';
 BEGIN
   FOR row_ IN
@@ -68,7 +68,7 @@ ALTER TABLE public.loan_application_audit_logs
 
 DO $sec019_generated_guard$
 DECLARE actual_expression text;
-DECLARE actual_generation char;
+        actual_generation char;
 BEGIN
   SELECT a.attgenerated, pg_get_expr(d.adbin, d.adrelid)
     INTO actual_generation, actual_expression
@@ -105,7 +105,7 @@ $sec019_identity_constraint$;
 -- add missing ones without replacing any unrelated or conflicting constraint.
 DO $sec019_audit_fks$
 DECLARE row_ record;
-DECLARE actual_definition text;
+        actual_definition text;
 BEGIN
   FOR row_ IN
     SELECT * FROM (VALUES
