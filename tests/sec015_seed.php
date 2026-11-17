@@ -43,7 +43,7 @@ CREATE TABLE candidate_documents (
  candidate_id uuid, document_type text, status text
 );
 CREATE TABLE employee (
- id uuid primary key default gen_random_uuid(), "employeeId" text,
+ id uuid primary key default gen_random_uuid(), "employeeId" text NOT NULL UNIQUE,
  "userId" uuid, "firstName" text, "lastName" text, email text, phone text,
  department text, position text, branch text, "joinDate" date,
  salary numeric, status text, "managerId" uuid, timeline text
