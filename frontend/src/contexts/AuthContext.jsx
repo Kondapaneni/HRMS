@@ -125,6 +125,15 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithOtp = async (email, otp) => {
     const response = await api.post('/auth/otp/verify', { email, otp });
+    // SEC-008: Email OTP is only the first factor when TOTP MFA is active.
+    // Never persist the pending challenge token as an authenticated session.
+    if (response.data?.mfaRequired) {
+      return {
+        mfaRequired: true,
+        mfaToken: response.data.mfaToken,
+        email: response.data.email,
+      };
+    }
     const { token, user: userData } = response.data;
     if (token) {
       localStorage.setItem('token', token);
