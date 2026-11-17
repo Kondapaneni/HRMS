@@ -81,6 +81,32 @@ $app->add(function (Request $request, $handler) {
         ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 });
 
+// SEC-003: browser <img>, <a>, and <video> cannot attach Bearer headers.
+// After a valid JWT-authenticated API request, mint an HttpOnly, HTTPS-only
+// 30-minute file-view cookie. File routes still re-verify JWT + DB ownership.
+$app->add(function (Request $request, $handler) {
+    $response = $handler->handle($request);
+    $path = $request->getUri()->getPath();
+    $cookieAttributes = 'Path=/; Secure; HttpOnly; SameSite=Lax';
+    if ($path === '/api/logout') {
+        return $response->withAddedHeader('Set-Cookie',
+            'hrms_file_auth=; Max-Age=0; ' . $cookieAttributes);
+    }
+    if (!str_starts_with($path, '/api/') || $response->getStatusCode() >= 400) return $response;
+    $auth = trim($request->getHeaderLine('Authorization'));
+    if (!preg_match('/\ABearer\s+([A-Za-z0-9._-]+)\z/i', $auth, $matches)) return $response;
+    $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+    if ($secret === '') return $response;
+    try {
+        $claims = JWT::decode($matches[1], new \Firebase\JWT\Key($secret, 'HS256'));
+        if (empty($claims->id) || empty($claims->role)) return $response;
+    } catch (Throwable $e) {
+        return $response;
+    }
+    return $response->withAddedHeader('Set-Cookie',
+        'hrms_file_auth=' . $matches[1] . '; Max-Age=1800; ' . $cookieAttributes);
+});
+
 // Handle preflight OPTIONS requests for CORS
 $app->options('/{routes:.+}', function ($request, $response, $args) {
     return $response;
@@ -638,6 +664,7 @@ require __DIR__ . '/origination_sales_leads_routes.php';
 require __DIR__ . '/branch_operations_dashboard_routes.php';
 require __DIR__ . '/branch_operations_application_routes.php';
 require __DIR__ . '/storage_routes.php';
+require __DIR__ . '/sec003_file_access.php';
 
 // Request Password Reset
 $app->post('/api/forgot-password', function (Request $request, Response $response) {
@@ -767,9 +794,7 @@ $app->post('/api/reset-password', function (Request $request, Response $response
 
 // Resume proxy route for clean URLs
 $app->get('/Resume/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/resumes/" . rawurlencode($filename);
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+    return sec003Serve($request, $response, $args, 'resumes', 'inline');
 });
 
 // Job Description proxy route for clean URLs
@@ -781,9 +806,7 @@ $app->get('/Job-Description/{filename:.+}', function (Request $request, Response
 
 // Offer Letter proxy route for clean URLs
 $app->get('/Offer-Letter/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'attachment');
+    return sec003Serve($request, $response, $args, 'offer_letters', 'attachment');
 });
 
 function getMimeType($filename) {
@@ -833,9 +856,7 @@ function streamSupabaseFile($supabaseUrl, Response $response, $filename, $dispos
 
 // Avatar proxy route
 $app->get('/Avatar/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/avatars/" . rawurlencode($filename);
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+    return sec003Serve($request, $response, $args, 'avatars', 'inline');
 });
 
 // Holiday proxy route
@@ -847,50 +868,33 @@ $app->get('/Holiday/{filename:.+}', function (Request $request, Response $respon
 
 // Attendance proxy route
 $app->get('/Attendance/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/attendance/" . rawurlencode($filename);
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+    return sec003Serve($request, $response, $args, 'attendance', 'inline');
 });
 
 // Candidate Document proxy route
 $app->get('/Candidate-Document/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/candidate_documents/" . $encodedFilename;
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+    return sec003Serve($request, $response, $args, 'candidate_documents', 'inline');
 });
 
 // Bills proxy route
 $app->get('/Bills/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/expenses/" . $encodedFilename;
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+    return sec003Serve($request, $response, $args, 'expenses', 'inline');
 });
 
 
 // Loan Document proxy route
 $app->get('/Loan-Document/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/loan_documents/" . $encodedFilename;
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+    return sec003Serve($request, $response, $args, 'loan_documents', 'inline');
 });
 
 // Loan Signature proxy route
 $app->get('/Loan-Signature/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/loan_signatures/" . $encodedFilename;
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+    return sec003Serve($request, $response, $args, 'loan_signatures', 'inline');
 });
 
 // Training Video proxy route (redirect to Supabase for native video caching and range requests)
 $app->get('/Training-Video/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/training_videos/" . $encodedFilename;
-    return $response->withHeader('Location', $supabaseUrl)->withStatus(302);
+    return sec003Serve($request, $response, $args, 'training_videos', 'inline');
 });
 
 
