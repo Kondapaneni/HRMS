@@ -3,6 +3,7 @@
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
+use App\Security\OriginationAccess;
 
 /**
  * Helper function to fetch all documents for a loan application from public.loan_documents table.
@@ -16,7 +17,8 @@ function getLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null
         WHERE application_id = ? OR application_id = ? OR application_id = ?
         ORDER BY created_at ASC
     ');
-    $stmt->execute([(string)$appId, (string)$uuidId, (string)$leadId]);
+    $safeLeadId = OriginationAccess::uniqueLeadDocumentKey($conn, $leadId);
+    $stmt->execute([(string)$appId, (string)$uuidId, (string)$safeLeadId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $docsMap = [];
@@ -38,9 +40,13 @@ function getLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null
  */
 function getLoanDocumentsBatch($conn, array $rows) {
     $allIds = [];
+    $ambiguousLeadKeys = OriginationAccess::duplicateLeadDocumentKeys($conn, $rows);
     foreach ($rows as $r) {
-        foreach ([$r['application_id'] ?? null, $r['id'] ?? null, $r['lead_id'] ?? null] as $v) {
+        foreach ([$r['application_id'] ?? null, $r['id'] ?? null] as $v) {
             if (!empty($v)) $allIds[(string)$v] = true;
+        }
+        if (!empty($r['lead_id']) && !isset($ambiguousLeadKeys[(string)$r['lead_id']])) {
+            $allIds[(string)$r['lead_id']] = true;
         }
     }
     $allIds = array_keys($allIds);
@@ -130,6 +136,12 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     $applicantName = trim($data['applicant_name'] ?? '');
     $phoneNumber = trim($data['phone_number'] ?? '');
     $status = trim($data['status'] ?? 'Created');
+    // Loan originators can save a draft or submit it for processing, but may
+    // not self-approve a financial application or invent a privileged status.
+    if (!OriginationAccess::isAdmin($user) && !in_array($status, ['Draft', 'Created'], true)) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid loan origination status']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+    }
     $formData = $data['form_data'] ?? $data;
     $leadId = $data['lead_id'] ?? $formData['lead_id'] ?? null;
     $documents = $data['documents'] ?? $formData['documents'] ?? [];
@@ -176,59 +188,83 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             }
         }
 
-        $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-        // Resolve user ID safely as string (supports both UUID strings and integer IDs)
-        $createdById = null;
-        if (is_object($user)) {
-            $createdById = isset($user->id) ? (string)$user->id : (isset($user->user_id) ? (string)$user->user_id : null);
-        } elseif (is_array($user)) {
-            $createdById = isset($user['id']) ? (string)$user['id'] : (isset($user['user_id']) ? (string)$user['user_id'] : (isset($user['sub']) ? (string)$user['sub'] : null));
+        // Origination staff cannot declare that their own draft has reached
+        // Branch Operations. Stage history is advanced only through the
+        // separately validated status-transfer endpoint.
+        if (!OriginationAccess::isAdmin($user)) {
+            unset($cleanedFormData['stage'], $cleanedFormData['current_stage'],
+                  $cleanedFormData['timeline'], $cleanedFormData['created_by'],
+                  $cleanedFormData['branch']);
         }
 
-        // Fetch user's branch from employee table
-        $branchStmt = $conn->prepare('SELECT branch FROM public.employee WHERE "userId" = ? LIMIT 1');
-        $branchStmt->execute([$createdById]);
-        $emp = $branchStmt->fetch(PDO::FETCH_ASSOC);
-        $userBranch = $emp['branch'] ?? null;
+        $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        // SEC-011: Never trust form_data.created_by or form_data.branch.
+        $createdById = OriginationAccess::userId($user);
+        $userBranch = $createdById ? OriginationAccess::branch($conn, $createdById) : null;
+        if (!$createdById || (!OriginationAccess::isAdmin($user) && !$userBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+
+        // A lead may be linked only if it belongs to this creator/branch.
+        if (!empty($leadId) && !OriginationAccess::isAdmin($user)) {
+            $leadStmt = $conn->prepare('
+                SELECT 1 FROM public.loan_leads
+                WHERE id::text = ? AND created_by = ? AND branch = ? LIMIT 1
+            ');
+            $leadStmt->execute([(string)$leadId, $createdById, $userBranch]);
+            if (!$leadStmt->fetchColumn()) {
+                $response->getBody()->write(json_encode(['error' => 'Lead not found']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            }
+        }
 
         $existingDraft = null;
         $appId = $data['id'] ?? $data['application_id'] ?? $formData['id'] ?? $formData['application_id'] ?? null;
         if (!empty($appId)) {
-            $checkStmt = $conn->prepare('
-                SELECT id, application_id FROM public.loan_applications
-                WHERE (id::text = ? OR application_id = ?) AND status = \'Draft\'
-                ORDER BY created_at DESC
-                LIMIT 1
-            ');
-            $checkStmt->execute([(string)$appId, (string)$appId]);
-            $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
+            $existingDraft = OriginationAccess::findLoan($conn, (string)$appId, $user, $userBranch, true, false);
+            if (!$existingDraft) {
+                // If the caller supplied an existing application identifier
+                // that isn't an editable own draft, refuse instead of silently
+                // creating a fresh record linked to someone else's identity.
+                $anyStmt = $conn->prepare('
+                    SELECT 1 FROM public.loan_applications
+                    WHERE id::text = ? OR application_id = ? LIMIT 1
+                ');
+                $anyStmt->execute([(string)$appId, (string)$appId]);
+                if ($anyStmt->fetchColumn()) {
+                    $response->getBody()->write(json_encode(['error' => 'Draft not found']));
+                    return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+                }
+            }
         }
 
         if (!$existingDraft && !empty($leadId)) {
-            $checkStmt = $conn->prepare('
+            [$draftScope, $draftArgs] = OriginationAccess::loanScope($user, $userBranch);
+            $checkStmt = $conn->prepare("
                 SELECT id, application_id FROM public.loan_applications
-                WHERE lead_id = ? AND loan_type = ? AND status = \'Draft\'
-                ORDER BY created_at DESC
-                LIMIT 1
-            ');
-            $checkStmt->execute([$leadId, $loanType]);
+                WHERE lead_id = ? AND loan_type = ? AND status = 'Draft'
+                {$draftScope}
+                ORDER BY created_at DESC LIMIT 1
+            ");
+            $checkStmt->execute(array_merge([$leadId, $loanType], $draftArgs));
             $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
         }
 
         if ($existingDraft) {
-            $stmt = $conn->prepare('
+            [$writeScope, $writeArgs] = OriginationAccess::loanScope($user, $userBranch);
+            $stmt = $conn->prepare("
                 UPDATE public.loan_applications
-                SET status = ?, form_data = ?::jsonb, branch = COALESCE(branch, ?), updated_at = NOW()
-                WHERE id = ?
+                SET status = ?, form_data = ?::jsonb, updated_at = NOW()
+                WHERE id = ? {$writeScope}
                 RETURNING id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
-            ');
-            $stmt->execute([
+            ");
+            $stmt->execute(array_merge([
                 $status,
                 $jsonPayload,
-                $userBranch,
                 $existingDraft['id']
-            ]);
+            ], $writeArgs));
         } else {
             $applicationId = 'LA' . random_int(100000, 999999);
             $stmt = $conn->prepare('
@@ -249,6 +285,11 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         }
 
         $application = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$application) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
 
         if ($application) {
             if (isset($application['form_data']) && is_string($application['form_data'])) {
@@ -293,15 +334,13 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         $db = new Database();
         $conn = $db->getConnection();
 
-        $userId = null;
-        $userRole = 'employee';
-        if (is_object($user)) {
-            $userId = isset($user->id) ? (string)$user->id : null;
-            $userRole = $user->role ?? 'employee';
-        } elseif (is_array($user)) {
-            $userId = isset($user['id']) ? (string)$user['id'] : null;
-            $userRole = $user['role'] ?? 'employee';
+        $userId = OriginationAccess::userId($user);
+        $userBranch = $userId ? OriginationAccess::branch($conn, $userId) : null;
+        if (!$userId || (!OriginationAccess::isAdmin($user) && !$userBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
+        [$readScope, $readArgs] = OriginationAccess::loanScope($user, $userBranch, 'la');
 
         $stmt = $conn->prepare('
             SELECT 
@@ -321,11 +360,12 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
                 la.branch = b.id::text OR 
                 (la.branch ~ \'^[0-9a-fA-F-]{36}$\' AND la.branch::uuid = b.id)
             )
-            WHERE la.created_by = ? OR ? = \'admin\'
+            WHERE TRUE
+        ' . $readScope . '
             ORDER BY la.created_at DESC
         ');
 
-        $stmt->execute([$userId, $userRole]);
+        $stmt->execute($readArgs);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // OPTIMIZATION: fetch documents for every row in one query instead of
@@ -436,15 +476,17 @@ $app->post('/api/loans/applications/{id}/documents', function (Request $request,
         $conn = $db->getConnection();
 
         // Find application by UUID id or application_id or lead_id
-        $findStmt = $conn->prepare('
-            SELECT id, application_id, lead_id, loan_type, status, form_data
-            FROM public.loan_applications
-            WHERE id::text = ? OR application_id = ? OR lead_id = ?
-            ORDER BY created_at DESC
-            LIMIT 1
-        ');
-        $findStmt->execute([$identifier, $identifier, $identifier]);
-        $appRow = $findStmt->fetch(PDO::FETCH_ASSOC);
+        // SEC-011: Lookup by ID/application_id/lead_id must be creator and
+        // current-branch scoped, except for an explicitly authenticated admin.
+        $loanActor = $request->getAttribute('user');
+        $loanUid = OriginationAccess::userId($loanActor);
+        $loanBranch = $loanUid ? OriginationAccess::branch($conn, $loanUid) : null;
+        if (!$loanUid || (!OriginationAccess::isAdmin($loanActor) && !$loanBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        $appRow = OriginationAccess::findLoan($conn, (string)$identifier, $loanActor, $loanBranch);
+
 
         if (!$appRow) {
             $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
@@ -492,15 +534,17 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
         $db = new Database();
         $conn = $db->getConnection();
 
-        $findStmt = $conn->prepare('
-            SELECT id, application_id, lead_id
-            FROM public.loan_applications
-            WHERE id::text = ? OR application_id = ? OR lead_id = ?
-            ORDER BY created_at DESC
-            LIMIT 1
-        ');
-        $findStmt->execute([$identifier, $identifier, $identifier]);
-        $appRow = $findStmt->fetch(PDO::FETCH_ASSOC);
+        // SEC-011: Lookup by ID/application_id/lead_id must be creator and
+        // current-branch scoped, except for an explicitly authenticated admin.
+        $loanActor = $request->getAttribute('user');
+        $loanUid = OriginationAccess::userId($loanActor);
+        $loanBranch = $loanUid ? OriginationAccess::branch($conn, $loanUid) : null;
+        if (!$loanUid || (!OriginationAccess::isAdmin($loanActor) && !$loanBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        $appRow = OriginationAccess::findLoan($conn, (string)$identifier, $loanActor, $loanBranch);
+
 
         if (!$appRow) {
             $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
@@ -514,7 +558,8 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
             DELETE FROM public.loan_documents
             WHERE (application_id = ? OR application_id = ? OR application_id = ?) AND slot_key = ?
         ');
-        $delStmt->execute([$appId, (string)$appRow['id'], (string)$appRow['lead_id'], $docKey]);
+        $safeLeadId = OriginationAccess::uniqueLeadDocumentKey($conn, $appRow['lead_id']);
+        $delStmt->execute([$appId, (string)$appRow['id'], (string)$safeLeadId, $docKey]);
 
         // Fetch remaining documents from dedicated table
         $remainingDocs = getLoanDocumentsFromTable($conn, $appId, $appRow['id'], $appRow['lead_id']);
@@ -558,19 +603,33 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
         $db = new Database();
         $conn = $db->getConnection();
 
-        $findStmt = $conn->prepare('
-            SELECT id, form_data
-            FROM public.loan_applications
-            WHERE id::text = ? OR application_id = ? OR lead_id = ?
-            ORDER BY created_at DESC
-            LIMIT 1
-        ');
-        $findStmt->execute([$identifier, $identifier, $identifier]);
-        $appRow = $findStmt->fetch(PDO::FETCH_ASSOC);
+        // SEC-011: Lookup by ID/application_id/lead_id must be creator and
+        // current-branch scoped, except for an explicitly authenticated admin.
+        $loanActor = $request->getAttribute('user');
+        $loanUid = OriginationAccess::userId($loanActor);
+        $loanBranch = $loanUid ? OriginationAccess::branch($conn, $loanUid) : null;
+        if (!$loanUid || (!OriginationAccess::isAdmin($loanActor) && !$loanBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        $appRow = OriginationAccess::findLoan($conn, (string)$identifier, $loanActor, $loanBranch);
+
 
         if (!$appRow) {
             $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        // Only the application creator may advance Created -> Under Review
+        // for the transfer to Branch Operations. Approval/rejection requires
+        // a separately authorized administrative workflow.
+        if (!OriginationAccess::isAdmin($loanActor)) {
+            $transferStage = is_array($timelineEvent) ? trim((string)($timelineEvent['stage'] ?? '')) : '';
+            if ($status !== 'Under Review' || $appRow['status'] !== 'Created'
+                || strcasecmp($transferStage, 'Branch Operations') !== 0) {
+                $response->getBody()->write(json_encode(['error' => 'Loan status transition is not permitted']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
         }
 
         $formData = is_string($appRow['form_data']) ? json_decode($appRow['form_data'], true) : ($appRow['form_data'] ?: []);
@@ -593,11 +652,18 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
             $updateParams = [$status, $jsonPayload, $signaturePayload];
         }
 
-        $updateQuery .= ' WHERE id = ?';
-        $updateParams[] = $appRow['id'];
+        // Repeat ownership in UPDATE for race-safe authorization if a
+        // record is reassigned or moved between lookup and write.
+        [$writeScope, $writeArgs] = OriginationAccess::loanScope($loanActor, $loanBranch);
+        $updateQuery .= ' WHERE id = ?' . $writeScope;
+        $updateParams = array_merge($updateParams, [$appRow['id']], $writeArgs);
 
         $updateStmt = $conn->prepare($updateQuery);
         $updateStmt->execute($updateParams);
+        if ($updateStmt->rowCount() === 0) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
 
         $response->getBody()->write(json_encode([
             'success' => true,
@@ -622,8 +688,26 @@ $app->delete('/api/loans/applications/{id}', function (Request $request, Respons
         $db = new Database();
         $conn = $db->getConnection();
 
-        $stmt = $conn->prepare('DELETE FROM public.loan_applications WHERE id::text = ? OR application_id = ? OR lead_id = ?');
-        $stmt->execute([$identifier, $identifier, $identifier]);
+        $loanActor = $request->getAttribute('user');
+        $loanUid = OriginationAccess::userId($loanActor);
+        $loanBranch = $loanUid ? OriginationAccess::branch($conn, $loanUid) : null;
+        if (!$loanUid || (!OriginationAccess::isAdmin($loanActor) && !$loanBranch)) {
+            $response->getBody()->write(json_encode(['error' => 'A valid employee branch assignment is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        // Resolve one authorized row first. Deleting by a shared lead ID
+        // must NEVER delete multiple applications or anyone else's record.
+        $appRow = OriginationAccess::findLoan($conn, (string)$identifier, $loanActor, $loanBranch);
+        if (!$appRow) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+        [$deleteScope, $deleteArgs] = OriginationAccess::loanScope($loanActor, $loanBranch);
+        $stmt = $conn->prepare('
+            DELETE FROM public.loan_applications
+            WHERE id = ?' . $deleteScope
+        );
+        $stmt->execute(array_merge([$appRow['id']], $deleteArgs));
 
         if ($stmt->rowCount() > 0) {
             $response->getBody()->write(json_encode(['success' => true, 'message' => 'Loan application deleted successfully']));
