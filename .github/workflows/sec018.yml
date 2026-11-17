@@ -1,7 +1,7 @@
 name: SEC-018 restricted role audit and transaction pooler
 on:
   pull_request:
-    paths: ['backend/**', 'tests/**', 'supabase/**', '.github/workflows/sec018.yml']
+    paths: ['backend/**', 'tests/**', 'supabase/**', 'scripts/sec018_*', '.github/workflows/sec018.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -168,6 +168,7 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/sec018_backup_dev.sh scripts/sec018_restore_rehearsal.sh
+          bash tests/sec018_gpg_stream_ci.sh
           if bash scripts/sec018_backup_dev.sh > /tmp/sec018-backup-refusal.log 2>&1; then
             echo "ERROR: backup helper ran inside CI" >&2
             exit 1
