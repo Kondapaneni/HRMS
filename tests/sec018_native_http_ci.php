@@ -85,6 +85,20 @@ foreach ([
     checkNative($status===200, "scoped native query $path ($status)");
 }
 
+// A forged branch parameter must never relocate an employee's sales lead.
+[$salesStatus,$salesCreated]=nativeCall('POST','/api/sales/leads',$tokens['employee'],[
+    'name'=>'Synthetic Native Branch-Spoof Probe',
+    'phone'=>'9900000002',
+    'address'=>'Synthetic Only',
+    'branch'=>'20000000-0000-4000-8000-000000000002',
+]);
+checkNative($salesStatus===201 && !empty($salesCreated['data']['id']),
+    'delegated sales lead created with server-side branch');
+$branchCheck=$owner->prepare('SELECT branch FROM public.sale_leads WHERE id=?');
+$branchCheck->execute([$salesCreated['data']['id']]);
+checkNative((string)$branchCheck->fetchColumn()===$branchId,
+    'client-selected branch ignored for employee sales creation');
+
 foreach ([
     ['/api/admin/assets','admin'],
     ['/api/admin/settings','admin'],
