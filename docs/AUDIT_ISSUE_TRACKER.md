@@ -1,17 +1,17 @@
 # HRMS Audit Issue Tracker — Checklist
 
-**As of:** 2026-11-14 (SEC-001–SEC-006 closed on explicit project-owner confirmation of live deployment and testing)  
+**As of:** 2026-11-14 (SEC-001–SEC-007 closed after source/CI review and owner-confirmed live testing)  
 **Baseline:** [AUDIT_REPORT.md](../AUDIT_REPORT.md) (2026-11-11), [GitHub commits](https://github.com/Kondapaneni/HRMS/commits/main), CI runs and owner-confirmed Android 14 testing.  
 **Important:** Original audit is a historical baseline, not an up-to-date closure record. "Pending / not verified" does **not** prove a vulnerability is still exploitable; it means no completed remediation and verification were established in this progress review.
 
 ## Progress
 
 - **39 original findings:** 24 security (SEC), 8 performance (PERF), 7 code quality (QUAL).
-- **6 closed:** SEC-001 through SEC-006. **Owner confirms all six were fixed, tested and deployed live (2026-11-14)**; focused code/CI evidence also exists. SEC-006 was specifically verified on an Android 14 device.
+- **7 closed:** SEC-001 through SEC-007. The owner confirmed SEC-001–SEC-006 fixed, tested and deployed live; SEC-007 also passed all six staged live verification checks on 2026-11-14.
 - **2 partially fixed / still open:** SEC-017 and QUAL-002.
-- **31 pending / not verified:** No completed remediation and verification established in this progress review.
-- **33 still open in total:** 2 partial + 31 pending.
-- **6 / 39 closed = 15.4%.** Security 6 / 24 closed (25%); performance 0 / 8; quality 0 / 7.
+- **30 pending / not verified:** No completed remediation and verification established in this progress review.
+- **32 still open in total:** 2 partial + 30 pending.
+- **7 / 39 closed = 17.9%.** Security 7 / 24 closed (29.2%); performance 0 / 8; quality 0 / 7.
 - **2 of the 7 critical-severity findings closed (SEC-001 and SEC-002); 5 critical findings remain open (SEC-008, SEC-009, SEC-010, SEC-011, SEC-020).** HRMS is **not cleared for production** as a whole.
 
 Legend: `[x]` = **CLOSED** in the project issue tracker on the basis of owner confirmation of the completed fix, testing, and live deployment; `[ ]` = **OPEN** (partial or pending). The owner-confirmed live verification for SEC-001–004 is recorded as their testimony, **not an independently repeated production security test** in this session. Previous risk/rollout caveats remain documented and are not erased by closure.
@@ -24,7 +24,7 @@ Legend: `[x]` = **CLOSED** in the project issue tracker on the basis of owner co
 - [x] **SEC-004** — Insecure Gemini TLS and external personal-data exposure (**HIGH**) · **CLOSED — Fixed, tested, deployed live (owner-confirmed 2026-11-14)** — Gemini TLS and PII safeguards merged with passing CI; owner confirms live validation. This session did not independently inspect production outbound requests. [Remediation](SEC-004-remediation.md)
 - [x] **SEC-005** — Tracked sensitive files and unsafe Docker build context (**HIGH**) · **CLOSED — Fixed, tested, deployed live (owner-confirmed 2026-11-14)** — Current Git/Docker protection passed focused CI and owner confirms live testing/deployment. **Residual historical credential/data exposure risks and pre-production rotation requirements remain documented**; closure does not imply historical secrets were removed from Git history. [Remediation](SEC-005-remediation.md)
 - [x] **SEC-006** — Android backup, HTTP, native JWT storage and Logcat (**HIGH**) · **CLOSED — Fixed, tested, deployed live (owner-confirmed 2026-11-14)** — Signed APK CI passed and Android 14 device checks passed for background tracking, app reopening, app-process crash recovery, checkout and targeted Logcat patterns. Legacy plaintext-token migration was not runtime-tested; fresh-install development rollout is the accepted scope. [Remediation](SEC-006-remediation.md)
-- [ ] **SEC-007** — Missing HTTP security headers and wildcard CORS (**MEDIUM**) · **Pending / not verified** — No completed remediation plus verification established in this review.
+- [x] **SEC-007** — Missing HTTP security headers and wildcard CORS (**MEDIUM**) · **CLOSED — Fixed, deployed and live-tested (2026-11-14)** — PR #17 merged; CI passed. Owner confirmed live headers on / and /manifest.json; unauthorized-origin CORS denial for /version.json, /manifest.json and API preflight; admin login/dashboard/employee/attendance; Google Maps and location markers after refresh; Android check-in/background punch/check-out; and all available document previews/downloads. **Residual:** strict script/resource CSP remains *Report-Only*; the enforced policy covers frame-ancestors/base-uri. Full strict CSP hardening is future work and SEC-022 remains open. [Remediation](SEC-007-remediation.md) · [PR #17](https://github.com/Kondapaneni/HRMS/pull/17)
 - [ ] **SEC-008** — Email OTP MFA bypass (**CRITICAL**) · **Pending / not verified** — No completed remediation plus verification established in this review.
 - [ ] **SEC-009** — Missing authorization and role restrictions (**CRITICAL**) · **Pending / not verified** — No completed remediation plus verification established in this review.
 - [ ] **SEC-010** — Fail-open feature permissions and SQL interpolation (**CRITICAL**) · **Pending / not verified** — No completed remediation plus verification established in this review.
@@ -70,7 +70,8 @@ Legend: `[x]` = **CLOSED** in the project issue tracker on the basis of owner co
 - **SEC-005 historical risks:** The [SEC-005 remediation document](SEC-005-remediation.md) records accepted development-only residual risks. Review historical Git/Docker exposures, determine whether real PII or valid secrets were exposed, and rotate affected credentials before real production data or users. Closure here does not mean historical exposures are erased.
 - **SEC-006 upgrade scope:** Android 14 and signed APK tracking/security behavior were tested. Migration of a plaintext token from a legacy APK was not tested. The owner has chosen new signed APK installations during development; legacy-upgrade testing is needed if that rollout assumption changes.
 - **Remaining five critical findings:** SEC-008, SEC-009, SEC-010, SEC-011, and SEC-020 remain open, so the original audit's **not production ready** assessment still applies.
-- **SEC-017, QUAL-002:** Marked PARTIAL, not closed. The former has safer storage mutation code linked to SEC-001; the latter has focused CI but not complete test coverage.
+- **SEC-007:** Closed on 2026-11-14 after source/CI and owner-confirmed live checks for headers, untrusted CORS origins, admin pages, Google Maps, native tracking, and available document downloads. The stricter script/resource CSP remains *Report-Only*, not enforced; plan a separately tested CSP hardening follow-up, and do not treat SEC-022 XSS risks as fixed.
+- **SEC-017, QUAL-002:** Marked PARTIAL, not closed. SEC-017 has safer storage mutation code linked to SEC-001; QUAL-002 has focused CI but not complete test coverage.
 
 ## Evidence
 
