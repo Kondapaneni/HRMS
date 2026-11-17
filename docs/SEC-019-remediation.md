@@ -1,4 +1,4 @@
-# SEC-019 — Employee IDs and database integrity (OPEN until live verification)
+# SEC-019 — Employee IDs and database integrity (CLOSED — live verified 2026-11-17)
 
 ## Verified 2026-11-17: baseline
 - GitHub main inspected at 071fbe445eab1d160d383d559a586d8e1bc564ea.
@@ -15,11 +15,16 @@
   current document paths. **Do not add one without investigating all writers.**
 - This is confirmed schema state, not proof of employee cross-access or data loss.
 
-## Planned change in this branch
-- Server-generated `EMP-` + 128-bit unpredictable uppercase hex code for both
-  Admin employee creation and candidate-to-employee conversion; cannot be
-  chosen by the caller. Primary UUIDs, auth and access checks remain unchanged.
-- Retain employee-code uniqueness and all existing IDs.
+## Implemented remediation and historical change notes
+- Initial SEC-019 remediation introduced server-generated `EMP-` + 128-bit
+  random hex display codes; the owner subsequently requested exactly eight
+  numeric digits. PR #67 deployed `random_int(10000000, 99999999)` with
+  bounded retries and database-enforced uniqueness for **future** employee and
+  candidate-conversion IDs. Display codes are **never authorization secrets**.
+  Internal UUIDs and access checks remain authoritative.
+- Existing IDs were retained by the deployed change. The owner separately
+  authorized a one-record DEV test display-code update; no bulk conversion
+  or user UUID edits were required.
 - Change only three verified history cascades to RESTRICT.
 - Add loan application audit references (application UUID, business code and
   editor UUID) that protect audit relationships and prevent accidental parent
@@ -105,10 +110,64 @@ The reset was an independent owner-authorized operation, not part of this PR's c
 - All prior audit risk notes concerning legacy loan-document aliases remain
   in scope for future investigation, not silently cast to a stronger FK.
 
-## Still to verify before closing
-- All required GitHub branch checks pass for the final head commit.
-- One protected-main squash merge and Render deployment of the reviewed code.
-- Verify new Admin employee creation emits a server-owned opaque employee code,
-  including live API authorization checks, without exposing invitation secrets.
-- Verify candidate conversion and loan audit flows safely when suitable test
-  fixtures exist; preserve prior SEC-018 accepted residual risks separately.
+## Closure decision — 2026-11-17: VERIFIED / CLOSED
+
+All agreed SEC-019 live verification steps have now passed:
+
+| Verification | Evidence |
+| --- | --- |
+| 4A — Admin employee creation | Owner passed; record confirmed directly in Supabase |
+| 4B — New eight-digit ID | Owner PASSED live UI test |
+| 4C — Anonymous admin API denial | Owner PASSED (401) |
+| 4D — Candidate conversion | Owner PASSED; independently confirmed below in live DB |
+| 4E — Loan audit functional check | Owner PASSED |
+| 4F — Admin regression | Owner PASSED |
+
+### Candidate conversion postconditions independently queried in Supabase
+
+- Exactly **one** converted application, with status `Converted to Employee`.
+- The associated user has role `employee` and is active; its
+  `token_version` was incremented to **1** during conversion.
+- Exactly **one** employee row links to that candidate's existing UUID.
+- The server-generated employee display ID is **40213258** (eight decimal
+  digits); the employee and user email fields match.
+- Exactly **one** `Converted to Employee` application-timeline event exists.
+- The live employee directory contained two records; both IDs were numeric,
+  eight-digit, distinct, and covered by the existing UNIQUE constraint.
+- This conversion was performed by the owner through the Admin Recruitment UI;
+  all verification queries were read-only. No candidate was converted by CI.
+
+### Source, CI, deployment and database
+
+- PR #66: reviewed SEC-019 security implementation and integrity migration.
+- PR #67: owner-requested eight-digit numeric employee labels.
+- PR #68: PDF-only candidate resume UI and secure activation/resend workflow.
+- PR #70: completed authorized atomic conversion (PR #69 was superseded/closed).
+- All **nine required workflows** passed for PR #70 before its single squash
+  merge commit `bc83f89fb08bd93d31c1bf49972ee4a5049ccf3e` on `main`.
+- Render service `HRMS` deployed that exact SHA and is **LIVE**. Deployment
+  health returned HTTP 200; no error-level logs appeared in the checked window.
+- Migration `20261117192545_sec019_reconcile_integrity_after_dev_reset`
+  exists in Supabase migration history; the scoped SEC-019 foreign keys and
+  loan application audit constraints were verified in prior live checks.
+- Supabase security advisor returned **zero active security findings** on
+  the closure check.
+
+### Non-blocking follow-up / accepted limits
+
+- `sec019-dev-storage-purge-once` still exists as a Supabase Edge Function
+  record. Its deployed v2 code was **independently inspected**: it only returns
+  HTTP **410 Gone**, with `verify_jwt=true` and no deletion logic. Remove
+  this abandoned function entry during routine DEV housekeeping if a supported
+  deletion pathway is available; do not silently grant it any powers.
+- Legacy `loan_documents.application_id` values were previously observed in
+  multiple identifier formats. No unsafe unconditional FK was introduced.
+  Investigating and normalizing those aliases is **separate future work**, not
+  an assertion that those records already have a new FK.
+- The one-use activation and conversion tests were exercised in isolated CI;
+  the live completion decision is based on the owner's authorized UI tests
+  and independent database postconditions, not on unperformed destructive tests.
+
+**SEC-019 security remediation: CLOSED.** All listed closure gates were
+satisfied. The two tracked limits above are not concealed or described as
+completed fixes.
