@@ -99,13 +99,25 @@ const CandidateProfile = () => {
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
+    // Reset the picker so a rejected file can be selected again.
+    e.target.value = '';
     if (file) {
       if (formData.resumes.length >= 3) {
         toast.error('You can only upload a maximum of 3 resumes.');
         return;
       }
-      
+      // Candidate resume UI intentionally supports PDF only. The PHP API
+      // independently verifies the file signature (SEC-017).
+      if (!/\.pdf$/i.test(file.name) || (file.type && file.type !== 'application/pdf')) {
+        toast.error('Please upload a PDF resume only.');
+        return;
+      }
+      if (file.size <= 0 || file.size > 5 * 1024 * 1024) {
+        toast.error('PDF resume must be 5 MB or smaller.');
+        return;
+      }
+
       setIsUploadingResume(true);
 
       try {
@@ -485,14 +497,14 @@ const CandidateProfile = () => {
                   )}
                   <input
                     type="file"
-                    accept=".pdf,.doc,.docx"
+                    accept=".pdf,application/pdf"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-0"
                     onChange={handleFileUpload}
                     disabled={isUploadingResume}
                   />
                   <UploadCloud className="mx-auto h-8 w-8 text-[var(--brand-deep)] mb-2" />
                   <p className="text-xs font-semibold text-[var(--text)]">Click to upload a new resume</p>
-                  <p className="text-[11px] text-[var(--muted)] mt-0.5">Supports PDF, DOC, DOCX (Max 5MB)</p>
+                  <p className="text-[11px] text-[var(--muted)] mt-0.5">PDF only (Max 5 MB)</p>
                 </div>
               )}
             </div>

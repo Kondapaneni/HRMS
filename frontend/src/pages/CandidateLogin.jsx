@@ -20,6 +20,8 @@ const CandidateLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [needsActivation, setNeedsActivation] = useState(false);
+  const [isResendingActivation, setIsResendingActivation] = useState(false);
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
 
   const [formData, setFormData] = useState({
@@ -81,6 +83,7 @@ const CandidateLogin = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setNeedsActivation(false);
     setIsLoading(true);
 
     try {
@@ -112,7 +115,8 @@ const CandidateLogin = () => {
         });
 
         setSuccess(res.data.message || 'Registration successful! Please check your email to activate your account.');
-        setFormData({ firstName: '', lastName: '', email: '', password: '' });
+        setFormData({ firstName: '', lastName: '', email: formData.email, password: '' });
+        setNeedsActivation(true);
         setIsLogin(true);
       }
     } catch (err) {
@@ -123,9 +127,27 @@ const CandidateLogin = () => {
         setError(err.response.data?.error || 'Too many requests. Please try again later.');
         return;
       }
+      if (err.response?.status === 403) {
+        setNeedsActivation(true);
+      }
       setError(err.response?.data?.error || err.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const resendActivationEmail = async () => {
+    if (!formData.email || isResendingActivation) return;
+    setIsResendingActivation(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await api.post('/candidate/resend-activation', { email: formData.email });
+      setSuccess(res.data.message || 'If your candidate account is inactive, check your email for a new activation link.');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Unable to send an activation email. Please try again later.');
+    } finally {
+      setIsResendingActivation(false);
     }
   };
 
@@ -133,6 +155,7 @@ const CandidateLogin = () => {
     setIsLogin(mode);
     setError('');
     setSuccess('');
+    setNeedsActivation(false);
   };
 
   return (
@@ -199,6 +222,20 @@ const CandidateLogin = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {isLogin && needsActivation && (
+              <div className="mb-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-xs text-neutral-700">
+                <p className="mb-3">Didn’t receive the activation link? Request a new email for this address.</p>
+                <button
+                  type="button"
+                  onClick={resendActivationEmail}
+                  disabled={isResendingActivation || !formData.email}
+                  className="font-semibold text-[#2F6B38] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isResendingActivation ? 'Sending activation email...' : 'Resend activation email'}
+                </button>
+              </div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleAuth} className="space-y-4">

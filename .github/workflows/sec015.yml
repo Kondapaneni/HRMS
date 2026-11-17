@@ -10,6 +10,13 @@ on:
       - 'backend/public/index.php'
       - 'backend/src/Templates/welcome_email.html'
       - 'backend/src/Templates/candidate_status_update_email.html'
+      - 'backend/src/Templates/candidate_activate_email.html'
+      - 'backend/public/candidate_auth_routes.php'
+      - 'frontend/src/pages/CandidateLogin.jsx'
+      - 'frontend/src/pages/CandidateActivate.jsx'
+      - 'frontend/src/pages/CandidateProfile.jsx'
+      - 'frontend/src/pages/CandidateMobileProfile.jsx'
+      - 'tests/candidate_activation_*'
       - 'frontend/src/pages/AdminRecruitment.jsx'
       - 'frontend/src/pages/AdminVerifyDocuments.jsx'
       - 'frontend/src/components/AddEmployeeModal.jsx'
@@ -23,6 +30,13 @@ on:
       - 'backend/public/index.php'
       - 'backend/src/Templates/welcome_email.html'
       - 'backend/src/Templates/candidate_status_update_email.html'
+      - 'backend/src/Templates/candidate_activate_email.html'
+      - 'backend/public/candidate_auth_routes.php'
+      - 'frontend/src/pages/CandidateLogin.jsx'
+      - 'frontend/src/pages/CandidateActivate.jsx'
+      - 'frontend/src/pages/CandidateProfile.jsx'
+      - 'frontend/src/pages/CandidateMobileProfile.jsx'
+      - 'tests/candidate_activation_*'
       - 'frontend/src/pages/AdminRecruitment.jsx'
       - 'frontend/src/pages/AdminVerifyDocuments.jsx'
       - 'frontend/src/components/AddEmployeeModal.jsx'
@@ -72,7 +86,9 @@ jobs:
       - name: PHP and Node syntax
         run: |
           set -euo pipefail
-          for f in backend/src/Security/EmailSecurity.php backend/public/admin_recruitment_routes.php backend/public/admin_employees_routes.php backend/public/index.php tests/sec015_seed.php tests/sec015_policy_test.php tests/sec015_assert.php; do php -l "$f"; done
+          for f in backend/src/Security/EmailSecurity.php backend/public/admin_recruitment_routes.php backend/public/admin_employees_routes.php backend/public/candidate_auth_routes.php backend/public/index.php tests/sec015_seed.php tests/sec015_policy_test.php tests/sec015_assert.php; do php -l "$f"; done
+          node --check tests/candidate_activation_http_test.mjs
+          node --check tests/candidate_activation_resume_source_test.mjs
           node --check tests/sec015_http_test.mjs
       - name: Install backend dependencies and run isolated policy tests
         run: |
@@ -110,6 +126,10 @@ jobs:
             tail -n 120 /tmp/sec015-server.log
             exit 1
           }
+          node tests/candidate_activation_http_test.mjs || {
+            tail -n 120 /tmp/sec015-server.log
+            exit 1
+          }
   frontend:
     name: Frontend production Vite build and no client email HTML assembly
     runs-on: ubuntu-latest
@@ -120,6 +140,8 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - name: Verify candidate activation CTA and PDF-only resume UX
+        run: node tests/candidate_activation_resume_source_test.mjs
       - name: Ensure client does not assemble email HTML or initial passwords
         run: |
           set -euo pipefail

@@ -294,10 +294,10 @@ const CandidateMobileProfile = ({
                 ) : (
                   <>
                     <UploadCloud className="w-4 h-4" />
-                    <span>Upload Resume (PDF, DOC)</span>
+                    <span>Upload Resume (PDF only, max 5 MB)</span>
                     <input
                       type="file" 
-                      accept=".pdf,.doc,.docx" 
+                      accept=".pdf,application/pdf" 
                       className="hidden"
                       onChange={handleFileUpload}
                       disabled={isUploadingResume || formData.resumes.length >= 3}
