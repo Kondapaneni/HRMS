@@ -44,6 +44,23 @@
                 Thank you for registering on the Acme HRMS Careers Portal. Please activate your candidate profile to start applying for open opportunities, upload pre-screening documents, and track your interview rounds.
               </p>
 
+              <!-- Email activation call to action: server supplies a per-account
+                   one-use token URL in {{activationLink}}. -->
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 4px 0 22px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="{{activationLink}}" style="display: inline-block; padding: 14px 26px; background-color: #1f1f1f; border-radius: 24px; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none;">
+                      Activate Candidate Account
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 0 0 16px 0; color: #5f6368; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere;">
+                If the button does not open, use this secure link:
+                <a href="{{activationLink}}" style="color: #1a73e8; text-decoration: underline;">Open account activation</a>.
+                This link is intended only for the recipient of this email. Do not forward it.
+              </p>
+
               <!-- Notice Box -->
               <div style="background-color: #f8fafd; border: 1px solid #e0e3e7; color: #5f6368; border-radius: 12px; padding: 14px 16px; font-size: 12px; line-height: 1.5; margin-top: 24px;">
                 If you did not register for an account on Acme HRMS Careers, you can safely ignore this message.

@@ -6,7 +6,8 @@ import {
   Calendar, 
   Sparkles, 
   ArrowRight,
-  Folder
+  Folder,
+  Download
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -135,7 +136,18 @@ const CandidateMobileApplications = ({
                 </div>
 
                 {/* Actions Footer */}
-                <div className={`pt-2 border-t border-[var(--line)] ${app.status === 'Hired' ? 'grid grid-cols-2 gap-2' : 'flex'}`}>
+                <div className={`pt-2 border-t border-[var(--line)] flex flex-wrap gap-2`}>
+                  {app.offerLetterPath && (
+                    <a
+                      href={`/Offer-Letter/${app.offerLetterPath.split('/').map(encodeURIComponent).join('/')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="min-h-10 px-4 rounded-full border border-[var(--brand)] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download Offer Letter</span>
+                    </a>
+                  )}
                   {app.status === 'Hired' && (
                     <Link 
                       to="/candidate/documents"

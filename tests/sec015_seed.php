@@ -30,10 +30,21 @@ CREATE TABLE rate_limits (
  id bigserial primary key, ip_address text, action text,
  created_at timestamp default CURRENT_TIMESTAMP
 );
-CREATE TABLE jobs (id uuid primary key, title text not null);
+CREATE TABLE jobs (id uuid primary key, title text not null, department text);
 CREATE TABLE applications (
- id uuid primary key, job_id uuid, candidate_id uuid, status text
+ id uuid primary key, job_id uuid, candidate_id uuid, status text,
+ applied_date timestamp default CURRENT_TIMESTAMP,
+ updated_at timestamp default CURRENT_TIMESTAMP
 );
+CREATE SCHEMA storage;
+CREATE TABLE storage.objects (
+ bucket_id text NOT NULL,
+ name text NOT NULL,
+ PRIMARY KEY (bucket_id, name)
+);
+CREATE TABLE branches (id uuid primary key, name text not null);
+INSERT INTO branches (id, name) VALUES
+('00000000-0000-4000-8000-00000000d501', 'Test Branch');
 CREATE TABLE application_timeline (
  id uuid primary key default gen_random_uuid(), application_id uuid,
  status_change text, notes text, created_at timestamp default CURRENT_TIMESTAMP
@@ -43,7 +54,7 @@ CREATE TABLE candidate_documents (
  candidate_id uuid, document_type text, status text
 );
 CREATE TABLE employee (
- id uuid primary key default gen_random_uuid(), "employeeId" text,
+ id uuid primary key default gen_random_uuid(), "employeeId" text NOT NULL UNIQUE,
  "userId" uuid, "firstName" text, "lastName" text, email text, phone text,
  department text, position text, branch text, "joinDate" date,
  salary numeric, status text, "managerId" uuid, timeline text

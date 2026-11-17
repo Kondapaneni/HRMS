@@ -9,6 +9,28 @@ use App\Utils\SessionVersion;
 use App\Utils\RefreshSessions;
 use Dotenv\Dotenv;
 
+/**
+ * Shared activation template. The confirmation URL is only ever emailed to
+ * the account's registered address; never return activation tokens via API.
+ */
+function candidateActivationEmailBody(string $firstName, string $activationLink): string
+{
+    $templatePath = __DIR__ . '/../src/Templates/candidate_activate_email.html';
+    $html = file_get_contents($templatePath);
+    if ($html === false) {
+        return 'Open this link to activate your candidate account: ' . $activationLink;
+    }
+    return str_replace(
+        ['{{firstName}}', '{{activationLink}}', '{{currentYear}}'],
+        [
+            htmlspecialchars($firstName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+            htmlspecialchars($activationLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+            date('Y')
+        ],
+        $html
+    );
+}
+
 // Registration Route
 /** @var \Slim\App $app */
 $app->post('/api/candidate/register', function (Request $request, Response $response) {
@@ -63,8 +85,8 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
     $activationToken = bin2hex(random_bytes(32));
     
     $stmt = $conn->prepare('
-        INSERT INTO users ("firstName", "lastName", email, password, role, "isActive", reset_token) 
-        VALUES (:first, :last, :email, :pass, :role, :active, :token)
+        INSERT INTO users ("firstName", "lastName", email, password, role, "isActive", reset_token, reset_token_expires)
+        VALUES (:first, :last, :email, :pass, :role, :active, :token, CURRENT_TIMESTAMP + INTERVAL \'24 hours\')
         RETURNING id
     ');
     
@@ -84,17 +106,8 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
     $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? '', '/');
     $activationLink = !empty($frontendUrl) ? ($frontendUrl . "/candidate/activate?token=" . $activationToken) : ("/candidate/activate?token=" . $activationToken);
     
-    // Load and parse HTML template
-    $templatePath = __DIR__ . '/../src/Templates/candidate_activate_email.html';
-    $emailBody = file_get_contents($templatePath);
-    if ($emailBody !== false) {
-        $emailBody = str_replace('{{firstName}}', htmlspecialchars($firstName), $emailBody);
-        $emailBody = str_replace('{{activationLink}}', htmlspecialchars($activationLink), $emailBody);
-        $emailBody = str_replace('{{currentYear}}', date('Y'), $emailBody);
-    } else {
-        // Fallback simple email
-        $emailBody = "Click to activate: $activationLink";
-    }
+    // Both registration and resend use the same activation CTA template.
+    $emailBody = candidateActivationEmailBody($firstName, $activationLink);
 
     $queueStmt = $conn->prepare("INSERT INTO email_queue (to_email, subject, body) VALUES (:email, :subject, :body)");
     $queueStmt->execute([
@@ -107,6 +120,76 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
 
     $response->getBody()->write(json_encode(['message' => 'Registration successful! Please check your email to activate your account.']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+});
+
+// Candidates whose original email lacked an activation CTA can request a
+// new email. No login is possible before activation, so use per-account and
+// per-peer rate limits with an identical response for known/unknown accounts.
+$app->post('/api/candidate/resend-activation', function (Request $request, Response $response) {
+    $data = json_decode((string) $request->getBody(), true);
+    $email = trim((string) ($data['email'] ?? ''));
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $response->getBody()->write(json_encode(['error' => 'Enter a valid email address.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $conn = (new Database())->getConnection();
+    if (!$conn) {
+        $response->getBody()->write(json_encode(['error' => 'Activation email service unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+
+    $action = 'candidate_activation_resend';
+    $remaining = RateLimiter::credentialLockout($conn, $email, $action, 3, 60);
+    if ($remaining !== null) {
+        $response->getBody()->write(json_encode([
+            'error' => 'Too many activation email requests. Please try again later.',
+            'secondsRemaining' => $remaining
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
+    }
+
+    try {
+        $conn->beginTransaction();
+        $stmt = $conn->prepare(
+            'SELECT id, email, "firstName" FROM users WHERE LOWER(email) = LOWER(?) ' .
+            'AND role = \'candidate\' AND "isActive" = false LIMIT 1 FOR UPDATE'
+        );
+        $stmt->execute([$email]);
+        $candidate = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($candidate) {
+            $activationToken = bin2hex(random_bytes(32));
+            $stmt = $conn->prepare(
+                'UPDATE users SET reset_token = ?, reset_token_expires = CURRENT_TIMESTAMP + INTERVAL \'24 hours\' WHERE id = ? AND role = \'candidate\' AND "isActive" = false'
+            );
+            $stmt->execute([$activationToken, $candidate['id']]);
+
+            $frontendUrl = rtrim((string) ($_ENV['FRONTEND_URL'] ?? ''), '/');
+            $activationLink = ($frontendUrl !== '' ? $frontendUrl : '')
+                . '/candidate/activate?token=' . $activationToken;
+            $html = candidateActivationEmailBody((string) $candidate['firstName'], $activationLink);
+            $queue = $conn->prepare(
+                'INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)'
+            );
+            $queue->execute([
+                $candidate['email'],
+                'Activate your Acme HRMS Candidate Account',
+                $html
+            ]);
+        }
+        RateLimiter::recordCredentialAttempt($conn, $email, $action);
+        $conn->commit();
+    } catch (\Throwable $e) {
+        if ($conn->inTransaction()) $conn->rollBack();
+        error_log('Candidate activation resend service failed');
+        $response->getBody()->write(json_encode(['error' => 'Activation email service unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+
+    $response->getBody()->write(json_encode([
+        'message' => 'If this is an inactive candidate account, a new activation email has been queued.'
+    ]));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
 // Activation Route
@@ -122,17 +205,19 @@ $app->post('/api/candidate/activate', function (Request $request, Response $resp
     $db = new Database();
     $conn = $db->getConnection();
 
-    $stmt = $conn->prepare("SELECT id FROM users WHERE reset_token = :token AND role = 'candidate'");
+    // Atomic one-time activation; prefetching the email URL cannot consume it.
+    // Both new and resent activation links expire after 24 hours.
+    $stmt = $conn->prepare("
+        UPDATE users SET \"isActive\" = true, reset_token = NULL, reset_token_expires = NULL
+        WHERE reset_token = :token AND role = 'candidate' AND \"isActive\" = false
+          AND reset_token_expires > CURRENT_TIMESTAMP
+        RETURNING id
+    ");
     $stmt->execute(['token' => $token]);
-    $user = $stmt->fetch();
-
-    if (!$user) {
+    if (!$stmt->fetchColumn()) {
         $response->getBody()->write(json_encode(['error' => 'Invalid or expired activation token']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
-
-    $updateStmt = $conn->prepare("UPDATE users SET \"isActive\" = 'true', reset_token = NULL WHERE id = :id");
-    $updateStmt->execute(['id' => $user['id']]);
 
     $response->getBody()->write(json_encode(['message' => 'Account activated successfully! You can now sign in.']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);

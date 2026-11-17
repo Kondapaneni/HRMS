@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const php = readFileSync('scripts/sec019_bootstrap_admin.php','utf8');
+assert.match(php, /PHP_SAPI !== 'cli'/);
+assert.match(php, /SEC019_BOOTSTRAP_CONFIRM/);
+assert.match(php, /SELECT count\(\*\) FROM public\.users/);
+assert.match(php, /SELECT count\(\*\) FROM storage\.objects/);
+assert.match(php, /password_hash\(\$temporaryPassword, PASSWORD_DEFAULT\)/);
+assert.match(php, /random_bytes\(24\)/);
+assert.match(php, /forcePasswordChange/);
+assert.doesNotMatch(php, /@example\.com\S*:/);
+console.log('SEC-019 DEV Admin bootstrap guards PASS');

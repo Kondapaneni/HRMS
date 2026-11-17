@@ -9,7 +9,8 @@ import {
   Calendar, 
   ArrowRight,
   TrendingUp,
-  Folder
+  Folder,
+  Download
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
@@ -49,6 +50,7 @@ const CandidateApplications = () => {
           status: app.status,
           resumeName: resumeName,
           resumeUrl: app.resume_url,
+          offerLetterPath: app.offer_letter_path || null,
           noticePeriod: app.notice_period,
           coverNote: app.cover_note,
           timeline: timeline
@@ -237,6 +239,17 @@ const CandidateApplications = () => {
                       {app.timeline.length} stage {app.timeline.length === 1 ? 'event' : 'events'} recorded
                     </span>
                     <div className="flex items-center gap-2">
+                      {app.offerLetterPath && (
+                        <a
+                          href={`/Offer-Letter/${app.offerLetterPath.split('/').map(encodeURIComponent).join('/')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[var(--brand)] bg-[var(--brand-tint)] hover:opacity-90 text-xs font-semibold text-[var(--brand-deep)] transition-all"
+                        >
+                          <Download size={13} />
+                          <span>Download Offer Letter</span>
+                        </a>
+                      )}
                       {['Hired'].includes(app.status) && (
                         <Link 
                           to="/candidate/documents"

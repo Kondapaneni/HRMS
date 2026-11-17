@@ -334,38 +334,74 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
 
-// Update application status
+// Update application status. When the Admin has uploaded an offer PDF, bind
+// the server-generated Storage path to the exact application, not a public URL.
 $app->put('/api/admin/applications/{id}/status', function (Request $request, Response $response, $args) {
-    $appId = $args['id'];
+    $appId = (string) ($args['id'] ?? '');
     $data = $request->getParsedBody();
+    if (!is_array($data)) $data = [];
     $status = $data['status'] ?? '';
     $notes = $data['notes'] ?? '';
-    
-    if (!$status) {
-        $response->getBody()->write(json_encode(['error' => 'Status is required']));
+    $hasOfferPath = array_key_exists('offerLetterPath', $data);
+    $offerPath = $hasOfferPath ? $data['offerLetterPath'] : null;
+
+    if (!is_string($status) || $status === '' || !is_string($notes)) {
+        $response->getBody()->write(json_encode(['error' => 'Valid status and notes are required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+    // Must be a generated, immutable PDF inside this application's own
+    // private Storage folder. No client-selected bucket, URL or traversal.
+    if ($hasOfferPath && (
+        $status !== 'Hired' || !is_string($offerPath)
+        || !preg_match('~\\A[0-9a-f-]{36}/offer-[0-9a-f-]{36}-[0-9a-f]{32}\\.pdf\\z~D', $offerPath)
+        || !str_starts_with($offerPath, $appId . '/')
+    )) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid application-scoped offer letter']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
     $db = new Database();
     $conn = $db->getConnection();
-    
     try {
         $conn->beginTransaction();
+        if ($hasOfferPath) {
+            // Storage API already saved the uploaded PDF; a database-backed
+            // object existence check prevents publishing a fabricated link.
+            $file = $conn->prepare('SELECT 1 FROM storage.objects WHERE bucket_id = ? AND name = ? LIMIT 1');
+            $file->execute(['offer_letters', $offerPath]);
+            if (!$file->fetchColumn()) {
+                $conn->rollBack();
+                $response->getBody()->write(json_encode(['error' => 'Offer letter upload was not found']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+            }
+            $stmt = $conn->prepare(
+                'UPDATE applications SET status = ?, offer_letter_path = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+            );
+            $stmt->execute([$status, $offerPath, $appId]);
+        } else {
+            $stmt = $conn->prepare(
+                'UPDATE applications SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+            );
+            $stmt->execute([$status, $appId]);
+        }
+        if ($stmt->rowCount() !== 1) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
 
-        $stmt = $conn->prepare('UPDATE applications SET status = ? WHERE id = ?');
-        $stmt->execute([$status, $appId]);
-
-        $stmtTimeline = $conn->prepare('INSERT INTO application_timeline (application_id, status_change, notes) VALUES (?, ?, ?)');
+        $stmtTimeline = $conn->prepare(
+            'INSERT INTO application_timeline (application_id, status_change, notes) VALUES (?, ?, ?)'
+        );
         $stmtTimeline->execute([$appId, $status, $notes]);
-
         $conn->commit();
-
         $response->getBody()->write(json_encode(['message' => 'Application status updated']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (Exception $e) {
-        $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    } catch (\Throwable $e) {
+        if ($conn && $conn->inTransaction()) $conn->rollBack();
+        error_log('Candidate offer letter status association failed');
+        $response->getBody()->write(json_encode(['error' => 'Unable to update application status']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
 

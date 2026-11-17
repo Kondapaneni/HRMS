@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const script = readFileSync('frontend/scripts/sec019_purge_storage.mjs','utf8');
+const reset = readFileSync('scripts/sec019_dev_public_reset_review_only.sql','utf8');
+assert.match(script, /PROJECT_REF = 'jtgqkkhqyzfbupiqwkgf'/);
+assert.match(script, /emptyBucket\(bucket\)/);
+assert.match(script, /!execute/);
+assert.match(script, /SEC019_CONFIRM_STORAGE_PURGE/);
+assert.doesNotMatch(script, /deleteBucket\(/);
+assert.doesNotMatch(reset, /TRUNCATE TABLE storage\./);
+assert.doesNotMatch(reset, /TRUNCATE TABLE auth\./);
+assert.doesNotMatch(reset, /CASCADE;/);
+assert.match(reset, /current_setting\('application_name'/);
+assert.match(reset, /SELECT count\(\*\) FROM storage\.objects/);
+assert.match(reset, /CONTINUE IDENTITY/);
+console.log('SEC-019 reset safety guards PASS');
