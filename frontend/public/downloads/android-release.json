@@ -1,8 +1,8 @@
 {
-  "versionCode": 58,
-  "versionName": "1.0.58",
-  "sourceCommit": "29bf21796b1bd0c71a0d1ed444107a5dedb944ac",
-  "sha256": "44e5c986af753a142c68c69ea53b979073c3ec1e70773250fad12f976d234d9c",
-  "publishedAt": "2026-11-14T19:45:17.426Z",
+  "versionCode": 66,
+  "versionName": "1.0.66",
+  "sourceCommit": "944dce1da8f59906a5e036a93d052f929720c739",
+  "sha256": "503e21d99715618148a59fa144302241eede9227618a5ecdcb09f475eaf7451c",
+  "publishedAt": "2026-11-15T05:52:04.632Z",
   "file": "Acme HRMS.apk"
 }
