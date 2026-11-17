@@ -34,6 +34,14 @@ printf 'Type exactly RESTORE-LOCAL-SEC018 to continue: '
 read -r acknowledgment
 [[ "$acknowledgment" == 'RESTORE-LOCAL-SEC018' ]] || die "Restore target not confirmed"
 
+# A new local PostgreSQL database contains the standard empty 'public'
+# schema. The archive includes CREATE SCHEMA public. Remove the EMPTY local
+# default schema so the archived one restores without --clean. Do not use
+# CASCADE: if any unexpected object depends on public, FAIL CLOSED.
+# The strict localhost, disposable DB name and empty-inventory guards above
+# must succeed before this local-only change.
+psql -X -v ON_ERROR_STOP=1 -q -c 'DROP SCHEMA IF EXISTS public'
+
 # Validate the encrypted archive, then create placeholder roles needed by
 # existing RLS policy metadata. They have NOLOGIN/no elevation/no passwords.
 # pg_restore --list can stop reading before the end of the archive;
