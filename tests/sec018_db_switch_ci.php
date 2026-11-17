@@ -33,7 +33,7 @@ use App\Config\LoggingPDO;
 $mode=$argv[1]??'';
 $cases=['default','restricted','missing-password','wrong-role','missing-audit','native','native-transaction-denied','native-session-optin'];
 if (!in_array($mode,$cases,true)) {
-    fwrite(STDERR,"Usage: php tests/sec018_db_switch_ci.php [default|restricted|missing-password|wrong-role|missing-audit]\n");
+    fwrite(STDERR,"Usage: php tests/sec018_db_switch_ci.php [default|restricted|missing-password|wrong-role|missing-audit|native|native-transaction-denied|native-session-optin]\n");
     exit(2);
 }
 foreach (['DB_HOST','DB_PORT','DB_DATABASE','DB_USERNAME','DB_PASSWORD'] as $key) {
@@ -72,7 +72,7 @@ if (in_array($mode,['missing-password','wrong-role','missing-audit','native-tran
             || $_ENV['DB_PORT']!=='6543')) {
         throw new RuntimeException('FAIL SEC-018 session opt-in did not preserve old port');
     }
-    if ((bool)$conn->getAttribute(PDO::ATTR_EMULATE_PREPARES) !== ($mode!=='native')) {
+    if ((bool)$conn->getAttribute(PDO::ATTR_EMULATE_PREPARES) !== (!in_array($mode, ['native','native-session-optin'], true))) {
         throw new RuntimeException("FAIL SEC-018 DB switch $mode: unexpected prepare mode");
     }
     $stmt=$conn->prepare('SELECT ?::integer + ?::integer');
