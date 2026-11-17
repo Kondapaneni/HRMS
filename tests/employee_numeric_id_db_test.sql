@@ -13,7 +13,7 @@ BEGIN
   INSERT INTO public.employee (id, "employeeId", "userId")
     VALUES ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '48392017',
             '11111111-1111-4111-8111-111111111111')
-    ON CONFLICT ON CONSTRAINT "employee_employeeId_key" DO NOTHING
+    ON CONFLICT ("employeeId") DO NOTHING
     RETURNING id INTO duplicate_row;
 
   IF duplicate_row IS NOT NULL THEN
@@ -23,7 +23,7 @@ BEGIN
   INSERT INTO public.employee (id, "employeeId", "userId")
     VALUES ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '48392018',
             '11111111-1111-4111-8111-111111111111')
-    ON CONFLICT ON CONSTRAINT "employee_employeeId_key" DO NOTHING
+    ON CONFLICT ("employeeId") DO NOTHING
     RETURNING id INTO inserted_row;
 
   IF inserted_row IS DISTINCT FROM 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'::uuid
