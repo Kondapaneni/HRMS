@@ -11,3 +11,25 @@ ngrok.log
 *.zip
 *.apk
 !frontend/public/downloads/*.apk
+
+# SEC-005: prevent accidental re-commit of private dumps and local debug files.
+chat_backup/
+**/chat_backup/
+scratch_queries.txt
+**/scratch_queries.txt
+*.log
+*.sql
+*.sql.gz
+*.dump
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Keep application SQL migrations reviewable and version-controlled.
+!supabase/migrations/*.sql
+!supabase/migrations/**/*.sql
