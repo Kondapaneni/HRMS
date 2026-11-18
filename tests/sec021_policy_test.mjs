@@ -11,6 +11,7 @@ const root = read('frontend/src/App.jsx');
 const storage = read('frontend/src/api/browserStorage.js');
 const entry = read('frontend/src/main.jsx');
 const gate = read('frontend/src/components/MaintenanceGate.jsx');
+const theme = read('frontend/src/contexts/ThemeContext.jsx');
 const refresh = read('backend/src/Utils/RefreshSessions.php');
 const backend = read('backend/public/index.php');
 const vite = read('frontend/vite.config.js');
@@ -40,6 +41,8 @@ assert(auth.includes('await restoreSession()')
 assert(candidate.includes('setAccessToken(res.data.token)'), 'Candidate login uses memory token');
 assert(gate.includes('hasSession') && !gate.includes("localStorage.getItem('token')"),
   'Maintenance UX uses auth state instead of a persisted token');
+assert(theme.includes('if (profile)') && !theme.includes("localStorage.getItem('token')"),
+  'Theme preference syncing remains available through verified auth profile');
 assert(tracker.includes('await getNativeAccessToken()'),
   'Android background tracker reads current Keystore token');
 assert(native.includes('NativeLocationTracker.getSessionAccessToken()')
