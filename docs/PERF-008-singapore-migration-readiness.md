@@ -56,3 +56,11 @@ Existing `scripts/sec018_backup_dev.sh` was written for an **older SEC-018 schem
 10. Measure `/api/news` PDO/identity/SQL stages and TTFB against the PERF-008 baseline. Turn diagnostic variable off afterward. Retain Mumbai intact and accessible for tested rollback. Do not retire until explicit approval.
 
 **Change control:** This readiness PR must remain **draft/unmerged**. It contains no data, passwords or production configuration writes.
+
+## Step 3B — Guarded source snapshot preparation (NOT run)
+
+- Added [scripts/perf008_encrypted_mumbai_snapshot.sh](../scripts/perf008_encrypted_mumbai_snapshot.sh) to this **draft** branch. It is for trusted local execution only, not GitHub Actions or Render.
+- The script refuses unknown source projects and credential-in-environment patterns, verifies the current `38 public tables / 3 HRMS roles / 1 private security key table` source signature, and streams `pg_dump` into AES-256 GPG encryption without writing a plaintext archive to disk.
+- This artifact covers only application schemas `public` and `hrms_security`; **it does not replace Supabase's full roles/schema/data CLI dump, physical Storage transfer, auth/storage modifications, or encryption configuration**. The backup script was not executed in this chat because the connected tools have no access to a trusted password-protected PostgreSQL dump/export environment.
+- Source and destination remained healthy and independent. Render remains on the original Mumbai connection. The new Singapore database remains empty of application records.
+- Security, performance and health advisors for Singapore returned no lints before any application schema restoration; run again after the full restore.
