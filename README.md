@@ -10,7 +10,7 @@
 
 ACME HRMS is a workplace management application that brings employees, administrators, job applicants and field teams together in one connected experience.
 
-[About the application](#about-the-application) · [Explore features](#explore-the-features) · [How people use it](#how-people-use-acme-hrms) · [Mobile experience](#mobile-experience)
+[About the application](#about-the-application) · [Features](#explore-the-features) · [Everyday use](#how-people-use-acme-hrms) · [Mobile](#mobile-experience) · [Technology stack](#technology-stack)
 
 </div>
 
@@ -28,12 +28,12 @@ The goal is simple: **make everyday information easier to find, work easier to f
 
 | Workspace | Made for | What it helps with |
 | --- | --- | --- |
-| 👥 **Administration** | HR and authorized managers | Employees, attendance, payroll, hiring, approvals, reports and settings |
-| 👤 **Employee** | Company employees | Workday check-in, leave, salary statements, training, expenses and profile |
-| 🎯 **Candidate** | Job applicants | Job openings, applications, documents and recruitment progress |
-| 🏦 **Loan origination** | Loan field teams | Loan leads, member information, applications and follow-ups |
-| 📈 **Sales origination** | Sales teams | Leads, pipeline progress and daily activities |
-| 🏢 **Branch operations** | Authorized branch staff | Branch performance, leads and loan application review |
+| **Administration** | HR and authorized managers | Employees, attendance, payroll, hiring, approvals, reports and settings |
+| **Employee** | Company employees | Workday check-in, leave, salary statements, training, expenses and profile |
+| **Candidate** | Job applicants | Job openings, applications, documents and recruitment progress |
+| **Loan origination** | Loan field teams | Loan leads, member information, applications and follow-ups |
+| **Sales origination** | Sales teams | Leads, pipeline progress and daily activities |
+| **Branch operations** | Authorized branch staff | Branch performance, leads and loan application review |
 
 **Each account has its own access.** Available screens and actions depend on the person's role, assigned permissions and company settings.
 
@@ -41,7 +41,7 @@ The goal is simple: **make everyday information easier to find, work easier to f
 
 ## Explore the features
 
-### 👥 Employee management
+### Employee management
 
 Keep employee information organized from joining onward.
 
@@ -53,7 +53,7 @@ Keep employee information organized from joining onward.
 
 **Why it matters:** HR can quickly find the right person and their work information while employees have a single place for their own details.
 
-### 📍 Attendance and working hours
+### Attendance and working hours
 
 Make daily attendance easy to follow.
 
@@ -67,7 +67,7 @@ Make daily attendance easy to follow.
 
 **Why it matters:** Employees can monitor their workday, while HR can review presence, late arrivals, missing checkout records and exceptions.
 
-### 🌴 Leave and holiday management
+### Leave and holiday management
 
 Give everyone a clearer way to manage time off.
 
@@ -80,7 +80,7 @@ Give everyone a clearer way to manage time off.
 
 **Why it matters:** Employees know where their leave requests stand and managers can act on them from one workspace.
 
-### 💰 Payroll and payslips
+### Payroll and payslips
 
 Keep compensation statements accessible.
 
@@ -93,7 +93,7 @@ Keep compensation statements accessible.
 
 *This application manages payslip records; the described screens do not establish automatic bank transfers or tax filing.*
 
-### 🧾 Expense reimbursements
+### Expense reimbursements
 
 Make workplace expense claims easier to submit and review.
 
@@ -104,7 +104,7 @@ Make workplace expense claims easier to submit and review.
 
 **Why it matters:** Employees and managers can follow claim status without relying on scattered messages.
 
-### 🚀 Recruitment and hiring
+### Recruitment and hiring
 
 Support the hiring process from job opening to employee onboarding.
 
@@ -126,7 +126,7 @@ Support the hiring process from job opening to employee onboarding.
 
 **Why it matters:** Recruiters and candidates each get a clearer view of the same hiring journey.
 
-### 📚 Assessments, training and performance
+### Assessments, training and performance
 
 Give employees opportunities to learn and complete assigned evaluations.
 
@@ -139,7 +139,7 @@ Give employees opportunities to learn and complete assigned evaluations.
 
 **Why it matters:** Training and assessments become part of the employee experience instead of separate activities.
 
-### 🏦 Loan origination
+### Loan origination
 
 A dedicated place for teams working with loan leads and applications.
 
@@ -151,7 +151,7 @@ A dedicated place for teams working with loan leads and applications.
 
 **Why it matters:** Loan teams can follow their work from an initial lead through the application stages supported by the system.
 
-### 📈 Sales origination
+### Sales origination
 
 Help sales teams stay organized around leads and follow-ups.
 
@@ -163,7 +163,7 @@ Help sales teams stay organized around leads and follow-ups.
 
 **Why it matters:** Field staff can keep their sales work and follow-ups in one place.
 
-### 🏢 Branch operations
+### Branch operations
 
 Support the people overseeing branch-level work.
 
@@ -176,7 +176,7 @@ Support the people overseeing branch-level work.
 
 **Why it matters:** Branch staff can coordinate the work assigned to them without requiring unrestricted access to every business record.
 
-### 📊 Reports, dashboards and company settings
+### Reports, dashboards and company settings
 
 Give authorized staff a broader view of daily operations.
 
@@ -194,7 +194,7 @@ Give authorized staff a broader view of daily operations.
 
 These examples show typical paths through the application. The exact options available depend on account access and company configuration.
 
-### 👤 An employee's workday
+### An employee's workday
 
 1. **Sign in** and open the Employee Dashboard.
 2. **Check in** when starting the day, following any configured location requirements.
@@ -203,7 +203,7 @@ These examples show typical paths through the application. The exact options ava
 5. **Open Payroll, Training or Assessments** for available payslips and assigned activities.
 6. **Check out** when the working day ends.
 
-### 👩‍💼 An HR administrator's day
+### An HR administrator's day
 
 1. **Open the Admin Dashboard** for attendance and workforce summaries.
 2. **Manage employee profiles, roles and company assets**.
@@ -212,7 +212,7 @@ These examples show typical paths through the application. The exact options ava
 5. **Manage job openings, interviews and candidate documents**.
 6. **Use reports and settings** to follow up on company work.
 
-### 🎯 A candidate's hiring journey
+### A candidate's hiring journey
 
 1. **Create and activate a candidate account**.
 2. **Complete the profile** and add a resume.
@@ -220,7 +220,7 @@ These examples show typical paths through the application. The exact options ava
 4. **Check application status and timeline** as the recruitment process moves forward.
 5. **Submit requested documents**, and view an offer letter if one is available for the application.
 
-### 🏢 A field or branch team's day
+### A field or branch team's day
 
 1. **Open the assigned Loan, Sales or Branch Operations workspace**.
 2. **Review leads, applications and activities** relevant to the account.
@@ -233,7 +233,7 @@ These examples show typical paths through the application. The exact options ava
 
 ACME HRMS includes mobile-friendly views for employees, candidates, loan and sales users, and branch operations. Everyday actions such as viewing attendance, following leave, checking applications and accessing work information are designed to be usable from a phone.
 
-### 📱 Android attendance experience
+### Android attendance experience
 
 The application also has an Android app with a native attendance-location service.
 
@@ -245,6 +245,54 @@ The application also has an Android app with a native attendance-location servic
 - A **Download Mobile App (APK)** option appears in the employee profile when a verified signed Android release is available.
 
 A web-browser session is **not** the same as the Android app's native background-tracking service.
+
+---
+
+## Technology stack
+
+ACME HRMS combines a responsive web application, a PHP backend, PostgreSQL data services and an Android application. The technologies below are listed from the **actual project configuration**, not an assumed stack.
+
+### Frontend and user experience
+
+| Technology | Used for |
+| --- | --- |
+| <img src="https://www.google.com/s2/favicons?domain=react.dev&sz=32" alt="React favicon" width="18" /> **React 19** | Building the employee, admin, candidate, loan, sales and branch interfaces |
+| <img src="https://www.google.com/s2/favicons?domain=vite.dev&sz=32" alt="Vite favicon" width="18" /> **Vite 8** | Building and serving the frontend during development |
+| <img src="https://www.google.com/s2/favicons?domain=tailwindcss.com&sz=32" alt="Tailwind CSS favicon" width="18" /> **Tailwind CSS 4** | Styling responsive desktop and mobile pages |
+| **JavaScript and JSX** | Implementing application screens, forms and interactive behavior |
+| **React Router 7** | Managing navigation between account-specific workspaces |
+| **TanStack React Query 5 + Axios** | Loading application data and communicating with the backend |
+| **Framer Motion, Recharts and React PDF** | Interface animations, dashboards/charts and downloadable PDFs |
+
+### Backend and database
+
+| Technology | Used for |
+| --- | --- |
+| <img src="https://www.google.com/s2/favicons?domain=php.net&sz=32" alt="PHP favicon" width="18" /> **PHP 8.2 (deployed container)** | Handling application requests, business operations and access permissions |
+| **Slim Framework 4** | Organizing backend routes for employee, admin, recruitment and origination features |
+| <img src="https://www.google.com/s2/favicons?domain=postgresql.org&sz=32" alt="PostgreSQL favicon" width="18" /> **PostgreSQL** | Storing employee, attendance, payroll, recruitment and business records |
+| <img src="https://www.google.com/s2/favicons?domain=supabase.com&sz=32" alt="Supabase favicon" width="18" /> **Supabase** | Hosted PostgreSQL, private file storage and an email-delivery Edge Function |
+| **JWT authentication and multi-factor verification** | Managing authenticated sessions and role/feature-restricted access |
+
+### Mobile, integrations and deployment
+
+| Technology | Used for |
+| --- | --- |
+| <img src="https://www.google.com/s2/favicons?domain=capacitorjs.com&sz=32" alt="Capacitor favicon" width="18" /> **Capacitor 8 + Android (Java)** | Providing the Android application and native location-tracking service |
+| **Google Maps and Geocoding** | Supporting location-related maps and attendance workflows when configured |
+| **Supabase Edge Functions (Deno / TypeScript)** | Processing guarded queued email delivery |
+| <img src="https://www.google.com/s2/favicons?domain=docker.com&sz=32" alt="Docker favicon" width="18" /> **Docker + Apache** | Packaging the frontend and PHP backend together |
+| <img src="https://www.google.com/s2/favicons?domain=render.com&sz=32" alt="Render favicon" width="18" /> **Render** | Configured hosting for the web application |
+| <img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt="GitHub favicon" width="18" /> **GitHub Actions** | Running automated project and regression checks |
+
+The frontend also uses **Headless UI**, **Lucide React** (inside the application), **React Webcam**, and other supporting libraries. These are application dependencies; the README itself uses the existing **ACME HRMS favicon and technology-site favicons**, rather than decorative emoji icons.
+
+<details>
+<summary><strong>Where can I see the technology configuration?</strong></summary>
+
+The web dependencies are recorded in [frontend/package.json](frontend/package.json), backend dependencies in [backend/composer.json](backend/composer.json), Android configuration in [frontend/capacitor.config.json](frontend/capacitor.config.json), and hosting/build configuration in [Dockerfile](Dockerfile) and [render.yaml](render.yaml).
+
+</details>
 
 ---
 
