@@ -616,11 +616,30 @@ $app->post('/api/logout', function (Request $request, Response $response, $args)
 
 // Get global news headlines & maintenance status (Public)
 $app->get('/api/news', function (Request $request, Response $response, $args) {
+    // PERF-008: opt-in, request-scoped timings only for explicit probes.
+    // Never log credentials, SQL text, request IDs, user identifiers or payloads.
+    // This endpoint remains public and its response is unchanged.
+    $perf008TimingEnabled = (string) ($_ENV['PERF008_NEWS_TIMING_ENABLED']
+        ?? (getenv('PERF008_NEWS_TIMING_ENABLED') ?: '')) === 'true'
+        && array_key_exists('perf_probe', $request->getQueryParams());
+
+    $perf008StartNs = $perf008TimingEnabled ? hrtime(true) : null;
     $db = new Database();
     $conn = $db->getConnection();
-    
+    $perf008AfterConnectionNs = $perf008TimingEnabled ? hrtime(true) : null;
+
     $stmt = $conn->query('SELECT news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes FROM global_settings ORDER BY id ASC LIMIT 1');
     $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($perf008TimingEnabled) {
+        $perf008AfterQueryNs = hrtime(true);
+        // getConnection() includes the mandatory SEC-018 DB identity check.
+        // SQL time includes the settings SELECT and its row fetch.
+        error_log(sprintf(
+            'PERF008_NEWS connection_and_identity_ms=%.2f settings_query_ms=%.2f',
+            ($perf008AfterConnectionNs - $perf008StartNs) / 1e6,
+            ($perf008AfterQueryNs - $perf008AfterConnectionNs) / 1e6
+        ));
+    }
     $headlines = isset($settings['news_headlines']) ? json_decode($settings['news_headlines'], true) : [];
     $maintenanceMode = \App\Middleware\MaintenanceMiddleware::enabled($settings['maintenance_mode'] ?? null);
     $maintenanceMessage = $settings['maintenance_message'] ?? '';
