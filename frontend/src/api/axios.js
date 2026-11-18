@@ -42,6 +42,9 @@ let webAccessToken = null;
 export const getAccessToken = () => webAccessToken;
 export function setAccessToken(token) {
   if (!isAndroidSession) webAccessToken = token || null;
+  if (token && typeof window !== 'undefined') {
+    try { window.sessionStorage.removeItem('hrms_block_session_restore'); } catch { /* denied */ }
+  }
 }
 export function clearSessionAccess() {
   webAccessToken = null;
@@ -140,6 +143,9 @@ async function renewAccess(staleToken) {
  * A 401 means no active session; a 503/network outage is NOT a revocation.
  */
 export async function restoreSession() {
+  if (typeof window !== 'undefined') {
+    try { if (window.sessionStorage.getItem('hrms_block_session_restore') === '1') return null; } catch { /* denied */ }
+  }
   if (isAndroidSession) {
     const native = await getNativeAccessToken();
     if (native) return native;
