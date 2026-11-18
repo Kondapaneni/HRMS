@@ -30,6 +30,11 @@ const refreshWeb = (cookie, expected = 200, extraHeaders = {}) =>
     Cookie: cookie, 'X-HRMS-Refresh': '1', ...extraHeaders,
   }, expected);
 
+const restoreWeb = (cookie, expected = 200, extraHeaders = {}) =>
+  request('/api/auth/refresh/restore', {}, {
+    Cookie: cookie, 'X-HRMS-Refresh': '1', ...extraHeaders,
+  }, expected);
+
 const employeeEmail = 'sec012-employee@example.invalid';
 let browser = await request('/api/login', {
   email: employeeEmail, password: 'SEC012-Reset-Password3!',
@@ -40,11 +45,22 @@ assert(tokenPayload(browser.data.token).exp - tokenPayload(browser.data.token).i
 assert(tokenPayload(browser.data.token).exp - tokenPayload(browser.data.token).iat === 3600,
   'session_timeout=never defaults to one-hour access JWT, not 10 years');
 const firstCookie = cookieOnly(browser.cookie);
+// The same HttpOnly cookie must survive repeated full-page restores.
+// Restoration never rotates the credential or emits a new cookie.
+for (let i = 0; i < 5; i++) {
+  const restored = await restoreWeb(firstCookie);
+  assert(restored.data.token && !restored.data.refreshToken);
+  assert.equal(restored.cookie, null, 'idempotent restore never replaces cookie');
+}
+console.log('PASS: repeated web restores preserve one cookie without rotation');
 const malformedUuid = 'a'.repeat(36) + '.' + 'b'.repeat(64);
 await refreshWeb('hrms_refresh=' + malformedUuid, 401);
+await restoreWeb('hrms_refresh=' + malformedUuid, 401);
 console.log('PASS: malformed refresh UUID fails authentication rather than throwing a database error');
 let rotated = await refreshWeb(firstCookie);
 const secondCookie = cookieOnly(rotated.cookie);
+const restoredSecond = await restoreWeb(secondCookie);
+assert(restoredSecond.data.token && !restoredSecond.cookie, 'new rotated cookie can restore');
 assert.notEqual(secondCookie, firstCookie, 'refresh token rotates on every request');
 assert(rotated.data.token && !rotated.data.refreshToken, 'web only receives access token');
 let again = await refreshWeb(secondCookie);
@@ -60,12 +76,13 @@ const other = await request('/api/login', {
 const otherCookie = cookieOnly(other.cookie);
 const guessed = firstCookie.split('.')[0] + '.' + '0'.repeat(64);
 await refreshWeb(guessed, 401);
+await restoreWeb(guessed, 401);
 const guessSurvivor = await refreshWeb(thirdCookie);
 const fourthCookie = cookieOnly(guessSurvivor.cookie);
 assert.notEqual(fourthCookie, thirdCookie, 'guessed secret did not revoke valid refresh');
 console.log('PASS: guessed web secret denied without destroying active chain');
 
-const staleWeb = await refreshWeb(firstCookie, 401);
+const staleWeb = await restoreWeb(firstCookie, 401);
 assert(!staleWeb.cookie?.includes('Max-Age=0'), 'stale denial cannot clear another in-flight cookie');
 await refreshWeb(fourthCookie, 401);
 const unaffected = await refreshWeb(otherCookie);
@@ -77,7 +94,15 @@ await request('/api/auth/refresh', {}, {
   'X-HRMS-Refresh': '1',
   Origin: 'https://untrusted.example.invalid',
 }, 403);
-console.log('PASS: custom refresh header and same-origin requirement enforced');
+await request('/api/auth/refresh/restore', {}, { Cookie: otherCookie }, 403);
+await request('/api/auth/refresh/restore', {}, {
+  Cookie: otherCookie, 'X-HRMS-Refresh': '1',
+  Origin: 'https://untrusted.example.invalid',
+}, 403);
+await request('/api/auth/refresh/restore', {}, {
+  Cookie: otherCookie, 'X-HRMS-Refresh': '1', 'X-HRMS-Client': 'android',
+}, 403);
+console.log('PASS: custom refresh/restore headers, Android isolation and same-origin requirements enforced');
 
 // Login via the Android bridge: raw refresh is returned only to native mode,
 // and there is never a corresponding web refresh cookie.
@@ -119,7 +144,8 @@ const candidate = await request('/api/candidate/login', {
 });
 const expiring = cookieOnly(candidate.cookie);
 execFileSync('php', ['tests/sec012_expire_refresh.php', expiring.split('=')[1].split('.')[0]]);
+await restoreWeb(expiring, 401);
 await refreshWeb(expiring, 401);
-console.log('PASS: expired refresh row is rejected');
+console.log('PASS: expired refresh/restore row is rejected');
 
 console.log('SEC-012 stage 2 HTTP refresh, replay, expiry and access TTL checks PASSED');

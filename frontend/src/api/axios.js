@@ -100,7 +100,7 @@ const convertDates = (obj) => {
 let sharedRefresh = null;
 const publicAuthPaths = [
   '/login', '/candidate/login', '/auth/otp/send', '/auth/otp/verify',
-  '/auth/mfa/verify', '/auth/refresh', '/forgot-password', '/reset-password',
+  '/auth/mfa/verify', '/auth/refresh', '/auth/refresh/restore', '/forgot-password', '/reset-password',
 ];
 const isPublicAuthCall = (url = '') =>
   publicAuthPaths.some(p => url.split('?')[0] === p || url.endsWith('/api' + p));
@@ -138,6 +138,19 @@ async function renewAccess(staleToken) {
   return rotate();
 }
 
+async function resumeWebSession() {
+  // Repeated page loads must not consume an existing one-use refresh cookie.
+  // The server checks the live session/account before minting a bounded JWT.
+  // Keep both credentials out of Web Storage, just as SEC-021 requires.
+  const res = await axios.post('/api/auth/refresh/restore', {}, {
+    withCredentials: true,
+    headers: { 'Content-Type': 'application/json', 'X-HRMS-Refresh': '1' },
+  });
+  if (!res.data?.token) throw new Error('Missing restored access token');
+  setAccessToken(res.data.token);
+  return res.data.token;
+}
+
 /**
  * Called on startup, including a full-page reload, before showing protected UI.
  * A 401 means no active session; a 503/network outage is NOT a revocation.
@@ -153,7 +166,12 @@ export async function restoreSession() {
     return webAccessToken;
   }
   if (!sharedRefresh) {
-    sharedRefresh = renewAccess(webAccessToken).finally(() => { sharedRefresh = null; });
+    // On page reload the JWT is absent from memory: resume without rotating.
+    // Expired in-memory JWTs use the existing single-use rotation path.
+    const operation = !isAndroidSession && !webAccessToken
+      ? resumeWebSession()
+      : renewAccess(webAccessToken);
+    sharedRefresh = operation.finally(() => { sharedRefresh = null; });
   }
   try {
     return await sharedRefresh;

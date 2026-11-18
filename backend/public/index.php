@@ -533,6 +533,66 @@ $app->post('/api/auth/refresh', function (Request $request, Response $response) 
     }
 });
 
+/**
+ * SEC-012: Idempotent browser session restoration after page navigation.
+ *
+ * This URL is deliberately under /api/auth/refresh/ so every existing
+ * Path=/api/auth/refresh HttpOnly cookie is sent WITHOUT changing its scope.
+ * Unlike /api/auth/refresh, restoration checks the live credential without
+ * consuming it. In-session token renewal still uses one-use rotation.
+ * Android does not use browser cookies and cannot call this recovery route.
+ */
+$app->post('/api/auth/refresh/restore', function (Request $request, Response $response) {
+    if ($request->getHeaderLine('X-HRMS-Refresh') !== '1'
+        || RefreshSessions::isAndroid($request)) {
+        $response->getBody()->write(json_encode(['error' => 'Restore request not permitted.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(403);
+    }
+    $origin = $request->getHeaderLine('Origin');
+    if ($origin !== '') {
+        $originHost = parse_url($origin, PHP_URL_HOST);
+        $targetHost = $request->getUri()->getHost();
+        if (!is_string($originHost) || strcasecmp($originHost, $targetHost) !== 0
+            || parse_url($origin, PHP_URL_SCHEME) !== 'https') {
+            $response->getBody()->write(json_encode(['error' => 'Cross-origin restore denied.']));
+            return $response->withHeader('Content-Type', 'application/json')
+                ->withHeader('Cache-Control', 'no-store')->withStatus(403);
+        }
+    }
+    $provided = $request->getCookieParams()['hrms_refresh'] ?? null;
+    if (!is_string($provided) || strlen($provided) > 256) {
+        $response->getBody()->write(json_encode(['error' => 'Refresh session required.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(401);
+    }
+    try {
+        $conn = (new Database())->getConnection();
+        if (!$conn) throw new RuntimeException('Restore database unavailable');
+
+        // Validate the live session, active account, and session generation.
+        // No session rotation or Set-Cookie on success.
+        $result = RefreshSessions::resumeWeb($conn, $provided);
+        if (!$result) {
+            $response->getBody()->write(json_encode(['error' => 'Refresh session invalid or revoked.']));
+            return $response->withHeader('Content-Type', 'application/json')
+                ->withHeader('Cache-Control', 'no-store')->withStatus(401);
+        }
+        $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+        $access = AccessToken::mint($result['user'], $secret, $setting['session_timeout'] ?? '30');
+        $response->getBody()->write(json_encode(['token' => $access]));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(200);
+    } catch (Throwable $e) {
+        // Never log a credential, cookie, or raw database row.
+        error_log('SEC-012 restore service unavailable');
+        $response->getBody()->write(json_encode(['error' => 'Session restoration temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(503);
+    }
+});
+
 $app->post('/api/logout', function (Request $request, Response $response, $args) {
     // SEC-012 stage 1: revoke ALL signed sessions belonging to this account.
     $claims = $request->getAttribute('user');

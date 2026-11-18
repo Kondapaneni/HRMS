@@ -21,6 +21,8 @@ const validJwt = 'test.' + Buffer.from(JSON.stringify({
 function sessionHarness(native = false) {
   const state = new Map();
   let calls = 0;
+  let restores = 0;
+  let rotations = 0;
   let purges = 0;
   const ctx = vm.createContext({
     isAndroidSession: native,
@@ -35,7 +37,9 @@ function sessionHarness(native = false) {
     Date,
     axios: { post: async (url, body, config) => {
       calls++;
-      assert.equal(url, '/api/auth/refresh');
+      assert(['/api/auth/refresh', '/api/auth/refresh/restore'].includes(url));
+      if (url === '/api/auth/refresh') rotations++;
+      if (url === '/api/auth/refresh/restore') restores++;
       assert.equal(Object.keys(body).length, 0);
       assert.equal(config.withCredentials, true);
       assert.equal(config.headers['X-HRMS-Refresh'], '1');
@@ -45,13 +49,17 @@ function sessionHarness(native = false) {
     refreshNativeSession: async () => validJwt,
   });
   vm.runInContext(browserCode, ctx);
-  return { ctx, state, get calls() { return calls; }, get purges() { return purges; } };
+  return { ctx, state, get calls() { return calls; },
+    get restores() { return restores; }, get rotations() { return rotations; },
+    get purges() { return purges; } };
 }
 
 const web = sessionHarness();
 assert.equal(vm.runInContext('getAccessToken()', web.ctx), null, 'no persisted token on startup');
-assert.equal(await vm.runInContext('restoreSession()', web.ctx), validJwt, 'web reload refreshes using HttpOnly cookie');
-assert.equal(web.calls, 1, 'one refresh request');
+assert.equal(await vm.runInContext('restoreSession()', web.ctx), validJwt, 'web reload restores from HttpOnly cookie');
+assert.equal(web.calls, 1, 'one restore request');
+assert.equal(web.restores, 1, 'page reload calls idempotent restore');
+assert.equal(web.rotations, 0, 'page reload does not rotate one-use refresh credential');
 assert.equal(vm.runInContext('getAccessToken()', web.ctx), validJwt, 'access is memory-only');
 assert.equal(await vm.runInContext('restoreSession()', web.ctx), validJwt);
 assert.equal(web.calls, 1, 'fresh in-memory token does not cause needless refresh');
@@ -61,6 +69,19 @@ assert.equal(web.purges, 1, 'logout clears browser private storage');
 web.state.set('hrms_block_session_restore', '1');
 assert.equal(await vm.runInContext('restoreSession()', web.ctx), null, 'failed remote logout cannot restore session');
 assert.equal(web.calls, 1, 'blocked logout does not rotate cookie');
+// Simulate six distinct browser navigations: each reload creates a fresh
+// JavaScript module but reuses the same HttpOnly cookie in the browser.
+for (let reload = 0; reload < 6; reload++) {
+  const freshPage = sessionHarness();
+  assert.equal(await vm.runInContext('restoreSession()', freshPage.ctx), validJwt);
+  assert.equal(freshPage.restores, 1);
+  assert.equal(freshPage.rotations, 0, 'no single-use rotation across rapid reloads');
+}
+const expiredInMemory = sessionHarness();
+vm.runInContext('setAccessToken("expired-token")', expiredInMemory.ctx);
+assert.equal(await vm.runInContext('restoreSession()', expiredInMemory.ctx), validJwt);
+assert.equal(expiredInMemory.rotations, 1, 'in-session expired JWT still rotates on renewal');
+assert.equal(expiredInMemory.restores, 0);
 const android = sessionHarness(true);
 assert.equal(await vm.runInContext('restoreSession()', android.ctx), validJwt,
   'Android restores Keystore token without a browser cookie');
