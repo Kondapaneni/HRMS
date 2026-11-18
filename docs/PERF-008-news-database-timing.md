@@ -67,3 +67,45 @@ Because `/api/news` affects the maintenance gate and tracking interval,
 the endpoint response and its security behavior must remain unchanged.
 This change is diagnostic only. Do not claim a performance improvement
 until a later controlled optimization is measured.
+
+
+## Step 2C — Separate PDO construction from identity verification
+
+Read-only findings: Render is in Singapore, while Supabase PostgreSQL is in
+Mumbai (`ap-south-1`). Six opt-in Step 2A samples returned 200 OK; the
+average `connection_and_identity_ms` was **568.04 ms** and the average
+`settings_query_ms` was **124.13 ms**. The variable was then returned
+to `false`; a subsequent request succeeded without additional probe logs.
+
+This diagnostic splits the existing connection total into two **additional**
+request-local measurements:
+
+- `pdo_connect_ms`: elapsed time constructing a new `LoggingPDO`,
+  including PDO connection setup, network/TLS and pooler authentication.
+- `identity_check_ms`: elapsed time performing the **unchanged**
+  mandatory `SELECT current_user` with its result fetch.
+
+`connection_and_identity_ms` remains the overall stage, including
+PDO configuration and any other connection initialization work.
+`settings_query_ms` remains the one-row SELECT and fetch.
+
+The fixed log format has exactly four numeric fields:
+`PERF008_NEWS connection_and_identity_ms=... pdo_connect_ms=... identity_check_ms=... settings_query_ms=...`.
+
+The measurement only runs for explicit `/api/news?perf_probe=...` calls
+when `PERF008_NEWS_TIMING_ENABLED=true`; the flag remains **off by
+default**. No SQL text, identities, token values, cookie values, header
+data, server endpoints, IPs or query parameter values are logged.
+The HTTP response, account/session enforcement, SEC-018 identity check,
+database connection mode and attendance configuration remain unchanged.
+
+A cached in-process PDO connection does not generate fresh substage
+timings, so the route omits the diagnostic log for that case rather
+than reporting misleading zeros. Apache request handling ordinarily
+begins with a fresh PHP state.
+
+**Deployment policy:** This PR is diagnostic only. After CI passes,
+obtain explicit approval for a controlled production deployment,
+briefly enable the flag, collect ~6 sequential public probes, compute
+stage medians, disable the flag and verify the disablement. Do not
+change DB credentials, ports, pooling modes, or Render region in this step.

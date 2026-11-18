@@ -625,18 +625,25 @@ $app->get('/api/news', function (Request $request, Response $response, $args) {
 
     $perf008StartNs = $perf008TimingEnabled ? hrtime(true) : null;
     $db = new Database();
-    $conn = $db->getConnection();
+    $perf008DbStages = $perf008TimingEnabled ? [] : null;
+    $conn = $db->getConnection($perf008DbStages);
     $perf008AfterConnectionNs = $perf008TimingEnabled ? hrtime(true) : null;
 
     $stmt = $conn->query('SELECT news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes FROM global_settings ORDER BY id ASC LIMIT 1');
     $settings = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($perf008TimingEnabled) {
+    if ($perf008TimingEnabled && isset(
+        $perf008DbStages['pdo_connect_ms'],
+        $perf008DbStages['identity_check_ms']
+    )) {
         $perf008AfterQueryNs = hrtime(true);
-        // getConnection() includes the mandatory SEC-018 DB identity check.
-        // SQL time includes the settings SELECT and its row fetch.
+        // The total connection stage also includes driver configuration.
+        // Substages are measured only on a freshly created PDO connection.
+        // Never log SQL, user/account identifiers, cookies or response data.
         error_log(sprintf(
-            'PERF008_NEWS connection_and_identity_ms=%.2f settings_query_ms=%.2f',
+            'PERF008_NEWS connection_and_identity_ms=%.2f pdo_connect_ms=%.2f identity_check_ms=%.2f settings_query_ms=%.2f',
             ($perf008AfterConnectionNs - $perf008StartNs) / 1e6,
+            $perf008DbStages['pdo_connect_ms'],
+            $perf008DbStages['identity_check_ms'],
             ($perf008AfterQueryNs - $perf008AfterConnectionNs) / 1e6
         ));
     }

@@ -28,6 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           php -l backend/public/index.php
+          php -l backend/src/Config/Database.php
           node tests/perf008_news_timing_policy_test.mjs
           node tests/sec012_policy_test.mjs
           node tests/sec018_source_test.mjs
