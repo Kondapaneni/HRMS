@@ -24,8 +24,6 @@ import {
   FileText,
   Sparkles
 } from 'lucide-react';
-import { pdf } from '@react-pdf/renderer';
-import PayslipPDF from '../components/PayslipPDF';
 import EmployeeSelect from '../components/EmployeeSelect';
 import toast from 'react-hot-toast';
 import { StatCard, StatusBadge, Button, Avatar } from '../components/ui';
@@ -147,6 +145,12 @@ const AdminPayroll = () => {
 
   const handleDownload = async (payslip) => {
     try {
+      // Defer the ~1.4MB PDF engine until the user requests an actual download.
+      // Navigating to a payroll or employee view must not require PDF rendering.
+      const [{ pdf }, { default: PayslipPDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('../components/PayslipPDF'),
+      ]);
       const blob = await pdf(<PayslipPDF payslip={payslip} />).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
