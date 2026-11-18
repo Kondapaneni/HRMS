@@ -9,13 +9,15 @@ let bootRequest = null;
 
 export function primeInitialMaintenanceStatus() {
   if (!bootRequest) {
-    bootRequest = {
-      startedAt: Date.now(),
-      promise: api.get('/news', {
-        params: { maintenance_check: Date.now() },
-        headers: { 'Cache-Control': 'no-cache' },
-      }),
-    };
+    const request = api.get('/news', {
+      params: { maintenance_check: Date.now() },
+      headers: { 'Cache-Control': 'no-cache' },
+    });
+    // Auth boot intentionally does not await this. Attach a rejection handler
+    // immediately; the original promise still rejects when the gate consumes it.
+    // This prevents an unhandled promise rejection during offline/maintenance.
+    void request.catch(() => {});
+    bootRequest = { startedAt: Date.now(), promise: request };
   }
   return bootRequest.promise;
 }
