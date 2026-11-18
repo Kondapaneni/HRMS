@@ -6,6 +6,7 @@ on:
       - 'frontend/vite.config.js'
       - 'tests/perf_frontend_policy_test.mjs'
       - 'tests/perf_cold_route_policy_test.mjs'
+      - 'tests/perf_refresh_boot_policy_test.mjs'
       - '.github/workflows/perf_frontend.yml'
   workflow_dispatch:
 permissions:
@@ -24,6 +25,7 @@ jobs:
         run: |
           node tests/perf_frontend_policy_test.mjs
           node tests/perf_cold_route_policy_test.mjs
+          node tests/perf_refresh_boot_policy_test.mjs
           node tests/sec021_policy_test.mjs
           node tests/sec012_policy_test.mjs
           node tests/sec008_frontend_security_test.mjs
@@ -37,5 +39,6 @@ jobs:
         run: |
           node tests/perf_frontend_policy_test.mjs --built
           node tests/perf_cold_route_policy_test.mjs --built
+          node tests/perf_refresh_boot_policy_test.mjs --built
           node tests/sec021_policy_test.mjs --built
           node tests/sec020_policy_test.mjs --built

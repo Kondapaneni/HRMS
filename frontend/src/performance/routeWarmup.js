@@ -38,6 +38,29 @@ const modules = {
 };
 const loading = new Map();
 
+const layoutModules = [
+  ['/admin', () => import('../components/AdminLayout')],
+  ['/employee/loans', () => import('../components/OriginationLoansLayout')],
+  ['/employee/sales', () => import('../components/OriginationSalesLayout')],
+  ['/employee/branch-operations', () => import('../components/BranchOperationsLayout')],
+  ['/employee', () => import('../components/EmployeeLayout')],
+  ['/candidate', () => import('../components/CandidateLayout')],
+];
+const preloadingLayouts = new Map();
+
+// Only imports public JavaScript code for the current deep link: never private
+// API data, user identity, auth claims, or browser-persistent query responses.
+export function preloadInitialRoute(pathname) {
+  const path = typeof pathname === 'string' ? pathname : '';
+  const match = layoutModules.find(([prefix]) => path === prefix || path.startsWith(prefix + '/'));
+  if (!match) return Promise.resolve();
+  const [key, loadLayout] = match;
+  if (!preloadingLayouts.has(key)) {
+    preloadingLayouts.set(key, loadLayout().catch(() => preloadingLayouts.delete(key)));
+  }
+  return Promise.all([preloadingLayouts.get(key), preloadRouteModule(path)]);
+}
+
 export function preloadRouteModule(path) {
   const loader = modules[path];
   if (!loader) return Promise.resolve();

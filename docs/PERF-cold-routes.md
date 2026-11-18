@@ -32,3 +32,32 @@
 4. Measure cold vs warm route timings before claiming the complete performance issue closed; slow backend APIs require separate SQL/index/load investigation.
 
 **Change control:** Keep PR unmerged until a safe, owner-confirmed Render window; no rollback requires DB or APK changes. Any rollback must use a normal revert PR, never force-rewrite protected main.
+
+
+## Full-page refresh latency follow-up (2026-11-18)
+
+The owner separately reported that refreshing an already-open HRMS protected
+route still feels slow. This is a **distinct cold-start workflow**:
+- Web browser destroys in-memory access JWT and private TanStack cache on reload
+  by SEC-021 design, requiring a rotating HttpOnly refresh-cookie exchange and
+  a sequential server-authoritative `GET /api/me` to verify role/feature grants.
+- Previously `AuthProvider` mounted its children only after those requests,
+  delaying initial `MaintenanceGate` public `GET /api/news` until the secure
+  profile fetch had completed.
+- `React.lazy` route code was normally fetched after auth, creating another
+  avoidable serial dependency for first-time/deep-link browser reloads.
+
+**Scoped safe optimization:** `InitialRouteWarmup` begins loading only the
+current route's frontend code and parent layout concurrently with auth
+bootstrap. `AuthProvider` begins the public maintenance status request before
+awaiting secure `restoreSession() -> /me`. `MaintenanceGate` consumes that
+request once if no older than 3 seconds; otherwise it fetches new public
+status. Existing SEC-020 fail-closed overlay and maintenance recovery stay
+intact, and role restrictions are not relaxed. No private API data/credentials
+are prefetched before authorization; no sensitive persistence is enabled.
+
+**Limit:** two session/role API round trips remain required on browser reload.
+This patch removes avoidable dependency serialization but cannot guarantee
+an instant cold reload if refresh, /me, /news or a page data API is slow. Those
+individual Network timings must be measured in Chrome before marking the
+refresh-performance issue resolved.

@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import api, { restoreSession, setAccessToken, clearSessionAccess } from '../api/axios';
 import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
 import SplashScreen from '../components/SplashScreen';
+import { primeInitialMaintenanceStatus } from '../performance/initialMaintenanceStatus';
 
 const AuthContext = createContext({});
 
@@ -55,6 +56,10 @@ export const AuthProvider = ({ children }) => {
       // Keep server-authoritative refresh + /me validation, but do not impose
       // an artificial 1.2s minimum splash on successful protected-route loads.
       try {
+        // Start the public maintenance check concurrently with secure session
+        // renewal and /me; MaintenanceGate consumes this same recent response.
+        // A failed public check still fails closed inside MaintenanceGate.
+        void primeInitialMaintenanceStatus();
         await fetchProfile();
       } finally {
         setLoading(false);
