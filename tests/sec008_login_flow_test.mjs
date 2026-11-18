@@ -11,7 +11,7 @@ const grantedButNotSetUp = 'sec008-granted@example.invalid';
 async function post(path, data) {
   const response = await fetch(root + path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept-Encoding': 'identity' },
+    headers: { 'X-HRMS-Client': 'android', 'Content-Type': 'application/json', 'Accept-Encoding': 'identity' },
     body: JSON.stringify(data),
   });
   return { status: response.status, data: await response.json() };

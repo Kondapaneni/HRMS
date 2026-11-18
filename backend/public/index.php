@@ -14,6 +14,7 @@ use App\Utils\SessionVersion;
 use App\Utils\OtpCode;
 use App\Utils\AccessToken;
 use App\Utils\RefreshSessions;
+use App\Utils\WebSessionCookies;
 use App\Security\MapsConfig;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -32,6 +33,44 @@ $app = AppFactory::create();
 
 // Add Body Parsing Middleware for JSON POST requests
 $app->addBodyParsingMiddleware();
+
+// SEC-021: Browser sign-in must not be initiated by another website, even
+// though it has not yet established a CSRF cookie. Authenticated writes use
+// a separate double-submit CSRF check in AuthMiddleware.
+$app->add(function (Request $request, $handler) {
+    $path = $request->getUri()->getPath();
+    $loginPaths = ['/api/login', '/api/candidate/login', '/api/auth/otp/verify', '/api/auth/mfa/verify'];
+    if ($request->getMethod() === 'POST' && in_array($path, $loginPaths, true)
+        && !RefreshSessions::isAndroid($request)) {
+        $origin = $request->getHeaderLine('Origin');
+        $fetchSite = strtolower($request->getHeaderLine('Sec-Fetch-Site'));
+        $originHost = $origin !== '' ? parse_url($origin, PHP_URL_HOST) : null;
+        $originScheme = $origin !== '' ? parse_url($origin, PHP_URL_SCHEME) : null;
+        $serverHost = $request->getUri()->getHost();
+        // HTTPS is mandatory in Render. Local Vite proxy development only
+        // may use loopback HTTP; never grant this exemption to public hosts.
+        $isLocalDevelopment = ($_ENV['APP_ENV'] ?? getenv('APP_ENV')) !== 'production'
+            && in_array(strtolower($serverHost), ['localhost', '127.0.0.1'], true)
+            && is_string($originHost)
+            && in_array(strtolower($originHost), ['localhost', '127.0.0.1'], true);
+        $originAllowed = is_string($originHost) &&
+            (($originScheme === 'https' && strcasecmp($originHost, $serverHost) === 0)
+                || ($originScheme === 'http' && $isLocalDevelopment));
+        if ($fetchSite === 'cross-site' || ($origin !== '' && !$originAllowed)) {
+            $rejected = new \Slim\Psr7\Response();
+            $rejected->getBody()->write(json_encode(['error' => 'Cross-origin sign-in denied.']));
+            return $rejected->withHeader('Content-Type', 'application/json')
+                ->withHeader('Cache-Control', 'no-store')->withStatus(403);
+        }
+    }
+    $response = $handler->handle($request);
+    // Do not allow sensitive JSON API responses in browser HTTP disk caches.
+    if (str_starts_with($path, '/api/')) {
+        return $response->withHeader('Cache-Control', 'private, no-store')
+            ->withHeader('Pragma', 'no-cache');
+    }
+    return $response;
+});
 
 // SEC-018: Legacy routes may construct HTTP 5xx bodies from PDO exceptions.
 // Redact all API server errors; preserve existing 4xx validation responses.
@@ -94,7 +133,7 @@ $app->add(function (Request $request, $handler) {
     return $response
         ->withHeader('Access-Control-Allow-Origin', $allowedOrigin)
         ->withHeader('Access-Control-Allow-Credentials', 'true')
-        ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization, X-HRMS-Client, X-HRMS-Refresh')
+        ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization, X-HRMS-Client, X-HRMS-Refresh, X-HRMS-CSRF')
         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 });
 
@@ -104,13 +143,17 @@ $app->add(function (Request $request, $handler) {
 $app->add(function (Request $request, $handler) {
     $response = $handler->handle($request);
     $path = $request->getUri()->getPath();
-    $cookieAttributes = 'Path=/; Secure; HttpOnly; SameSite=Lax';
+    $cookieAttributes = 'Path=/; Secure; HttpOnly; SameSite=Strict';
     if ($path === '/api/logout') {
         return $response->withAddedHeader('Set-Cookie',
             'hrms_file_auth=; Max-Age=0; ' . $cookieAttributes);
     }
     if (!str_starts_with($path, '/api/') || $response->getStatusCode() >= 400) return $response;
     $auth = trim($request->getHeaderLine('Authorization'));
+    if ($auth === '') {
+        $jwtCookie = $request->getCookieParams()[WebSessionCookies::ACCESS] ?? '';
+        if (is_string($jwtCookie) && $jwtCookie !== '') $auth = 'Bearer ' . $jwtCookie;
+    }
     if (!preg_match('/\ABearer\s+([A-Za-z0-9._-]+)\z/i', $auth, $matches)) return $response;
     $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '');
     if ($secret === '') return $response;
@@ -495,12 +538,14 @@ $app->post('/api/auth/refresh', function (Request $request, Response $response) 
         $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
         $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
         $access = AccessToken::mint($result['user'], $secret, $setting['session_timeout'] ?? '30');
-        $payload = ['token' => $access];
+        $payload = ['authenticated' => true];
         if ($client === 'android') {
-            $payload['refreshToken'] = $result['refreshToken'];
+            $payload = ['token' => $access, 'refreshToken' => $result['refreshToken']];
         } else {
             $remaining = max(1, strtotime((string)$result['expiresAt']) - time());
-            $response = $response->withAddedHeader(
+            $response = WebSessionCookies::issue(
+                $response, $access, $request->getCookieParams()[WebSessionCookies::CSRF] ?? null
+            )->withAddedHeader(
                 'Set-Cookie', RefreshSessions::cookie($result['refreshToken'], $remaining)
             );
         }
@@ -526,15 +571,34 @@ $app->post('/api/logout', function (Request $request, Response $response, $args)
             return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
         }
         $response->getBody()->write(json_encode(['message' => 'Logged out and all sessions revoked.']));
-        return $response->withHeader('Content-Type', 'application/json')
-            ->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie())
-            ->withHeader('Cache-Control', 'no-store')->withStatus(200);
+        return WebSessionCookies::clear(
+            $response->withHeader('Content-Type', 'application/json')
+                ->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie())
+                ->withHeader('Cache-Control', 'no-store')->withStatus(200)
+        );
+
     } catch (Throwable $e) {
         error_log('SEC-012 logout revocation unavailable: ' . $e->getMessage());
         $response->getBody()->write(json_encode(['error' => 'Session revocation temporarily unavailable.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 })->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager', 'candidate']));
+
+// SEC-021: After password change the JWT is already revoked. Allow its
+// browser to expire its own cookies without accepting an obsolete JWT.
+// CSRF protection prevents cross-site forced logout.
+$app->post('/api/auth/clear-session', function (Request $request, Response $response) {
+    if (!WebSessionCookies::validCsrf($request)) {
+        $response->getBody()->write(json_encode(['error' => 'CSRF verification failed.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+    }
+    $response->getBody()->write(json_encode(['cleared' => true]));
+    return WebSessionCookies::clear(
+        $response->withAddedHeader('Set-Cookie', RefreshSessions::clearCookie())
+            ->withHeader('Cache-Control', 'no-store')
+            ->withHeader('Content-Type', 'application/json')
+    );
+});
 
 // Get global news headlines & maintenance status (Public)
 $app->get('/api/news', function (Request $request, Response $response, $args) {

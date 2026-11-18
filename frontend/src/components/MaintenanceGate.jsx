@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
+import { hasBrowserSessionCookie } from '../api/browserPrivacy';
+import { getNativeAccessToken, isAndroidSession } from '../api/nativeSession';
 import MaintenanceOverlay from './MaintenanceOverlay';
 import {
   isMaintenanceEnabled,
@@ -27,6 +29,19 @@ export default function MaintenanceGate({ children }) {
     message: '',
   });
   const [checking, setChecking] = useState(false);
+  // WebView no longer mirrors native JWTs in localStorage. During maintenance
+  // /me can return 503 before profile hydration, so read ONLY a boolean hint
+  // from the Android Keystore to keep the SEC-020 notice on protected routes.
+  const [nativeSession, setNativeSession] = useState({ resolved: !isAndroidSession, present: false });
+  useEffect(() => {
+    if (!isAndroidSession) return;
+    let active = true;
+    setNativeSession(current => ({ ...current, resolved: false }));
+    getNativeAccessToken()
+      .then(token => { if (active) setNativeSession({ resolved: true, present: Boolean(token) }); })
+      .catch(() => { if (active) setNativeSession({ resolved: true, present: false }); });
+    return () => { active = false; };
+  }, [profile]);
 
   useEffect(() => {
     profileRef.current = profile;
@@ -46,7 +61,7 @@ export default function MaintenanceGate({ children }) {
       // A full browser refresh during maintenance may have left a valid
       // employee token without a profile, because /api/me returned 503.
       // Rehydrate that profile BEFORE restoring protected routes when OFF.
-      if (!enabled && localStorage.getItem('token') && !profileRef.current) {
+      if (!enabled && !profileRef.current && (hasBrowserSessionCookie() || !isPublicMaintenanceRoute(pathname))) {
         await fetchProfile();
       }
 
@@ -66,7 +81,7 @@ export default function MaintenanceGate({ children }) {
     } finally {
       setChecking(false);
     }
-  }, [fetchProfile]);
+  }, [fetchProfile, pathname]);
 
   useEffect(() => {
     checkMaintenance();
@@ -79,12 +94,13 @@ export default function MaintenanceGate({ children }) {
   }, [checkMaintenance]);
 
   const publicRoute = isPublicMaintenanceRoute(pathname);
-  const hasToken = Boolean(localStorage.getItem('token'));
+  const hasToken = Boolean(profile || hasBrowserSessionCookie() || nativeSession.present);
 
   // Hold protected routes until the public maintenance status is checked.
   // Otherwise /api/me may fail with 503 on browser refresh and ProtectedRoute
   // could redirect to login before the maintenance notice becomes visible.
-  if (!status.ready && !publicRoute && hasToken && profile?.role !== 'admin') {
+  if ((!status.ready || (isAndroidSession && !nativeSession.resolved)) && !publicRoute
+    && (hasToken || isAndroidSession) && profile?.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#ECEEEA] text-neutral-700 text-sm" role="status">
         Checking service availability...

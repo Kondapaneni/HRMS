@@ -93,15 +93,16 @@ export const ThemeProvider = ({ children }) => {
     setThemePreferenceState(newPref);
     localStorage.setItem('themePreference', newPref);
 
-    const token = localStorage.getItem('token');
-    if (token) {
+    // Only server-verified profiles may sync preferences; browser tokens are
+    // HttpOnly and never inspected through localStorage.
+    if (profile) {
       try {
         await api.put('/user/theme', { theme: newPref });
       } catch (err) {
-        console.error('Failed to sync theme preference to database:', err);
+        if (import.meta.env.DEV) console.warn('Theme preference sync failed (status only):', err.response?.status || 'network');
       }
     }
-  }, []);
+  }, [profile]);
 
   return (
     <ThemeContext.Provider value={{ themePreference, effectiveTheme, setThemePreference }}>

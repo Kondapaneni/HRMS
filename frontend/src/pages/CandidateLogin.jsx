@@ -10,7 +10,7 @@ import {
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { saveNativeSession } from '../api/nativeSession';
+import { saveNativeSession, isAndroidSession } from '../api/nativeSession';
 import { useAuth } from '../contexts/AuthContext';
 import AuthSideCarousel from '../components/AuthSideCarousel';
 
@@ -93,10 +93,7 @@ const CandidateLogin = () => {
           password: formData.password
         });
 
-        if (res.data.token) {
-          await saveNativeSession(res.data);
-          localStorage.setItem('token', res.data.token);
-        }
+        if (isAndroidSession) await saveNativeSession(res.data);
 
         toast.success('Welcome back!');
         window.location.href = '/candidate/dashboard';

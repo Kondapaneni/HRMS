@@ -1,8 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient } from '@tanstack/react-query'
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { eraseLegacySensitiveStorage } from './api/browserPrivacy'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -113,7 +112,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,       // 5 minutes — data is "fresh" for this long
-      gcTime: 24 * 60 * 60 * 1000,     // 24 hours — needed for persistent caching across app restarts
+      gcTime: 5 * 60 * 1000,         // 5 minutes in memory only; never persist private API responses
       refetchOnWindowFocus: true,       // silently refresh when user returns to tab
       refetchOnReconnect: true,         // silently refresh after network reconnect
       refetchOnMount: 'always',         // silently refresh on every navigation mount
@@ -122,9 +121,8 @@ const queryClient = new QueryClient({
   },
 })
 
-const persister = createSyncStoragePersister({
-  storage: window.localStorage,
-})
+// Remove sensitive pre-SEC-021 snapshots as soon as the new bundle loads.
+eraseLegacySensitiveStorage()
 
 /**
  * Route role definitions — must mirror the backend require_role() calls.
@@ -137,7 +135,7 @@ const CANDIDATE_DASHBOARD_ROLES = ['candidate']
 
 function App() {
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <CapacitorLifecycle />
         <AuthProvider>
@@ -387,7 +385,7 @@ function App() {
           </ThemeProvider>
         </AuthProvider>
       </Router>
-    </PersistQueryClientProvider>
+    </QueryClientProvider>
   )
 }
 

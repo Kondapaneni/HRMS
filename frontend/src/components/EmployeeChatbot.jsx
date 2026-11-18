@@ -25,13 +25,7 @@ const EmployeeChatbot = () => {
   const { profile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem('hrms_employee_chat_history');
-      if (saved) return JSON.parse(saved);
-    } catch (_) {}
-    return [];
-  });
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [showSuggestionsMenu, setShowSuggestionsMenu] = useState(false);
@@ -67,20 +61,8 @@ const EmployeeChatbot = () => {
         content: `Hi **${firstName}**!\n\nI am your **HR Assistant**. I can answer all questions regarding your personal and employment records:\n* **Your Name & Employee ID** (e.g. "What is my name?")\n* **Your Profile & Role** (Designation, Department, Branch)\n* **Reporting Manager** & Contact info\n* **Leave balances** & leave requests\n* **Attendance**, check-in/out & logged hours\n* **Salary** & latest payslip breakdown\n* **Shift timings** & weekly off\n* **Assigned company assets**\n* **Business Apps** (Loans, Sales, Branch Operations)\n\nAsk me anything about your records or select one of the suggestions below.`
       };
       setMessages([welcomeMsg]);
-      try {
-        sessionStorage.setItem('hrms_employee_chat_history', JSON.stringify([welcomeMsg]));
-      } catch (_) {}
     }
   }, [profile]);
-
-  // Persist messages to sessionStorage
-  useEffect(() => {
-    if (messages.length > 0) {
-      try {
-        sessionStorage.setItem('hrms_employee_chat_history', JSON.stringify(messages));
-      } catch (_) {}
-    }
-  }, [messages]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -151,9 +133,6 @@ const EmployeeChatbot = () => {
       content: `Conversation reset. How can I assist you with your HR records today, **${firstName}**?`
     };
     setMessages([welcomeMsg]);
-    try {
-      sessionStorage.setItem('hrms_employee_chat_history', JSON.stringify([welcomeMsg]));
-    } catch (_) {}
     toast.success('Conversation reset');
   };
 

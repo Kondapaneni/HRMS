@@ -4,6 +4,10 @@ import { execFileSync } from 'node:child_process';
 const origin = 'http://127.0.0.1:8773';
 const ok = async (method, path, body, token, expectedStatus) => {
   const headers = { 'Content-Type': 'application/json' };
+  // Existing revocation assertions intentionally exercise native bearer JWTs.
+  // SEC-021 separately verifies that browser login returns no readable JWT.
+  if (['/api/login', '/api/candidate/login', '/api/auth/otp/verify'].includes(path))
+    headers['X-HRMS-Client'] = 'android';
   if (token) headers.Authorization = 'Bearer ' + token;
   const resp = await fetch(origin + path, {
     method, headers, body: body ? JSON.stringify(body) : undefined,

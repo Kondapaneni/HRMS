@@ -2,13 +2,15 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
-import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
+import { saveNativeSession, clearNativeSession, isAndroidSession } from '../api/nativeSession';
+import { eraseLegacySensitiveStorage, hasBrowserSessionCookie } from '../api/browserPrivacy';
 import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext({});
 
 const PUBLIC_ROUTES = [
   '/',
+  '/login',
   '/candidate/login',
   '/candidate/activate',
   '/forgot-password',
@@ -31,66 +33,68 @@ export const AuthProvider = ({ children }) => {
     fetchInProgress.current = true;
     setProfileLoading(true);
     try {
-      if (!localStorage.getItem('token')) {
-        throw new Error('No token found');
-      }
       const response = await api.get('/me');
       setProfile(response.data);
       setUser({ email: response.data.email, id: response.data.id });
     } catch (error) {
-      if (error.message === 'No token found' || (error.response && (error.response.status === 401 || error.response.status === 403))) {
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
         // User is simply not logged in or session expired
-        localStorage.removeItem('token');
+        eraseLegacySensitiveStorage();
+        queryClient.clear();
         setProfile(null);
         setUser(null);
       } else {
-        console.error('Failed to fetch profile:', error);
+        if (import.meta.env.DEV) console.error('Profile request failed (status only):', error.response?.status || 'network');
       }
     } finally {
       setProfileLoading(false);
       fetchInProgress.current = false;
     }
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     if (isInitialized) return;
-
-    // Check if the current route is exactly a public route
     const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
-    const hasToken = !!localStorage.getItem('token');
-
-    if (isPublicRoute && !hasToken) {
-      // Don't fetch on public routes if no token exists, finish initialization immediately
+    // The CSRF cookie is only a non-sensitive session hint; the server
+    // still authenticates every request and enforces current permissions.
+    if (isPublicRoute && !hasBrowserSessionCookie() && !isAndroidSession) {
       setLoading(false);
       setIsInitialized(true);
       return;
     }
 
-    // On protected routes or if returning with a token, fetch profile with minimum 1200ms splash delay
     const initializeAuth = async () => {
-      if (!hasToken) {
-        setLoading(false);
-        setIsInitialized(true);
-        return;
-      }
-
-      const startTime = Date.now();
-      
+      const started = Date.now();
       await fetchProfile();
-      
-      const elapsed = Date.now() - startTime;
-      const minDelay = 1200;
-      
-      if (elapsed < minDelay) {
-        await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
-      }
-      
+      // Preserve splash UX without delaying anonymous public sign-in.
+      const minDelay = isPublicRoute ? 0 : 1200;
+      const remaining = minDelay - (Date.now() - started);
+      if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
       setLoading(false);
       setIsInitialized(true);
     };
-
     initializeAuth();
   }, [fetchProfile, isInitialized, location.pathname]);
+
+  useEffect(() => {
+    const clearClientState = () => {
+      eraseLegacySensitiveStorage();
+      queryClient.clear();
+      setProfile(null);
+      setUser(null);
+    };
+    const onExpired = () => clearClientState();
+    window.addEventListener('hrms-session-expired', onExpired);
+    const channel = typeof BroadcastChannel !== 'undefined'
+      ? new BroadcastChannel('hrms-auth') : null;
+    if (channel) channel.onmessage = event => {
+      if (event.data === 'signed-out') clearClientState();
+    };
+    return () => {
+      window.removeEventListener('hrms-session-expired', onExpired);
+      channel?.close();
+    };
+  }, [queryClient]);
 
   const signIn = async (email, password) => {
     const response = await api.post('/login', { email, password });
@@ -101,22 +105,24 @@ export const AuthProvider = ({ children }) => {
         email: response.data.email,
       };
     }
-    const { token, user: userData } = response.data;
-    if (token) {
-      await saveNativeSession(response.data);
-      localStorage.setItem('token', token);
-    }
+    const { user: userData } = response.data;
+    // Web sessions are already set through HttpOnly cookies in this response.
+    // Native credentials go directly into the Android Keystore.
+    if (isAndroidSession) await saveNativeSession(response.data);
+    queryClient.clear();
+    eraseLegacySensitiveStorage();
     await fetchProfile();
     return userData;
   };
 
   const verifyMfa = async (mfaToken, code, isBackupCode = false) => {
     const response = await api.post('/auth/mfa/verify', { mfaToken, code, isBackupCode });
-    const { token, user: userData } = response.data;
-    if (token) {
-      await saveNativeSession(response.data);
-      localStorage.setItem('token', token);
-    }
+    const { user: userData } = response.data;
+    // Web sessions are already set through HttpOnly cookies in this response.
+    // Native credentials go directly into the Android Keystore.
+    if (isAndroidSession) await saveNativeSession(response.data);
+    queryClient.clear();
+    eraseLegacySensitiveStorage();
     await fetchProfile();
     return userData;
   };
@@ -137,34 +143,47 @@ export const AuthProvider = ({ children }) => {
         email: response.data.email,
       };
     }
-    const { token, user: userData } = response.data;
-    if (token) {
-      await saveNativeSession(response.data);
-      localStorage.setItem('token', token);
-    }
+    const { user: userData } = response.data;
+    // Web sessions are already set through HttpOnly cookies in this response.
+    // Native credentials go directly into the Android Keystore.
+    if (isAndroidSession) await saveNativeSession(response.data);
+    queryClient.clear();
+    eraseLegacySensitiveStorage();
     await fetchProfile();
     return userData;
   };
 
   const signOut = async (options = {}) => {
-    // When the password was just changed, the server already invalidated
-    // the JWT. Clear local state without making an obsolete logout call.
-    if (!options?.localOnly) {
-      try {
+    let revocationUnconfirmed = false;
+    try {
+      if (options?.localOnly) {
+        // Change Password has already revoked the JWT in the database.
+        if (!isAndroidSession) await api.post('/auth/clear-session');
+      } else {
         await api.post('/logout');
-      } catch (err) {
-        console.error('Logout revocation could not be confirmed:', err);
+      }
+    } catch {
+      // Never claim a failed server revocation was successful.
+      revocationUnconfirmed = !options?.localOnly;
+    } finally {
+      try {
+        await clearNativeSession();
+      } catch {
+        revocationUnconfirmed = true;
+      }
+      eraseLegacySensitiveStorage();
+      setProfile(null);
+      setUser(null);
+      queryClient.clear();
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('hrms-auth');
+        channel.postMessage('signed-out');
+        channel.close();
       }
     }
-    try {
-      await clearNativeSession();
-    } catch (err) {
-      console.error('Could not clear Android secure session:', err);
+    if (revocationUnconfirmed) {
+      throw new Error('Server logout could not be confirmed. Reconnect and sign out again before using a shared device.');
     }
-    localStorage.removeItem('token');
-    setProfile(null);
-    setUser(null);
-    queryClient.clear();
   };
 
   const value = {

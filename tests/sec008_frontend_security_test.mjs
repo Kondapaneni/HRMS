@@ -12,8 +12,10 @@ const otpAuthEnd = auth.indexOf('const signOut = async', otpAuthStart);
 assert(otpAuthStart >= 0 && otpAuthEnd > otpAuthStart, 'OTP login context function exists');
 const context = auth.slice(otpAuthStart, otpAuthEnd);
 assert(context.includes('if (response.data?.mfaRequired)'));
-assert(context.indexOf('if (response.data?.mfaRequired)') < context.indexOf("localStorage.setItem('token', token)"),
-  'MFA pending OTP token never persisted as authenticated session');
+assert(context.indexOf('if (response.data?.mfaRequired)') < context.indexOf('saveNativeSession(response.data)'),
+  'MFA pending OTP challenge must not reach native authenticated-session storage');
+assert(!auth.includes("localStorage.setItem('token'"),
+  'Browser authenticated JWTs must never be written to Web Storage');
 
 const otpUiStart = login.indexOf('const handleVerifyOtp = async');
 const otpUiEnd = login.indexOf('\n\n\n  return (', otpUiStart);

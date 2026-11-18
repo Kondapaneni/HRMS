@@ -18,7 +18,7 @@ function checkNative(bool $condition, string $message): void {
     echo "PASS native PHP session pooler: " . $message . "\n";
 }
 function nativeCall(string $method, string $path, ?string $token=null, ?array $body=null): array {
-    $headers=['Content-Type: application/json','Accept: application/json'];
+    $headers=['Content-Type: application/json','Accept: application/json','X-HRMS-Client: android'];
     if ($token!==null) $headers[]='Authorization: Bearer ' . $token;
     $curl=curl_init('http://127.0.0.1:8789' . $path);
     curl_setopt_array($curl,[

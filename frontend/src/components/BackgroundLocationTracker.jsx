@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import api, { REMOTE_ORIGIN } from '../api/axios';
+import { getNativeAccessToken } from '../api/nativeSession';
 import { NativeLocationTracker } from '../plugins/NativeLocationTracker';
 
 /**
@@ -79,7 +80,7 @@ export default function BackgroundLocationTracker() {
           // Employee is checked in — start or reschedule the native foreground service
           const intervalChanged = activeIntervalRef.current !== targetIntervalMs;
           if (!nativeStartedRef.current || intervalChanged) {
-            const token = localStorage.getItem('token');
+            const token = await getNativeAccessToken();
             if (token) {
               try {
                 const baseUrl = REMOTE_ORIGIN || (typeof window !== 'undefined' ? window.location.origin : '');

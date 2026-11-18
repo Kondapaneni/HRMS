@@ -169,8 +169,9 @@ final class RefreshSessions
         $access = AccessToken::mint($user, $secret, $sessionTimeout);
         $refresh = self::issue($conn, $user, $client);
         if ($client === 'web') {
-            $response = $response->withAddedHeader('Set-Cookie', self::cookie($refresh));
-            return [$response, ['token' => $access]];
+            $response = WebSessionCookies::issue($response, $access)
+                ->withAddedHeader('Set-Cookie', self::cookie($refresh));
+            return [$response, ['authenticated' => true]];
         }
         // Native app immediately transfers the refresh credential to
         // AndroidKeystore-backed storage; web localStorage must never receive it.

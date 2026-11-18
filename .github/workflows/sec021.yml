@@ -1,0 +1,147 @@
+name: SEC-021 browser session and private storage security
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/vite.config.js'
+      - 'frontend/index.html'
+      - 'backend/src/Utils/WebSessionCookies.php'
+      - 'backend/src/Utils/RefreshSessions.php'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/public/index.php'
+      - 'tests/sec021_*'
+      - 'tests/sec012_*'
+      - 'tests/sec008_*'
+      - 'tests/sec018_*'
+      - 'docs/SEC-021-remediation.md'
+      - '.github/workflows/sec021.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/vite.config.js'
+      - 'frontend/index.html'
+      - 'backend/src/Utils/WebSessionCookies.php'
+      - 'backend/src/Utils/RefreshSessions.php'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/public/index.php'
+      - 'tests/sec021_*'
+      - 'tests/sec012_*'
+      - 'docs/SEC-021-remediation.md'
+      - '.github/workflows/sec021.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-session-http:
+    name: Isolated PostgreSQL login cookie CSRF MFA and native regression
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec012_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec012_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec012_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec012_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec012_synthetic_only
+      JWT_SECRET: SEC012_TEST_ONLY_SECRET_NOT_FOR_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate source invariants and PHP syntax
+        run: |
+          set -euo pipefail
+          for file in backend/src/Utils/WebSessionCookies.php backend/src/Utils/RefreshSessions.php backend/src/Middleware/AuthMiddleware.php backend/public/index.php; do
+            php -l "$file"
+          done
+          node tests/sec021_source_test.mjs
+          node tests/sec008_frontend_security_test.mjs
+          node tests/sec012_policy_test.mjs
+      - name: Install isolated backend test runtime
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Seed disposable development-style PostgreSQL fixture
+        run: php tests/sec012_seed.php
+      - name: Start localhost-only PHP API
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > backend/.env <<'SEC021_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec012_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec012_synthetic_only
+          JWT_SECRET=SEC012_TEST_ONLY_SECRET_NOT_FOR_PRODUCTION
+          APP_ENV=production
+          SEC021_TEST_ENV
+          php -S 127.0.0.1:8781 -t backend/public backend/public/index.php > /tmp/sec021-api.log 2>&1 &
+          echo $! > /tmp/sec021-php.pid
+          for i in {1..25}; do
+            if curl -fsS http://127.0.0.1:8781/version.json >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          tail -n 80 /tmp/sec021-api.log
+          exit 1
+      - name: Check browser and candidate HttpOnly cookies CSRF rotation and native bearer
+        run: |
+          set -euo pipefail
+          trap 'kill "$(cat /tmp/sec021-php.pid)" 2>/dev/null || true' EXIT
+          node tests/sec021_browser_http_test.mjs
+
+  frontend-production:
+    name: Build, legacy cache absence and Android session source regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Verify browser privacy MFA login and Android source invariants
+        run: |
+          set -euo pipefail
+          node tests/sec021_source_test.mjs
+          node tests/sec008_frontend_security_test.mjs
+          node tests/sec008_login_reset_test.mjs
+          node tests/sec006_android_security_test.mjs
+          node tests/sec020_policy_test.mjs
+          node tests/sec020_maintenance_ui_test.mjs
+      - name: Compile frontend in production mode
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Validate generated assets have no JWT cache keys or raw diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The literal migration keys are intentionally retained to erase
+          # historical browser storage. The old persistence provider must not
+          # exist in the generated application bundle.
+          if grep -R -E 'PersistQueryClientProvider|createSyncStoragePersister' frontend/dist/assets/*.js; then
+            echo "SEC-021 failure: global persistent private query cache remains"
+            exit 1
+          fi

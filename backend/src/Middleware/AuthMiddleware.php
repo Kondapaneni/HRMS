@@ -12,6 +12,7 @@ use Exception;
 use App\Config\Database;
 use App\Utils\SessionVersion;
 use App\Utils\AccessToken;
+use App\Utils\WebSessionCookies;
 use App\Utils\Sec018AuditContext;
 
 class AuthMiddleware
@@ -65,8 +66,25 @@ class AuthMiddleware
             $token = str_replace('Bearer ', '', $authHeader[0]);
         }
 
+        // Browser sessions use HttpOnly access cookies. Explicit bearer
+        // credentials remain supported exclusively for native clients and
+        // synthetic authorization tests; they take precedence when supplied.
+        $viaCookie = false;
+        if (empty($token)) {
+            $cookie = $request->getCookieParams()[WebSessionCookies::ACCESS] ?? null;
+            if (is_string($cookie) && $cookie !== '') {
+                $token = $cookie;
+                $viaCookie = true;
+            }
+        }
+
         if (empty($token)) {
             return $this->unauthorizedResponse("Missing Authorization Token");
+        }
+
+        if ($viaCookie && !in_array(strtoupper($request->getMethod()), ['GET', 'HEAD', 'OPTIONS'], true)
+            && !WebSessionCookies::validCsrf($request)) {
+            return $this->forbiddenResponse('CSRF verification failed.');
         }
 
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';

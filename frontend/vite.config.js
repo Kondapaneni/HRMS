@@ -62,6 +62,9 @@ export default defineConfig({
     'import.meta.env.VITE_APP_SEMVER': JSON.stringify(appSemVer),
     'import.meta.env.VITE_APP_GIT_COMMIT': JSON.stringify(gitCommitShort),
   },
+  // Production bundles must not expose request errors, private records or 
+  // diagnostic objects through the browser console. Server logging remains on.
+  esbuild: { drop: ['console', 'debugger'] },
   plugins: [
     react(),
     tailwindcss(),

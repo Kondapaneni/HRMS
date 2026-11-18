@@ -13,17 +13,27 @@ async function request(path, body, headers = {}, expected = 200) {
   assert.equal(response.status, expected,
     'POST ' + path + ' expected HTTP ' + expected + ', got ' + response.status +
     ' (' + (data.error || '') + ')');
-  return { data, cookie: response.headers.get('set-cookie') };
+  return { data, cookie: response.headers.getSetCookie().join(', ') };
 }
 const cookieOnly = value => {
-  const match = /^hrms_refresh=([0-9a-f-]{36}\.[0-9a-f]{64})/.exec(value || '');
-  assert(match, 'Secure refresh cookie must be issued');
-  assert.match(value, /Secure;/);
-  assert.match(value, /HttpOnly;/);
-  assert.match(value, /SameSite=Strict/);
-  assert.match(value, /Path=\/api\/auth\/refresh/);
-  return match[0];
+  const entry = (value || '').split(/,\s*(?=[\w-]+=)/).find(v => v.startsWith('hrms_refresh='));
+  assert(entry, 'Secure refresh cookie must be issued');
+  assert.match(entry, /Secure;/);
+  assert.match(entry, /HttpOnly;/);
+  assert.match(entry, /SameSite=Strict/);
+  assert.match(entry, /Path=\/api\/auth\/refresh/);
+  return entry.split(';')[0];
 };
+const accessOnly = value => {
+  const entry = (value || '').split(/,\s*(?=[\w-]+=)/).find(v => v.startsWith('__Secure-hrms_access='));
+  assert(entry, 'Secure access JWT cookie must be issued');
+  assert.match(entry, /Secure;/);
+  assert.match(entry, /HttpOnly;/);
+  assert.match(entry, /SameSite=Strict/);
+  assert.match(entry, /Path=\/api/);
+  return entry.split(';')[0].split('=')[1];
+};
+
 const tokenPayload = token => JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
 const refreshWeb = (cookie, expected = 200, extraHeaders = {}) =>
   request('/api/auth/refresh', {}, {
@@ -34,10 +44,10 @@ const employeeEmail = 'sec012-employee@example.invalid';
 let browser = await request('/api/login', {
   email: employeeEmail, password: 'SEC012-Reset-Password3!',
 });
-assert(browser.data.token && !browser.data.refreshToken, 'web must not receive JSON refresh token');
-assert(tokenPayload(browser.data.token).exp - tokenPayload(browser.data.token).iat <= 8 * 3600,
+assert(browser.data.authenticated === true && !browser.data.token && !browser.data.refreshToken, 'web JSON must not expose any JWT');
+assert(tokenPayload(accessOnly(browser.cookie)).exp - tokenPayload(accessOnly(browser.cookie)).iat <= 8 * 3600,
   'access token lifetime bounded');
-assert(tokenPayload(browser.data.token).exp - tokenPayload(browser.data.token).iat === 3600,
+assert(tokenPayload(accessOnly(browser.cookie)).exp - tokenPayload(accessOnly(browser.cookie)).iat === 3600,
   'session_timeout=never defaults to one-hour access JWT, not 10 years');
 const firstCookie = cookieOnly(browser.cookie);
 const malformedUuid = 'a'.repeat(36) + '.' + 'b'.repeat(64);
@@ -46,7 +56,7 @@ console.log('PASS: malformed refresh UUID fails authentication rather than throw
 let rotated = await refreshWeb(firstCookie);
 const secondCookie = cookieOnly(rotated.cookie);
 assert.notEqual(secondCookie, firstCookie, 'refresh token rotates on every request');
-assert(rotated.data.token && !rotated.data.refreshToken, 'web only receives access token');
+assert(rotated.data.authenticated === true && !rotated.data.token && !rotated.data.refreshToken, 'web refresh must not return access JWT JSON');
 let again = await refreshWeb(secondCookie);
 const thirdCookie = cookieOnly(again.cookie);
 assert.notEqual(thirdCookie, secondCookie, 'consecutive rotations issue distinct credentials');
@@ -69,7 +79,7 @@ const staleWeb = await refreshWeb(firstCookie, 401);
 assert(!staleWeb.cookie?.includes('Max-Age=0'), 'stale denial cannot clear another in-flight cookie');
 await refreshWeb(fourthCookie, 401);
 const unaffected = await refreshWeb(otherCookie);
-assert(unaffected.data.token, 'replay must not revoke sibling login of same user');
+assert(unaffected.data.authenticated === true, 'replay must not revoke sibling login of same user');
 console.log('PASS: known web refresh replay revokes its chain immediately, not sibling sessions');
 await request('/api/auth/refresh', {}, { Cookie: otherCookie }, 403);
 await request('/api/auth/refresh', {}, {

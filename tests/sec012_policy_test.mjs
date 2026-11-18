@@ -74,10 +74,13 @@ assert(schema.includes('ENABLE ROW LEVEL SECURITY'), 'refresh table RLS enabled'
 assert(schema.includes('REVOKE ALL PRIVILEGES'), 'refresh secrets not accessible to public Data API');
 assert(axios.includes('sharedRefresh'), 'browser dedupes concurrent refresh attempts');
 assert(axios.includes('navigator.locks.request'), 'browser coordinates cross-tab refresh where supported');
-assert(axios.includes(String.raw`replace(/^Bearer\s+/i`),
-  'browser must strip real Bearer whitespace before comparing stale access JWTs');
-assert(!axios.includes(String.raw`replace(/^Bearer\\s+/i`),
-  'double-escaped Bearer pattern silently breaks cross-tab refresh dedupe');
+// SEC-021: web access JWTs have moved entirely into HttpOnly cookies.
+assert(axios.includes('browserCsrfToken()'), 'browser unsafe requests must attach CSRF header');
+assert(axios.includes('getNativeAccessToken()'), 'Android fetches bearer credentials from native Keystore');
+assert(!axios.includes("localStorage.getItem('token')"),
+  'browser must never read access JWTs from Web Storage');
+assert(!axios.includes("localStorage.setItem('token'"),
+  'browser must never save refreshed access JWTs into Web Storage');
 assert(axios.includes("'/api/auth/refresh'"), 'browser sends cookie-only refresh');
 assert(native.includes('static synchronized String refresh('), 'Android must serialize native refresh');
 assert(native.includes('TrackerTokenStore.saveSession('), 'native refresh secret stored in Keystore');

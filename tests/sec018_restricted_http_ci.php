@@ -21,9 +21,9 @@ function httpCall(string $method,string $path,?string $token=null,?array $data=n
 }
 $tokens=[];
 foreach($ids as $role=>$id){
- [$code,$body,$headers]=httpCall('POST',$role==='candidate'?'/api/candidate/login':'/api/login',null,['email'=>"$role-ci@example.invalid",'password'=>'SEC018-CI-Password1!']);
- assertHttp($code===200&&isset($body['token']),"$role actual login through restricted pooled connection ($code)");$tokens[$role]=$body['token'];
- assertHttp(str_contains($headers,'HttpOnly')&&str_contains($headers,'SameSite=Strict'),"$role refresh cookie remains protected");
+ [$code,$body,$headers]=httpCall('POST',$role==='candidate'?'/api/candidate/login':'/api/login',null,['email'=>"$role-ci@example.invalid",'password'=>'SEC018-CI-Password1!'],['X-HRMS-Client: android']);
+ assertHttp($code===200&&isset($body['token']),"$role native login through restricted pooled connection ($code)");$tokens[$role]=$body['token'];
+ assertHttp(isset($body['refreshToken'])&&!str_contains($headers,'hrms_refresh='),"$role native refresh is Keystore-only");
 }
 foreach(['/api/admin/assets','/api/admin/attendance','/api/admin/payroll','/api/admin/jobs','/api/admin/training/videos','/api/branches'] as $path){[$code]=httpCall('GET',$path,$tokens['admin']);assertHttp($code===200,"Admin read $path ($code)");}
 foreach(['/api/employee/profile','/api/employee/training/videos','/api/mfa/status'] as $path){[$code]=httpCall('GET',$path,$tokens['employee']);assertHttp($code===200,"Employee read $path ($code)");}
