@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, LogOut, Sliders, Settings, Menu, X, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { warmRoute } from '../performance/routeWarmup';
+import RouteSkeleton from './RouteSkeleton';
 import Avatar from './ui/Avatar';
 import ThemeToggle from './ui/ThemeToggle';
 import LogoutModal from './LogoutModal';
@@ -37,6 +40,10 @@ export const AppShell = ({
   children,
 }) => {
   const { profile, signOut } = useAuth();
+  const queryClient = useQueryClient();
+  const onRouteIntent = (path) => {
+    if (profile?.role) void warmRoute(path, queryClient, profile.role);
+  };
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -140,6 +147,8 @@ export const AppShell = ({
             {/* Logo */}
             <Link
               to={railGroups[0]?.path || '/'}
+              onPointerEnter={() => onRouteIntent(railGroups[0]?.path || '/')}
+              onFocus={() => onRouteIntent(railGroups[0]?.path || '/')}
               className="w-[42px] h-[42px] rounded-[13px] overflow-hidden flex items-center justify-center transition-transform hover:scale-105 active:scale-95 cursor-pointer group shrink-0"
               title={portalName}
               aria-label={portalName}
@@ -161,6 +170,8 @@ export const AppShell = ({
                   <Link
                     key={group.id}
                     to={group.chips?.[0]?.path || group.path}
+              onPointerEnter={() => onRouteIntent(group.chips?.[0]?.path || group.path)}
+              onFocus={() => onRouteIntent(group.chips?.[0]?.path || group.path)}
                     className="relative w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] shrink-0"
                     style={{
                       backgroundColor: isGroupActive ? accentColor : 'transparent',
@@ -191,6 +202,8 @@ export const AppShell = ({
                 <Link
                   key={group.id}
                   to={group.path}
+              onPointerEnter={() => onRouteIntent(group.path)}
+              onFocus={() => onRouteIntent(group.path)}
                   className="w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer group hover:bg-[#1F1F23] hover:text-white shrink-0"
                   style={{
                     backgroundColor: isGroupActive ? accentColor : 'transparent',
@@ -250,6 +263,8 @@ export const AppShell = ({
                 {profilePath ? (
                   <Link
                     to={profilePath}
+              onPointerEnter={() => onRouteIntent(profilePath)}
+              onFocus={() => onRouteIntent(profilePath)}
                     className="block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                     title={`Signed in as ${displayName}`}
                   >
@@ -340,6 +355,8 @@ export const AppShell = ({
                   <Link
                     key={chip.path}
                     to={chip.path}
+              onPointerEnter={() => onRouteIntent(chip.path)}
+              onFocus={() => onRouteIntent(chip.path)}
                     className={`h-[34px] px-4 rounded-full text-[13px] font-medium transition-all flex items-center gap-1.5 select-none shrink-0 ${
                       isActive
                         ? 'bg-[#131315] text-white dark:bg-[#F4F4F6] dark:text-[#18181B] shadow-sm'
@@ -368,7 +385,9 @@ export const AppShell = ({
           } md:pb-6`}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          {children || <Outlet />}
+          <Suspense fallback={<RouteSkeleton />}>
+            {children || <Outlet />}
+          </Suspense>
         </div>
 
         {/* ============================================================
@@ -490,6 +509,8 @@ export const AppShell = ({
                       <Link
                         key={group.id}
                         to={group.chips?.[0]?.path || group.path}
+              onPointerEnter={() => onRouteIntent(group.chips?.[0]?.path || group.path)}
+              onFocus={() => onRouteIntent(group.chips?.[0]?.path || group.path)}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-[13px] font-medium transition-all ${
                           isGroupActive

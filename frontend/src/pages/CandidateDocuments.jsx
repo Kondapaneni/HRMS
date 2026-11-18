@@ -65,8 +65,8 @@ const CandidateDocuments = () => {
       return res.data.documents || [];
     },
     enabled: !!profile?.id,
-    staleTime: 0,
-    refetchOnMount: 'always'
+    staleTime: 15 * 1000,
+    refetchOnMount: true
   });
 
   const uploadMutation = useMutation({
@@ -104,7 +104,7 @@ const CandidateDocuments = () => {
     },
     onSuccess: () => {
       toast.success('Document uploaded successfully');
-      queryClient.invalidateQueries(['candidate_documents', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['candidate_documents', profile?.id] });
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to upload document');

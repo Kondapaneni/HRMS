@@ -67,6 +67,7 @@ const ApplyMobileLeave = () => {
     onSuccess: () => {
       toast.success('Leave request submitted successfully.');
       queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
       navigate('/employee/leaves');
     },
     onError: (err) => {

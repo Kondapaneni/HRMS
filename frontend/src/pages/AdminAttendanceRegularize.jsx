@@ -368,6 +368,8 @@ const AdminAttendanceRegularize = () => {
       await axios.post('/admin/attendance/regularize', payload);
       setIsModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-regularize'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     } catch (err) {
       setModalError(err.response?.data?.error || 'Failed to regularize attendance');
     } finally {

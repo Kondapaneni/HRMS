@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Home,
@@ -24,7 +24,7 @@ import { useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
-import EmployeeChatbot from './EmployeeChatbot';
+const EmployeeChatbot = lazy(() => import('./EmployeeChatbot'));
 import AppShell from './AppShell';
 import BottomNav from './ui/BottomNav';
 import api from '../api/axios';
@@ -85,8 +85,10 @@ const EmployeeLayout = () => {
         return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
       }
     },
-    refetchInterval: 15000,
-    staleTime: 10000,
+    // MaintenanceGate still checks service availability every 15s; news itself
+    // does not require equally aggressive background polling.
+    refetchInterval: 60000,
+    staleTime: 30000,
     refetchOnWindowFocus: true,
   });
 
@@ -329,7 +331,7 @@ const EmployeeLayout = () => {
       </AppShell>
 
       {/* Employee AI Assistant Chatbot */}
-      <EmployeeChatbot />
+      <Suspense fallback={null}><EmployeeChatbot /></Suspense>
     </>
   );
 };

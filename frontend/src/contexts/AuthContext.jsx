@@ -1,23 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api, { restoreSession, setAccessToken, clearSessionAccess } from '../api/axios';
 import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
 import SplashScreen from '../components/SplashScreen';
+import { primeInitialMaintenanceStatus } from '../performance/initialMaintenanceStatus';
 
 const AuthContext = createContext({});
 
-const PUBLIC_ROUTES = [
-  '/',
-  '/candidate/login',
-  '/candidate/activate',
-  '/forgot-password',
-  '/reset-password',
-];
-
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
-  const location = useLocation();
   const [user, setUser] = useState(null);
   const [hasSession, setHasSession] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -62,18 +53,21 @@ export const AuthProvider = ({ children }) => {
     // A page reload restores web access through its HttpOnly refresh cookie,
     // or Android access through the Keystore. No bearer token is read from disk.
     const initializeAuth = async () => {
-      const startTime = Date.now();
-      await fetchProfile();
-      // Preserve the existing protected-route splash without delaying public login.
-      if (!PUBLIC_ROUTES.includes(location.pathname)) {
-        const remaining = 1200 - (Date.now() - startTime);
-        if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+      // Keep server-authoritative refresh + /me validation, but do not impose
+      // an artificial 1.2s minimum splash on successful protected-route loads.
+      try {
+        // Start the public maintenance check concurrently with secure session
+        // renewal and /me; MaintenanceGate consumes this same recent response.
+        // A failed public check still fails closed inside MaintenanceGate.
+        void primeInitialMaintenanceStatus();
+        await fetchProfile();
+      } finally {
+        setLoading(false);
+        setIsInitialized(true);
       }
-      setLoading(false);
-      setIsInitialized(true);
     };
     initializeAuth();
-  }, [fetchProfile, isInitialized, location.pathname]);
+  }, [fetchProfile, isInitialized]);
 
   const signIn = async (email, password) => {
     const response = await api.post('/login', { email, password });

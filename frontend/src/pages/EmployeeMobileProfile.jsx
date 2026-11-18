@@ -137,7 +137,7 @@ const EmployeeMobileProfile = () => {
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
 
       toast.success('Profile photo updated successfully!');
-      queryClient.invalidateQueries(['employee', 'profile']);
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
       if (fetchProfile) await fetchProfile();
     } catch (error) {
       toast.error(error.message || 'Error uploading image');

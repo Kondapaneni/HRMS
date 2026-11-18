@@ -63,6 +63,83 @@ final class RefreshSessions
         return $id . '.' . $secret;
     }
 
+    /**
+     * SEC-012: Restore a web page after navigation without consuming its
+     * single-use refresh credential. The secret is still checked against the
+     * live DB row and account version on EVERY call. No new secret is issued.
+     *
+     * A known previously used secret is still a replay: revoke its session
+     * family immediately, exactly as rotate() does. Never allow this path to
+     * authenticate an Android Keystore token or an unknown guessed secret.
+     */
+    public static function resumeWeb(PDO $conn, string $credential): ?array
+    {
+        if (!preg_match('/\\A([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\\.([0-9a-f]{64})\\z/', $credential, $matches)) {
+            return null;
+        }
+        $conn->beginTransaction();
+        try {
+            $stmt = $conn->prepare(
+                'SELECT s.id, s.token_hash, s.session_version, s.client_type,
+                        s.expires_at, s.revoked_at, s.used_token_hashes,
+                        u.id AS user_id, u.email, u.role, u."isActive", u.token_version
+                 FROM public.hrms_refresh_sessions s
+                 JOIN public.users u ON u.id = s.user_id
+                 WHERE s.id = ? FOR UPDATE OF s, u'
+            );
+            $stmt->execute([$matches[1]]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row || $row['client_type'] !== 'web') {
+                $conn->rollBack();
+                return null;
+            }
+
+            $hash = hash('sha256', $matches[2]);
+            if (!hash_equals((string)$row['token_hash'], $hash)) {
+                $used = json_decode((string)$row['used_token_hashes'], true, 512, JSON_THROW_ON_ERROR);
+                if (isset($used[$hash])) {
+                    // Reused *full* credential proves replay, even on restore.
+                    // Never weaken SEC-018 immediate family revocation.
+                    $conn->prepare(
+                        'UPDATE public.hrms_refresh_sessions
+                         SET revoked_at = COALESCE(revoked_at, NOW())
+                         WHERE id = ?'
+                    )->execute([$matches[1]]);
+                    $conn->commit();
+                } else {
+                    $conn->rollBack();
+                }
+                return null;
+            }
+
+            $active = in_array($row['isActive'] ?? null, [true, 1, '1', 't', 'true'], true);
+            $version = SessionVersion::fromRow($row);
+            if (!$active || $row['revoked_at'] !== null
+                || strtotime((string)$row['expires_at']) <= time()
+                || (int)$row['session_version'] !== $version) {
+                $conn->prepare(
+                    'UPDATE public.hrms_refresh_sessions
+                     SET revoked_at = COALESCE(revoked_at, NOW()) WHERE id = ?'
+                )->execute([$matches[1]]);
+                $conn->commit();
+                return null;
+            }
+
+            // Successful restores are idempotent. Do not change token_hash,
+            // used_token_hashes, expiry, or session version on page reload.
+            $conn->commit();
+            return ['user' => [
+                'id' => $row['user_id'],
+                'email' => $row['email'],
+                'role' => $row['role'],
+                'token_version' => $version,
+            ]];
+        } catch (\Throwable $e) {
+            if ($conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+    }
+
     public static function rotate(PDO $conn, string $credential, string $client): ?array
     {
         if (!in_array($client, ['web', 'android'], true) ||

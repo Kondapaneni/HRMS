@@ -1,0 +1,36 @@
+name: PERF-008 backend database timing diagnostics
+
+on:
+  pull_request:
+    paths:
+      - 'backend/public/index.php'
+      - 'backend/src/Config/Database.php'
+      - 'tests/perf008_*'
+      - '.github/workflows/perf008_backend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  timing-security:
+    name: Opt-in probe, PHP syntax and security policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate diagnostics stay private and normal news responses are unchanged
+        run: |
+          set -euo pipefail
+          php -l backend/public/index.php
+          php -l backend/src/Config/Database.php
+          node tests/perf008_news_timing_policy_test.mjs
+          node tests/sec012_policy_test.mjs
+          node tests/sec018_source_test.mjs
+          node tests/sec020_policy_test.mjs
+          node tests/sec021_policy_test.mjs

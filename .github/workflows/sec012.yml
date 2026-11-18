@@ -139,6 +139,7 @@ jobs:
             php -l "$file"
           done
           node tests/sec012_policy_test.mjs
+          node tests/sec012_refresh_preflight_policy_test.mjs
       - name: Install backend test dependencies
         run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
       - name: Exercise OTP HMAC and version claim helpers

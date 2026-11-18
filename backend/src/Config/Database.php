@@ -9,8 +9,17 @@ class Database
 {
     private static ?LoggingPDO $conn = null;
 
-    public function getConnection(): ?LoggingPDO
+    /**
+     * Optional, request-local PERF-008 diagnostics. Null disables all phase
+     * clocks. Timings are returned to the caller; Database never logs secrets.
+     * Existing callers need no changes, and SEC-018 checks remain mandatory.
+     * @param array<string, float>|null $perf008DbStages
+     */
+    public function getConnection(?array &$perf008DbStages = null): ?LoggingPDO
     {
+        if ($perf008DbStages !== null) {
+            $perf008DbStages = [];
+        }
         if (self::$conn === null) {
             $host = $_ENV['DB_HOST'] ?? 'localhost';
             $port = $_ENV['DB_PORT'] ?? '5432';
@@ -45,7 +54,13 @@ class Database
                     $password = $limitedPassword;
                 }
                 $dsn = "pgsql:host={$host};port={$port};dbname={$db_name}";
+                // Includes the physical connection, TLS/pooler authentication and
+                // PDO constructor overhead; it is NOT merely network RTT.
+                $perf008PdoStartNs = $perf008DbStages !== null ? hrtime(true) : null;
                 self::$conn = new LoggingPDO($dsn, $username, $password);
+                if ($perf008DbStages !== null) {
+                    $perf008DbStages['pdo_connect_ms'] = (hrtime(true) - $perf008PdoStartNs) / 1e6;
+                }
                 self::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 self::$conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 // SEC-018: Supabase shared transaction pooler cannot keep named
@@ -77,7 +92,13 @@ class Database
                 // Statement objects retain their own connection (configured by LoggingPDO).
                 // Refuse any wrong-identity connection when the restricted
                 // switch is enabled; never silently use privileged fallback.
+                // Keep the mandatory identity query intact. Measure its
+                // round trip and fetch, never the role value or SQL contents.
+                $perf008IdentityStartNs = $perf008DbStages !== null ? hrtime(true) : null;
                 $activeRole = (string) self::$conn->query('SELECT current_user')->fetchColumn();
+                if ($perf008DbStages !== null) {
+                    $perf008DbStages['identity_check_ms'] = (hrtime(true) - $perf008IdentityStartNs) / 1e6;
+                }
                 if (($restrictedEnabled && $activeRole !== 'hrms_runtime_restricted')
                     || ($activeRole === 'hrms_runtime_restricted'
                         && !\App\Utils\Sec018AuditContext::enabled())) {

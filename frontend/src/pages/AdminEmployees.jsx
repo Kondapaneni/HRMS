@@ -25,13 +25,12 @@ const AdminEmployees = () => {
 
   const { data: employees = [], isLoading: initialLoading, isFetching } = useQuery({
     queryKey: ['admin', 'employees', debouncedSearch],
-    queryFn: async () => {
-      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`);
+    queryFn: async ({ signal }) => {
+      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`, { signal });
       return res.data.employees || [];
     },
     placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
-    onError: () => toast.error('Failed to load employees'),
+    staleTime: 60 * 1000, // Reuse cached roster between quick tab switches
   });
 
   const handleSearchSubmit = (e) => {
@@ -266,6 +265,7 @@ const AdminEmployees = () => {
         onSuccess={() => {
           setIsModalOpen(false);
           queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+          queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
         }}
       />
     </div>

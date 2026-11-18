@@ -1,101 +1,100 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
+import InitialRouteWarmup from './performance/InitialRouteWarmup'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
-import ChangePassword from './pages/ChangePassword'
+
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-import AdminDashboard from './pages/AdminDashboard'
-import EmployeeDashboard from './pages/EmployeeDashboard'
-import EmployeeLayout from './components/EmployeeLayout'
-import EmployeeAttendance from './pages/EmployeeAttendance'
-import EmployeeMobileAttendance from './pages/EmployeeMobileAttendance';
-import EmployeeHolidays from './pages/EmployeeHolidays';
-import EmployeeLeaves from './pages/EmployeeLeaves'
-import ApplyMobileLeave from './pages/ApplyMobileLeave'
-import EmployeePayroll from './pages/EmployeePayroll'
-import EmployeeProfile from './pages/EmployeeProfile'
-import EmployeePerformance from './pages/EmployeePerformance'
-import EmployeeExpenses from './pages/EmployeeExpenses'
-import EditProfile from './pages/EditProfile'
-import EmployeeMobileMap from './pages/EmployeeMobileMap'
-import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
 
-import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
-import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
-import OriginationLoansLayout from './components/OriginationLoansLayout'
-import OriginationSalesLayout from './components/OriginationSalesLayout'
-import OriginationSaleDashboard from './pages/OriginationSaleDashboard'
-import OriginationSaleLeadsList from './pages/OriginationSaleLeadsList'
-import OriginationMobileSaleAddLead from './pages/OriginationMobileSaleAddLead'
-import OriginationMobileSaleLeadDetails from './pages/OriginationMobileSaleLeadDetails'
-import OriginationLoanDashboard from './pages/OriginationLoanDashboard'
-import OriginationLoanLeadsList from './pages/OriginationLoanLeadsList'
-import OriginationMobileLoanAddLead from './pages/OriginationMobileLoanAddLead'
-import OriginationMobileLoanLeadDetails from './pages/OriginationMobileLoanLeadDetails'
-import OriginationMobileLoanMemberDetails from './pages/OriginationMobileLoanMemberDetails'
-import OriginationLoanMembersList from './pages/OriginationLoanMembersList'
-import OriginationSaleMembersList from './pages/OriginationSaleMembersList'
-import OriginationMobileSaleMemberDetails from './pages/OriginationMobileSaleMemberDetails'
-import OriginationSaleForms from './pages/OriginationSaleForms'
-import OriginationLoanApplicationsList from './pages/OriginationLoanApplicationsList'
-import OriginationLoanForms from './pages/OriginationLoanForms'
-import OriginationLoanViewApplication from './pages/OriginationLoanViewApplication'
-import OriginationActivities from './pages/OriginationActivities'
-import BranchOperationsLayout from './components/BranchOperationsLayout'
-import BranchOperationsDashboard from './pages/BranchOperationsDashboard'
-import BranchOperationsLeads from './pages/BranchOperationsLeads'
-import BranchOperationsLoansApplicationsList from './pages/BranchOperationsLoansApplicationsList'
-import BranchOperationsLoansViewApplication from './pages/BranchOperationsLoansViewApplication'
-import BranchOperationsLoansEditApplication from './pages/BranchOperationsLoansEditApplication'
-import AssessmentManagement from './pages/AssessmentManagement'
-import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
-import AssessmentCreate from './pages/AssessmentCreate'
-import AssessmentResults from './pages/AssessmentResults'
-import AdminLayout from './components/AdminLayout'
-import AdminEmployees from './pages/AdminEmployees'
-import AdminDirectory from './pages/AdminDirectory'
-import AdminEmployeeView from './pages/AdminEmployeeView'
-import AdminEmployeeEdit from './pages/AdminEmployeeEdit'
-import AdminEmployeeSettings from './pages/AdminEmployeeSettings'
-import AdminAttendance from './pages/AdminAttendance'
-import AdminAttendanceConfig from './pages/AdminAttendanceConfig'
-import AdminAttendanceRegularize from './pages/AdminAttendanceRegularize'
-import AdminAttendanceLocation from './pages/AdminAttendanceLocation'
-import AdminLeaves from './pages/AdminLeaves'
-import AdminPayroll from './pages/AdminPayroll'
-import AdminBulkPayroll from './pages/AdminBulkPayroll'
-import AdminFeatureAccess from './pages/AdminFeatureAccess'
-import AdminAuditLogs from './pages/AdminAuditLogs'
-import AdminAssets from './pages/AdminAssets'
-import AdminHolidays from './pages/AdminHolidays'
-import AdminHolidaysArchive from './pages/AdminHolidaysArchive'
-import AdminVerifyDocuments from './pages/AdminVerifyDocuments'
-import AdminSettings from './pages/AdminSettings'
-import AdminEmailTemplates from './pages/AdminEmailTemplates'
-import AdminPerformance from './pages/AdminPerformance'
-import AdminExpenses from './pages/AdminExpenses'
-import AdminReports from './pages/AdminReports'
 
-import AdminRecruitment from './pages/AdminRecruitment'
-import EmployeeAssessments from './pages/EmployeeAssessments'
-import EmployeeAssessmentInstructions from './pages/EmployeeAssessmentInstructions'
-import EmployeeAssessmentEngine from './pages/EmployeeAssessmentEngine'
-import EmployeeAssessmentResult from './pages/EmployeeAssessmentResult'
-import ComingSoon from './pages/ComingSoon'
-import AdminTrainingVideos from './pages/AdminTrainingVideos'
-import EmployeeTrainingVideos from './pages/EmployeeTrainingVideos'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
-import CandidateLayout from './components/CandidateLayout'
-import CandidateDashboard from './pages/CandidateDashboard'
-import CandidateJobs from './pages/CandidateJobs'
-import CandidateApplications from './pages/CandidateApplications'
-import CandidateProfile from './pages/CandidateProfile'
-import CandidateDocuments from './pages/CandidateDocuments'
+
+
+
+
+
+
 import NotFound from './pages/NotFound'
 import { Toaster } from 'react-hot-toast'
 import Offline from './pages/Offline'
@@ -107,6 +106,92 @@ import BackgroundLocationTracker from './components/BackgroundLocationTracker'
 import TrackerPermissionGate from './components/TrackerPermissionGate'
 
 
+const ChangePassword = lazy(() => import('./pages/ChangePassword'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const EmployeeDashboard = lazy(() => import('./pages/EmployeeDashboard'));
+const EmployeeLayout = lazy(() => import('./components/EmployeeLayout'));
+const EmployeeAttendance = lazy(() => import('./pages/EmployeeAttendance'));
+const EmployeeMobileAttendance = lazy(() => import('./pages/EmployeeMobileAttendance'));
+const EmployeeHolidays = lazy(() => import('./pages/EmployeeHolidays'));
+const EmployeeLeaves = lazy(() => import('./pages/EmployeeLeaves'));
+const ApplyMobileLeave = lazy(() => import('./pages/ApplyMobileLeave'));
+const EmployeePayroll = lazy(() => import('./pages/EmployeePayroll'));
+const EmployeeProfile = lazy(() => import('./pages/EmployeeProfile'));
+const EmployeePerformance = lazy(() => import('./pages/EmployeePerformance'));
+const EmployeeExpenses = lazy(() => import('./pages/EmployeeExpenses'));
+const EditProfile = lazy(() => import('./pages/EditProfile'));
+const EmployeeMobileMap = lazy(() => import('./pages/EmployeeMobileMap'));
+const EmployeeMobileCamera = lazy(() => import('./pages/EmployeeMobileCamera'));
+const EmployeeMobileHolidays = lazy(() => import('./pages/EmployeeMobileHolidays'));
+const EmployeeMobileBirthdays = lazy(() => import('./pages/EmployeeMobileBirthdays'));
+const OriginationLoansLayout = lazy(() => import('./components/OriginationLoansLayout'));
+const OriginationSalesLayout = lazy(() => import('./components/OriginationSalesLayout'));
+const OriginationSaleDashboard = lazy(() => import('./pages/OriginationSaleDashboard'));
+const OriginationSaleLeadsList = lazy(() => import('./pages/OriginationSaleLeadsList'));
+const OriginationMobileSaleAddLead = lazy(() => import('./pages/OriginationMobileSaleAddLead'));
+const OriginationMobileSaleLeadDetails = lazy(() => import('./pages/OriginationMobileSaleLeadDetails'));
+const OriginationLoanDashboard = lazy(() => import('./pages/OriginationLoanDashboard'));
+const OriginationLoanLeadsList = lazy(() => import('./pages/OriginationLoanLeadsList'));
+const OriginationMobileLoanAddLead = lazy(() => import('./pages/OriginationMobileLoanAddLead'));
+const OriginationMobileLoanLeadDetails = lazy(() => import('./pages/OriginationMobileLoanLeadDetails'));
+const OriginationMobileLoanMemberDetails = lazy(() => import('./pages/OriginationMobileLoanMemberDetails'));
+const OriginationLoanMembersList = lazy(() => import('./pages/OriginationLoanMembersList'));
+const OriginationSaleMembersList = lazy(() => import('./pages/OriginationSaleMembersList'));
+const OriginationMobileSaleMemberDetails = lazy(() => import('./pages/OriginationMobileSaleMemberDetails'));
+const OriginationSaleForms = lazy(() => import('./pages/OriginationSaleForms'));
+const OriginationLoanApplicationsList = lazy(() => import('./pages/OriginationLoanApplicationsList'));
+const OriginationLoanForms = lazy(() => import('./pages/OriginationLoanForms'));
+const OriginationLoanViewApplication = lazy(() => import('./pages/OriginationLoanViewApplication'));
+const OriginationActivities = lazy(() => import('./pages/OriginationActivities'));
+const BranchOperationsLayout = lazy(() => import('./components/BranchOperationsLayout'));
+const BranchOperationsDashboard = lazy(() => import('./pages/BranchOperationsDashboard'));
+const BranchOperationsLeads = lazy(() => import('./pages/BranchOperationsLeads'));
+const BranchOperationsLoansApplicationsList = lazy(() => import('./pages/BranchOperationsLoansApplicationsList'));
+const BranchOperationsLoansViewApplication = lazy(() => import('./pages/BranchOperationsLoansViewApplication'));
+const BranchOperationsLoansEditApplication = lazy(() => import('./pages/BranchOperationsLoansEditApplication'));
+const AssessmentManagement = lazy(() => import('./pages/AssessmentManagement'));
+const DepartmentQuestionBank = lazy(() => import('./pages/DepartmentQuestionBank'));
+const AssessmentCreate = lazy(() => import('./pages/AssessmentCreate'));
+const AssessmentResults = lazy(() => import('./pages/AssessmentResults'));
+const AdminLayout = lazy(() => import('./components/AdminLayout'));
+const AdminEmployees = lazy(() => import('./pages/AdminEmployees'));
+const AdminDirectory = lazy(() => import('./pages/AdminDirectory'));
+const AdminEmployeeView = lazy(() => import('./pages/AdminEmployeeView'));
+const AdminEmployeeEdit = lazy(() => import('./pages/AdminEmployeeEdit'));
+const AdminEmployeeSettings = lazy(() => import('./pages/AdminEmployeeSettings'));
+const AdminAttendance = lazy(() => import('./pages/AdminAttendance'));
+const AdminAttendanceConfig = lazy(() => import('./pages/AdminAttendanceConfig'));
+const AdminAttendanceRegularize = lazy(() => import('./pages/AdminAttendanceRegularize'));
+const AdminAttendanceLocation = lazy(() => import('./pages/AdminAttendanceLocation'));
+const AdminLeaves = lazy(() => import('./pages/AdminLeaves'));
+const AdminPayroll = lazy(() => import('./pages/AdminPayroll'));
+const AdminBulkPayroll = lazy(() => import('./pages/AdminBulkPayroll'));
+const AdminFeatureAccess = lazy(() => import('./pages/AdminFeatureAccess'));
+const AdminAuditLogs = lazy(() => import('./pages/AdminAuditLogs'));
+const AdminAssets = lazy(() => import('./pages/AdminAssets'));
+const AdminHolidays = lazy(() => import('./pages/AdminHolidays'));
+const AdminHolidaysArchive = lazy(() => import('./pages/AdminHolidaysArchive'));
+const AdminVerifyDocuments = lazy(() => import('./pages/AdminVerifyDocuments'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const AdminEmailTemplates = lazy(() => import('./pages/AdminEmailTemplates'));
+const AdminPerformance = lazy(() => import('./pages/AdminPerformance'));
+const AdminExpenses = lazy(() => import('./pages/AdminExpenses'));
+const AdminReports = lazy(() => import('./pages/AdminReports'));
+const AdminRecruitment = lazy(() => import('./pages/AdminRecruitment'));
+const EmployeeAssessments = lazy(() => import('./pages/EmployeeAssessments'));
+const EmployeeAssessmentInstructions = lazy(() => import('./pages/EmployeeAssessmentInstructions'));
+const EmployeeAssessmentEngine = lazy(() => import('./pages/EmployeeAssessmentEngine'));
+const EmployeeAssessmentResult = lazy(() => import('./pages/EmployeeAssessmentResult'));
+const ComingSoon = lazy(() => import('./pages/ComingSoon'));
+const AdminTrainingVideos = lazy(() => import('./pages/AdminTrainingVideos'));
+const EmployeeTrainingVideos = lazy(() => import('./pages/EmployeeTrainingVideos'));
+const CandidateLayout = lazy(() => import('./components/CandidateLayout'));
+const CandidateDashboard = lazy(() => import('./pages/CandidateDashboard'));
+const CandidateJobs = lazy(() => import('./pages/CandidateJobs'));
+const CandidateApplications = lazy(() => import('./pages/CandidateApplications'));
+const CandidateProfile = lazy(() => import('./pages/CandidateProfile'));
+const CandidateDocuments = lazy(() => import('./pages/CandidateDocuments'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -114,7 +199,7 @@ const queryClient = new QueryClient({
       gcTime: 5 * 60 * 1000,          // Garbage collect inactive private queries after 5 minutes
       refetchOnWindowFocus: true,       // silently refresh when user returns to tab
       refetchOnReconnect: true,         // silently refresh after network reconnect
-      refetchOnMount: 'always',         // silently refresh on every navigation mount
+      refetchOnMount: true,             // fetch on mount only when cache is stale
       retry: 1,                         // retry failed requests once
     },
   },
@@ -135,6 +220,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <CapacitorLifecycle />
+        <InitialRouteWarmup />
         <AuthProvider>
           <ThemeProvider>
             <MaintenanceGate>
@@ -163,6 +249,7 @@ function App() {
               },
             }}
           />
+          <Suspense fallback={<div role="status" className="flex min-h-[30vh] items-center justify-center text-sm text-[var(--muted)]">Opening workspace...</div>}>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
@@ -378,6 +465,7 @@ function App() {
             {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
             </MaintenanceGate>
           </ThemeProvider>
         </AuthProvider>

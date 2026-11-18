@@ -65,6 +65,7 @@ const EmployeeLeaves = () => {
     onSuccess: () => {
       toast.success('Leave cancelled successfully');
       queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to cancel leave');
@@ -111,6 +112,7 @@ const EmployeeLeaves = () => {
       setEndDate('');
       setReason('');
       queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
     } catch (err) {
       const errMsg = err.response?.data?.error || 'Failed to submit leave request.';
       setError(errMsg);
