@@ -134,7 +134,7 @@ final class RefreshSessions
                 'role' => $row['role'],
                 'token_version' => $version,
             ]];
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             if ($conn->inTransaction()) $conn->rollBack();
             throw $e;
         }
