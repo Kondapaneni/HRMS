@@ -18,7 +18,7 @@ import {
  * This component only keeps the UX consistent and permits valid Admin login.
  */
 export default function MaintenanceGate({ children }) {
-  const { profile, fetchProfile } = useAuth();
+  const { profile, fetchProfile, hasSession } = useAuth();
   const { pathname } = useLocation();
   const profileRef = useRef(profile);
   const [status, setStatus] = useState({
@@ -46,7 +46,7 @@ export default function MaintenanceGate({ children }) {
       // A full browser refresh during maintenance may have left a valid
       // employee token without a profile, because /api/me returned 503.
       // Rehydrate that profile BEFORE restoring protected routes when OFF.
-      if (!enabled && localStorage.getItem('token') && !profileRef.current) {
+      if (!enabled && hasSession && !profileRef.current) {
         await fetchProfile();
       }
 
@@ -66,7 +66,7 @@ export default function MaintenanceGate({ children }) {
     } finally {
       setChecking(false);
     }
-  }, [fetchProfile]);
+  }, [fetchProfile, hasSession]);
 
   useEffect(() => {
     checkMaintenance();
@@ -79,7 +79,7 @@ export default function MaintenanceGate({ children }) {
   }, [checkMaintenance]);
 
   const publicRoute = isPublicMaintenanceRoute(pathname);
-  const hasToken = Boolean(localStorage.getItem('token'));
+  const hasToken = hasSession;
 
   // Hold protected routes until the public maintenance status is checked.
   // Otherwise /api/me may fail with 503 on browser refresh and ProtectedRoute

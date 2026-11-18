@@ -63,10 +63,10 @@
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
           .then((registration) => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            // Registration status is intentionally not logged in production.
           })
           .catch((error) => {
-            console.log('ServiceWorker registration failed: ', error);
+            // Do not log raw service-worker errors in production.
           });
       });
     }

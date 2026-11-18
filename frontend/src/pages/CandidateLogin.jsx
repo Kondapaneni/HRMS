@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import api from '../api/axios';
+import api, { setAccessToken } from '../api/axios';
 import { saveNativeSession } from '../api/nativeSession';
 import { useAuth } from '../contexts/AuthContext';
 import AuthSideCarousel from '../components/AuthSideCarousel';
@@ -95,7 +95,7 @@ const CandidateLogin = () => {
 
         if (res.data.token) {
           await saveNativeSession(res.data);
-          localStorage.setItem('token', res.data.token);
+          setAccessToken(res.data.token);
         }
 
         toast.success('Welcome back!');

@@ -57,6 +57,16 @@ const versionPlugin = () => {
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Strip all browser console calls from production bundles: Axios errors may
+  // contain Authorization headers or sensitive HRMS response payloads.
+  // Development logs remain available for troubleshooting.
+  build: {
+    rolldownOptions: {
+      output: {
+        minify: { compress: { dropConsole: true } },
+      },
+    },
+  },
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
     'import.meta.env.VITE_APP_SEMVER': JSON.stringify(appSemVer),

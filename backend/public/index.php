@@ -33,6 +33,17 @@ $app = AppFactory::create();
 // Add Body Parsing Middleware for JSON POST requests
 $app->addBodyParsingMiddleware();
 
+// SEC-021: Never write HRMS API responses (including confidential payroll,
+// employee, recruitment and loan JSON) to an HTTP disk cache.
+$app->add(function (Request $request, $handler) {
+    $response = $handler->handle($request);
+    if (str_starts_with($request->getUri()->getPath(), '/api/')) {
+        return $response->withHeader('Cache-Control', 'no-store')
+            ->withHeader('Pragma', 'no-cache');
+    }
+    return $response;
+});
+
 // SEC-018: Legacy routes may construct HTTP 5xx bodies from PDO exceptions.
 // Redact all API server errors; preserve existing 4xx validation responses.
 $app->add(function (Request $request, $handler) {
