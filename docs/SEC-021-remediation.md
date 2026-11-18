@@ -1,6 +1,6 @@
 # SEC-021 — Secure browser sessions and removal of persistent sensitive data
 
-**Status:** IMPLEMENTED ON FEATURE BRANCH — CI, release and owner-confirmed live verification REQUIRED. **Do not mark SEC-021 CLOSED merely because this document exists.**
+**Status:** CI VERIFIED ON FEATURE BRANCH — deployment and owner-confirmed live verification REQUIRED. **Do not mark SEC-021 CLOSED merely because CI passed.**
 
 - Source audit: `AUDIT_REPORT.md`, Issue SEC-021 (HIGH).
 - Repository: `Kondapaneni/HRMS`; remediation scoped to `fix/sec-021-client-storage-sensitive-data` and **PR [#75](https://github.com/Kondapaneni/HRMS/pull/75)**.
@@ -53,7 +53,7 @@ Visual masking in `phoneUtils.js` did not protect underlying query/storage JSON.
 
 ## Tests and verification gates
 
-**Completed isolated PR preflight:** code SHA `cd7245a6fd300318ae2f2e1c5caed195fa574d5a`, all 15 security source/regression workflows **plus SEC-021 CI** passed, except the PR issue-scope guard. That guard correctly rejected an incidental different issue ID inside a feature-branch commit subject; the feature branch must be consolidated so all commit subjects reference only SEC-021 before final CI/merge. Refer to the [PR #75 checks](https://github.com/Kondapaneni/HRMS/pull/75/checks). Final protected-main squash SHA, Render deployment and owner-confirmed live results cannot be known before merge and remain open. **Never treat source assertions as proof of real-browser cookie acceptance or Android tracking behavior.**
+**Final feature-branch CI evidence:** PR [#75](https://github.com/Kondapaneni/HRMS/pull/75) at commit `66c02bbea3d9cfae610072fbb4d13293148f54e5` completed **all 16 of 16 triggered workflows successfully**, including the single-issue scope guard, SEC-021 browser cookie/CSRF/native HTTP tests, SEC-006 Android, SEC-008 MFA, SEC-012 refresh/revocation, SEC-013 payroll, SEC-018 DB pooler and SEC-020 maintenance. [Review PR checks](https://github.com/Kondapaneni/HRMS/pull/75/checks) and the detailed run links below. Only documentation changed after this tested source snapshot. Protected-main squash SHA, Render deployment and owner-confirmed live results cannot be known before merge and remain OPEN. **Never treat source assertions as proof of real-browser cookie acceptance or Android tracking behavior.**
 
 | Gate | Test/evidence | Current status |
 |---|---|---|
@@ -63,7 +63,7 @@ Visual masking in `phoneUtils.js` did not protect underlying query/storage JSON.
 | SEC-006 Android policy and assembly | SEC-006 workflow and Android debug build, with device tests required | **PASS source/build** — [SEC-006](https://github.com/Kondapaneni/HRMS/actions/runs/44246018297); device verification pending |
 | SEC-020 Maintenance Gate | Existing source and UX regression tests, no maintenance toggles during code CI | **PASS** — [SEC-020](https://github.com/Kondapaneni/HRMS/actions/runs/44246018180) |
 | Production build and console removal | `npm ci && npm run build` plus absence of former persistent-query provider | **PASS** — [SEC-021 build](https://github.com/Kondapaneni/HRMS/actions/runs/44246018104) |
-| GitHub and Render | Exactly one SEC-021 PR, checks green, squash merge into protected main, Render exact SHA reported LIVE | **OPEN** — single-issue scope gate and final squash/deploy pending |
+| GitHub and Render | Exactly one SEC-021 PR, checks green, squash merge into protected main, Render exact SHA reported LIVE | **CI PASS** — [single-issue scope guard](https://github.com/Kondapaneni/HRMS/actions/runs/44246355026) and [16/16 CI workflows](https://github.com/Kondapaneni/HRMS/pull/75/checks); **merge and Render deployment OPEN** |
 | Real browser/Android | Guided one-at-a-time owner tests with non-production/test accounts only | **OPEN** — owner/device verification pending |
 
 ### Owner live verification checklist — perform only one step at a time
@@ -95,4 +95,4 @@ Only after all checks are PASS and documented may SEC-021 closure be proposed. N
 - Existing private records held by prior browser backups/external copies are not retroactively recoverable or erasable by this update.
 - Candidate/loan detail URL refresh may return the user to the protected list when transient in-memory navigation state is missing; no personal data is written to sessionStorage to preserve the former behavior. Consider separate authenticated detail re-fetch UX enhancement if business owners require deep links.
 
-**Closure:** OPEN pending all CI, exact Render deployment and owner-confirmed live checks.
+**Closure:** OPEN. All 16 final feature-branch CI workflows passed; the protected-main squash, exact Render deployment and owner-confirmed live checks remain outstanding.
