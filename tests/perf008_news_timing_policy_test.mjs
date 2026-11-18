@@ -19,7 +19,8 @@ assert(route.includes('$perf008TimingEnabled ? hrtime(true) : null'),
 
 const ordered = [
   '$perf008StartNs =',
-  '$conn = $db->getConnection();',
+  '$perf008DbStages = $perf008TimingEnabled ? [] : null;',
+  '$conn = $db->getConnection($perf008DbStages);',
   '$perf008AfterConnectionNs =',
   "$stmt = $conn->query('SELECT news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes FROM global_settings ORDER BY id ASC LIMIT 1');",
   '$settings = $stmt->fetch(PDO::FETCH_ASSOC);',
@@ -32,12 +33,12 @@ for (const fragment of ordered) {
   assert(pos > previous, 'News timing step missing or out of order: ' + fragment);
   previous = pos;
 }
-assert(route.includes("'PERF008_NEWS connection_and_identity_ms=%.2f settings_query_ms=%.2f'"),
+assert(route.includes("'PERF008_NEWS connection_and_identity_ms=%.2f pdo_connect_ms=%.2f identity_check_ms=%.2f settings_query_ms=%.2f'"),
   'Log must contain only numeric bounded timing fields');
 assert(route.includes('($perf008AfterConnectionNs - $perf008StartNs) / 1e6')
   && route.includes('($perf008AfterQueryNs - $perf008AfterConnectionNs) / 1e6'),
   'Separate connection/identity time from settings query/fetch time');
-assert.match(route, /if \(\$perf008TimingEnabled\) \{\s*\$perf008AfterQueryNs = hrtime\(true\);/,
+assert.match(route, /if \(\$perf008TimingEnabled && isset\([\s\S]*?\)\) \{\s*\$perf008AfterQueryNs = hrtime\(true\);/,
   'Logging must be gated to explicit probes');
 assert(!route.includes('Set-Cookie') && !route.includes('Server-Timing'),
   'Measurements must never be exposed in response headers');
@@ -49,6 +50,22 @@ assert(route.includes("'news_headlines' => $headlines")
   && route.includes("'tracking_interval_minutes' => $trackingIntervalMinutes")
   && route.includes("->withStatus(200)"),
   'Existing news/maintenance/attendance configuration response is preserved');
-assert(db.includes("SELECT current_user") && db.includes("function getConnection()"),
+assert(db.includes("SELECT current_user")
+  && db.includes("getConnection(?array &$perf008DbStages = null)"),
   'Connection stage includes mandatory database identity verification');
+assert(db.includes("$perf008DbStages = [];")
+  && db.includes("hrtime(true) - $perf008PdoStartNs")
+  && db.includes("hrtime(true) - $perf008IdentityStartNs"),
+  'PDO and identity stages must be separately measured on opt-in');
+assert(db.indexOf("new LoggingPDO($dsn, $username, $password)") > db.indexOf("$perf008PdoStartNs =")
+  && db.indexOf("new LoggingPDO($dsn, $username, $password)") < db.indexOf("['pdo_connect_ms']"),
+  'PDO constructor is enclosed by monotonic timing');
+assert(db.indexOf("self::$conn->query('SELECT current_user')->fetchColumn()") > db.indexOf("$perf008IdentityStartNs =")
+  && db.indexOf("self::$conn->query('SELECT current_user')->fetchColumn()") < db.indexOf("['identity_check_ms']"),
+  'SEC-018 identity query remains mandatory and measured separately');
+assert(route.includes("$perf008DbStages['pdo_connect_ms']")
+  && route.includes("$perf008DbStages['identity_check_ms']"),
+  'Only numeric phase times are included in private probe log');
+assert(!db.includes("error_log(sprintf("),
+  'Database configuration must not produce new diagnostic logs itself');
 console.log('PERF-008 opt-in /api/news connection-versus-query timing policy PASS');
