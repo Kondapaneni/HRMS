@@ -493,6 +493,15 @@ $app->post('/api/auth/refresh', function (Request $request, Response $response) 
     try {
         $conn = (new Database())->getConnection();
         if (!$conn) throw new RuntimeException('Refresh database unavailable');
+
+        // Preflight all independent database reads and signing configuration
+        // BEFORE consuming the single-use refresh credential. A query failure
+        // after rotation commits would strand the browser with its old cookie,
+        // which the replay guard must reject on its next attempt.
+        $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+        if ($secret === '') throw new RuntimeException('Session signing unavailable');
+
         $result = RefreshSessions::rotate($conn, $provided, $client);
         if (!$result) {
             $response->getBody()->write(json_encode(['error' => 'Refresh session invalid or revoked.']));
@@ -503,8 +512,6 @@ $app->post('/api/auth/refresh', function (Request $request, Response $response) 
             return $response->withHeader('Content-Type', 'application/json')
                 ->withHeader('Cache-Control', 'no-store')->withStatus(401);
         }
-        $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
-        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
         $access = AccessToken::mint($result['user'], $secret, $setting['session_timeout'] ?? '30');
         $payload = ['token' => $access];
         if ($client === 'android') {
