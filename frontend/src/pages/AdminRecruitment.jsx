@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { createPortal } from 'react-dom';
@@ -31,8 +31,7 @@ import {
   CalendarDays
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { pdf, PDFViewer } from '@react-pdf/renderer';
-import OfferLetterPDF from '../components/offerLetter/OfferLetterPDF';
+const OfferLetterPreview = lazy(() => import('../components/offerLetter/OfferLetterPreview'));
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
@@ -344,6 +343,11 @@ const AdminRecruitment = () => {
         deadlineDate: offerData.offerDeadline
       };
 
+      // PDF generation is rare compared with browsing recruitment records.
+      const [{ pdf }, { default: OfferLetterPDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('../components/offerLetter/OfferLetterPDF'),
+      ]);
       const blob = await pdf(<OfferLetterPDF data={pdfData} />).toBlob();
       
       // SEC-003: do not embed candidate names or predictable timestamps in file paths.
@@ -980,8 +984,8 @@ const AdminRecruitment = () => {
             
             {/* Right Panel: Live PDF Studio Viewer */}
             <div className="hidden md:flex flex-1 h-full bg-[#2a2a2e] flex-col overflow-hidden relative">
-              <PDFViewer width="100%" height="100%" className="border-none flex-1 w-full h-full">
-                <OfferLetterPDF data={{
+              <Suspense fallback={<div role="status" className="flex flex-1 items-center justify-center text-sm text-white/70">Preparing offer preview...</div>}>
+                <OfferLetterPreview data={{
                   firstName: offerData.firstName || '[Candidate',
                   lastName: offerData.lastName || 'Name]',
                   date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
@@ -991,7 +995,7 @@ const AdminRecruitment = () => {
                   salary: offerData.annualSalary || '[Salary]',
                   deadlineDate: offerData.offerDeadline || '[Deadline]'
                 }} />
-              </PDFViewer>
+              </Suspense>
             </div>
           </div>
         </div>,

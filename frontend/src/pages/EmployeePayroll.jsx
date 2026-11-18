@@ -20,8 +20,6 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import EmployeeMobilePayroll from './EmployeeMobilePayroll';
-import { pdf } from '@react-pdf/renderer';
-import PayslipPDF from '../components/PayslipPDF';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   const themes = {
@@ -111,6 +109,12 @@ const EmployeePayroll = () => {
         employeeCode: payslip.employeeCode || payslip.details?.employeeNumber || profile?.employeeId || 'N/A'
       };
       
+      // Defer the ~1.4MB PDF engine until the user requests an actual download.
+      // Navigating to a payroll or employee view must not require PDF rendering.
+      const [{ pdf }, { default: PayslipPDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('../components/PayslipPDF'),
+      ]);
       const blob = await pdf(<PayslipPDF payslip={formattedPayslip} />).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
