@@ -99,6 +99,11 @@ data, server endpoints, IPs or query parameter values are logged.
 The HTTP response, account/session enforcement, SEC-018 identity check,
 database connection mode and attendance configuration remain unchanged.
 
+The difference between `connection_and_identity_ms` and the two new
+substage fields is ordinary PHP/driver configuration and other
+`getConnection()` work. It is not automatically a third database query.
+No persistent PDO connections are enabled by this diagnostic.
+
 A cached in-process PDO connection does not generate fresh substage
 timings, so the route omits the diagnostic log for that case rather
 than reporting misleading zeros. Apache request handling ordinarily
