@@ -80,8 +80,8 @@ const CandidateProfile = () => {
     },
     onSuccess: () => {
       toast.success('Candidate profile updated successfully!');
-      queryClient.invalidateQueries(['candidate', 'profile']);
-      queryClient.invalidateQueries(['candidate', 'dashboard']);
+      queryClient.invalidateQueries({ queryKey: ['candidate', 'profile'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate', 'dashboard'] });
     },
     onError: (error) => {
       console.error('Error saving profile:', error);

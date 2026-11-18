@@ -36,11 +36,11 @@ const AdminDashboard = () => {
     isLoading: loading
   } = useQuery({
     queryKey: ['admin', 'dashboard'],
-    queryFn: async () => {
-      const res = await api.get('/admin/dashboard/stats');
+    queryFn: async ({ signal }) => {
+      const res = await api.get('/admin/dashboard/stats', { signal });
       return res.data;
     },
-    staleTime: 60 * 1000
+    staleTime: 30 * 1000 // Dashboard summaries update more frequently than static settings
   });
 
   if (loading) return <PageLoader message="Loading dashboard..." />;

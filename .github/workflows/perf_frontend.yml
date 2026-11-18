@@ -1,0 +1,38 @@
+name: Frontend performance and secure navigation regression
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/vite.config.js'
+      - 'tests/perf_frontend_policy_test.mjs'
+      - '.github/workflows/perf_frontend.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frontend-performance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Validate frontend query, auth, route policies and SEC-021
+        run: |
+          node tests/perf_frontend_policy_test.mjs
+          node tests/sec021_policy_test.mjs
+          node tests/sec012_policy_test.mjs
+          node tests/sec008_frontend_security_test.mjs
+          node tests/sec020_policy_test.mjs
+      - name: Build production frontend and verify chunking
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Verify production assets and SEC-021 safeguards
+        run: |
+          node tests/perf_frontend_policy_test.mjs --built
+          node tests/sec021_policy_test.mjs --built
+          node tests/sec020_policy_test.mjs --built

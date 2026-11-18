@@ -220,6 +220,7 @@ const AdminVerifyDocuments = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin_documents', application?.candidate_id] });
+      queryClient.invalidateQueries({ queryKey: ['admin_pending_docs'] });
       queryClient.invalidateQueries({ queryKey: ['application', id] });
       toast.success('Document status updated');
     },

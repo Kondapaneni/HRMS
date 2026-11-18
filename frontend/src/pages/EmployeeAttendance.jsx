@@ -103,6 +103,7 @@ const EmployeeAttendance = () => {
       queryClient.invalidateQueries({
         queryKey: ['employee', 'attendance']
       });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
       const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
       if (selectedMonth !== currentMonthStr) {
         setSelectedMonth(currentMonthStr);

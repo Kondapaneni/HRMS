@@ -44,14 +44,15 @@ const AdminAttendance = () => {
 
   const { data: attendanceResponse, isLoading: initialLoading, isFetching } = useQuery({
     queryKey: ['admin', 'attendance', date, debouncedSearch, page],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const res = await api.get(
-        `/admin/attendance?date=${date}&search=${encodeURIComponent(debouncedSearch)}&page=${page}&limit=10`
+        `/admin/attendance?date=${date}&search=${encodeURIComponent(debouncedSearch)}&page=${page}&limit=10`,
+        { signal }
       );
       return res.data;
     },
     placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
+    staleTime: 10 * 1000, // Attendance changes frequently; show cached rows while updating
     onError: () => toast.error('Failed to load attendance'),
   });
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   LayoutGrid, 
@@ -17,7 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 import AdminFeaturesLayout from './AdminFeaturesLayout';
-import AdminChatbot from './AdminChatbot';
+const AdminChatbot = lazy(() => import('./AdminChatbot'));
 import AppShell from './AppShell';
 import Button from './ui/Button';
 import { supabase } from '../lib/supabase';
@@ -26,13 +26,14 @@ const AdminLayout = () => {
   const { profile, signOut } = useAuth();
   const location = useLocation();
 
-  // Non-admin roles (hr/manager/employee) with feature access use the Admin Features layout
-  if (profile?.role !== 'admin') {
-    return <AdminFeaturesLayout />;
-  }
-
+  // Always call hooks in the same order; delegated roles must never issue
+  // privileged pending-document count queries.
   const { data: pendingDocsCount = 0 } = useQuery({
     queryKey: ['admin_pending_docs'],
+    enabled: profile?.role === 'admin',
+    staleTime: 15 * 1000,
+    refetchOnWindowFocus: true,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       const { count, error } = await supabase
         .from('candidate_documents')
@@ -42,8 +43,13 @@ const AdminLayout = () => {
       if (error) throw error;
       return count || 0;
     },
-    refetchInterval: 5000,
+    refetchInterval: 30000,
   });
+
+  // Non-admin roles (hr/manager/employee) with feature access use the Admin Features layout.
+  if (profile?.role !== 'admin') {
+    return <AdminFeaturesLayout />;
+  }
 
   /**
    * Admin Rail Navigation Groups (Section 4.2: 15 items become 7 rail groups)
@@ -180,7 +186,7 @@ const AdminLayout = () => {
       </AppShell>
 
       {/* Admin AI Assistant Chatbot */}
-      <AdminChatbot />
+      <Suspense fallback={null}><AdminChatbot /></Suspense>
 
       {/* Mobile Restriction Overlay for Admins (Restyled with Design Tokens) */}
       <style>{`

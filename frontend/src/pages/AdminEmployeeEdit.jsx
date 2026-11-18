@@ -83,6 +83,7 @@ const AdminEmployeeEdit = () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'performance'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     }
   });
 
