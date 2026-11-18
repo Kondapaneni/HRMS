@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api, { restoreSession, setAccessToken, clearSessionAccess } from '../api/axios';
 import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
@@ -7,17 +6,8 @@ import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext({});
 
-const PUBLIC_ROUTES = [
-  '/',
-  '/candidate/login',
-  '/candidate/activate',
-  '/forgot-password',
-  '/reset-password',
-];
-
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
-  const location = useLocation();
   const [user, setUser] = useState(null);
   const [hasSession, setHasSession] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -72,7 +62,7 @@ export const AuthProvider = ({ children }) => {
       }
     };
     initializeAuth();
-  }, [fetchProfile, isInitialized, location.pathname]);
+  }, [fetchProfile, isInitialized]);
 
   const signIn = async (email, password) => {
     const response = await api.post('/login', { email, password });

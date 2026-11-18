@@ -54,6 +54,8 @@ assert(!/import AdminPayroll from|import AdminRecruitment from|import AdminAtten
 assert.doesNotMatch(auth, /remaining\s*=\s*1200|setTimeout\(resolve, remaining\)/,
   'SEC-021 protected startup cannot impose a 1200ms artificial timer');
 assert.match(auth, /await fetchProfile\(\)/, 'Do not bypass server-authoritative session/profile verification');
+assert.doesNotMatch(auth, /useLocation|location\.pathname|PUBLIC_ROUTES/,
+  'AuthProvider must not subscribe to every route change after removing the timer');
 assert.match(auth, /await restoreSession\(\)/, 'Do not bypass rotating HttpOnly refresh or Android secure session restore');
 assert.match(auth, /queryClient\.clear\(\)/, 'Private cache must still clear on logout');
 assert.match(admin, /enabled:\s*profile\?\.role === 'admin'/, 'Never request privileged badge counts as employee');
