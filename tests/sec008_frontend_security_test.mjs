@@ -11,9 +11,10 @@ const otpAuthStart = auth.indexOf('const signInWithOtp = async');
 const otpAuthEnd = auth.indexOf('const signOut = async', otpAuthStart);
 assert(otpAuthStart >= 0 && otpAuthEnd > otpAuthStart, 'OTP login context function exists');
 const context = auth.slice(otpAuthStart, otpAuthEnd);
+assert(!auth.includes("localStorage.setItem('token'"), 'SEC-021: no bearer JWT persistent browser storage');
 assert(context.includes('if (response.data?.mfaRequired)'));
-assert(context.indexOf('if (response.data?.mfaRequired)') < context.indexOf("localStorage.setItem('token', token)"),
-  'MFA pending OTP token never persisted as authenticated session');
+assert(context.indexOf('if (response.data?.mfaRequired)') < context.indexOf('setAccessToken(token)'),
+  'MFA pending OTP token never installed into authenticated memory session');
 
 const otpUiStart = login.indexOf('const handleVerifyOtp = async');
 const otpUiEnd = login.indexOf('\n\n\n  return (', otpUiStart);

@@ -21,13 +21,7 @@ const AdminChatbot = () => {
   const { profile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem('hrms_admin_chat_history');
-      if (saved) return JSON.parse(saved);
-    } catch (_) {}
-    return [];
-  });
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [showSuggestionsMenu, setShowSuggestionsMenu] = useState(false);
@@ -48,20 +42,10 @@ const AdminChatbot = () => {
         content: `Hi **${firstName}**!\n\nI am your **Admin HR Assistant**. I have full access to all employees' data and can help you with questions like:\n* **Employee Counts** (e.g. "How many employees are active?")\n* **Department Details** (e.g. "Who works in IT?")\n* **Branch Summaries** (e.g. "List employees in Corporate")\n* **Reporting Structure**\n\nAsk me anything about the organization or select one of the suggestions below.`
       };
       setMessages([welcomeMsg]);
-      try {
-        sessionStorage.setItem('hrms_admin_chat_history', JSON.stringify([welcomeMsg]));
-      } catch (_) {}
     }
   }, [profile]);
 
-  // Persist messages to sessionStorage
-  useEffect(() => {
-    if (messages.length > 0) {
-      try {
-        sessionStorage.setItem('hrms_admin_chat_history', JSON.stringify(messages));
-      } catch (_) {}
-    }
-  }, [messages]);
+  // Chatbot transcripts remain in React memory only.
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -136,9 +120,6 @@ const AdminChatbot = () => {
       content: `Conversation reset. How can I assist you with the HR data today, **${firstName}**?`
     };
     setMessages([welcomeMsg]);
-    try {
-      sessionStorage.setItem('hrms_admin_chat_history', JSON.stringify([welcomeMsg]));
-    } catch (_) {}
     toast.success('Conversation reset');
   };
 

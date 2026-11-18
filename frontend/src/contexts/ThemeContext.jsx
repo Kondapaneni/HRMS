@@ -93,15 +93,15 @@ export const ThemeProvider = ({ children }) => {
     setThemePreferenceState(newPref);
     localStorage.setItem('themePreference', newPref);
 
-    const token = localStorage.getItem('token');
-    if (token) {
+    // Server-verified profile replaces the removed localStorage bearer-token gate.
+    if (profile) {
       try {
         await api.put('/user/theme', { theme: newPref });
       } catch (err) {
         console.error('Failed to sync theme preference to database:', err);
       }
     }
-  }, []);
+  }, [profile]);
 
   return (
     <ThemeContext.Provider value={{ themePreference, effectiveTheme, setThemePreference }}>

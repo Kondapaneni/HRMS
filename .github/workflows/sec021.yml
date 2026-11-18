@@ -1,0 +1,68 @@
+name: SEC-021 secure browser session and client-storage regression
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/index.html'
+      - 'frontend/vite.config.js'
+      - 'backend/public/index.php'
+      - 'tests/sec021_*'
+      - 'tests/sec008_frontend_security_test.mjs'
+      - 'docs/SEC-021-remediation.md'
+      - '.github/workflows/sec021.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/index.html'
+      - 'frontend/vite.config.js'
+      - 'backend/public/index.php'
+      - 'tests/sec021_*'
+      - 'tests/sec008_frontend_security_test.mjs'
+      - '.github/workflows/sec021.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-browser-session:
+    name: Synthetic web-cookie refresh, logout and Android isolation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Validate PHP syntax and SEC-021 source policy
+        run: |
+          php -l backend/public/index.php
+          node tests/sec021_policy_test.mjs
+          node tests/sec021_browser_session_test.mjs
+          node tests/sec008_frontend_security_test.mjs
+          node tests/sec012_policy_test.mjs
+          node tests/sec020_policy_test.mjs
+
+  frontend-production:
+    name: Production frontend build without persisted data or raw logs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install locked frontend dependencies and build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Check production artifacts
+        run: |
+          node tests/sec021_policy_test.mjs --built
+          node tests/sec020_policy_test.mjs --built

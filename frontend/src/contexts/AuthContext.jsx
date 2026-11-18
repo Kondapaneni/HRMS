@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import api from '../api/axios';
+import api, { restoreSession, setAccessToken, clearSessionAccess } from '../api/axios';
 import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
 import SplashScreen from '../components/SplashScreen';
 
@@ -19,76 +19,59 @@ export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [hasSession, setHasSession] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const fetchInProgress = useRef(false);
+  // Share the same in-flight bootstrap across StrictMode mount effects and
+  // concurrent profile requests. Don't accidentally resolve a second caller early.
+  const fetchPromise = useRef(null);
 
   const fetchProfile = useCallback(async () => {
-    if (fetchInProgress.current) return;
-    
-    fetchInProgress.current = true;
-    setProfileLoading(true);
-    try {
-      if (!localStorage.getItem('token')) {
-        throw new Error('No token found');
+    if (fetchPromise.current) return fetchPromise.current;
+    const work = (async () => {
+      setProfileLoading(true);
+      try {
+        const access = await restoreSession();
+        if (!access) throw new Error('No token found');
+        setHasSession(true);
+        const response = await api.get('/me');
+        setProfile(response.data);
+        setUser({ email: response.data.email, id: response.data.id });
+      } catch (error) {
+        if (error.message === 'No token found'
+            || [401, 403].includes(error.response?.status)) {
+          clearSessionAccess();
+          setHasSession(false);
+          setProfile(null);
+          setUser(null);
+        }
+        // Network/maintenance outage is not proof of revocation.
+      } finally {
+        setProfileLoading(false);
       }
-      const response = await api.get('/me');
-      setProfile(response.data);
-      setUser({ email: response.data.email, id: response.data.id });
-    } catch (error) {
-      if (error.message === 'No token found' || (error.response && (error.response.status === 401 || error.response.status === 403))) {
-        // User is simply not logged in or session expired
-        localStorage.removeItem('token');
-        setProfile(null);
-        setUser(null);
-      } else {
-        console.error('Failed to fetch profile:', error);
-      }
-    } finally {
-      setProfileLoading(false);
-      fetchInProgress.current = false;
-    }
+    })();
+    fetchPromise.current = work;
+    try { await work; } finally { fetchPromise.current = null; }
   }, []);
 
   useEffect(() => {
     if (isInitialized) return;
 
-    // Check if the current route is exactly a public route
-    const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
-    const hasToken = !!localStorage.getItem('token');
-
-    if (isPublicRoute && !hasToken) {
-      // Don't fetch on public routes if no token exists, finish initialization immediately
-      setLoading(false);
-      setIsInitialized(true);
-      return;
-    }
-
-    // On protected routes or if returning with a token, fetch profile with minimum 1200ms splash delay
+    // A page reload restores web access through its HttpOnly refresh cookie,
+    // or Android access through the Keystore. No bearer token is read from disk.
     const initializeAuth = async () => {
-      if (!hasToken) {
-        setLoading(false);
-        setIsInitialized(true);
-        return;
-      }
-
       const startTime = Date.now();
-      
       await fetchProfile();
-      
-      const elapsed = Date.now() - startTime;
-      const minDelay = 1200;
-      
-      if (elapsed < minDelay) {
-        await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
+      // Preserve the existing protected-route splash without delaying public login.
+      if (!PUBLIC_ROUTES.includes(location.pathname)) {
+        const remaining = 1200 - (Date.now() - startTime);
+        if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
       }
-      
       setLoading(false);
       setIsInitialized(true);
     };
-
     initializeAuth();
   }, [fetchProfile, isInitialized, location.pathname]);
 
@@ -104,7 +87,9 @@ export const AuthProvider = ({ children }) => {
     const { token, user: userData } = response.data;
     if (token) {
       await saveNativeSession(response.data);
-      localStorage.setItem('token', token);
+      queryClient.clear(); // No previous-account private queries may cross a login.
+      setAccessToken(token);
+      setHasSession(true);
     }
     await fetchProfile();
     return userData;
@@ -115,7 +100,9 @@ export const AuthProvider = ({ children }) => {
     const { token, user: userData } = response.data;
     if (token) {
       await saveNativeSession(response.data);
-      localStorage.setItem('token', token);
+      queryClient.clear(); // No previous-account private queries may cross a login.
+      setAccessToken(token);
+      setHasSession(true);
     }
     await fetchProfile();
     return userData;
@@ -140,35 +127,58 @@ export const AuthProvider = ({ children }) => {
     const { token, user: userData } = response.data;
     if (token) {
       await saveNativeSession(response.data);
-      localStorage.setItem('token', token);
+      queryClient.clear(); // No previous-account private queries may cross a login.
+      setAccessToken(token);
+      setHasSession(true);
     }
     await fetchProfile();
     return userData;
   };
 
   const signOut = async (options = {}) => {
-    // When the password was just changed, the server already invalidated
-    // the JWT. Clear local state without making an obsolete logout call.
+    // SEC-012 account-wide revocation remains server-authoritative.
+    // Offline failures are not reported as successful remote revocation.
     if (!options?.localOnly) {
       try {
         await api.post('/logout');
-      } catch (err) {
-        console.error('Logout revocation could not be confirmed:', err);
+      } catch {
+        // If the network is down, do not silently restore the old cookie
+        // on the next reload; server-side revocation remains unconfirmed.
+        try { sessionStorage.setItem('hrms_block_session_restore', '1'); } catch { /* denied */ }
       }
+    } else {
+      try { sessionStorage.setItem('hrms_block_session_restore', '1'); } catch { /* denied */ }
     }
     try {
       await clearNativeSession();
-    } catch (err) {
-      console.error('Could not clear Android secure session:', err);
+    } catch {
+      // Platform secure store errors must not expose native credentials.
     }
-    localStorage.removeItem('token');
+    clearSessionAccess();
+    setHasSession(false);
     setProfile(null);
     setUser(null);
     queryClient.clear();
+    try { localStorage.setItem('hrms_session_event', String(Date.now())); } catch { /* denied */ }
   };
+
+  useEffect(() => {
+    const syncLogout = event => {
+      if (event.key !== 'hrms_session_event') return;
+      try { sessionStorage.setItem('hrms_block_session_restore', '1'); } catch { /* denied */ }
+      clearSessionAccess();
+      setHasSession(false);
+      setUser(null);
+      setProfile(null);
+      queryClient.clear();
+    };
+    window.addEventListener('storage', syncLogout);
+    return () => window.removeEventListener('storage', syncLogout);
+  }, [queryClient]);
 
   const value = {
     user,
+    hasSession,
     profile,
     loading,
     profileLoading,

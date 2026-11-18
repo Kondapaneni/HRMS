@@ -2,6 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import { clearLegacySensitiveStorage } from './api/browserStorage.js'
+
+// Wipe legacy persisted sensitive data before rendering any account UI.
+clearLegacySensitiveStorage()
 // Unregister any existing service workers from previous PWA setup
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
