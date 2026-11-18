@@ -36,7 +36,7 @@ function sessionHarness(native = false) {
     axios: { post: async (url, body, config) => {
       calls++;
       assert.equal(url, '/api/auth/refresh');
-      assert.deepEqual(body, {});
+      assert.equal(Object.keys(body).length, 0);
       assert.equal(config.withCredentials, true);
       assert.equal(config.headers['X-HRMS-Refresh'], '1');
       return { data: { token: validJwt } };
