@@ -157,6 +157,19 @@ export const AuthProvider = ({ children }) => {
     try { localStorage.setItem('hrms_session_event', String(Date.now())); } catch { /* denied */ }
   };
 
+  useEffect(() => {
+    const syncLogout = event => {
+      if (event.key !== 'hrms_session_event') return;
+      clearSessionAccess();
+      setHasSession(false);
+      setUser(null);
+      setProfile(null);
+      queryClient.clear();
+    };
+    window.addEventListener('storage', syncLogout);
+    return () => window.removeEventListener('storage', syncLogout);
+  }, [queryClient]);
+
   const value = {
     user,
     hasSession,
