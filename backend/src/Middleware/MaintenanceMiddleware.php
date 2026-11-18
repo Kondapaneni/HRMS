@@ -30,6 +30,7 @@ final class MaintenanceMiddleware implements MiddlewareInterface
         'POST /api/auth/otp/send' => true,
         'POST /api/auth/otp/verify' => true,
         'POST /api/auth/refresh' => true,
+        'POST /api/auth/refresh/restore' => true,
         'POST /api/auth/mfa/verify' => true,
         'POST /api/forgot-password' => true,
         'POST /api/reset-password' => true,
