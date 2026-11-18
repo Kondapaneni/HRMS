@@ -51,7 +51,7 @@ const AdminAttendance = () => {
       return res.data;
     },
     placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
+    staleTime: 10 * 1000, // Attendance changes frequently; show cached rows while updating
     onError: () => toast.error('Failed to load attendance'),
   });
 

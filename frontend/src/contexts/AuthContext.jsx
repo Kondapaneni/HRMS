@@ -62,15 +62,14 @@ export const AuthProvider = ({ children }) => {
     // A page reload restores web access through its HttpOnly refresh cookie,
     // or Android access through the Keystore. No bearer token is read from disk.
     const initializeAuth = async () => {
-      const startTime = Date.now();
-      await fetchProfile();
-      // Preserve the existing protected-route splash without delaying public login.
-      if (!PUBLIC_ROUTES.includes(location.pathname)) {
-        const remaining = 1200 - (Date.now() - startTime);
-        if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+      // Keep server-authoritative refresh + /me validation, but do not impose
+      // an artificial 1.2s minimum splash on successful protected-route loads.
+      try {
+        await fetchProfile();
+      } finally {
+        setLoading(false);
+        setIsInitialized(true);
       }
-      setLoading(false);
-      setIsInitialized(true);
     };
     initializeAuth();
   }, [fetchProfile, isInitialized, location.pathname]);

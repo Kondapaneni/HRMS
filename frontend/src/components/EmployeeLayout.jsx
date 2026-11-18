@@ -85,8 +85,10 @@ const EmployeeLayout = () => {
         return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
       }
     },
-    refetchInterval: 15000,
-    staleTime: 10000,
+    // MaintenanceGate still checks service availability every 15s; news itself
+    // does not require equally aggressive background polling.
+    refetchInterval: 60000,
+    staleTime: 30000,
     refetchOnWindowFocus: true,
   });
 

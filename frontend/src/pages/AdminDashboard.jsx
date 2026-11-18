@@ -40,7 +40,7 @@ const AdminDashboard = () => {
       const res = await api.get('/admin/dashboard/stats');
       return res.data;
     },
-    staleTime: 60 * 1000
+    staleTime: 30 * 1000 // Dashboard summaries update more frequently than static settings
   });
 
   if (loading) return <PageLoader message="Loading dashboard..." />;

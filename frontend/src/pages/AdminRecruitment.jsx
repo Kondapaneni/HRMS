@@ -266,6 +266,7 @@ const AdminRecruitment = () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'candidates_info'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
       toast.success(`Candidate converted to employee (ID: ${employeeId})`);
     },
     onError: (error) => {

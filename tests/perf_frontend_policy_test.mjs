@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+
+const read = p => readFileSync(p, 'utf8');
+const app = read('frontend/src/App.jsx');
+const auth = read('frontend/src/contexts/AuthContext.jsx');
+const admin = read('frontend/src/components/AdminLayout.jsx');
+const employees = read('frontend/src/pages/AdminEmployees.jsx');
+const attendance = read('frontend/src/pages/AdminAttendance.jsx');
+const employeeView = read('frontend/src/pages/AdminEmployeeView.jsx');
+const regularize = read('frontend/src/pages/AdminAttendanceRegularize.jsx');
+const docs = read('frontend/src/pages/AdminVerifyDocuments.jsx');
+
+assert.match(app, /refetchOnMount:\s*true/, 'Mounted queries must respect freshness');
+assert.doesNotMatch(app, /refetchOnMount:\s*['"]always['"]/, 'Unconditional mount refetch causes redundant requests');
+assert.match(app, /QueryClientProvider/, 'Shared in-memory cache persists across SPA navigation');
+assert.doesNotMatch(app, /PersistQueryClientProvider|createSyncStoragePersister/, 'SEC-021: no persistent private query cache');
+const lazyPages = (app.match(/const \w+ = lazy\(\(\) => import\('\.\/pages\//g) || []).length;
+assert(lazyPages >= 60, 'Route modules must use lazy imports: found ' + lazyPages);
+assert.match(app, /<Suspense fallback=\{/, 'Lazy routes require a suspense boundary');
+assert(!/import AdminPayroll from|import AdminRecruitment from|import AdminAttendance from/.test(app),
+  'Heavy protected pages must not be statically imported');
+assert.doesNotMatch(auth, /remaining\s*=\s*1200|setTimeout\(resolve, remaining\)/,
+  'SEC-021 protected startup cannot impose a 1200ms artificial timer');
+assert.match(auth, /await fetchProfile\(\)/, 'Do not bypass server-authoritative session/profile verification');
+assert.match(auth, /await restoreSession\(\)/, 'Do not bypass rotating HttpOnly refresh or Android secure session restore');
+assert.match(auth, /queryClient\.clear\(\)/, 'Private cache must still clear on logout');
+assert.match(admin, /enabled:\s*profile\?\.role === 'admin'/, 'Never request privileged badge counts as employee');
+assert.match(admin, /refetchInterval:\s*30000/, 'Limit noncritical admin badge polling to 30s');
+assert.match(employees, /staleTime:\s*60 \* 1000/, 'Employees should reuse their memory-only cache');
+assert.match(attendance, /staleTime:\s*10 \* 1000/, 'Attendance should refresh soon after becoming stale');
+assert.doesNotMatch(employeeView, /invalidateQueries\(\[/, 'TanStack Query v5 requires filter objects for invalidation');
+assert.match(regularize, /invalidateQueries\(\{ queryKey: \['admin', 'attendance'\] \}\)/,
+  'Regularizing attendance should refresh attendance lists');
+assert.match(docs, /invalidateQueries\(\{ queryKey: \['admin_pending_docs'\] \}\)/,
+  'Document changes must invalidate admin badge counts');
+
+if (process.argv.includes('--built')) {
+  const dir = 'frontend/dist/assets';
+  const js = readdirSync(dir).filter(f => f.endsWith('.js'));
+  const entry = js.find(f => /^index-[^/]+\.js$/.test(f));
+  assert(entry, 'Vite entry asset must exist');
+  const mainBytes = statSync(join(dir, entry)).size;
+  assert(mainBytes < 3_500_000, 'Initial JS entry must be significantly smaller than old 4.65MB bundle: ' + mainBytes);
+  assert(js.length >= 15, 'Route splitting must create lazy JS chunks');
+  console.log('Vite entry bytes: ' + mainBytes + ', JS chunks: ' + js.length);
+}
+console.log('Frontend performance policy and SEC-021 preservation PASS');

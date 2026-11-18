@@ -30,8 +30,7 @@ const AdminEmployees = () => {
       return res.data.employees || [];
     },
     placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
-    onError: () => toast.error('Failed to load employees'),
+    staleTime: 60 * 1000, // Reuse cached roster between quick tab switches
   });
 
   const handleSearchSubmit = (e) => {
