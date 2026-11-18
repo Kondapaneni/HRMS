@@ -31,8 +31,8 @@ No database schema or destructive operations are required. Do not clear the enti
 - `tests/sec021_policy_test.mjs`: source policy for storage, cookie/CSRF gate, query retention, no-store headers, Android and production console suppression.
 - `tests/sec021_browser_session_test.mjs`: isolated Node VM simulation of actual browser refresh/restore, no token persistence, logout blocking and native session retrieval (synthetic credentials, no network).
 - `.github/workflows/sec021.yml`: PHP syntax, SEC-008/012/020 policy regressions, production build and bundle checks. Existing SEC-012 synthetic PostgreSQL/HTTP refresh and logout tests, SEC-006 native static checks, and other path-triggered workflows must also pass.
-- **CI status:** pending.
-- **Render deployed merge SHA:** pending.
+- **CI status:** 13 PR checks passed on the SEC-021 branch head `15b8a28715a55b9da4b2975ec12981a6bff441db` on 2026-11-18, including the new SEC-021 production-build, synthetic cookie/browser and Android isolation jobs, SEC-012 real PostgreSQL auth/replay HTTP checks, SEC-006 Android static policy, SEC-008 MFA, SEC-009 authorization, SEC-020 maintenance, and other triggered regression jobs. Documentation-only finalization may rerun policy checks before merge.
+- **Render deployed merge SHA:** pending. At pre-merge inspection, Render service `srv-d8ool30js32c738j6ckg` was live at old baseline `259ca965dabef8e0509b60be10a9f031b51ba69d` (the intervening README-only main commit); this is **not** a SEC-021 deploy.
 - **Live owner verification:** pending for Admin/Employee/Candidate login, MFA/email OTP, tab reload and refresh, logout and server-side JWT replay refusal, revocation, payroll confidentiality, loan/sales/branch permissions, recruitment, offline handling, cookie attributes, local/session storage absence, and Android 14 login/foreground service/background attendance after expiry.
 
 ### Non-destructive live test sequence (one step per owner report)
