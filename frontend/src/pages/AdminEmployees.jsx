@@ -265,6 +265,7 @@ const AdminEmployees = () => {
         onSuccess={() => {
           setIsModalOpen(false);
           queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+          queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
         }}
       />
     </div>
