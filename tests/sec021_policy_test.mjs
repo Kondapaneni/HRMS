@@ -19,14 +19,14 @@ assert(!/PersistQueryClientProvider|createSyncStoragePersister|persistOptions/.t
   'No TanStack query response is written to browser storage');
 assert(root.includes('QueryClientProvider') && root.includes('queryClient'),
   'Private queries remain in a short-lived memory-only React Query cache');
-assert(!/gcTime:\\s*24\s*\*\s*60/.test(root), 'No 24-hour private query retention');
+assert(!/gcTime:\s*24\s*\*\s*60/.test(root), 'No 24-hour private query retention');
 assert(storage.includes('REACT_QUERY_OFFLINE_CACHE')
   && storage.includes('TANSTACK_QUERY_OFFLINE_CACHE'), 'Legacy persisted query payloads purged');
 assert(entry.includes('clearLegacySensitiveStorage()'), 'Legacy private storage cleared on every boot');
 for (const file of [axios, auth, candidate, tracker]) {
-  assert(!/localStorage\\.(?:setItem|getItem)\\(['"]token['"]/.test(file),
+  assert(!/localStorage\.(?:setItem|getItem)\(['"]token['"]/.test(file),
     'Access JWT must never be read from or written to localStorage');
-  assert(!/sessionStorage\\.setItem\\(['"](?:token|refreshToken)/.test(file),
+  assert(!/sessionStorage\.setItem\(['"](?:token|refreshToken)/.test(file),
     'No sessionStorage authentication secret persistence');
 }
 assert(axios.includes('let webAccessToken = null')
@@ -56,14 +56,14 @@ assert(backend.includes("'Cache-Control', 'no-store'")
 for (const path of ['frontend/src/components/AdminChatbot.jsx','frontend/src/components/EmployeeChatbot.jsx',
   'frontend/src/pages/OriginationMobileLoanLeadDetails.jsx','frontend/src/pages/OriginationMobileLoanMemberDetails.jsx',
   'frontend/src/pages/OriginationMobileSaleLeadDetails.jsx','frontend/src/pages/OriginationMobileSaleMemberDetails.jsx']) {
-  assert(!/sessionStorage\\.(?:getItem|setItem)/.test(read(path)),
+  assert(!/sessionStorage\.(?:getItem|setItem)/.test(read(path)),
     path + ' must not persist private records or chat transcripts');
 }
-assert(vite.includes("drop: command === 'build' ? ['console', 'debugger']"),
+assert(vite.includes('dropConsole: true'),
   'Production browser build must remove raw console objects');
 assert(!read('frontend/index.html').includes('console.log('),
   'Static HTML must not bypass production log redaction');
-assert(!/localStorage\\.(?:setItem|getItem)\\(['"]token['"]/.test(read('frontend/src/pages/CandidateLogin.jsx')),
+assert(!/localStorage\.(?:setItem|getItem)\(['"]token['"]/.test(read('frontend/src/pages/CandidateLogin.jsx')),
   'Candidate never persists a token');
 
 if (process.argv.includes('--built')) {
