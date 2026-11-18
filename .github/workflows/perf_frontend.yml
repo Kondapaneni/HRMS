@@ -5,6 +5,7 @@ on:
       - 'frontend/src/**'
       - 'frontend/vite.config.js'
       - 'tests/perf_frontend_policy_test.mjs'
+      - 'tests/perf_cold_route_policy_test.mjs'
       - '.github/workflows/perf_frontend.yml'
   workflow_dispatch:
 permissions:
@@ -22,6 +23,7 @@ jobs:
       - name: Validate frontend query, auth, route policies and SEC-021
         run: |
           node tests/perf_frontend_policy_test.mjs
+          node tests/perf_cold_route_policy_test.mjs
           node tests/sec021_policy_test.mjs
           node tests/sec012_policy_test.mjs
           node tests/sec008_frontend_security_test.mjs
@@ -34,5 +36,6 @@ jobs:
       - name: Verify production assets and SEC-021 safeguards
         run: |
           node tests/perf_frontend_policy_test.mjs --built
+          node tests/perf_cold_route_policy_test.mjs --built
           node tests/sec021_policy_test.mjs --built
           node tests/sec020_policy_test.mjs --built
