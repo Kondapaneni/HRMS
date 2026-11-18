@@ -23,11 +23,11 @@ const legacyInvalidationFixes = [
   'frontend/src/pages/AdminEmployeeView.jsx',
 ];
 for (const file of legacyInvalidationFixes) {
-  assert.doesNotMatch(read(file), /queryClient\\.invalidateQueries\\(\\[/,
+  assert.doesNotMatch(read(file), /queryClient\.invalidateQueries\(\[/,
     'Legacy invalidation is not supported by TanStack Query v5 in ' + file);
 }
 for (const file of ['frontend/src/pages/AdminPerformance.jsx', 'frontend/src/pages/CandidateDocuments.jsx']) {
-  assert.doesNotMatch(read(file), /refetchOnMount:\\s*['"]always['"]/,
+  assert.doesNotMatch(read(file), /refetchOnMount:\s*['"]always['"]/,
     'Query-specific always-refresh should not override freshness policy in ' + file);
 }
 
