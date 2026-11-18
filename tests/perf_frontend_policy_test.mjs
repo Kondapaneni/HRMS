@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const read = p => readFileSync(p, 'utf8');
@@ -37,6 +37,17 @@ assert.match(app, /QueryClientProvider/, 'Shared in-memory cache persists across
 assert.doesNotMatch(app, /PersistQueryClientProvider|createSyncStoragePersister/, 'SEC-021: no persistent private query cache');
 const lazyPages = (app.match(/const \w+ = lazy\(\(\) => import\('\.\/pages\//g) || []).length;
 assert(lazyPages >= 60, 'Route modules must use lazy imports: found ' + lazyPages);
+for (const match of app.matchAll(/const \w+ = lazy\(\(\) => import\('\.\/(pages|components)\/([^']+)'\)\);/g)) {
+  const path = 'frontend/src/' + match[1] + '/' + match[2];
+  const moduleFile = [path + '.jsx', path + '.js'].find(existsSync);
+  assert(moduleFile, 'Lazy route module missing: ' + path);
+  assert.match(read(moduleFile), /\bexport\s+default\b|\bexport\s*\{[^}]*\bdefault\b/,
+    'Lazy route module needs a default export: ' + moduleFile);
+}
+for (const file of ['frontend/src/pages/AdminEmployees.jsx', 'frontend/src/pages/AdminAttendance.jsx', 'frontend/src/pages/AdminDashboard.jsx']) {
+  assert.match(read(file), /queryFn:\s*async \(\{ signal \}\)/,
+    'Cancel abandoned page queries during rapid navigation: ' + file);
+}
 assert.match(app, /<Suspense fallback=\{/, 'Lazy routes require a suspense boundary');
 assert(!/import AdminPayroll from|import AdminRecruitment from|import AdminAttendance from/.test(app),
   'Heavy protected pages must not be statically imported');

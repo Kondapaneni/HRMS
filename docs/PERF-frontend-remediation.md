@@ -8,7 +8,7 @@
 - `App.jsx` eagerly imported nearly every protected route, putting large modules in the initial dependency graph. Protected pages/layouts now use `React.lazy`, with a Suspense loading surface outside persistent authentication and tracking components. Public sign-in and recovery remain eager to avoid delaying them.
 - Admin pending-document badge was refetched **every 5 seconds** and the Employee news query every **15 seconds**; they now poll every 30s and 60s respectively, while mutations invalidate relevant badge caches.
 - TanStack Query v5 `invalidateQueries([key])` calls in AdminEmployeeView, AddLeadSidebar, Employee/Candidate profile pages, MFA security card and CandidateDocuments were legacy signatures, now corrected. AdminPerformance and CandidateDocuments query-level `refetchOnMount: 'always'` overrides were replaced with freshness-aware policies. They now use filter objects and also invalidate related lists and dashboard counts; employee edit, attendance regularization, candidate conversion and document updates also invalidate dependent queries.
-- Attendance gets a shorter 10s freshness period; the Employees roster uses 60s. Background fetches retain cached rows instead of requiring a full-page loader.
+- Attendance gets a shorter 10s freshness period; the Employees roster uses 60s. Background fetches retain cached rows instead of requiring a full-page loader. Admin Dashboard, Employees and Attendance also consume TanStack Query AbortSignals in Axios, cancelling obsolete in-flight read requests during rapid navigation or search changes.
 
 ## Scope and safety
 - No backend API, auth cookie, token format, Android native tracker, database schema, security middleware or persistent data storage changes.

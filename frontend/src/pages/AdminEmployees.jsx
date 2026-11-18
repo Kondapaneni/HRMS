@@ -25,8 +25,8 @@ const AdminEmployees = () => {
 
   const { data: employees = [], isLoading: initialLoading, isFetching } = useQuery({
     queryKey: ['admin', 'employees', debouncedSearch],
-    queryFn: async () => {
-      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`);
+    queryFn: async ({ signal }) => {
+      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`, { signal });
       return res.data.employees || [];
     },
     placeholderData: (previousData) => previousData,
