@@ -24,34 +24,36 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const fetchInProgress = useRef(false);
+  // Share the same in-flight bootstrap across StrictMode mount effects and
+  // concurrent profile requests. Don't accidentally resolve a second caller early.
+  const fetchPromise = useRef(null);
 
   const fetchProfile = useCallback(async () => {
-    if (fetchInProgress.current) return;
-    
-    fetchInProgress.current = true;
-    setProfileLoading(true);
-    try {
-      const access = await restoreSession();
-      if (!access) throw new Error('No token found');
-      setHasSession(true);
-      const response = await api.get('/me');
-      setProfile(response.data);
-      setUser({ email: response.data.email, id: response.data.id });
-    } catch (error) {
-      if (error.message === 'No token found' || (error.response && (error.response.status === 401 || error.response.status === 403))) {
-        // User is simply not logged in or session expired
-        clearSessionAccess();
-        setHasSession(false);
-        setProfile(null);
-        setUser(null);
-      } else {
-        // A transient outage must not erase valid login or expose private error objects.
+    if (fetchPromise.current) return fetchPromise.current;
+    const work = (async () => {
+      setProfileLoading(true);
+      try {
+        const access = await restoreSession();
+        if (!access) throw new Error('No token found');
+        setHasSession(true);
+        const response = await api.get('/me');
+        setProfile(response.data);
+        setUser({ email: response.data.email, id: response.data.id });
+      } catch (error) {
+        if (error.message === 'No token found'
+            || [401, 403].includes(error.response?.status)) {
+          clearSessionAccess();
+          setHasSession(false);
+          setProfile(null);
+          setUser(null);
+        }
+        // Network/maintenance outage is not proof of revocation.
+      } finally {
+        setProfileLoading(false);
       }
-    } finally {
-      setProfileLoading(false);
-      fetchInProgress.current = false;
-    }
+    })();
+    fetchPromise.current = work;
+    try { await work; } finally { fetchPromise.current = null; }
   }, []);
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export const AuthProvider = ({ children }) => {
     const { token, user: userData } = response.data;
     if (token) {
       await saveNativeSession(response.data);
+      queryClient.clear(); // No previous-account private queries may cross a login.
       setAccessToken(token);
       setHasSession(true);
     }
@@ -97,6 +100,7 @@ export const AuthProvider = ({ children }) => {
     const { token, user: userData } = response.data;
     if (token) {
       await saveNativeSession(response.data);
+      queryClient.clear(); // No previous-account private queries may cross a login.
       setAccessToken(token);
       setHasSession(true);
     }
@@ -123,6 +127,7 @@ export const AuthProvider = ({ children }) => {
     const { token, user: userData } = response.data;
     if (token) {
       await saveNativeSession(response.data);
+      queryClient.clear(); // No previous-account private queries may cross a login.
       setAccessToken(token);
       setHasSession(true);
     }
@@ -160,6 +165,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const syncLogout = event => {
       if (event.key !== 'hrms_session_event') return;
+      try { sessionStorage.setItem('hrms_block_session_restore', '1'); } catch { /* denied */ }
       clearSessionAccess();
       setHasSession(false);
       setUser(null);
