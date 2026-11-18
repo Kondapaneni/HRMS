@@ -2,6 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Capacitor } from '@capacitor/core';
 import { getNativeAccessToken, refreshNativeSession, isAndroidSession } from './nativeSession';
+import { clearPrivateSessionStorage } from './browserStorage';
 
 const DEACTIVATED_ACCOUNT_MESSAGE = 'Your account has been deactivated. Please contact your administrator.';
 let deactivationRedirectScheduled = false;
@@ -34,21 +35,26 @@ const api = axios.create({
   },
 });
 
-// Native tracker may rotate the access JWT while the WebView is closed.
-// Read only the Keystore-protected current access token, never the refresh secret.
+// Web access JWTs exist in module memory only. The rotating refresh secret
+// stays in an HttpOnly/Secure/SameSite=Strict cookie, never Web Storage.
+// Android keeps both credentials in the OS Keystore via the native bridge.
+let webAccessToken = null;
+export const getAccessToken = () => webAccessToken;
+export function setAccessToken(token) {
+  if (!isAndroidSession) webAccessToken = token || null;
+}
+export function clearSessionAccess() {
+  webAccessToken = null;
+  clearPrivateSessionStorage();
+}
+
 api.interceptors.request.use(async (config) => {
   if (isAndroidSession && [
     '/login', '/candidate/login', '/auth/otp/verify', '/auth/mfa/verify',
   ].includes(config.url)) {
     config.headers['X-HRMS-Client'] = 'android';
   }
-  if (isAndroidSession) {
-    const current = await getNativeAccessToken();
-    if (current && current !== localStorage.getItem('token')) {
-      localStorage.setItem('token', current);
-    }
-  }
-  const token = localStorage.getItem('token');
+  const token = isAndroidSession ? await getNativeAccessToken() : webAccessToken;
   if (token && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -109,25 +115,50 @@ function isUnexpiredToken(token) {
 
 async function renewAccess(staleToken) {
   if (isAndroidSession) return refreshNativeSession();
-
   const rotate = async () => {
-    // Other browser tabs share the latest access token in localStorage.
-    // If a prior tab already refreshed, never submit its obsolete cookie again.
-    const latest = localStorage.getItem('token');
-    if (latest && latest !== staleToken && isUnexpiredToken(latest)) return latest;
+    // Serialize cookie rotation across tabs where the Web Locks API exists.
+    // The browser sends its latest shared HttpOnly refresh cookie automatically.
+    if (webAccessToken && webAccessToken !== staleToken && isUnexpiredToken(webAccessToken)) {
+      return webAccessToken;
+    }
     const res = await axios.post('/api/auth/refresh', {}, {
       withCredentials: true,
       headers: { 'Content-Type': 'application/json', 'X-HRMS-Refresh': '1' },
     });
     if (!res.data?.token) throw new Error('Missing renewed access token');
-    localStorage.setItem('token', res.data.token);
+    setAccessToken(res.data.token);
     return res.data.token;
   };
-
   if (typeof navigator !== 'undefined' && navigator.locks?.request) {
     return navigator.locks.request('hrms-refresh-session', rotate);
   }
   return rotate();
+}
+
+/**
+ * Called on startup, including a full-page reload, before showing protected UI.
+ * A 401 means no active session; a 503/network outage is NOT a revocation.
+ */
+export async function restoreSession() {
+  if (isAndroidSession) {
+    const native = await getNativeAccessToken();
+    if (native) return native;
+  } else if (webAccessToken && isUnexpiredToken(webAccessToken)) {
+    return webAccessToken;
+  }
+  if (!sharedRefresh) {
+    sharedRefresh = renewAccess(webAccessToken).finally(() => { sharedRefresh = null; });
+  }
+  try {
+    return await sharedRefresh;
+  } catch (error) {
+    if (error.response?.status === 401 || error.response?.status === 403
+      || (isAndroidSession && error.code === 'AUTH_REVOKED')) {
+      setAccessToken(null);
+      return null;
+    }
+    throw error;
+  }
 }
 
 api.interceptors.response.use(
@@ -142,18 +173,18 @@ api.interceptors.response.use(
       && !isPublicAuthCall(request.url)) {
       request._sec012Retried = true;
       if (!sharedRefresh) {
-        sharedRefresh = renewAccess(request.headers.Authorization?.replace(/^Bearer\s+/i, '') || localStorage.getItem('token')).finally(() => { sharedRefresh = null; });
+        sharedRefresh = renewAccess(request.headers.Authorization?.replace(/^Bearer\s+/i, '') || webAccessToken).finally(() => { sharedRefresh = null; });
       }
       try {
         const token = await sharedRefresh;
-        localStorage.setItem('token', token);
+        setAccessToken(token);
         request.headers.Authorization = `Bearer ${token}`;
         return api(request);
       } catch (refreshError) {
         const permanent = [401, 403].includes(refreshError.response?.status)
           || (isAndroidSession && refreshError.code === 'AUTH_REVOKED');
         if (permanent) {
-          localStorage.removeItem('token');
+          setAccessToken(null);
         } else {
           // A 503, offline network or transient native Keystore fault is NOT
           // a revocation. Let the caller retry later rather than log out.
@@ -174,7 +205,7 @@ api.interceptors.response.use(
         }
       }
     } else if (error.response?.status !== 429) {
-      console.error('API Error:', error);
+      // Deliberately avoid logging AxiosError: it contains request headers and private response data.
     }
     return Promise.reject(error);
   }
