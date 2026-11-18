@@ -1,0 +1,28 @@
+name: PERF-008 temporary Step 2C public probes
+
+on:
+  pull_request:
+    types: [opened]
+    paths:
+      - '.github/workflows/perf008_step2c_temporary_probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  sequential-public-news-probes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: GET public /api/news six times (no credentials or response logging)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in 1 2 3 4 5 6; do
+            status="$(curl --silent --show-error --retry 0 --connect-timeout 10 --max-time 20 --output /dev/null --write-out '%{http_code}' "https://hrms-qwv3.onrender.com/api/news?perf_probe=step2c-gh-\${{ github.run_id }}-${i}")"
+            echo "PERF-008 Step 2C probe ${i}: HTTP ${status}"
+            if [ "${status}" != "200" ]; then
+              exit 1
+            fi
+            sleep 1
+          done
