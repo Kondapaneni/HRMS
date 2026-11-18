@@ -11,6 +11,25 @@ const attendance = read('frontend/src/pages/AdminAttendance.jsx');
 const employeeView = read('frontend/src/pages/AdminEmployeeView.jsx');
 const regularize = read('frontend/src/pages/AdminAttendanceRegularize.jsx');
 const docs = read('frontend/src/pages/AdminVerifyDocuments.jsx');
+const legacyInvalidationFixes = [
+  'frontend/src/components/AddLeadSidebar.jsx',
+  'frontend/src/pages/EditProfile.jsx',
+  'frontend/src/pages/CandidateProfile.jsx',
+  'frontend/src/components/MfaSecurityCard.jsx',
+  'frontend/src/pages/EditMobileProfile.jsx',
+  'frontend/src/pages/EmployeeProfile.jsx',
+  'frontend/src/pages/CandidateDocuments.jsx',
+  'frontend/src/pages/EmployeeMobileProfile.jsx',
+  'frontend/src/pages/AdminEmployeeView.jsx',
+];
+for (const file of legacyInvalidationFixes) {
+  assert.doesNotMatch(read(file), /queryClient\\.invalidateQueries\\(\\[/,
+    'Legacy invalidation is not supported by TanStack Query v5 in ' + file);
+}
+for (const file of ['frontend/src/pages/AdminPerformance.jsx', 'frontend/src/pages/CandidateDocuments.jsx']) {
+  assert.doesNotMatch(read(file), /refetchOnMount:\\s*['"]always['"]/,
+    'Query-specific always-refresh should not override freshness policy in ' + file);
+}
 
 assert.match(app, /refetchOnMount:\s*true/, 'Mounted queries must respect freshness');
 assert.doesNotMatch(app, /refetchOnMount:\s*['"]always['"]/, 'Unconditional mount refetch causes redundant requests');

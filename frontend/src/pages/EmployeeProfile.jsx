@@ -113,7 +113,7 @@ const EmployeeProfile = () => {
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
       
       toast.success('Profile picture updated successfully!');
-      queryClient.invalidateQueries(['employee', 'profile']);
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
       
       if (fetchProfile) {
         await fetchProfile();
