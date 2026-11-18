@@ -1,0 +1,26 @@
+name: PERF-008 Singapore migration preflight (no live DB access)
+on:
+  pull_request:
+    paths:
+      - 'scripts/perf008_encrypted_mumbai_snapshot.sh'
+      - '.github/workflows/perf008_migration_preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Bash syntax and no accidental CLI database access
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/perf008_encrypted_mumbai_snapshot.sh
+          script=scripts/perf008_encrypted_mumbai_snapshot.sh
+          grep -Fq 'Refuse real database backup in CI' "$script"
+          grep -Fq 'Use a private PGPASSFILE' "$script"
+          grep -Fq 'pg_dump -Fc --no-owner --no-acl' "$script"
+          grep -Fq 'gpg --no-symkey-cache --symmetric --cipher-algo AES256' "$script"
+          grep -Fq 'NOT a full Supabase migration' "$script"
+          echo 'PERF-008 offline backup-script safety guards PASS'
