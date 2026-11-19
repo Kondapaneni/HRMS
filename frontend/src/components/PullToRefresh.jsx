@@ -84,7 +84,7 @@ const PullToRefresh = ({ children, onRefresh }) => {
         if (onRefresh) {
           await onRefresh();
         } else {
-          await refreshControl.refetchQueries();
+          await refreshControl.refresh();
         }
         setIsSuccess(true);
       } catch (err) {

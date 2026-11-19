@@ -79,10 +79,10 @@ const AdminEmployeeEdit = () => {
       return api.put(`/admin/employees/${id}`, formData);
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['admin', 'employee', id] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'employees'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'performance'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
+      refreshControl.refresh({ scope: ['admin', 'employee', id] });
+      refreshControl.refresh({ scope: ['admin', 'employees'] });
+      refreshControl.refresh({ scope: ['admin', 'performance'] });
+      refreshControl.refresh({ scope: ['admin', 'dashboard'] });
     }
   });
 

@@ -110,8 +110,8 @@ const CandidateJobs = () => {
       return res.data;
     },
     onMutate: async ({ job, resumeUrl, noticePeriod, coverNote }) => {
-      await refreshControl.cancelQueries({ scope: ['candidate', 'jobs_page', profile?.id] });
-      const previousPageData = refreshControl.getQueryData(['candidate', 'jobs_page', profile?.id]);
+      await refreshControl.cancel({ scope: ['candidate', 'jobs_page', profile?.id] });
+      const previousPageData = refreshControl.peek(['candidate', 'jobs_page', profile?.id]);
 
       if (previousPageData) {
         const optimisticApp = {
@@ -132,7 +132,7 @@ const CandidateJobs = () => {
           }
         };
 
-        refreshControl.setQueryData(['candidate', 'jobs_page', profile?.id], {
+        refreshControl.update(['candidate', 'jobs_page', profile?.id], {
           ...previousPageData,
           applications: [optimisticApp, ...(previousPageData.applications || [])]
         });
@@ -148,7 +148,7 @@ const CandidateJobs = () => {
       toast.success(`Successfully applied for ${variables.job.title}!`);
       
       if (data?.application) {
-        refreshControl.setQueryData(['candidate', 'jobs_page', profile?.id], (old) => {
+        refreshControl.update(['candidate', 'jobs_page', profile?.id], (old) => {
           if (!old) return old;
           const filtered = (old.applications || []).filter(a => a.job_id !== variables.job.id);
           const realApp = {
@@ -165,13 +165,13 @@ const CandidateJobs = () => {
         });
       }
 
-      refreshControl.invalidateQueries({ scope: ['candidate', 'jobs_page'] });
-      refreshControl.invalidateQueries({ scope: ['candidate', 'dashboard'] });
-      refreshControl.invalidateQueries({ scope: ['candidate', 'applications'] });
+      refreshControl.refresh({ scope: ['candidate', 'jobs_page'] });
+      refreshControl.refresh({ scope: ['candidate', 'dashboard'] });
+      refreshControl.refresh({ scope: ['candidate', 'applications'] });
     },
     onError: (error, variables, context) => {
       if (context?.previousPageData) {
-        refreshControl.setQueryData(['candidate', 'jobs_page', profile?.id], context.previousPageData);
+        refreshControl.update(['candidate', 'jobs_page', profile?.id], context.previousPageData);
       }
       console.error(error);
       toast.error('Failed to submit application.');

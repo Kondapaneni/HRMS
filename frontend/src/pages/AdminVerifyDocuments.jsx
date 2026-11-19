@@ -219,9 +219,9 @@ const AdminVerifyDocuments = () => {
       setUpdatingDocId(null);
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['admin_documents', application?.candidate_id] });
-      refreshControl.invalidateQueries({ scope: ['admin_pending_docs'] });
-      refreshControl.invalidateQueries({ scope: ['application', id] });
+      refreshControl.refresh({ scope: ['admin_documents', application?.candidate_id] });
+      refreshControl.refresh({ scope: ['admin_pending_docs'] });
+      refreshControl.refresh({ scope: ['application', id] });
       toast.success('Document status updated');
     },
     onError: (err) => toast.error(err.response?.data?.error || err.message || 'Failed to update status')
@@ -245,7 +245,7 @@ const AdminVerifyDocuments = () => {
     },
     onSuccess: () => {
       toast.success('Confirmation email sent to candidate');
-      refreshControl.invalidateQueries({ scope: ['application', id] });
+      refreshControl.refresh({ scope: ['application', id] });
     },
     onError: () => toast.error('Failed to send email')
   });

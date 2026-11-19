@@ -79,8 +79,8 @@ const CandidateProfile = () => {
     },
     onSuccess: () => {
       toast.success('Candidate profile updated successfully!');
-      refreshControl.invalidateQueries({ scope: ['candidate', 'profile'] });
-      refreshControl.invalidateQueries({ scope: ['candidate', 'dashboard'] });
+      refreshControl.refresh({ scope: ['candidate', 'profile'] });
+      refreshControl.refresh({ scope: ['candidate', 'dashboard'] });
     },
     onError: (error) => {
       console.error('Error saving profile:', error);

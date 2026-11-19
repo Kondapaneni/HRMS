@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }) => {
     setTransitioning(true);
     try {
       await saveNativeSession(responseData);
-      refreshControl.clear(); // No previous-account private queries may cross a login.
+      refreshControl.reset(); // Immediately clear mounted private records on account switch.
       setAccessToken(token);
       setHasSession(true);
       const verifiedProfile = await fetchProfile();
@@ -173,7 +173,7 @@ export const AuthProvider = ({ children }) => {
     setProfile(null);
     setUser(null);
     setTransitioning(false);
-    refreshControl.clear();
+    refreshControl.reset();
     try { localStorage.setItem('hrms_session_event', String(Date.now())); } catch { /* denied */ }
   };
 
@@ -185,7 +185,7 @@ export const AuthProvider = ({ children }) => {
       setHasSession(false);
       setUser(null);
       setProfile(null);
-      refreshControl.clear();
+      refreshControl.reset();
     };
     window.addEventListener('storage', syncLogout);
     return () => window.removeEventListener('storage', syncLogout);

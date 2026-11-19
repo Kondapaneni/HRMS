@@ -44,9 +44,9 @@ const OriginationMobileLoanLeadDetails = () => {
         if (lead) lead.loan_type = variables.loan_type;
       }
       if (lead) lead.status = variables.status;
-      refreshControl.invalidateQueries({ scope: ['origination', 'leads'] });
-      refreshControl.invalidateQueries({ scope: ['origination', 'leads', 'list'] });
-      refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
+      refreshControl.refresh({ scope: ['origination', 'leads'] });
+      refreshControl.refresh({ scope: ['origination', 'leads', 'list'] });
+      refreshControl.refresh({ scope: ['leadsDashboard'] });
       setShowConvertModal(false);
     },
     onError: (error) => {

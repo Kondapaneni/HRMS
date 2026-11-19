@@ -108,7 +108,7 @@ const AdminTrainingVideos = () => {
       await api.post('/admin/training/videos', videoData);
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['admin', 'trainingVideos'] });
+      refreshControl.refresh({ scope: ['admin', 'trainingVideos'] });
       setIsModalOpen(false);
       setTitle('');
       setVideoFile(null);
@@ -129,7 +129,7 @@ const AdminTrainingVideos = () => {
       await api.put(`/admin/training/videos/${id}/assign`, { assigned_employee_ids });
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['admin', 'trainingVideos'] });
+      refreshControl.refresh({ scope: ['admin', 'trainingVideos'] });
       setIsAssignModalOpen(false);
       setSelectedVideoForAssign(null);
       toast.success('Course employee enrollments updated!');
@@ -144,7 +144,7 @@ const AdminTrainingVideos = () => {
       await api.delete(`/admin/training/videos/${id}`);
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['admin', 'trainingVideos'] });
+      refreshControl.refresh({ scope: ['admin', 'trainingVideos'] });
       toast.success('Training video deleted');
     },
     onError: () => toast.error('Failed to delete training video')

@@ -64,8 +64,8 @@ const EmployeeLeaves = () => {
     },
     onSuccess: () => {
       toast.success('Leave cancelled successfully');
-      refreshControl.invalidateQueries({ scope: ['employee', 'leaves'] });
-      refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'leaves'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to cancel leave');
@@ -111,8 +111,8 @@ const EmployeeLeaves = () => {
       setStartDate('');
       setEndDate('');
       setReason('');
-      refreshControl.invalidateQueries({ scope: ['employee', 'leaves'] });
-      refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'leaves'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
     } catch (err) {
       const errMsg = err.response?.data?.error || 'Failed to submit leave request.';
       setError(errMsg);

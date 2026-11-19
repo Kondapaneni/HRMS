@@ -82,7 +82,7 @@ const EditProfile = () => {
     },
     onSuccess: async () => {
       toast.success('Profile updated successfully');
-      refreshControl.invalidateQueries({ scope: ['employee', 'profile'] });
+      refreshControl.refresh({ scope: ['employee', 'profile'] });
       if (fetchProfile) {
         await fetchProfile();
       }

@@ -66,15 +66,15 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
       setIsSubmitting(true);
       if (isSale) {
         await createSalesLead(formData);
-        refreshControl.invalidateQueries({ scope: ['sales', 'leads'] });
-        refreshControl.invalidateQueries({ scope: ['sales', 'leads', 'list'] });
-        refreshControl.invalidateQueries({ scope: ['salesDashboard'] });
+        refreshControl.refresh({ scope: ['sales', 'leads'] });
+        refreshControl.refresh({ scope: ['sales', 'leads', 'list'] });
+        refreshControl.refresh({ scope: ['salesDashboard'] });
         toast.success('Sales lead added successfully!');
       } else {
         await createLead(formData);
-        refreshControl.invalidateQueries({ scope: ['origination', 'leads'] });
-        refreshControl.invalidateQueries({ scope: ['origination', 'leads', 'list'] });
-        refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
+        refreshControl.refresh({ scope: ['origination', 'leads'] });
+        refreshControl.refresh({ scope: ['origination', 'leads', 'list'] });
+        refreshControl.refresh({ scope: ['leadsDashboard'] });
         toast.success('Lead added successfully!');
       }
       resetForm();

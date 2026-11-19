@@ -48,7 +48,7 @@ const AdminLayout = () => {
   });
 
   // Warm Employees and Attendance only after the Admin Dashboard succeeds.
-  // Data is fetched read-only into the memory-only cache and cleared on logout.
+  // Data is fetched read-only into route code only (no record caching).
   useEffect(() => {
     if (profile?.role !== 'admin' || location.pathname !== '/admin') return;
     let armed = false;
@@ -56,7 +56,7 @@ const AdminLayout = () => {
     let timer;
     let idleId;
     const maybeWarm = () => {
-      if (armed || refreshControl.getQueryState(['admin', 'dashboard'])?.status !== 'success') return;
+      if (armed || refreshControl.getState(['admin', 'dashboard'])?.status !== 'success') return;
       armed = true;
       timer = setTimeout(() => {
         const run = () => {

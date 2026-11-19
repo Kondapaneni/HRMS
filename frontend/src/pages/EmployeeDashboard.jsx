@@ -73,7 +73,7 @@ const EmployeeDashboard = () => {
       const timer = setInterval(() => {
         setLockoutSeconds(prev => {
           if (prev && prev > 1) return prev - 1;
-          refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+          refreshControl.refresh({ scope: ['employee', 'dashboard'] });
           return null;
         });
       }, 1000);
@@ -156,7 +156,7 @@ const EmployeeDashboard = () => {
 
           const updatedAtt = punchRes.data?.attendance;
           if (updatedAtt) {
-            refreshControl.setQueryData(['employee', 'dashboard'], (old) => {
+            refreshControl.update(['employee', 'dashboard'], (old) => {
               if (!old) return old;
               const oldAttendance = Array.isArray(old.attendance) ? [...old.attendance] : [];
               const idx = oldAttendance.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
@@ -173,7 +173,7 @@ const EmployeeDashboard = () => {
           }
 
           toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
-          refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+          refreshControl.refresh({ scope: ['employee', 'dashboard'] });
         } catch (error) {
           console.error(error);
           toast.error(error.response?.data?.error || `Failed to ${action}.`);

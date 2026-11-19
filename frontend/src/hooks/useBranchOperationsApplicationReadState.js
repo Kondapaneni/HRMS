@@ -25,7 +25,7 @@ export const useBranchOperationsApplicationReadState = () => {
       toast.error("Couldn't sync this application's read status. Please try again.");
     },
     onSettled: () => {
-      refreshControl.invalidateQueries({ scope: APPLICATIONS_QUERY_KEY });
+      refreshControl.refresh({ scope: APPLICATIONS_QUERY_KEY });
     },
   });
 

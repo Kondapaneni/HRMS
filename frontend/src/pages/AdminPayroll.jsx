@@ -122,7 +122,7 @@ const AdminPayroll = () => {
       
       toast.success('Payslip generated successfully!');
       setSelectedEmployee('');
-      refreshControl.invalidateQueries({ scope: ['admin', 'payroll'] });
+      refreshControl.refresh({ scope: ['admin', 'payroll'] });
     } catch (err) {
       console.error('Error generating payslip:', err);
       toast.error(err.response?.data?.error || 'Failed to generate payslip.');
@@ -170,7 +170,7 @@ const AdminPayroll = () => {
     try {
       await api.delete(`/admin/payroll/${payslipId}`);
       toast.success('Payslip deleted successfully');
-      refreshControl.invalidateQueries({ scope: ['admin', 'payroll'] });
+      refreshControl.refresh({ scope: ['admin', 'payroll'] });
     } catch (err) {
       console.error('Error deleting payslip:', err);
       toast.error(err.response?.data?.error || 'Failed to delete payslip');

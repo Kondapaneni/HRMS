@@ -102,7 +102,7 @@ const CandidateDocuments = () => {
     },
     onSuccess: () => {
       toast.success('Document uploaded successfully');
-      refreshControl.invalidateQueries({ scope: ['candidate_documents', profile?.id] });
+      refreshControl.refresh({ scope: ['candidate_documents', profile?.id] });
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to upload document');

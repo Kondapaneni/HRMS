@@ -145,10 +145,10 @@ const AdminFeatureAccess = () => {
       );
     },
     onMutate: async (changes) => {
-      await refreshControl.cancelQueries({ scope: ['admin', 'feature-access'] });
-      const previousUsers = refreshControl.getQueryData(['admin', 'feature-access']);
+      await refreshControl.cancel({ scope: ['admin', 'feature-access'] });
+      const previousUsers = refreshControl.peek(['admin', 'feature-access']);
 
-      refreshControl.setQueryData(['admin', 'feature-access'], (old) => {
+      refreshControl.update(['admin', 'feature-access'], (old) => {
         if (!old) return old;
         return old.map(u => {
           const change = changes.find(c => c.userId === u.id);
@@ -163,13 +163,13 @@ const AdminFeatureAccess = () => {
     },
     onError: (err, changes, context) => {
       if (context?.previousUsers) {
-        refreshControl.setQueryData(['admin', 'feature-access'], context.previousUsers);
+        refreshControl.update(['admin', 'feature-access'], context.previousUsers);
       }
       toast.error('Failed to update some user roles.');
     },
     onSuccess: () => {
       toast.success('Feature manager roles updated successfully!');
-      refreshControl.invalidateQueries({ scope: ['admin', 'feature-access'] });
+      refreshControl.refresh({ scope: ['admin', 'feature-access'] });
     }
   });
 

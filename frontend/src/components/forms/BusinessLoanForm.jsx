@@ -421,7 +421,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       // Save draft directly to DB table public.loan_applications in JSON format
       await submitLoanApplication('Business Loan', cleanData, 'Draft');
       toast.success('Business Loan draft saved to database!');
-      refreshControl.invalidateQueries({ scope: ['origination', 'applications', 'list'] });
+      refreshControl.refresh({ scope: ['origination', 'applications', 'list'] });
     } catch (err) {
       console.error('Error saving draft to database:', err);
       toast.error(err.response?.data?.error || 'Failed to save draft to database.');
@@ -441,8 +441,8 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       setIsDeleting(true);
       await deleteLoanApplication(loadedAppId || targetAppId);
       toast.success('Draft deleted successfully!');
-      refreshControl.invalidateQueries({ scope: ['origination', 'applications', 'list'] });
-      refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
+      refreshControl.refresh({ scope: ['origination', 'applications', 'list'] });
+      refreshControl.refresh({ scope: ['leadsDashboard'] });
       navigate('/employee/loans/origination/applications');
     } catch (err) {
       console.error('Error deleting draft:', err);
@@ -475,8 +475,8 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
         const res = await updateLoanApplicationDetails(targetAppId, cleanData, 'Business Loan');
         toast.success('Application updated successfully with audit trail!');
         
-        await refreshControl.invalidateQueries({ scope: ['branchOperations'] });
-        await refreshControl.refetchQueries({ scope: ['branchOperations', 'applications', 'list'] });
+        await refreshControl.refresh({ scope: ['branchOperations'] });
+        await refreshControl.refresh({ scope: ['branchOperations', 'applications', 'list'] });
 
         const updatedApp = res?.application ? {
           ...res.application,
@@ -519,8 +519,8 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       // Submit full form data to public.loan_applications in JSON format as Created
       await submitLoanApplication('Business Loan', cleanData, 'Created');
       toast.success('Business Loan Application Created Successfully!');
-      refreshControl.invalidateQueries({ scope: ['origination', 'applications', 'list'] });
-      refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
+      refreshControl.refresh({ scope: ['origination', 'applications', 'list'] });
+      refreshControl.refresh({ scope: ['leadsDashboard'] });
       setTimeout(() => {
         navigate('/employee/loans/origination/applications');
       }, 1000);

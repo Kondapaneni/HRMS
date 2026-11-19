@@ -117,7 +117,7 @@ const AdminExpenses = () => {
     },
     onSuccess: () => {
       toast.success(`Expense ${actionType.toLowerCase()} successfully`);
-      refreshControl.invalidateQueries({ scope: ['admin', 'expenses'] });
+      refreshControl.refresh({ scope: ['admin', 'expenses'] });
       setIsDrawerOpen(false);
       setSelectedExpense(null);
     },

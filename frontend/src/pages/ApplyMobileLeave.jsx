@@ -66,8 +66,8 @@ const ApplyMobileLeave = () => {
     },
     onSuccess: () => {
       toast.success('Leave request submitted successfully.');
-      refreshControl.invalidateQueries({ scope: ['employee', 'leaves'] });
-      refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'leaves'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
       navigate('/employee/leaves');
     },
     onError: (err) => {

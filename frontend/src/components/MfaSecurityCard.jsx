@@ -79,7 +79,7 @@ export default function MfaSecurityCard() {
     onSuccess: (data) => {
       setBackupCodes(data.backupCodes || []);
       setSetupStep(3);
-      refreshControl.invalidateQueries({ scope: ['mfa', 'status'] });
+      refreshControl.refresh({ scope: ['mfa', 'status'] });
       toast.success('Two-factor authentication successfully verified!');
     },
     onError: (err) => {
@@ -95,7 +95,7 @@ export default function MfaSecurityCard() {
     },
     onSuccess: (data) => {
       setNewRegenCodes(data.backupCodes || []);
-      refreshControl.invalidateQueries({ scope: ['mfa', 'status'] });
+      refreshControl.refresh({ scope: ['mfa', 'status'] });
       toast.success('New backup recovery codes generated');
     },
     onError: (err) => {
@@ -113,7 +113,7 @@ export default function MfaSecurityCard() {
       setIsDisableOpen(false);
       setDisablePassword('');
       setDisableCode('');
-      refreshControl.invalidateQueries({ scope: ['mfa', 'status'] });
+      refreshControl.refresh({ scope: ['mfa', 'status'] });
       toast.success('Two-factor authentication disabled');
     },
     onError: (err) => {

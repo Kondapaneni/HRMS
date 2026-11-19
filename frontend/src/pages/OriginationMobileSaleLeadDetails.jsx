@@ -52,9 +52,9 @@ const OriginationMobileSaleLeadDetails = () => {
         if (lead) lead.product_type = variables.product_type;
       }
       if (lead) lead.status = variables.status;
-      refreshControl.invalidateQueries({ scope: ['sales', 'leads'] });
-      refreshControl.invalidateQueries({ scope: ['sales', 'leads', 'list'] });
-      refreshControl.invalidateQueries({ scope: ['salesDashboard'] });
+      refreshControl.refresh({ scope: ['sales', 'leads'] });
+      refreshControl.refresh({ scope: ['sales', 'leads', 'list'] });
+      refreshControl.refresh({ scope: ['salesDashboard'] });
       setShowConvertModal(false);
     },
     onError: (error) => {

@@ -99,8 +99,8 @@ const AdminSettings = () => {
       return response.data;
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['adminSettings'] });
-      refreshControl.invalidateQueries({ scope: ['newsHeadlines'] });
+      refreshControl.refresh({ scope: ['adminSettings'] });
+      refreshControl.refresh({ scope: ['newsHeadlines'] });
       toast.success('System settings saved successfully!');
     },
     onError: () => {

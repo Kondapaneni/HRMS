@@ -91,7 +91,7 @@ const DepartmentQuestionBank = () => {
       }
     },
     onSuccess: (_, variables) => {
-      refreshControl.invalidateQueries({ scope: ['adminQuestions'] });
+      refreshControl.refresh({ scope: ['adminQuestions'] });
       toast.success(editingId ? 'Question updated successfully!' : 'Question added to bank!');
       if (variables?.closeAfterSave) {
         setShowModal(false);
@@ -118,7 +118,7 @@ const DepartmentQuestionBank = () => {
   const deleteMutation = useRemoteTask({
     run: async (id) => await api.delete(`/admin/questions/${id}`),
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['adminQuestions'] });
+      refreshControl.refresh({ scope: ['adminQuestions'] });
       toast.success('Question deleted successfully!');
     },
     onError: () => toast.error('Failed to delete question')

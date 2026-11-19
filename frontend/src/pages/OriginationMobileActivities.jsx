@@ -123,7 +123,7 @@ const OriginationMobileActivities = () => {
       return response.data?.activity;
     },
     onSuccess: (data, variables) => {
-      refreshControl.invalidateQueries({ scope: ['origination', 'activities'] });
+      refreshControl.refresh({ scope: ['origination', 'activities'] });
       const assignedCount = Array.isArray(variables?.assignedTo) ? variables.assignedTo.length : 1;
       toast.success(assignedCount > 1 
         ? `Activities scheduled for ${assignedCount} team members`
@@ -144,7 +144,7 @@ const OriginationMobileActivities = () => {
       return response.data?.activity;
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['origination', 'activities'] });
+      refreshControl.refresh({ scope: ['origination', 'activities'] });
       toast.success('Activity status updated');
       if (selectedEvent) {
         setSelectedEvent(prev => prev ? ({ ...prev, status: prev.status === 'Completed' ? 'Scheduled' : 'Completed' }) : null);

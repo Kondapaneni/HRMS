@@ -142,7 +142,7 @@ const AssessmentCreate = () => {
       }
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['adminAssessments'] });
+      refreshControl.refresh({ scope: ['adminAssessments'] });
       toast.success(isEditing ? 'Assessment updated successfully!' : 'Assessment created with custom rules & questions!');
       navigate('/admin/assessments/management');
     },

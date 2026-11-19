@@ -49,16 +49,16 @@ const EmployeeTrainingVideos = () => {
       return res.data;
     },
     onMutate: async ({ videoId, completed }) => {
-      await refreshControl.cancelQueries({ scope: ['employee', 'trainingVideos'] });
-      const previousVideos = refreshControl.getQueryData(['employee', 'trainingVideos']);
-      refreshControl.setQueryData(['employee', 'trainingVideos'], (old = []) => {
+      await refreshControl.cancel({ scope: ['employee', 'trainingVideos'] });
+      const previousVideos = refreshControl.peek(['employee', 'trainingVideos']);
+      refreshControl.update(['employee', 'trainingVideos'], (old = []) => {
         return old.map(v => v.id === videoId ? { ...v, is_completed: completed } : v);
       });
       return { previousVideos };
     },
     onError: (err, variables, context) => {
       if (context?.previousVideos) {
-        refreshControl.setQueryData(['employee', 'trainingVideos'], context.previousVideos);
+        refreshControl.update(['employee', 'trainingVideos'], context.previousVideos);
       }
       toast.error(err.response?.data?.error || 'Failed to update progress');
     },
@@ -68,7 +68,7 @@ const EmployeeTrainingVideos = () => {
       } else {
         toast('Marked as uncompleted', { icon: '↩️' });
       }
-      refreshControl.invalidateQueries({ scope: ['employee', 'trainingVideos'] });
+      refreshControl.refresh({ scope: ['employee', 'trainingVideos'] });
     }
   });
 

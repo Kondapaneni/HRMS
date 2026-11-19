@@ -113,7 +113,7 @@ const EmployeeProfile = () => {
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
       
       toast.success('Profile picture updated successfully!');
-      refreshControl.invalidateQueries({ scope: ['employee', 'profile'] });
+      refreshControl.refresh({ scope: ['employee', 'profile'] });
       
       if (fetchProfile) {
         await fetchProfile();

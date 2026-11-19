@@ -94,7 +94,7 @@ const AssessmentManagement = () => {
       await api.delete(`/admin/assessments/${id}`);
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['adminAssessments'] });
+      refreshControl.refresh({ scope: ['adminAssessments'] });
       toast.success('Assessment deleted successfully');
     },
     onError: (err) => {

@@ -34,7 +34,7 @@ const EmployeeMobileLeaves = () => {
     },
     onSuccess: () => {
       toast.success('Leave request cancelled successfully');
-      refreshControl.invalidateQueries({ scope: ['employee', 'leaves'] });
+      refreshControl.refresh({ scope: ['employee', 'leaves'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to cancel leave request');

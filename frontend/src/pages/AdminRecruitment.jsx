@@ -158,7 +158,7 @@ const AdminRecruitment = () => {
       setIsJobModalOpen(false);
       setJobFormData({ title: '', department: '', location: '', type: 'Full Time', experience: '', salary_min: '', salary_max: '', vacancy: '1', skills: '', qualification: '', description: '', status: 'Draft', deadline: '' });
       setJobFile(null);
-      refreshControl.invalidateQueries({ scope: ['admin', 'jobs'] });
+      refreshControl.refresh({ scope: ['admin', 'jobs'] });
     },
     onError: (error) => {
       console.error(error);
@@ -177,7 +177,7 @@ const AdminRecruitment = () => {
     },
     onSuccess: () => {
       toast.success('Job status updated');
-      refreshControl.invalidateQueries({ scope: ['admin', 'jobs'] });
+      refreshControl.refresh({ scope: ['admin', 'jobs'] });
     },
     onError: (error) => {
       console.error(error);
@@ -205,7 +205,7 @@ const AdminRecruitment = () => {
     },
     onSuccess: (newStatus) => {
       toast.success(`Application updated to ${newStatus}`);
-      refreshControl.invalidateQueries({ scope: ['admin', 'applications'] });
+      refreshControl.refresh({ scope: ['admin', 'applications'] });
     },
     onError: (error) => {
       console.error(error);
@@ -262,10 +262,10 @@ const AdminRecruitment = () => {
     },
     onSuccess: ({ employeeId }) => {
       setIsConvertModalOpen(false);
-      refreshControl.invalidateQueries({ scope: ['admin', 'applications'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'candidates_info'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'employees'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
+      refreshControl.refresh({ scope: ['admin', 'applications'] });
+      refreshControl.refresh({ scope: ['admin', 'candidates_info'] });
+      refreshControl.refresh({ scope: ['admin', 'employees'] });
+      refreshControl.refresh({ scope: ['admin', 'dashboard'] });
       toast.success(`Candidate converted to employee (ID: ${employeeId})`);
     },
     onError: (error) => {

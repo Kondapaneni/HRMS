@@ -174,7 +174,7 @@ const AdminAssets = () => {
         toast.success('Asset updated successfully.');
       }
       closeModal();
-      refreshControl.invalidateQueries({ scope: ['admin', 'assets'] });
+      refreshControl.refresh({ scope: ['admin', 'assets'] });
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to save asset.');
     } finally {
@@ -187,7 +187,7 @@ const AdminAssets = () => {
     try {
       await api.delete(`/admin/assets/${id}`);
       toast.success('Asset deleted successfully.');
-      refreshControl.invalidateQueries({ scope: ['admin', 'assets'] });
+      refreshControl.refresh({ scope: ['admin', 'assets'] });
     } catch (error) {
       toast.error('Failed to delete asset.');
     }
@@ -199,7 +199,7 @@ const AdminAssets = () => {
       await api.put(`/admin/assets/${selectedAsset.id}`, { assigned_to: userId });
       toast.success(userId ? 'Asset assigned successfully.' : 'Asset unassigned.');
       closeModal();
-      refreshControl.invalidateQueries({ scope: ['admin', 'assets'] });
+      refreshControl.refresh({ scope: ['admin', 'assets'] });
     } catch (error) {
       toast.error('Failed to update assignment.');
     } finally {

@@ -56,9 +56,9 @@ const OriginationMobileSaleAddLead = () => {
     try {
       setIsSubmitting(true);
       await createSalesLead(formData);
-      refreshControl.invalidateQueries({ scope: ['sales', 'leads'] });
-      refreshControl.invalidateQueries({ scope: ['sales', 'leads', 'list'] });
-      refreshControl.invalidateQueries({ scope: ['salesDashboard'] });
+      refreshControl.refresh({ scope: ['sales', 'leads'] });
+      refreshControl.refresh({ scope: ['sales', 'leads', 'list'] });
+      refreshControl.refresh({ scope: ['salesDashboard'] });
       toast.success('Lead added successfully!');
       navigate('/employee/sales/origination/leads');
     } catch (error) {

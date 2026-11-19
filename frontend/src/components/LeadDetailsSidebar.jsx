@@ -63,9 +63,9 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
     run: ({ id, status, loan_type }) => updateLeadStatus(id, status, loan_type),
     onSuccess: (data, variables) => {
       toast.success(variables.status === 'Converted' ? 'Lead converted to Member successfully!' : 'Lead status updated!');
-      refreshControl.invalidateQueries({ scope: ['origination', 'leads'] });
-      refreshControl.invalidateQueries({ scope: ['origination', 'leads', 'list'] });
-      refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
+      refreshControl.refresh({ scope: ['origination', 'leads'] });
+      refreshControl.refresh({ scope: ['origination', 'leads', 'list'] });
+      refreshControl.refresh({ scope: ['leadsDashboard'] });
       setViewMode('details');
       onClose();
     },
@@ -78,9 +78,9 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
     run: ({ id, status, product_type }) => updateSalesLeadStatus(id, status, product_type),
     onSuccess: (data, variables) => {
       toast.success(variables.status === 'Converted' ? 'Lead converted successfully!' : 'Sales lead status updated!');
-      refreshControl.invalidateQueries({ scope: ['sales', 'leads'] });
-      refreshControl.invalidateQueries({ scope: ['sales', 'leads', 'list'] });
-      refreshControl.invalidateQueries({ scope: ['salesDashboard'] });
+      refreshControl.refresh({ scope: ['sales', 'leads'] });
+      refreshControl.refresh({ scope: ['sales', 'leads', 'list'] });
+      refreshControl.refresh({ scope: ['salesDashboard'] });
       setViewMode('details');
       onClose();
     },

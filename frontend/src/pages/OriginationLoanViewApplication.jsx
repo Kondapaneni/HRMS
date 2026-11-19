@@ -204,7 +204,7 @@ export default function OriginationLoanViewApplication() {
 
       setLocalTimeline((prev) => [...prev, timelineEvent]);
       setLocalStatus('Under Review');
-      refreshControl.invalidateQueries({ scope: ['origination', 'applications', 'list'] });
+      refreshControl.refresh({ scope: ['origination', 'applications', 'list'] });
       toast.success('Application transferred to Branch Operations successfully.');
     } catch (err) {
       console.error(err);

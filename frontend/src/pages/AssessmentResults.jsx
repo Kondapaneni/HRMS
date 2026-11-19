@@ -70,7 +70,7 @@ const AssessmentResults = () => {
       await api.delete(`/admin/assessments/attempts/${id}`);
     },
     onSuccess: () => {
-      refreshControl.invalidateQueries({ scope: ['adminAssessmentAttempts'] });
+      refreshControl.refresh({ scope: ['adminAssessmentAttempts'] });
       toast.success('Attempt record deleted successfully');
       if (selectedAttempt) setSelectedAttempt(null);
     },

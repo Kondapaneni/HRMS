@@ -111,8 +111,8 @@ const EmployeeMobileExpenses = () => {
       // Return to the mobile claim history as soon as the API saves the expense.
       handleCloseForm();
       setFilterStatus('all');
-      refreshControl.invalidateQueries({ scope: ['employee', 'expenses'] });
-      refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'expenses'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
       toast.success('Expense claim submitted successfully!');
     },
     onError: (err) => {

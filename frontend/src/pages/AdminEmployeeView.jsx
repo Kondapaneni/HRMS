@@ -136,9 +136,9 @@ const AdminEmployeeView = () => {
 
       toast.success(res.data?.message || 'Employee promoted successfully!');
       setIsPromoteModalOpen(false);
-      refreshControl.invalidateQueries({ scope: ['admin', 'employee', id] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'employees'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
+      refreshControl.refresh({ scope: ['admin', 'employee', id] });
+      refreshControl.refresh({ scope: ['admin', 'employees'] });
+      refreshControl.refresh({ scope: ['admin', 'dashboard'] });
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.error || 'Failed to promote employee');
@@ -208,8 +208,8 @@ const AdminEmployeeView = () => {
 
       await api.put(`/admin/employees/${id}`, { avatar: avatarUrl });
 
-      refreshControl.invalidateQueries({ scope: ['admin', 'employee', id] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'employees'] });
+      refreshControl.refresh({ scope: ['admin', 'employee', id] });
+      refreshControl.refresh({ scope: ['admin', 'employees'] });
       toast.success('Profile picture updated successfully!');
     } catch (error) {
       toast.error(error.message || 'Error uploading image');

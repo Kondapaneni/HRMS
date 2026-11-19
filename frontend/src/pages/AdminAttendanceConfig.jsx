@@ -48,7 +48,7 @@ const AdminAttendanceConfig = () => {
       }
       setShowGeoModal(false);
       setEditingGeo(null);
-      refreshControl.invalidateQueries({ scope: ['admin', 'attendance-extras'] });
+      refreshControl.refresh({ scope: ['admin', 'attendance-extras'] });
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save geo location');
     } finally {
@@ -74,7 +74,7 @@ const AdminAttendanceConfig = () => {
       }
       setShowShiftModal(false);
       setEditingShift(null);
-      refreshControl.invalidateQueries({ scope: ['admin', 'attendance-extras'] });
+      refreshControl.refresh({ scope: ['admin', 'attendance-extras'] });
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save shift time');
     } finally {
@@ -96,7 +96,7 @@ const AdminAttendanceConfig = () => {
         await api.delete(`/admin/shifttimes/${itemToDelete.id}`);
         toast.success('Shift time deleted successfully');
       }
-      refreshControl.invalidateQueries({ scope: ['admin', 'attendance-extras'] });
+      refreshControl.refresh({ scope: ['admin', 'attendance-extras'] });
     } catch (err) {
       toast.error('Failed to delete item');
     } finally {

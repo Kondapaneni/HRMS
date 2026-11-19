@@ -122,7 +122,7 @@ const EmployeeExpenses = () => {
     },
     onSuccess: () => {
       toast.success('Expense claim submitted successfully');
-      refreshControl.invalidateQueries({ scope: ['employee', 'expenses'] });
+      refreshControl.refresh({ scope: ['employee', 'expenses'] });
       handleCloseModal();
     },
     onError: (err) => {
@@ -137,7 +137,7 @@ const EmployeeExpenses = () => {
     },
     onSuccess: () => {
       toast.success('Expense claim deleted');
-      refreshControl.invalidateQueries({ scope: ['employee', 'expenses'] });
+      refreshControl.refresh({ scope: ['employee', 'expenses'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to delete expense');

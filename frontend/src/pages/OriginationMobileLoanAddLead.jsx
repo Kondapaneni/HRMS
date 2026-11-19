@@ -56,9 +56,9 @@ const OriginationMobileLoanAddLead = () => {
     try {
       setIsSubmitting(true);
       await createLead(formData);
-      refreshControl.invalidateQueries({ scope: ['origination', 'leads'] });
-      refreshControl.invalidateQueries({ scope: ['origination', 'leads', 'list'] });
-      refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
+      refreshControl.refresh({ scope: ['origination', 'leads'] });
+      refreshControl.refresh({ scope: ['origination', 'leads', 'list'] });
+      refreshControl.refresh({ scope: ['leadsDashboard'] });
       toast.success('Lead added successfully!');
       navigate('/employee/loans/origination/leads');
     } catch (error) {

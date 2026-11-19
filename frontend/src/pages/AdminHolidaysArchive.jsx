@@ -29,10 +29,10 @@ const AdminHolidaysArchive = () => {
     },
     onSuccess: () => {
       toast.success('Holiday restored successfully');
-      refreshControl.invalidateQueries({
+      refreshControl.refresh({
         scope: ['admin', 'holidays-archive']
       });
-      refreshControl.invalidateQueries({
+      refreshControl.refresh({
         scope: ['admin', 'holidays']
       });
     },

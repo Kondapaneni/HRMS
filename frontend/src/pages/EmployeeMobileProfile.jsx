@@ -136,7 +136,7 @@ const EmployeeMobileProfile = () => {
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
 
       toast.success('Profile photo updated successfully!');
-      refreshControl.invalidateQueries({ scope: ['employee', 'profile'] });
+      refreshControl.refresh({ scope: ['employee', 'profile'] });
       if (fetchProfile) await fetchProfile();
     } catch (error) {
       toast.error(error.message || 'Error uploading image');

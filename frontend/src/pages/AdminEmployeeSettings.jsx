@@ -59,10 +59,10 @@ const AdminEmployeeSettings = () => {
         ...extraData
       }),
     onMutate: async ({ key, value, extraData }) => {
-      await refreshControl.cancelQueries({ scope: ['admin', 'employee-settings', id] });
-      const previousEmployee = refreshControl.getQueryData(['admin', 'employee-settings', id]);
+      await refreshControl.cancel({ scope: ['admin', 'employee-settings', id] });
+      const previousEmployee = refreshControl.peek(['admin', 'employee-settings', id]);
 
-      refreshControl.setQueryData(['admin', 'employee-settings', id], (old) => {
+      refreshControl.update(['admin', 'employee-settings', id], (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -75,14 +75,14 @@ const AdminEmployeeSettings = () => {
     },
     onError: (err, variables, context) => {
       if (context?.previousEmployee) {
-        refreshControl.setQueryData(['admin', 'employee-settings', id], context.previousEmployee);
+        refreshControl.update(['admin', 'employee-settings', id], context.previousEmployee);
       }
       toast.error('Failed to update setting');
       console.error(err);
     },
     onSuccess: () => {
       toast.success('Setting updated successfully');
-      refreshControl.invalidateQueries({
+      refreshControl.refresh({
         scope: ['admin', 'employee-settings', id]
       });
     }

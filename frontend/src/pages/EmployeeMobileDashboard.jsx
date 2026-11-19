@@ -104,8 +104,8 @@ const EmployeeMobileDashboard = () => {
         setLockoutSeconds(prev => {
           if (prev && prev > 1) return prev - 1;
           // When timer expires, immediately invalidate queries to unblock buttons
-          refreshControl.invalidateQueries({ scope: ['employee', 'mapsRateLimit'] });
-          refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+          refreshControl.refresh({ scope: ['employee', 'mapsRateLimit'] });
+          refreshControl.refresh({ scope: ['employee', 'dashboard'] });
           return null;
         });
       }, 1000);

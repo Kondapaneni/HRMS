@@ -210,7 +210,7 @@ const EmployeeMobileCamera = () => {
 
       if (updatedAtt) {
         // Optimistically update standalone attendance cache
-        refreshControl.setQueryData(['employee', 'attendance'], (old = []) => {
+        refreshControl.update(['employee', 'attendance'], (old = []) => {
           const list = Array.isArray(old) ? [...old] : [];
           const idx = list.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
           if (idx >= 0) {
@@ -222,7 +222,7 @@ const EmployeeMobileCamera = () => {
         });
 
         // Optimistically update composite dashboard cache
-        refreshControl.setQueryData(['employee', 'dashboard'], (old) => {
+        refreshControl.update(['employee', 'dashboard'], (old) => {
           if (!old) return old;
           const oldAttendance = Array.isArray(old.attendance) ? [...old.attendance] : [];
           const idx = oldAttendance.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
@@ -239,8 +239,8 @@ const EmployeeMobileCamera = () => {
       }
 
       toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
-      refreshControl.invalidateQueries({ scope: ['employee', 'attendance'] });
-      refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'attendance'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
       navigate('/employee', { replace: true });
 
     } catch (err) {

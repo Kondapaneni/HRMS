@@ -96,10 +96,10 @@ const EmployeeAttendance = () => {
     },
     onSuccess: (data, variables) => {
       toast.success(`Successfully ${variables.action.replace('-', ' ')}ed!`);
-      refreshControl.invalidateQueries({
+      refreshControl.refresh({
         scope: ['employee', 'attendance']
       });
-      refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
       const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
       if (selectedMonth !== currentMonthStr) {
         setSelectedMonth(currentMonthStr);

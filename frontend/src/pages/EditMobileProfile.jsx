@@ -96,7 +96,7 @@ const EditMobileProfile = () => {
       if (formData.themePreference) {
         setThemePreference(formData.themePreference);
       }
-      refreshControl.invalidateQueries({ scope: ['employee', 'profile'] });
+      refreshControl.refresh({ scope: ['employee', 'profile'] });
       if (fetchProfile) await fetchProfile();
       navigate('/employee/profile');
     },

@@ -262,8 +262,8 @@ const AdminEmployees = () => {
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
           setIsModalOpen(false);
-          refreshControl.invalidateQueries({ scope: ['admin', 'employees'] });
-          refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
+          refreshControl.refresh({ scope: ['admin', 'employees'] });
+          refreshControl.refresh({ scope: ['admin', 'dashboard'] });
         }}
       />
     </div>

@@ -365,9 +365,9 @@ const AdminAttendanceRegularize = () => {
 
       await axios.post('/admin/attendance/regularize', payload);
       setIsModalOpen(false);
-      refreshControl.invalidateQueries({ scope: ['admin', 'attendance-regularize'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'attendance'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
+      refreshControl.refresh({ scope: ['admin', 'attendance-regularize'] });
+      refreshControl.refresh({ scope: ['admin', 'attendance'] });
+      refreshControl.refresh({ scope: ['admin', 'dashboard'] });
     } catch (err) {
       setModalError(err.response?.data?.error || 'Failed to regularize attendance');
     } finally {

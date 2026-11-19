@@ -58,8 +58,8 @@ const AdminLeaves = () => {
     try {
       await api.post(`/admin/leaves/${id}/${action}`);
       toast.success(`Leave request ${action === 'approve' ? 'approved' : 'rejected'}`);
-      refreshControl.invalidateQueries({ scope: ['admin', 'leaves'] });
-      refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
+      refreshControl.refresh({ scope: ['admin', 'leaves'] });
+      refreshControl.refresh({ scope: ['admin', 'dashboard'] });
     } catch (err) {
       if (previousData) {
         refreshControl.update(scope, previousData);
