@@ -13,6 +13,7 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { supabase } from '../lib/supabase';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -34,14 +35,15 @@ const AdminEmployeeView = () => {
   });
   const [isPromoting, setIsPromoting] = useState(false);
 
-  const { data, isLoading: loading, isFetching } = useQuery({
+  const { data, isLoading: loading, isFetching, error: viewLoadError } = useQuery({
     queryKey: ['admin', 'employee', id],
     queryFn: async () => {
       const res = await api.get(`/admin/employees/${id}`);
       return res.data;
     },
-    onError: () => toast.error('Failed to load employee details.'),
   });
+
+  useQueryErrorToast(viewLoadError, 'Failed to load employee details.', 'admin-employee-view-load');
 
   const handleDownload = async (payslip) => {
     try {

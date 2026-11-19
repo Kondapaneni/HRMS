@@ -44,4 +44,14 @@ for (const [file, ids] of [
 assert.doesNotMatch(read('frontend/src/pages/AdminAttendanceRegularize.jsx'),
   /onError: \(\) => console\.error\('Failed to fetch attendance'\)/,
   'Attendance regularization should not register an ignored useQuery callback');
+for (const [file, id] of [
+  ['EmployeeMobileProfile.jsx', 'employee-profile-load'],
+  ['AdminEmployeeView.jsx', 'admin-employee-view-load'],
+]) {
+  const src = read('frontend/src/pages/' + file);
+  assert.match(src, /useQueryErrorToast\(/, file + ': must surface v5 query errors');
+  assert(src.includes("'" + id + "'"), file + ': must reuse stable toast ID');
+  assert.doesNotMatch(src, /onError: \(\) => toast\.error\('Failed to load (profile data|employee details)\.'/,
+    file + ': cannot use removed v5 query onError callback');
+}
 console.log('React Query v5 query error notification regression PASS');
