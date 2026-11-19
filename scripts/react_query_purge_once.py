@@ -120,10 +120,14 @@ s = s.replace('prepareAuthenticatedLanding(profile, queryClient, maintenanceMode
 start = s.index('  // Even admins require a successful /me before warming private data.')
 end = s.index('\n}', start)
 s = s[:start] + '  // No shared client cache: the mounted dashboard requests fresh data.\n' + s[end:]
-s = s.replace('The initial secure dashboard fetch is shared by desktop, mobile, and the\n// auth splash. Keep its result exclusively in the in-memory QueryClient;\n// logout clears it and no account\\'s data is persisted to browser storage.',
-              'Desktop and mobile share the request definition, not fetched records.\n// Every dashboard mount performs its own authorized, fresh server request.')
-s = s.replace('Wait for the initial authorized query while splash is\n * visible so there is no second full-screen "Loading workspace" transition.',
-              'Wait for route module loading during the verified auth splash.')
+s = s.replace("""The initial secure dashboard fetch is shared by desktop, mobile, and the
+// auth splash. Keep its result exclusively in the in-memory QueryClient;
+// logout clears it and no account's data is persisted to browser storage.""",
+              """Desktop and mobile share the request definition, not fetched records.
+// Every dashboard mount performs its own authorized, fresh server request.""")
+s = s.replace("""Wait for the initial authorized query while splash is
+ * visible so there is no second full-screen "Loading workspace" transition.""",
+              """Wait for route module loading during the verified auth splash.""")
 path.write_text(s, encoding='utf-8')
 CHANGED.append(str(path))
 
