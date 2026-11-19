@@ -1,6 +1,34 @@
-# PERF-008 Step 3A — Singapore migration readiness (2026-11-18)
+# PERF-008 — Singapore cutover verification and recovery status (2026-11-19)
 
-> **Current verified status (2026-11-19): STAGED — NOT CUTOVER-APPROVED.** Singapore's application tables and metadata are populated. Security ACL issues found during comparison were fixed. Real Storage file SHA-256 verification and isolated HRMS end-to-end tests are **still outstanding**. Production Render connection settings were not modified by these steps and have not been independently re-read from the protected environment.
+> **Current status: OPERATIONAL — MONITORING, NOT FULLY VERIFIED.** Render's HRMS service is live in the Singapore compute region and the owner confirmed Singapore connection settings, HRMS login, and dashboard usability. The protected Render database host and credentials were not independently readable through the connected tools. Do not treat this as end-to-end proof of every migrated private file or a measured performance improvement.
+
+## Latest post-cutover evidence — read-only checks
+
+- Both Supabase projects are ACTIVE_HEALTHY; Mumbai (`jtgqkkhqyzfbupiqwkgf`) is preserved and Singapore (`qayankfbodyvrhemoauw`) is serving new HRMS activity.
+- **Attendance scheduler:** Mumbai `daily_attendance_master_job` disabled, Singapore enabled; no double-scheduling observed.
+- **Database:** 38 shared application tables, 410 shared column definitions, 125 public RLS policies, no `anon`/`authenticated` direct public HRMS table grants. The 40 extra Singapore columns have been retained. At the latest comparison, Mumbai had 151 rows and Singapore 158; 32/38 tables matched common-column fingerprints. Singapore contains newer audit/session, loan and rate-limit data; `attendance` also changed. Do **not** roll back to Mumbai by simply swapping connection strings or overwriting Singapore's newer records.
+- **Storage:** Mumbai has **27** original objects; Singapore has **28**. Every one of the 27 original path/size/ETag metadata entries matches Singapore. The additional Singapore-only attendance image was uploaded **2026-11-19 14:10:53 IST** (41,421 bytes). After cutover, Singapore Storage logs showed **17 HTTP 200 GETs, including 4 authenticated private-object GETs**, and one successful write. **Actual 27/27 binary SHA-256 equality remains unverified**; metadata/HTTP success is not binary hashing.
+- **Performance:** Read-only PostgreSQL-only microqueries on two very small databases completed in 0.1–0.2 ms. This does not measure connection establishment, full backend processing, Render↔Supabase RTT, HTTP TTFB, p50/p95 or cold starts. Render's requested historical HTTP latency metrics returned no datapoints; **no speedup has been demonstrated**.
+- **Backup/rollback:** Mumbai remains healthy but contains older data. Available Supabase connector tools expose neither managed backup snapshots nor restore operations. **A verified restorable recovery point and reverse-delta restore rehearsal remain outstanding.** No source data should be deleted.
+
+## Remediation added after cutover
+
+1. Updated `scripts/perf008_verify_storage_binary.py` to compare all **27 original Mumbai binaries** against their Singapore counterparts while **allowing new Singapore-only files**. Missing original files, altered bytes, altered bucket privacy settings and unexpected source counts still FAIL. It never reads, modifies or deletes destination-only files.
+2. Added isolated, credential-free regression cases in `tests/perf008_storage_verifier_test.py` and wired them into `.github/workflows/perf008_migration_preflight.yml`. **Offline test success is not the real private-file SHA-256 result.**
+3. Added `scripts/perf008_encrypted_singapore_snapshot.sh` for a future encrypted, guarded application-schema snapshot from the *current* Singapore database. This requires securely configured PostgreSQL access in a trusted non-CI environment; **it has not been executed**. Like the Mumbai helper, it is *not* a full Supabase/Storage/roles backup and is not a restoration test.
+
+## Remaining closure evidence
+
+- Run the read-only **27/27 private binary** integrity checker from a trusted environment with privately supplied project credentials; preserve new Singapore-only files.
+- Obtain a real, meaningful **post-migration application HTTP latency baseline** and, if available, a comparable pre-migration baseline. Do not mistake local `EXPLAIN ANALYZE` runtimes for Render↔Supabase latency.
+- Create and restore-test a complete **Singapore recovery point**, including current database writes, roles, custom audit secrets, private Storage binaries and appropriate infrastructure/secrets restoration instructions. Prepare selective reverse synchronization for Mumbai if rollback is needed.
+- Keep PR #86 draft and PERF-008 **Completed — Monitoring**, not **fully verified/closed**, until these checks are supported by evidence. Do not delete Mumbai.
+
+---
+
+## Archived 2026-11-19 pre-cutover investigation (historical; not current configuration)
+
+The following pre-cutover evidence and migration plan is retained for traceability. Its references to Singapore being inactive/empty and the Mumbai scheduler being active were correct **at the time of the earlier steps** but have since been superseded. Do not apply the historical deploy instructions against the live post-cutover setup.
 
 ## 2026-11-19 verification and security remediation
 
