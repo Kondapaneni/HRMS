@@ -8,7 +8,6 @@ import {
   ArrowUpRight, IndianRupee, UserCheck, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import StatCard from '../components/ui/StatCard';
