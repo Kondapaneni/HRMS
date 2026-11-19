@@ -1054,23 +1054,14 @@ function getMimeType($filename) {
 }
 
 function streamSupabaseFile($supabaseUrl, Response $response, $filename, $disposition = 'inline') {
-    $etag = '"' . md5($filename) . '"';
-    
-    $clientEtag = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : '';
-    if ($clientEtag === $etag) {
-        return $response->withStatus(304);
-    }
-    
-    if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-        return $response->withStatus(304);
-    }
-
     $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
     $stream = @fopen($supabaseUrl, 'rb', false, $context);
     
     if (!$stream) {
         $response->getBody()->write("File not found.");
-        return $response->withStatus(404);
+        return $response->withStatus(404)
+            ->withHeader('Cache-Control', 'no-store')
+            ->withHeader('Pragma', 'no-cache');
     }
     
     $slimStream = new \Slim\Psr7\Stream($stream);
@@ -1079,8 +1070,8 @@ function streamSupabaseFile($supabaseUrl, Response $response, $filename, $dispos
         ->withBody($slimStream)
         ->withHeader('Content-Type', getMimeType($filename))
         ->withHeader('Content-Disposition', $disposition . '; filename="' . basename($filename) . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable')
-        ->withHeader('ETag', $etag);
+        ->withHeader('Cache-Control', 'no-store')
+        ->withHeader('Pragma', 'no-cache');
 }
 
 // Avatar proxy route
