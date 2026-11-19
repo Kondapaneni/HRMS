@@ -58,6 +58,30 @@ assert(read(path('CandidateProfile')).includes('candidateQueryKeys.profile(profi
 assert(read('frontend/src/components/CandidateLayout.jsx').includes('if (error) throw error'),
   'Supabase sidebar failures must not be cached as valid null profiles');
 
+const candidateOptions = read('frontend/src/queries/candidateQueries.js');
+assert(candidateKeys.includes("['candidate', 'applications', candidateId]"),
+  'Candidate applications must be keyed to verified account ID');
+assert(candidateKeys.includes("['candidate', 'jobs', candidateId]"),
+  'Candidate jobs cache must not mix account-scoped results');
+for (const resource of ['profile', 'applications', 'jobs']) {
+  assert(candidateOptions.includes(resource + ': candidateId => queryOptions('),
+    'Shared candidate query must define ' + resource);
+  assert(read(path('CandidateDashboard')).includes('candidateQueryOptions.' + resource + '(profile?.id)'),
+    'Candidate dashboard must reuse ' + resource + ' query');
+}
+assert(read(path('CandidateJobs')).includes('candidateQueryOptions.profile(profile?.id)'),
+  'Candidate jobs must reuse canonical full profile');
+assert(read(path('CandidateJobs')).includes('client.fetchQuery(candidateQueryOptions.jobs(profile?.id))'),
+  'Candidate jobs page must reuse cached jobs rather than reissuing GET');
+assert(read(path('CandidateApplications')).includes('select: selectCandidateApplicationCards'),
+  'Applications page must transform only its observer without replacing raw cached records');
+assert(candidateOptions.includes('[...app.application_timeline].sort('),
+  'Candidate application mapping must not mutate cached timeline arrays');
+assert.doesNotMatch(read(path('CandidateDashboard')), /\.catch\(\(\) => \(\{ data:/,
+  'Candidate dashboard must not silently translate API errors into empty data');
+assert(read(path('CandidateDashboard')).includes('dashboardError'),
+  'Candidate dashboard must display critical failed queries');
+
 assert.match(dashboard, /Promise\.allSettled/,
   'Independent optional dashboard panels must not block essential data');
 assert.match(dashboard, /client\.fetchQuery\(options\)/,
