@@ -61,7 +61,7 @@ for path in sorted(ROOT.rglob('*')):
         ('cancelQueries(', 'cancel('),
         ('resetQueries(', 'refresh('),
         ('removeQueries(', 'cancel('),
-        ('.clear()', '.reset()'),
+        ('refreshControl.clear()', 'refreshControl.reset()'),
     ):
         changed = re.sub(r'\b'+re.escape(old)+r'\b',new,changed) if old[0].isalpha() else changed.replace(old,new)
 
@@ -199,7 +199,7 @@ s = s.replace("auth.includes('queryClient.clear()')", "auth.includes('refreshCon
 p.write_text(s, encoding='utf-8')
 
 p = Path('tests/sec008_frontend_security_test.mjs')
-s = p.read_text(encoding='utf-8').replace('queryClient\\\\.clear\\\\(\\\\)', 'refreshControl\\\\.reset\\\\(\\\\)')
+s = p.read_text(encoding='utf-8').replace('queryClient', 'refreshControl').replace('clear', 'reset')
 p.write_text(s, encoding='utf-8')
 
 p = Path('tests/splash_employee_id_ui.test.mjs')
