@@ -24,7 +24,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import { useAuth } from '../contexts/AuthContext';
 import EmployeeMobileSearchBar from '../components/EmployeeMobileSearchBar';
 import {
@@ -47,18 +47,7 @@ const EmployeeMobileDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: trainingVideos = [] } = useQuery({
-    queryKey: ['employee', 'trainingVideos'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/employee/training/videos');
-        return res.data || [];
-      } catch (e) {
-        return [];
-      }
-    },
-    staleTime: 60000,
-  });
+  const { data: trainingVideos = [] } = useQuery(employeeQueryOptions.trainingVideos());
 
   const hasTrainingVideos = Array.isArray(trainingVideos) && trainingVideos.length > 0;
 
@@ -67,19 +56,7 @@ const EmployeeMobileDashboard = () => {
   const { data: dashboardData, isLoading: loading } = useQuery(employeeDashboardQueryOptions);
 
   // Dedicated query to poll rate-limit status dynamically
-  const { data: rateLimitStatus } = useQuery({
-    queryKey: ['employee', 'mapsRateLimit'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/employee/maps-rate-limit-status');
-        return res.data;
-      } catch (e) {
-        return { locked: false, secondsRemaining: null };
-      }
-    },
-    refetchInterval: lockoutSeconds ? 5000 : 30000,
-    staleTime: 4000,
-  });
+  const { data: rateLimitStatus } = useQuery({ ...employeeQueryOptions.mapsRateLimit(), refetchInterval: lockoutSeconds ? 5000 : 30000 });
 
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;

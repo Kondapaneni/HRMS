@@ -28,6 +28,7 @@ const EmployeeChatbot = lazy(() => import('./EmployeeChatbot'));
 import AppShell from './AppShell';
 import BottomNav from './ui/BottomNav';
 import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import useAssessmentBusinessDate from '../hooks/useAssessmentBusinessDate';
 
 const EmployeeLayout = () => {
@@ -36,32 +37,10 @@ const EmployeeLayout = () => {
   const todayStr = useAssessmentBusinessDate();
 
   // Check today's assessment
-  const { data: employeeAssessments = [] } = useQuery({
-    queryKey: ['employeeAssessmentsList', todayStr],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/employee/assessments');
-        return res.data || [];
-      } catch (e) {
-        return [];
-      }
-    },
-    staleTime: 60000,
-  });
+  const { data: employeeAssessments = [] } = useQuery(employeeQueryOptions.assessments(todayStr));
 
   // Check training videos
-  const { data: employeeTrainingVideos = [] } = useQuery({
-    queryKey: ['employeeTrainingVideosList'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/employee/training/videos');
-        return res.data || [];
-      } catch (e) {
-        return [];
-      }
-    },
-    staleTime: 60000,
-  });
+  const { data: employeeTrainingVideos = [] } = useQuery(employeeQueryOptions.trainingVideos());
 
   const hasAssessmentToday = useMemo(() => {
     return (

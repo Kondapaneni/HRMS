@@ -15,7 +15,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import PageLoader from '../components/PageLoader';
 import toast from 'react-hot-toast';
 
@@ -23,14 +23,7 @@ const EmployeeMobileBirthdays = () => {
   const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'week' | 'today'
 
-  const { data: birthdays = [], isLoading: loading } = useQuery({
-    queryKey: ['employee', 'birthdays'],
-    queryFn: async () => {
-      const res = await api.get('/employee/birthdays');
-      return res.data?.birthdays || [];
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: birthdays = [], isLoading: loading } = useQuery(employeeQueryOptions.birthdays());
 
   const todayBirthdays = birthdays.filter(b => b.daysUntil === 0);
   const thisWeekBirthdays = birthdays.filter(b => b.daysUntil <= 7);

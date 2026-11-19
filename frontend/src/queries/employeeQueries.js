@@ -15,6 +15,7 @@ export const employeeQueryKeys = {
   holidays: month => month ? ['employee', 'holidays', month] : ['employee', 'holidays'],
   performance: ['employee', 'performance'],
   trainingVideos: ['employee', 'trainingVideos'],
+  assessments: businessDate => ['employeeAssessments', businessDate],
   birthdays: ['employee', 'birthdays'],
   mapsRateLimit: ['employee', 'mapsRateLimit'],
 };
@@ -82,6 +83,14 @@ export const employeeQueryOptions = {
     queryKey: employeeQueryKeys.trainingVideos,
     queryFn: async ({ signal }) => (await api.get('/employee/training/videos', { signal })).data,
     staleTime: 5 * 60_000,
+  }),
+  assessments: businessDate => queryOptions({
+    queryKey: employeeQueryKeys.assessments(businessDate),
+    queryFn: async ({ signal }) =>
+      requireList((await api.get('/employee/assessments', { signal })).data, 'assessments'),
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   }),
   birthdays: () => queryOptions({
     queryKey: employeeQueryKeys.birthdays,
