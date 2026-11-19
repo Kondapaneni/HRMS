@@ -4,6 +4,13 @@
 
 > **Current status: OPERATIONAL — MONITORING, NOT FULLY VERIFIED.** Render's HRMS service is live in the Singapore compute region and the owner confirmed Singapore connection settings, HRMS login, and dashboard usability. The protected Render database host and credentials were not independently readable through the connected tools. Do not treat this as end-to-end proof of every migrated private file or a measured performance improvement.
 
+## 2026-11-19 incremental binary-verification progress
+
+- **PASS — one original public object verified by actual byte-level SHA-256 comparison.** GitHub Actions [workflow run #44498662119](https://github.com/Kondapaneni/HRMS/actions/runs/44498662119) downloaded the original public `job_descriptions` PDF directly from both Mumbai and Singapore (HTTP 200), verified both actual sizes were **41,966 bytes**, and confirmed the SHA-256 digests match. This is a real binary comparison, unlike the earlier metadata checks.
+- The corresponding read-only test is `.github/workflows/perf008_public_storage_sha.yml`; it uses **no service-role credentials or user data from private buckets**.
+- **26 original private-bucket objects remain binary-unverified.** Their paths, metadata size, ETag, bucket configuration and privacy settings still match as reported below. These are not proof of byte-level equality. `scripts/perf008_verify_storage_binary.py` can compare all originals but needs secure local service-role key files on a trusted non-CI host.
+- No Storage writes/deletes, credential disclosures or Render/Supabase application changes were made during this verification.
+
 ## Latest post-cutover evidence — read-only checks
 
 - Both Supabase projects are ACTIVE_HEALTHY; Mumbai (`jtgqkkhqyzfbupiqwkgf`) is preserved and Singapore (`qayankfbodyvrhemoauw`) is serving new HRMS activity.
