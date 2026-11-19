@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
+import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2, Users } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -181,7 +182,7 @@ const AdminEmployees = () => {
 
                       {/* ID */}
                       <td className="px-5 py-3.5 align-middle font-medium text-[var(--text-2)] text-xs">
-                        {emp.employeeId}
+                        {formatEmployeeId(emp.employeeId)}
                       </td>
 
                       {/* Department */}
