@@ -154,6 +154,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mumbai-key-file", required=True)
     ap.add_argument("--singapore-key-file", required=True)
+    ap.add_argument("--expected-objects", type=int, default=27, help="Required total count; default is audited count 27")
     args = ap.parse_args()
 
     if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
@@ -180,6 +181,8 @@ def main() -> int:
                 raise VerificationError("Binary integrity mismatch (object path suppressed)")
             compared += 1
         results.append((bucket, len(src_names)))
+    if args.expected_objects <= 0 or compared != args.expected_objects:
+        raise VerificationError("Storage object count differs from the approved expected total")
     print("PASS — All configured buckets matched; all binary file SHA-256 digests matched.")
     print("Objects verified:", compared)
     print("Objects per bucket (names excluded):")
