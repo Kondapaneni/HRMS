@@ -9,18 +9,9 @@ use App\Config\Database;
 $app->get('/api/admin/settings', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
-    require_once __DIR__ . '/../src/Utils/Cache.php';
-    $cacheKey = 'global_settings';
-    $settings = \App\Utils\Cache::get($cacheKey);
-    
-    if ($settings === false) {
-        $stmt = $conn->query('SELECT id, session_timeout, login_rate_limit_attempts, login_rate_limit_window, forgot_password_rate_limit_attempts, forgot_password_rate_limit_window, maps_rate_limit_attempts, maps_rate_limit_window, news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes, updated_at FROM global_settings ORDER BY id ASC LIMIT 1');
-        $settings = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($settings) {
-            \App\Utils\Cache::set($cacheKey, $settings, 300); // 5 mins cache
-        }
-    }
+    // Read the current settings from PostgreSQL for every request.
+    $stmt = $conn->query('SELECT id, session_timeout, login_rate_limit_attempts, login_rate_limit_window, forgot_password_rate_limit_attempts, forgot_password_rate_limit_window, maps_rate_limit_attempts, maps_rate_limit_window, news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes, updated_at FROM global_settings ORDER BY id ASC LIMIT 1');
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$settings) {
         // If no settings exist, initialize default settings
@@ -120,8 +111,6 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
         }
 
         $conn->commit();
-        require_once __DIR__ . '/../src/Utils/Cache.php';
-        \App\Utils\Cache::delete('global_settings');
         
         $response->getBody()->write(json_encode(['message' => 'Settings updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
