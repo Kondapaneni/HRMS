@@ -31,6 +31,6 @@ jobs:
           set -euo pipefail
           python3 -m py_compile scripts/perf008_verify_storage_binary.py
           python3 scripts/perf008_verify_storage_binary.py --help >/dev/null
-          ! grep -Eq 'upload|\.remove\(' scripts/perf008_verify_storage_binary.py
+          ! grep -Eq '\\.upload\\(|\\.remove\\(' scripts/perf008_verify_storage_binary.py
           grep -Fq 'GITHUB_ACTIONS' scripts/perf008_verify_storage_binary.py
           echo 'PERF-008 offline Storage verifier checks PASS'
