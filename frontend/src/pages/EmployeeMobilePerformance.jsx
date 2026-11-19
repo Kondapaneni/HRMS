@@ -24,20 +24,13 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 
 const EmployeeMobilePerformance = () => {
   const [trendTab, setTrendTab] = useState('attendance'); // 'attendance' | 'leaves'
   const [peerTab, setPeerTab] = useState('peers'); // 'peers' | 'reports'
 
-  const { data: perfData, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['employee', 'performance'],
-    queryFn: async () => {
-      const res = await api.get('/employee/performance');
-      return res.data;
-    },
-    staleTime: 60 * 1000,
-  });
+  const { data: perfData, isLoading, isFetching, refetch } = useQuery(employeeQueryOptions.performance());
 
   const currentWeek = useMemo(() => {
     if (!perfData?.currentMetrics?.weekly) return null;

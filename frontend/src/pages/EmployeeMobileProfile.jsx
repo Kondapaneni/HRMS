@@ -12,6 +12,7 @@ import MfaSecurityCard from '../components/MfaSecurityCard';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { isNativeApp, isIOS, getAssetUrl } from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
@@ -73,13 +74,7 @@ const EmployeeMobileProfile = () => {
     };
   }, [activeSection]);
 
-  const { data: profileResponse, isLoading: loading, error: loadError } = useQuery({
-    queryKey: ['employee', 'profile'],
-    queryFn: async () => {
-      const res = await api.get('/employee/profile');
-      return res.data;
-    },
-  });
+  const { data: profileResponse, isLoading: loading, error: loadError } = useQuery(employeeQueryOptions.profile());
 
   useQueryErrorToast(loadError, 'Failed to load profile data.', 'employee-profile-load');
 

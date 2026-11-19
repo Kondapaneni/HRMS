@@ -19,6 +19,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import EmployeeMobileTrainingVideos from './EmployeeMobileTrainingVideos';
 import PageLoader from '../components/PageLoader';
 import toast from 'react-hot-toast';
@@ -32,13 +33,7 @@ const EmployeeTrainingVideos = () => {
   const [confirmingVideo, setConfirmingVideo] = useState(null);
   const videoPlayerRef = useRef(null);
 
-  const { data: videos = [], isLoading } = useQuery({
-    queryKey: ['employee', 'trainingVideos'],
-    queryFn: async () => {
-      const res = await api.get('/employee/training/videos');
-      return res.data;
-    }
-  });
+  const { data: videos = [], isLoading } = useQuery(employeeQueryOptions.trainingVideos());
 
   const toggleProgressMutation = useMutation({
     mutationFn: async ({ videoId, completed }) => {

@@ -13,7 +13,7 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import EmployeeMobilePerformance from './EmployeeMobilePerformance';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
@@ -104,13 +104,7 @@ const EmployeeRow = ({ item, isSelf = false }) => {
 };
 
 const EmployeePerformance = () => {
-  const { data: perfData, isLoading } = useQuery({
-    queryKey: ['employee', 'performance'],
-    queryFn: async () => {
-      const res = await api.get('/employee/performance');
-      return res.data;
-    }
-  });
+  const { data: perfData, isLoading } = useQuery(employeeQueryOptions.performance());
 
   const currentWeek = useMemo(() => {
     if (!perfData?.currentMetrics?.weekly) return null;

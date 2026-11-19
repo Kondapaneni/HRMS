@@ -15,22 +15,14 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import PageLoader from '../components/PageLoader';
 
 const EmployeeMobileHolidays = () => {
   const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('upcoming'); // 'upcoming' | 'all' | 'past'
 
-  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
-    queryKey: ['employee', 'holidays'],
-    queryFn: async () => {
-      const response = await api.get('/employee/holidays');
-      return response.data || [];
-    },
-    placeholderData: (previousData) => previousData,
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({ ...employeeQueryOptions.holidays(), placeholderData: previousData => previousData });
 
   const hasLoadedOnce = useRef(false);
   if (!loading && holidays) {

@@ -13,6 +13,7 @@ import { Tree, TreeNode } from 'react-organizational-chart';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
@@ -28,13 +29,7 @@ const EmployeeProfile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isMfaModalOpen, setIsMfaModalOpen] = useState(false);
 
-  const { data: profileResponse, isLoading: loading, error: loadError } = useQuery({
-    queryKey: ['employee', 'profile'],
-    queryFn: async () => {
-      const res = await api.get('/employee/profile');
-      return res.data;
-    },
-  });
+  const { data: profileResponse, isLoading: loading, error: loadError } = useQuery(employeeQueryOptions.profile());
 
   useQueryErrorToast(loadError, 'Failed to load profile data.', 'employee-profile-load');
 
