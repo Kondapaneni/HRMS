@@ -1,0 +1,58 @@
+name: PERF-008 public Storage SHA-256 (read only)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/perf008_public_storage_sha.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-public-object-checksum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Compare original public Storage object bytes without project secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+
+          bucket = 'job_descriptions'
+          object_name = 'Q/A-Engineer-Job-Description-1794931439328-cb0f6cf8783e7a97230ff0ec8cc8e4f4.pdf'
+          expected_size = 41966
+          projects = (
+              ('mumbai', 'jtgqkkhqyzfbupiqwkgf'),
+              ('singapore', 'qayankfbodyvrhemoauw'),
+          )
+
+          hashes = {}
+          for label, project_id in projects:
+              url = (
+                  f'https://{project_id}.supabase.co/storage/v1/object/public/'
+                  f'{quote(bucket, safe="")}/{quote(object_name, safe="/")}'
+              )
+              req = Request(url, headers={'User-Agent': 'PERF008-readonly-sha256/1.0'})
+              digest = hashlib.sha256()
+              count = 0
+              with urlopen(req, timeout=35) as response:
+                  if response.status != 200:
+                      raise RuntimeError(f'{label}: unexpected Storage HTTP status')
+                  while True:
+                      data = response.read(256 * 1024)
+                      if not data:
+                          break
+                      digest.update(data)
+                      count += len(data)
+              if count != expected_size:
+                  raise RuntimeError(f'{label}: source Storage metadata size differs from actual bytes')
+              hashes[label] = digest.hexdigest()
+              print(f'{label}: public object retrieved and hashed; size matches metadata')
+
+          if hashes['mumbai'] != hashes['singapore']:
+              raise RuntimeError('FAIL: original public Storage object SHA-256 differs')
+          print('PASS: 1/1 original PUBLIC Storage object SHA-256 digests match')
+          print('NOTE: 26 private original objects still require authorized verification')
+          PY
