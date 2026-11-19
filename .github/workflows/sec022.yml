@@ -1,0 +1,56 @@
+name: SEC-022 Maps InfoWindow and email preview XSS regression
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/pages/AdminAttendanceLocation.jsx'
+      - 'frontend/src/utils/attendanceInfoWindow.js'
+      - 'frontend/src/components/emailTemplates/**'
+      - 'tests/sec022_*'
+      - '.github/workflows/sec022.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'frontend/src/pages/AdminAttendanceLocation.jsx'
+      - 'frontend/src/utils/attendanceInfoWindow.js'
+      - 'frontend/src/components/emailTemplates/**'
+      - 'tests/sec022_*'
+      - '.github/workflows/sec022.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  xss-unit:
+    name: Synthetic DOM XSS and sandbox boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: SEC-022 targeted regressions
+        run: node tests/sec022_xss_test.mjs
+      - name: Existing Maps, auth and policy source regressions
+        run: |
+          node tests/sec016_source_test.mjs
+          node tests/sec021_policy_test.mjs
+          node tests/sec020_policy_test.mjs
+          node tests/sec024_source_test.mjs
+
+  frontend:
+    name: SEC-022 production Vite build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build from existing lockfile
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
