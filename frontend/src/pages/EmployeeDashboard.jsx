@@ -173,6 +173,7 @@ const EmployeeDashboard = () => {
           }
 
           toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
+          queryClient.invalidateQueries({ queryKey: ['employee', 'attendance'] });
           queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
         } catch (error) {
           console.error(error);

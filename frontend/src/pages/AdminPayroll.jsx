@@ -125,6 +125,7 @@ const AdminPayroll = () => {
       toast.success('Payslip generated successfully!');
       setSelectedEmployee('');
       queryClient.invalidateQueries({ queryKey: ['admin', 'payroll'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     } catch (err) {
       console.error('Error generating payslip:', err);
       toast.error(err.response?.data?.error || 'Failed to generate payslip.');
@@ -173,6 +174,7 @@ const AdminPayroll = () => {
       await api.delete(`/admin/payroll/${payslipId}`);
       toast.success('Payslip deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['admin', 'payroll'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     } catch (err) {
       console.error('Error deleting payslip:', err);
       toast.error(err.response?.data?.error || 'Failed to delete payslip');

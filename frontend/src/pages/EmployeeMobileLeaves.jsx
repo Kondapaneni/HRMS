@@ -30,6 +30,7 @@ const EmployeeMobileLeaves = () => {
     onSuccess: () => {
       toast.success('Leave request cancelled successfully');
       queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to cancel leave request');

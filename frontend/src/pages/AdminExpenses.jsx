@@ -120,6 +120,8 @@ const AdminExpenses = () => {
     onSuccess: () => {
       toast.success(`Expense ${actionType.toLowerCase()} successfully`);
       queryClient.invalidateQueries({ queryKey: ['admin', 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
       setIsDrawerOpen(false);
       setSelectedExpense(null);
     },

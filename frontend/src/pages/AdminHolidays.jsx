@@ -117,6 +117,7 @@ const AdminHolidays = () => {
       toast.success('Holiday saved successfully');
       closeModal();
       queryClient.invalidateQueries({ queryKey: ['admin', 'holidays'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'holidays'] });
     } catch (err) {
       toast.error(err.message || 'Failed to save holiday');
     } finally {
@@ -130,6 +131,7 @@ const AdminHolidays = () => {
       await api.delete(`/admin/holidays/${dateStr}`);
       toast.success('Holiday removed');
       queryClient.invalidateQueries({ queryKey: ['admin', 'holidays'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'holidays'] });
     } catch (err) {
       toast.error('Failed to remove holiday');
     }

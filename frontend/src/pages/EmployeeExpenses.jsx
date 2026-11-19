@@ -120,6 +120,7 @@ const EmployeeExpenses = () => {
     onSuccess: () => {
       toast.success('Expense claim submitted successfully');
       queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
       handleCloseModal();
     },
     onError: (err) => {
@@ -135,6 +136,7 @@ const EmployeeExpenses = () => {
     onSuccess: () => {
       toast.success('Expense claim deleted');
       queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to delete expense');

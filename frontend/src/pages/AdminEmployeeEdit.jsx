@@ -82,6 +82,8 @@ const AdminEmployeeEdit = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'employees-dropdown'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'performance'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     }
