@@ -34,7 +34,9 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
-          npm run build
+          npm run build -- --manifest
+      - name: PERF-001 manifest bundle and branding budgets
+        run: node tests/perf001_bundle_budget.mjs --enforce
       - name: Verify production assets and SEC-021 safeguards
         run: |
           node tests/perf_frontend_policy_test.mjs --built
