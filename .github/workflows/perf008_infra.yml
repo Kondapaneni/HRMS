@@ -1,0 +1,38 @@
+name: PERF-008 OPcache and pooler diagnostics
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - 'docker-entrypoint.sh'
+      - 'docker/php/opcache.ini'
+      - 'tests/perf008_*'
+      - '.github/workflows/perf008_infra.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  infrastructure-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce security-preserving infrastructure source policy
+        run: |
+          set -euo pipefail
+          node tests/perf008_infra_source_test.mjs
+          node tests/perf008_news_timing_policy_test.mjs
+          node tests/sec018_source_test.mjs
+          bash -n docker-entrypoint.sh
+      - name: Test actual PHP 8.2 Apache OPcache module in isolated Docker
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint sh \
+            -v "${GITHUB_WORKSPACE}/docker/php/opcache.ini:/usr/local/etc/php/conf.d/zz-perf008-opcache.ini:ro" \
+            -v "${GITHUB_WORKSPACE}/tests/perf008_opcache_smoke.php:/tmp/perf008_opcache_smoke.php:ro" \
+            php:8.2-apache \
+            -ec 'docker-php-ext-install opcache >/dev/null && php /tmp/perf008_opcache_smoke.php'
