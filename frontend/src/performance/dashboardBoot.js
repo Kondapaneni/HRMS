@@ -1,4 +1,5 @@
 import api from '../api/axios';
+import { employeeQueryKeys, employeeQueryOptions } from '../queries/employeeQueries';
 import { isMaintenanceEnabled } from '../components/maintenancePolicy';
 import { preloadInitialRoute } from './routeWarmup';
 
@@ -6,33 +7,60 @@ import { preloadInitialRoute } from './routeWarmup';
 // auth splash. Keep its result exclusively in the in-memory QueryClient;
 // logout clears it and no account's data is persisted to browser storage.
 export const employeeDashboardQueryOptions = {
-  queryKey: ['employee', 'dashboard'],
+  queryKey: employeeQueryKeys.dashboard,
   staleTime: 30_000,
-  queryFn: async () => {
-    const [
-      attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes,
-      holidaysRes, expensesRes, birthdaysRes,
-    ] = await Promise.all([
-      api.get('/employee/attendance').catch(() => ({ data: [] })),
-      api.get('/employee/leaves').catch(() => ({ data: null })),
-      api.get('/employee/performance').catch(() => ({ data: {} })),
-      api.get('/employee/profile').catch(() => ({ data: {} })),
-      api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } })),
-      api.get('/employee/maps-rate-limit-status').catch(() => ({ data: { locked: false } })),
-      api.get('/employee/holidays').catch(() => ({ data: [] })),
-      api.get('/employee/expenses').catch(() => ({ data: { expenses: [] } })),
-      api.get('/employee/birthdays').catch(() => ({ data: { birthdays: [] } })),
-    ]);
+  queryFn: async ({ client }) => {
+    // Share the underlying resource caches with desktop/mobile pages. On a
+    // cold landing all nine requests still run concurrently under the splash;
+    // on a warm return fetchQuery reuses each fresh canonical resource.
+    const resources = [
+      ['attendance', employeeQueryOptions.attendanceAll()],
+      ['leaves', employeeQueryOptions.leaves()],
+      ['performance', employeeQueryOptions.performance()],
+      ['profile', employeeQueryOptions.profile()],
+      ['payroll', employeeQueryOptions.payroll()],
+      ['mapsRateLimit', employeeQueryOptions.mapsRateLimit()],
+      ['holidays', employeeQueryOptions.holidays()],
+      ['expenses', employeeQueryOptions.expenses()],
+      ['birthdays', employeeQueryOptions.birthdays()],
+    ];
+    const settled = await Promise.allSettled(
+      resources.map(([, options]) => client.fetchQuery(options)),
+    );
+    const values = {};
+    const resourceErrors = [];
+
+    settled.forEach((result, index) => {
+      const name = resources[index][0];
+      if (result.status === 'fulfilled') {
+        values[name] = result.value;
+        return;
+      }
+
+      // Authentication, maintenance and essential dashboard failures must
+      // remain real query errors. Never substitute a successful empty array,
+      // zero balance or "unlocked" rate limit when an API rejects.
+      const httpStatus = result.reason?.response?.status;
+      if (httpStatus === 401 || httpStatus === 503
+          || ['attendance', 'leaves', 'profile'].includes(name)) {
+        throw result.reason;
+      }
+      // Optional panels stay independent. The failed underlying query remains
+      // in error state and its panel is explicitly marked unavailable.
+      resourceErrors.push(name);
+    });
+
     return {
-      attendance: attRes.data,
-      leaves: leavesRes.data,
-      performance: perfRes.data?.currentMonthSummary || null,
-      fullProfile: profileRes.data?.profile || null,
-      latestPayslip: payslipsRes.data?.payslips?.[0] || null,
-      mapsRateLimit: mapsRateRes.data,
-      holidays: holidaysRes.data || [],
-      expenses: expensesRes.data?.expenses || [],
-      birthdays: birthdaysRes.data?.birthdays || [],
+      attendance: values.attendance,
+      leaves: values.leaves,
+      performance: values.performance?.currentMonthSummary ?? null,
+      fullProfile: values.profile?.profile ?? null,
+      latestPayslip: values.payroll?.[0] ?? null,
+      mapsRateLimit: values.mapsRateLimit,
+      holidays: values.holidays,
+      expenses: values.expenses,
+      birthdays: values.birthdays,
+      resourceErrors,
     };
   },
 };
