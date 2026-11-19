@@ -14,17 +14,11 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import toast from 'react-hot-toast';
 
 const EmployeeMobileLeaves = () => {
-  const { data: leavesData, isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['employee', 'leaves'],
-    queryFn: async () => {
-      const res = await api.get('/employee/leaves');
-      return res.data;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: leavesData, isLoading: loading, error: queryError } = useQuery(employeeQueryOptions.leaves());
 
   const queryClient = useQueryClient();
 

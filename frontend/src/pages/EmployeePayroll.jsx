@@ -16,7 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import toast from 'react-hot-toast';
 import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { useAuth } from '../contexts/AuthContext';
@@ -68,14 +68,7 @@ const EmployeePayroll = () => {
   const { profile } = useAuth();
   const [selectedPayslip, setSelectedPayslip] = useState(null);
 
-  const { data: payslips = [], isLoading: loading, error: loadError } = useQuery({
-    queryKey: ['employee', 'payroll'],
-    queryFn: async () => {
-      const res = await api.get('/employee/payroll');
-      return res.data.payslips || [];
-    },
-    staleTime: 15 * 60 * 1000,
-  });
+  const { data: payslips = [], isLoading: loading, error: loadError } = useQuery(employeeQueryOptions.payroll());
 
   useQueryErrorToast(loadError, 'Failed to load payroll data.', 'employee-payroll-load');
 

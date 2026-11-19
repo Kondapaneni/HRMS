@@ -27,6 +27,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -75,14 +76,7 @@ const EmployeeMobileExpenses = () => {
     };
   }, [isFormOpen, selectedBillUrl]);
 
-  const { data: expensesData = [], isLoading } = useQuery({
-    queryKey: ['employee', 'expenses'],
-    queryFn: async () => {
-      const res = await api.get('/employee/expenses');
-      return res.data.expenses || [];
-    },
-    staleTime: 30000
-  });
+  const { data: expensesData = [], isLoading } = useQuery(employeeQueryOptions.expenses());
 
   const submitExpenseMutation = useMutation({
     mutationFn: async () => {

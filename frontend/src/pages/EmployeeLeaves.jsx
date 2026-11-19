@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import toast from 'react-hot-toast';
 import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import EmployeeMobileLeaves from './EmployeeMobileLeaves';
@@ -49,13 +50,7 @@ const EmployeeLeaves = () => {
   // Calendar logic inside modal
   const [calendarDate, setCalendarDate] = useState(new Date());
 
-  const { data: leavesData, isLoading: loading, error: loadError } = useQuery({
-    queryKey: ['employee', 'leaves'],
-    queryFn: async () => {
-      const res = await api.get('/employee/leaves');
-      return res.data;
-    },
-  });
+  const { data: leavesData, isLoading: loading, error: loadError } = useQuery(employeeQueryOptions.leaves());
 
   useQueryErrorToast(loadError, 'Failed to load leaves data.', 'employee-leaves-load');
 

@@ -11,6 +11,7 @@ import {
   Loader2
 } from 'lucide-react';
 import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -32,15 +33,7 @@ const EmployeeAttendance = () => {
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const { data: employeeProfileResponse } = useQuery({
-    queryKey: ['employee', 'profile'],
-    queryFn: async () => {
-      const res = await api.get('/employee/profile');
-      return res.data;
-    },
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: true,
-  });
+  const { data: employeeProfileResponse } = useQuery(employeeQueryOptions.profile());
   const attendanceProfile = employeeProfileResponse?.profile || profile;
   const isWebAttendanceEnabled =
     attendanceProfile?.webAttendanceEnabled == 1 ||
@@ -66,29 +59,14 @@ const EmployeeAttendance = () => {
     isLoading: loading,
     isFetching,
     error: queryError
-  } = useQuery({
-    queryKey: ['employee', 'attendance', selectedMonth],
-    queryFn: async () => {
-      const res = await api.get(`/employee/attendance?month=${selectedMonth}`);
-      return res.data;
-    },
-    placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000
-  });
+  } = useQuery({ ...employeeQueryOptions.attendance(selectedMonth), placeholderData: previousData => previousData });
 
   const hasLoadedOnce = useRef(false);
   if (!loading && history) {
     hasLoadedOnce.current = true;
   }
 
-  const { data: leavesData } = useQuery({
-    queryKey: ['employee', 'leaves'],
-    queryFn: async () => {
-      const res = await api.get('/employee/leaves');
-      return res.data;
-    },
-    staleTime: 5 * 60 * 1000
-  });
+  const { data: leavesData } = useQuery(employeeQueryOptions.leaves());
 
   const leavesHistory = leavesData?.history || [];
   const todayRecord = findTodayAttendanceRecord(history);

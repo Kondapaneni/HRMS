@@ -17,18 +17,11 @@ import {
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
-import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 
 const EmployeeMobilePayroll = ({ profile }) => {
   const controls = useDragControls();
-  const { data: payslips = [], isLoading: loading } = useQuery({
-    queryKey: ['employee', 'payroll'],
-    queryFn: async () => {
-      const res = await api.get('/employee/payroll');
-      return res.data?.payslips || [];
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: payslips = [], isLoading: loading } = useQuery(employeeQueryOptions.payroll());
   const [selectedPayslip, setSelectedPayslip] = useState(null);
 
   useEffect(() => {

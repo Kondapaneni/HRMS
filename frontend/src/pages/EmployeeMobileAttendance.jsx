@@ -17,7 +17,7 @@ import {
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import api from '../api/axios';
+import { employeeQueryOptions } from '../queries/employeeQueries';
 
 const EmployeeMobileAttendance = () => {
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -25,15 +25,7 @@ const EmployeeMobileAttendance = () => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  const { data: history = [], isLoading: loading, isFetching, error: queryError } = useQuery({
-    queryKey: ['employee', 'attendance', selectedMonth],
-    queryFn: async () => {
-      const res = await api.get(`/employee/attendance?month=${selectedMonth}`);
-      return res.data;
-    },
-    placeholderData: (previousData) => previousData,
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: history = [], isLoading: loading, isFetching, error: queryError } = useQuery({ ...employeeQueryOptions.attendance(selectedMonth), placeholderData: previousData => previousData });
 
   const hasLoadedOnce = useRef(false);
   if (!loading && history) {
