@@ -23,13 +23,38 @@
 - **Bucket configurations:** All 12 bucket privacy settings (`public`), size limits, and allowed MIME types confirmed matching between Mumbai and Singapore.
 - **No credential exposure:** Private service-role credentials were read strictly from ephemeral local storage files with strict permissions and removed immediately after verification; never committed, logged, or uploaded to CI.
 
+## 2026-11-19 Render application latency evidence (measured, not a controlled migration benchmark)
+
+The Render service `srv-d8ool30js32c738j6ckg` is confirmed deployed in Singapore. Its Render Metrics API exposed CPU/memory samples but **no HTTP latency or HTTP request-count samples**, including when filtered to the app hostname and `/api/news`. Instead, read-only Render application logs were analyzed: PHP `AUDIT: [GET] /api/... took ... seconds` records measure actual **backend processing time**, excluding connection establishment, Render edge transit, browser JavaScript and rendering. The two days were not load-matched, and the earlier protected Render database host was not independently exposed to these tools. The observed changes therefore **cannot be attributed exclusively to a database-region migration**.
+
+| GET endpoint | Nov 18 server p50 / p95 | Nov 19 server p50 / p95 | Logged timing samples (Nov 18 / Nov 19) |
+| --- | ---: | ---: | ---: |
+| Public `/api/news` | 770.3 / 957.6 ms | **43.8 / 122.1 ms** | 50 / 50; all accompanying access-log statuses 200 |
+| Employee attendance | 1,271.9 / 1,679.6 ms | **202.5 / 411.5 ms** | 33 / 50 |
+| Employee profile | 3,439.1 / 4,531.6 ms | **393.2 / 1,095.2 ms** | 34 / 49 |
+| Employee leaves | 4,513.1 / 5,976.6 ms | **422.3 / 1,100.0 ms** | 32 / 50 |
+| Employee payroll | 1,288.1 / 1,652.0 ms | **128.8 / 495.7 ms** | 31 / 50 |
+
+The November 18 employee samples are largely from **16:42–17:31 UTC**, while November 19 samples span approximately **08:49–10:32 UTC**. News samples are from November 18 **20:42–21:31 UTC** and November 19 **11:15–11:39 UTC**. Employee samples on November 19 contain a small number of 401 responses (and a 503 profile response in accompanying access logs), whereas the sampled November 18 employee requests were 200; the reported logged durations were not status-paired and are **observational only**. The original samples were analyzed in memory; raw request paths with tokens, headers, user data and log messages were not committed.
+
+**Additional external, network-inclusive HTTP baseline (2026-11-19):** A no-credentials, read-only GitHub-hosted runner performed 25 GETs per public endpoint, after two warmups, against the Singapore Render URL. See successful [GitHub Actions run #44519127505](https://github.com/Kondapaneni/HRMS/actions/runs/44519127505), temporary [measurement PR #91](https://github.com/Kondapaneni/HRMS/pull/91), and the source-only workflow `.github/workflows/perf008_live_public_latency.yml` on this PERF-008 branch. All 50 measured requests returned HTTP 200. Times include HTTPS client/network/Render response handling from the runner; they are **not** user-in-India measurements or protected-account requests.
+
+| Public endpoint | Response-headers p50 / p95 | Full-response p50 / p95 | Full-response maximum | Measured |
+| --- | ---: | ---: | ---: | ---: |
+| `GET /version.json` | 295.6 / 773.1 ms | **295.7 / 773.2 ms** | 5,479.0 ms (one long-tail sample) | 25 / 25 succeeded |
+| `GET /api/news` | 333.1 / 515.4 ms | **333.2 / 515.5 ms** | 799.1 ms | 25 / 25 succeeded |
+
+The benchmark used unique public read-only URLs, `Cache-Control: no-cache`, and 0.65 seconds between requests. No service-role keys, cookies, authentication, Storage objects or mutations were involved. The extra `/version.json` tail sample above 5 seconds is retained in the report; do not describe p95 as a worst-case bound.
+
+**Still not established:** a comparable external Mumbai/pre-cutover HTTP p50/p95 baseline and authenticated end-to-end dashboard timings on both hosts. The observed backend API differences are encouraging, and current Singapore public-network latency is now quantified, but a causal percentage speedup cannot be justified. Keep PERF-008 **Operational — Monitoring**, not fully closed, until the remaining evidence/risks are explicitly accepted.
+
 ## Latest post-cutover evidence — read-only checks
 
 - Both Supabase projects are ACTIVE_HEALTHY; Mumbai (`jtgqkkhqyzfbupiqwkgf`) is preserved and Singapore (`qayankfbodyvrhemoauw`) is serving new HRMS activity.
 - **Attendance scheduler:** Mumbai `daily_attendance_master_job` disabled, Singapore enabled; no double-scheduling observed.
 - **Database:** 38 shared application tables, 410 shared column definitions, 125 public RLS policies, no `anon`/`authenticated` direct public HRMS table grants. The 40 extra Singapore columns have been retained. At the latest comparison, Mumbai had 151 rows and Singapore 158; 32/38 tables matched common-column fingerprints. Singapore contains newer audit/session, loan and rate-limit data; `attendance` also changed. Do **not** roll back to Mumbai by simply swapping connection strings or overwriting Singapore's newer records.
 - **Storage:** Mumbai has **27** original objects; Singapore has **28**. Every one of the 27 original path/size/ETag metadata entries matches Singapore. The additional Singapore-only attendance image was uploaded **2026-11-19 14:10:53 IST** (41,421 bytes). **Actual 27/27 binary SHA-256 equality is now fully verified** (100% bit-for-bit match across all 27 original objects, 0 mismatches, 0 corruptions), with the newer Singapore-only attendance file preserved untouched.
-- **Performance:** Read-only PostgreSQL-only microqueries on two very small databases completed in 0.1–0.2 ms. This does not measure connection establishment, full backend processing, Render↔Supabase RTT, HTTP TTFB, p50/p95 or cold starts. Render's requested historical HTTP latency metrics returned no datapoints; **no speedup has been demonstrated**.
+- **Performance:** The prior SQL-only microqueries completed in 0.1–0.2 ms but are not HTTP timings. **New evidence above:** measured November 18/19 application PHP processing p50/p95 from live Render logs and current Singapore external public HTTP p50/p95 from GitHub Actions. Render's built-in HTTP metrics remain empty. **No controlled migration-attributable speedup or authenticated end-to-end p95 has been demonstrated.**
 - **Backup/rollback:** Mumbai remains healthy but contains older data. Available Supabase connector tools expose neither managed backup snapshots nor restore operations. **A verified restorable recovery point and reverse-delta restore rehearsal remain outstanding.** No source data should be deleted.
 
 ## Remediation added after cutover
@@ -41,7 +66,7 @@
 ## Remaining closure evidence
 
 - **COMPLETED:** Run the read-only **27/27 private binary** integrity checker from a trusted environment with privately supplied project credentials; all 27 original files verified bit-for-bit, and new Singapore-only file preserved.
-- Obtain a real, meaningful **post-migration application HTTP latency baseline** and, if available, a comparable pre-migration baseline. Do not mistake local `EXPLAIN ANALYZE` runtimes for Render↔Supabase latency.
+- **PARTIALLY COMPLETED:** A real post-migration **public HTTP** p50/p95 baseline and protected backend-processing log distributions are recorded above. Still needed for full closure: representative **authenticated browser/dashboard end-to-end** timings, and a controlled/pre-cutover external HTTP baseline if one can be recovered. No percentage improvement claim is yet justified.
 - **Singapore backup/restore verification intentionally waived by owner for dummy-data development.** There is no confirmed backup copy in Singapore Storage to remove, and the Free plan has no automatic database backups; managed backups, if any, are not directly inspectable with the connected tools. Without a backup, newly created Singapore dummy data may be unrecoverable if deleted or corrupted. A rollback to Mumbai still requires reconciliation of newer Singapore records if those records are to be retained.
 - Keep PR #86 draft and PERF-008 **Completed — Monitoring**, not **fully verified/closed**, until these checks are supported by evidence. Do not delete Mumbai.
 
