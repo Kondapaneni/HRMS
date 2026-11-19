@@ -1,0 +1,39 @@
+name: Splash and employee ID display regression
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/contexts/AuthContext.jsx'
+      - 'frontend/src/performance/dashboardBoot.js'
+      - 'frontend/src/components/SplashScreen.jsx'
+      - 'frontend/src/pages/EmployeeDashboard.jsx'
+      - 'frontend/src/pages/EmployeeMobileDashboard.jsx'
+      - 'frontend/src/pages/EmployeeProfile.jsx'
+      - 'frontend/src/pages/EmployeeMobileProfile.jsx'
+      - 'frontend/src/pages/AdminDashboard.jsx'
+      - 'frontend/src/pages/AdminEmployees.jsx'
+      - 'frontend/src/pages/AdminEmployeeView.jsx'
+      - 'frontend/src/components/EmployeeSelect.jsx'
+      - 'frontend/src/utils/employeeIdDisplay.js'
+      - 'frontend/src/App.jsx'
+      - 'tests/splash_employee_id_ui.test.mjs'
+      - '.github/workflows/splash_employee_id_ui.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  targeted-ui-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Unit and source invariants
+        run: node --test tests/splash_employee_id_ui.test.mjs
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend --no-audit --no-fund
+      - name: Build frontend
+        run: npm run build --prefix frontend

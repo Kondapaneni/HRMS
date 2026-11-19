@@ -249,7 +249,7 @@ function App() {
               },
             }}
           />
-          <Suspense fallback={<div role="status" className="flex min-h-[30vh] items-center justify-center text-sm text-[var(--muted)]">Opening workspace...</div>}>
+          <Suspense fallback={<div role="status" className="flex min-h-[30vh] items-center justify-center text-sm text-[var(--muted)]">Loading page...</div>}>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />

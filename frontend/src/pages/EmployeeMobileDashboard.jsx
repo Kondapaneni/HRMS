@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
+import { employeeDashboardQueryOptions } from '../performance/dashboardBoot';
 import { 
   LogIn, 
   LogOut, 
@@ -63,34 +64,7 @@ const EmployeeMobileDashboard = () => {
 
 
 
-  const { data: dashboardData, isLoading: loading } = useQuery({
-    queryKey: ['employee', 'dashboard'],
-    queryFn: async () => {
-      const [attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes, holidaysRes, expensesRes, birthdaysRes] = await Promise.all([
-        api.get('/employee/attendance').catch(() => ({ data: [] })),
-        api.get('/employee/leaves').catch(() => ({ data: null })),
-        api.get('/employee/performance').catch(() => ({ data: {} })),
-        api.get('/employee/profile').catch(() => ({ data: {} })),
-        api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } })),
-        api.get('/employee/maps-rate-limit-status').catch(() => ({ data: { locked: false } })),
-        api.get('/employee/holidays').catch(() => ({ data: [] })),
-        api.get('/employee/expenses').catch(() => ({ data: { expenses: [] } })),
-        api.get('/employee/birthdays').catch(() => ({ data: { birthdays: [] } }))
-      ]);
-      return {
-        attendance: attRes.data,
-        leaves: leavesRes.data,
-        performance: perfRes.data?.currentMonthSummary || null,
-        fullProfile: profileRes.data?.profile || null,
-        latestPayslip: payslipsRes.data?.payslips?.[0] || null,
-        mapsRateLimit: mapsRateRes.data,
-        holidays: holidaysRes.data || [],
-        expenses: expensesRes.data?.expenses || [],
-        birthdays: birthdaysRes.data?.birthdays || []
-      };
-    },
-    staleTime: 30 * 1000
-  });
+  const { data: dashboardData, isLoading: loading } = useQuery(employeeDashboardQueryOptions);
 
   // Dedicated query to poll rate-limit status dynamically
   const { data: rateLimitStatus } = useQuery({

@@ -13,8 +13,20 @@ assert(otpAuthStart >= 0 && otpAuthEnd > otpAuthStart, 'OTP login context functi
 const context = auth.slice(otpAuthStart, otpAuthEnd);
 assert(!auth.includes("localStorage.setItem('token'"), 'SEC-021: no bearer JWT persistent browser storage');
 assert(context.includes('if (response.data?.mfaRequired)'));
-assert(context.indexOf('if (response.data?.mfaRequired)') < context.indexOf('setAccessToken(token)'),
-  'MFA pending OTP token never installed into authenticated memory session');
+// OTP/TOTP/password now share one verified-login finalizer. The challenge
+// must be returned before that finalizer can ever install a session token.
+const finalizerStart = auth.indexOf('const finishVerifiedLogin = async');
+const finalizerEnd = auth.indexOf('const signIn = async', finalizerStart);
+assert(finalizerStart >= 0 && finalizerEnd > finalizerStart, 'Verified-login finalizer exists');
+const finalizer = auth.slice(finalizerStart, finalizerEnd);
+assert(context.indexOf('if (response.data?.mfaRequired)') < context.indexOf('return finishVerifiedLogin(response.data)'),
+  'MFA pending OTP token must return without calling authenticated finalizer');
+assert.match(finalizer, /if \(!token\) return userData/,
+  'Missing token cannot create an authenticated session');
+assert.match(finalizer, /setAccessToken\(token\)/,
+  'Only verified, completed login may install the authenticated access token');
+assert.match(finalizer, /queryClient\.clear\(\)/,
+  'Completed login must clear previous-account private cache');
 
 const otpUiStart = login.indexOf('const handleVerifyOtp = async');
 const otpUiEnd = login.indexOf('\n\n\n  return (', otpUiStart);
