@@ -23,7 +23,7 @@ const EmployeeMobileBirthdays = () => {
   const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'week' | 'today'
 
-  const { data: birthdays = [], isLoading: loading } = useQuery(employeeQueryOptions.birthdays());
+  const { data: birthdays = [], isLoading: loading, error: birthdaysError, refetch: retryBirthdays } = useQuery(employeeQueryOptions.birthdays());
 
   const todayBirthdays = birthdays.filter(b => b.daysUntil === 0);
   const thisWeekBirthdays = birthdays.filter(b => b.daysUntil <= 7);
@@ -50,6 +50,21 @@ const EmployeeMobileBirthdays = () => {
   };
 
   if (loading) return <PageLoader message="Loading Birthday Celebrations..." />;
+  const resourceError = birthdaysError;
+
+  if (resourceError) {
+    return (
+      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--text)]">
+        <p className="font-semibold">Employee birthdays could not be loaded.</p>
+        <p className="mt-2 text-sm text-[var(--text-2)]">Please retry. No empty data has been assumed.</p>
+        <button type="button" onClick={() => { void retryBirthdays(); }}
+          className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">

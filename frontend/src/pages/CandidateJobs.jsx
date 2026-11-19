@@ -34,7 +34,7 @@ const CandidateJobs = () => {
   
   const queryClient = useQueryClient();
 
-  const { data: pageData, isLoading: isLoadingJobs } = useQuery({
+  const { data: pageData, isLoading: isLoadingJobs, error: jobsError, refetch: retryJobs } = useQuery({
     queryKey: ['candidate', 'jobs_page', profile?.id],
     queryFn: async ({ client }) => {
       const [jobs, applications] = await Promise.all([
@@ -59,7 +59,7 @@ const CandidateJobs = () => {
   const departments = [...new Set(jobs.map(job => job.department))];
   const jobTypes = ['full-time', 'part-time', 'contract', 'internship', 'temporary', 'remote'];
 
-  const { data: profileData, isLoading: isLoadingProfile } = useQuery(candidateQueryOptions.profile(profile?.id));
+  const { data: profileData, isLoading: isLoadingProfile, error: profileError, refetch: retryProfile } = useQuery(candidateQueryOptions.profile(profile?.id));
 
   const resumes = Array.isArray(profileData?.resume_url) ? profileData.resume_url : [];
   
@@ -205,6 +205,21 @@ const CandidateJobs = () => {
   if ((isLoading || isLoadingJobs) && !pageData) {
     return <PageLoader message="Loading Jobs..." />;
   }
+  const resourceError = jobsError || profileError;
+
+  if (resourceError) {
+    return (
+      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--text)]">
+        <p className="font-semibold">Candidate jobs or profile could not be loaded.</p>
+        <p className="mt-2 text-sm text-[var(--text-2)]">Please retry. No empty data has been assumed.</p>
+        <button type="button" onClick={() => { void Promise.all([retryJobs(), retryProfile()]); }}
+          className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
 
   return (
     <>

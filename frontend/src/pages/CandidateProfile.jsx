@@ -45,7 +45,7 @@ const CandidateProfile = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: profileData, isLoading: isLoadingProfile } = useQuery(candidateQueryOptions.profile(profile?.id));
+  const { data: profileData, isLoading: isLoadingProfile, error: profileError, refetch: retryProfile } = useQuery(candidateQueryOptions.profile(profile?.id));
 
   useEffect(() => {
     if (profileData) {
@@ -211,6 +211,21 @@ const CandidateProfile = () => {
   if (isLoadingProfile && !profileData) {
     return <PageLoader message="Loading Profile..." />;
   }
+  const resourceError = profileError;
+
+  if (resourceError) {
+    return (
+      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--text)]">
+        <p className="font-semibold">Candidate profile could not be loaded.</p>
+        <p className="mt-2 text-sm text-[var(--text-2)]">Please retry. No empty data has been assumed.</p>
+        <button type="button" onClick={() => { void retryProfile(); }}
+          className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
 
   return (
     <>

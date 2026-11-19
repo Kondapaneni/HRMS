@@ -32,7 +32,7 @@ const EmployeeMobileTrainingVideos = () => {
   const [confirmingVideo, setConfirmingVideo] = useState(null);
   const videoPlayerRef = useRef(null);
 
-  const { data: videos = [], isLoading } = useQuery(employeeQueryOptions.trainingVideos());
+  const { data: videos = [], isLoading, error: videosError, refetch: retryVideos } = useQuery(employeeQueryOptions.trainingVideos());
 
   const toggleProgressMutation = useMutation({
     mutationFn: async ({ videoId, completed }) => {
@@ -127,6 +127,21 @@ const EmployeeMobileTrainingVideos = () => {
   if (isLoading) {
     return <PageLoader message="Loading Training Videos..." />;
   }
+  const resourceError = videosError;
+
+  if (resourceError) {
+    return (
+      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--text)]">
+        <p className="font-semibold">Training videos could not be loaded.</p>
+        <p className="mt-2 text-sm text-[var(--text-2)]">Please retry. No empty data has been assumed.</p>
+        <button type="button" onClick={() => { void retryVideos(); }}
+          className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-4 pb-14 select-none font-sans antialiased text-[var(--text)]">

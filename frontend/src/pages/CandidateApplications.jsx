@@ -63,6 +63,21 @@ const CandidateApplications = () => {
   if (isLoading && applications.length === 0) {
     return <PageLoader message="Loading Applications..." />;
   }
+  const resourceError = applicationsError;
+
+  if (resourceError) {
+    return (
+      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--text)]">
+        <p className="font-semibold">Candidate applications could not be loaded.</p>
+        <p className="mt-2 text-sm text-[var(--text-2)]">Please retry. No empty data has been assumed.</p>
+        <button type="button" onClick={() => { void retryApplications(); }}
+          className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
 
   return (
     <>
