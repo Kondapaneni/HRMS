@@ -1,6 +1,28 @@
 # PERF-008 Step 3A — Singapore migration readiness (2026-11-18)
 
-> **Status: PREPARED, NOT MIGRATED.** No database data was dumped or restored; no Storage files were transferred; Render still connects to Mumbai. Never merge this documentation PR as an indication that cutover is approved.
+> **Current verified status (2026-11-19): STAGED — NOT CUTOVER-APPROVED.** Singapore's application tables and metadata are populated. Security ACL issues found during comparison were fixed. Real Storage file SHA-256 verification and isolated HRMS end-to-end tests are **still outstanding**. Production Render connection settings were not modified by these steps and have not been independently re-read from the protected environment.
+
+## 2026-11-19 verification and security remediation
+
+- Both projects reported ACTIVE_HEALTHY. Singapore contains **38 application tables**, **125 public RLS policies**, **12 Storage buckets**, and **27 Storage object metadata rows**. The 27 listed files total **8,167,523 metadata-declared bytes** in each project; bucket configurations and path/size/ETag manifest fingerprints match. **No 27/27 binary SHA-256 checksum pass has been established.**
+- All 38 tables had matching exact row counts (most recently 151 rows each). The Singapore data contains 40 additive columns (6 contain data). These must not be dropped blindly. Audit log `new_values` has a small historical discrepancy, and one stale imported refresh session was intentionally revoked in Singapore; do not overwrite live token rotation state.
+- Reconciled 31 excess grants on `hrms_runtime_restricted`. The three custom HRMS roles and their 126 combined table grants match Mumbai; there are zero missing and zero excess grants.
+- **Additional important 2026-11-19 finding and fix:** Before the last pass, Singapore's `anon` and `authenticated` PostgreSQL roles each had all seven table privileges on all 38 public HRMS tables (**532 excess grants in total**). We revoked these on Singapore only. Subsequent independent checks show **zero** `anon`/`authenticated` application-table grants, matching Mumbai. The `service_role` retains its **266** grants on public HRMS tables and the HRMS role retains 126 combined grants.
+- Reconciled `postgres` default privileges for **future** application tables, sequences and functions in the `public` schema with Mumbai; future objects created by `postgres` should no longer accidentally get those broad `anon` and `authenticated` grants. Supabase-managed `supabase_admin` defaults were not altered.
+- Reconciled all nine application/security function definitions modulo comments/formatting, plus function ownership, EXECUTE ACLs, public sequence ACLs, private schema ACLs and HRMS role memberships. The two SEC-018 `SECURITY DEFINER` audit functions now have their original restricted owners, not `postgres`. All corresponding function ACLs, sequence ACLs and schema ACLs match Mumbai.
+- Security regression: `anon` may not SELECT/DELETE public users, read MFA secrets/refresh sessions, call the signed-audit functions, or invoke attendance jobs. `hrms_runtime_restricted` can SELECT users and settings but cannot DELETE users or read the private audit signing-key table. PostgreSQL direct `SET ROLE hrms_runtime_restricted` via the `postgres` admin connection is intentionally blocked, like Mumbai; a **real restricted-login smoke test is still needed**.
+- Storage schema policies and the `storage.objects` / `storage.buckets` ACLs match across the projects; this is a metadata/authorization inspection, NOT a binary file or authenticated document-preview validation.
+- Singapore attendance cron remains **disabled**; Mumbai attendance cron remains active. Do not run both together.
+- GitHub draft PR #86 contains `scripts/perf008_verify_storage_binary.py`, a read-only SHA-256 check requiring two securely supplied legacy service-role JWTs in separate private key files in a trusted environment. CI runs 44480000866 and 44480000860 passed offline; **the script has not been run against actual private files**.
+- No independent Singapore app login, MFA, document download/upload or background attendance tests have been completed. Do not claim a performance speedup or cutover readiness.
+
+**Open gates:** run the actual 27-file binary checksum comparison, verify genuine restricted-role login and all affected application workflows in an isolated test deployment, reconcile final mutable data/session/audit deltas during a write freeze, verify protected Render database host/environment, and obtain an explicitly approved cutover and rollback window. Keep this PR draft. Do not delete Mumbai.
+
+---
+
+## Historical initial preflight (2026-11-18)
+
+At the initial preflight below, the Singapore application tables and Storage metadata were not yet populated; that snapshot is superseded by the 2026-11-19 status above. It remains here for traceability.
 
 ## Confirmed projects
 
