@@ -1,4 +1,5 @@
 import api from '../api/axios';
+import { adminEmployeeKeys } from '../queries/adminEmployeeKeys';
 
 // Only the requested/likely module chunks are fetched, never every route.
 // These dynamic imports reuse Vite's existing code-split module URLs.
@@ -88,7 +89,7 @@ export function warmRoute(path, queryClient, role) {
       queryFn: async ({ signal }) => (await api.get('/admin/dashboard/stats', { signal })).data,
     },
     '/admin/employees': {
-      queryKey: ['admin', 'employees', ''],
+      queryKey: adminEmployeeKeys.list({ search: '', limit: 50 }),
       staleTime: 60_000,
       queryFn: async ({ signal }) =>
         (await api.get('/admin/employees?search=', { signal })).data.employees || [],

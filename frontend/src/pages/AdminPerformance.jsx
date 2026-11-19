@@ -29,6 +29,7 @@ import {
   Area
 } from 'recharts';
 import api from '../api/axios';
+import { adminEmployeeKeys } from '../queries/adminEmployeeKeys';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Avatar from '../components/ui/Avatar';
@@ -118,9 +119,9 @@ const AdminPerformance = () => {
   }, [search]);
 
   const { data: employees = [], isLoading: isLoadingEmployees, isFetching: isFetchingEmployees } = useQuery({
-    queryKey: ['admin', 'employees', debouncedSearch],
-    queryFn: async () => {
-      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}&limit=100`);
+    queryKey: adminEmployeeKeys.list({ search: debouncedSearch, limit: 100 }),
+    queryFn: async ({ signal }) => {
+      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}&limit=100`, { signal });
       return res.data.employees || [];
     },
     placeholderData: (previousData) => previousData,

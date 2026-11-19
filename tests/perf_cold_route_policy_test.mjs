@@ -25,7 +25,7 @@ assert.match(routeWarmup, /role !== 'admin' \|\| !queryClient/,
   'Only verified Admin may trigger private API prefetch');
 assert.match(routeWarmup, /queryClient\.prefetchQuery\(adminQueries\[path\]\)/,
   'Prefetch authorized common Admin queries using existing QueryClient');
-assert.match(routeWarmup, /\['admin', 'employees', ''\]/,
+assert.match(routeWarmup, /adminEmployeeKeys\.list\(\{ search: '', limit: 50 \}\)/,
   'Preload query key must match the Employees page');
 assert.match(routeWarmup, /\['admin', 'attendance', date, '', 1\]/,
   'Preload query key must match the Attendance page');

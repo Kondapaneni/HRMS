@@ -4,6 +4,7 @@ import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2, Users } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
+import { adminEmployeeKeys } from '../queries/adminEmployeeKeys';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import AddEmployeeModal from '../components/AddEmployeeModal';
@@ -25,7 +26,7 @@ const AdminEmployees = () => {
   }, [search]);
 
   const { data: employees = [], isLoading: initialLoading, isFetching } = useQuery({
-    queryKey: ['admin', 'employees', debouncedSearch],
+    queryKey: adminEmployeeKeys.list({ search: debouncedSearch, limit: 50 }),
     queryFn: async ({ signal }) => {
       const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`, { signal });
       return res.data.employees || [];
@@ -265,7 +266,7 @@ const AdminEmployees = () => {
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
           setIsModalOpen(false);
-          queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+          queryClient.invalidateQueries({ queryKey: adminEmployeeKeys.all });
           queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
         }}
       />
