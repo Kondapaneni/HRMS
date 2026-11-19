@@ -6,6 +6,7 @@ on:
       - 'frontend/package.json'
       - 'frontend/package-lock.json'
       - 'tests/no_shared_cache_policy_test.mjs'
+      - 'tests/mounted_remote_requests_test.mjs'
       - '.github/workflows/no_shared_cache.yml'
   workflow_dispatch:
 permissions:
@@ -36,6 +37,11 @@ jobs:
         run: |
           npm ci
           npm run build
+      - name: Synthetic mounted view and auth-reset lifecycle
+        working-directory: frontend
+        run: |
+          npm install --no-save --package-lock=false --no-audit --no-fund jsdom@26.1.0
+          node ../tests/mounted_remote_requests_test.mjs
       - name: Recheck client protections in generated bundle
         run: |
           node tests/no_shared_cache_policy_test.mjs
