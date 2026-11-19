@@ -1,0 +1,73 @@
+name: SEC-023 frontend and PHP dependency advisory gates
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - 'Dockerfile'
+      - 'tests/sec023_*'
+      - '.github/workflows/sec023.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - 'Dockerfile'
+      - 'tests/sec023_*'
+      - '.github/workflows/sec023.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-security:
+    name: npm audit and frontend build (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Check dependency lockfile floors and Docker reproducibility
+        run: node tests/sec023_dependency_policy_test.mjs
+      - name: Install locked packages
+        working-directory: frontend
+        run: npm ci --no-fund
+      - name: Reject moderate, high and critical npm advisories
+        working-directory: frontend
+        run: npm audit --audit-level=moderate
+      - name: Produce real frontend build
+        working-directory: frontend
+        run: npm run build
+      - name: Auth, Maps, safe previews, routes and performance regression policies
+        run: |
+          node tests/sec008_frontend_security_test.mjs
+          node tests/sec016_source_test.mjs
+          node tests/sec020_policy_test.mjs --built
+          node tests/sec021_policy_test.mjs --built
+          node tests/sec022_xss_test.mjs
+          node tests/sec024_source_test.mjs
+          node tests/perf_frontend_policy_test.mjs --built
+          node tests/perf_cold_route_policy_test.mjs --built
+          node tests/perf_refresh_boot_policy_test.mjs --built
+
+  composer-advisories:
+    name: PHP Composer advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Install locked backend dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Reject PHP dependency advisories
+        run: composer audit --working-dir=backend --no-interaction
