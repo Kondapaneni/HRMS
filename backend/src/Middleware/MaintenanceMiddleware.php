@@ -68,18 +68,21 @@ final class MaintenanceMiddleware implements MiddlewareInterface
                 'SELECT maintenance_mode FROM public.global_settings ORDER BY id ASC LIMIT 1'
             );
             $settings = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$settings || !self::enabled($settings['maintenance_mode'] ?? null)) {
-                return $handler->handle($request);
+            if ($settings && self::enabled($settings['maintenance_mode'] ?? null)
+                && !$this->isVerifiedAdmin($request, $conn)) {
+                return $this->serviceUnavailable();
             }
-
-            if ($this->isVerifiedAdmin($request, $conn)) {
-                return $handler->handle($request);
-            }
-            return $this->serviceUnavailable();
         } catch (\Throwable $e) {
+            // SEC-020: Fail closed when the maintenance / identity check fails.
             error_log('SEC-020: Maintenance authorization check unavailable: ' . $e->getMessage());
             return $this->serviceUnavailable();
         }
+
+        // SEC-024: Do NOT include downstream route or middleware execution in
+        // the authorization try/catch. Unexpected application faults must
+        // propagate to the outer Slim 500 sanitizer, not masquerade as a
+        // maintenance 503. This does not weaken the maintenance gate above.
+        return $handler->handle($request);
     }
 
     public static function enabled($value): bool
