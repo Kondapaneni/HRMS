@@ -5,6 +5,10 @@ export const candidateQueryKeys = {
   all: ['candidate'],
   profileBase: ['candidate', 'profile'],
   profile: candidateId => ['candidate', 'profile', candidateId],
+  applicationsBase: ['candidate', 'applications'],
+  applications: candidateId => ['candidate', 'applications', candidateId],
+  jobsBase: ['candidate', 'jobs'],
+  jobs: candidateId => ['candidate', 'jobs', candidateId],
   sidebarBase: ['candidate', 'sidebarProfile'],
   sidebar: candidateId => ['candidate', 'sidebarProfile', candidateId],
 };
