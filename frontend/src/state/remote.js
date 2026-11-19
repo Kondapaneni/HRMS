@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  */
 const mountedViews = new Set();
 const listeners = new Set();
+const resetListeners = new Set();
 let sessionEpoch = 0;
 
 const asParts = value => Array.isArray(value) ? value : value == null ? [] : [value];
@@ -54,6 +55,7 @@ const controller = Object.freeze({
   reset() {
     sessionEpoch += 1;
     for (const view of [...mountedViews]) view.reset();
+    for (const listener of [...resetListeners]) listener();
     emit();
   },
   getState(scope) {
@@ -78,7 +80,7 @@ export function useRemoteData(options) {
   const latestOptions = useRef(options);
   latestOptions.current = options;
   const [state, setState] = useState({
-    data: undefined, error: null, status: 'pending',
+    scopeId, data: undefined, error: null, status: 'pending',
     isLoading: Boolean(when), isPending: true, isFetching: false,
   });
   const dataRef = useRef(undefined);
@@ -142,7 +144,7 @@ export function useRemoteData(options) {
   useEffect(() => {
     // A route remount or changed scope never inherits another view's response.
     dataRef.current = undefined;
-    change({ data: undefined, error: null, isFetching: false,
+    change({ scopeId, data: undefined, error: null, isFetching: false,
       isLoading: Boolean(when), isPending: true, status: 'pending' });
     requestRef.current.active = true;
     const view = {
@@ -190,7 +192,13 @@ export function useRemoteData(options) {
     return () => clearInterval(timer);
   }, [pollEveryMs, when, reload, reloadInBackground]);
 
-  return { ...state, refetch: reload };
+  // A changed identity/scope must never render the prior view's private response
+  // even for one render before the new effect starts its fresh request.
+  const visible = state.scopeId === scopeId ? state : {
+    data: undefined, error: null, status: when ? 'pending' : 'idle',
+    isLoading: Boolean(when), isPending: Boolean(when), isFetching: false,
+  };
+  return { ...visible, refetch: reload };
 }
 
 export function useRemoteTask(options) {
@@ -203,9 +211,20 @@ export function useRemoteTask(options) {
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; };
+    const clear = () => {
+      if (mounted.current) setState({
+        data: undefined, error: null, isPending: false, isLoading: false,
+        status: 'idle',
+      });
+    };
+    resetListeners.add(clear);
+    return () => {
+      mounted.current = false;
+      resetListeners.delete(clear);
+    };
   }, []);
   const mutateAsync = useCallback(async (variables, perCall = {}) => {
+    const startedInEpoch = sessionEpoch;
     if (mounted.current) setState(s => ({
       ...s, isPending: true, isLoading: true, error: null, status: 'pending',
     }));
@@ -213,6 +232,7 @@ export function useRemoteTask(options) {
     try {
       context = await latest.current.onMutate?.(variables);
       result = await latest.current.run(variables);
+      if (startedInEpoch !== sessionEpoch) return undefined;
       await latest.current.onSuccess?.(result, variables, context);
       await perCall.onSuccess?.(result, variables, context);
       if (mounted.current) setState({
@@ -221,6 +241,7 @@ export function useRemoteTask(options) {
       });
       return result;
     } catch (error) {
+      if (startedInEpoch !== sessionEpoch) throw error;
       failure = error;
       await latest.current.onError?.(error, variables, context);
       await perCall.onError?.(error, variables, context);
@@ -229,8 +250,10 @@ export function useRemoteTask(options) {
       }));
       throw error;
     } finally {
-      await latest.current.onSettled?.(result, failure, variables, context);
-      await perCall.onSettled?.(result, failure, variables, context);
+      if (startedInEpoch === sessionEpoch) {
+        await latest.current.onSettled?.(result, failure, variables, context);
+        await perCall.onSettled?.(result, failure, variables, context);
+      }
     }
   }, []);
   const mutate = useCallback((variables, perCall) => {
