@@ -9,7 +9,7 @@ const candidateKeys = read('frontend/src/queries/candidateQueryKeys.js');
 
 assert.match(options, /import \{ queryOptions \} from '@tanstack\/react-query'/,
   'Shared queries must use TanStack Query v5 queryOptions');
-assert.match(options, /requireList\([\s\S]*?throw new Error/,
+assert.match(options, /const requireList = [\s\S]*?throw new Error/,
   'Malformed API list responses must not be cached as successful empty data');
 assert.match(options, /signal \}\)\)/,
   'Shared query functions must forward cancellation signals to Axios');
