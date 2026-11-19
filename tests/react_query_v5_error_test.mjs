@@ -16,14 +16,14 @@ for (const [file, id] of [
   ['EmployeeHolidays.jsx', 'employee-holidays-load'],
 ]) {
   const page = read('frontend/src/pages/' + file);
-  assert.match(page, /error: loadError \} = useQuery\(\{/,
+  assert.match(page, /error: loadError \} = useQuery\((?:\{|employeeQueryOptions\.)/,
     file + ': the query must expose its real error state');
   assert.match(page, /useQueryErrorToast\(loadError, '[^']+', '[^']+'\)/,
     file + ': error notifications must use React Query v5-compatible hook');
   assert(page.includes("'" + id + "'"), file + ': stable toast ID must match the resource');
-  const start = page.indexOf('error: loadError } = useQuery({');
-  const end = page.indexOf('\n  });', start);
-  assert(start !== -1 && end !== -1, file + ': query block must be present');
+  const start = page.indexOf('error: loadError } = useQuery(');
+  const end = page.indexOf(';', start);
+  assert(start !== -1 && end > start, file + ': query block must be present');
   assert.doesNotMatch(page.slice(start, end), /\bonError\s*:/,
     file + ': useQuery must not include removed v5 onError callback');
 }
