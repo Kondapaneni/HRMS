@@ -36,8 +36,8 @@ const backend = readFileSync(new URL('../backend/public/index.php', import.meta.
 
 assert(page.includes('useAssessmentBusinessDate()'), 'assessment page must use the business day hook');
 assert(layout.includes('useAssessmentBusinessDate()'), 'employee nav must use the same business day hook');
-assert(page.includes("queryKey: ['employeeAssessments', todayStr]"), 'assessment list must refetch across business midnight');
-assert(layout.includes("queryKey: ['employeeAssessmentsList', todayStr]"), 'employee nav must refetch across business midnight');
+assert(page.includes("scope: ['employeeAssessments', todayStr]"), 'assessment list must refetch across business midnight');
+assert(layout.includes("scope: ['employeeAssessmentsList', todayStr]"), 'employee nav must refetch across business midnight');
 assert(!page.includes("new Date().toISOString().split('T')[0]"), 'UTC ISO today extraction must not return');
 assert(hook.includes('setInterval(updateDay'), 'open tabs must refresh date after midnight');
 assert(hook.includes("addEventListener('visibilitychange'"), 'sleeping tabs must refresh on resume');
