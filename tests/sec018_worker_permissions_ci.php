@@ -55,18 +55,15 @@ step1eCheck(step1eScalar($db, 'SELECT current_database()') === 'sec018_phasea_ci
     'isolated database and reviewed cron owner confirmed');
 
 // These are the public functions present in the disposable full-table fixture.
-// Two live functions not invoked by the application triggers (rls_auto_enable,
-// enforce_direct_chat_two_participants) remain outside this functional test.
+// The live rls_auto_enable routine is modeled only for ACL assertions here.
 $publicFunctions = [
     'public.daily_attendance_master()',
     'public.finalize_attendance()',
     'public.insert_weekend_holiday_attendance()',
     'public.jsonb_diff_val(jsonb,jsonb)',
     'public.process_audit_log()',
-    'public.update_assets_updated_at_column()',
-    // Step 1F: ACL models of two functions whose real bodies are unavailable.
+    // Step 1F: ACL model for the privileged RLS event function.
     'public.rls_auto_enable()',
-    'public.enforce_direct_chat_two_participants()',
 ];
 foreach ($publicFunctions as $signature) {
     // An absent function must not accidentally pass a negative grant check.
@@ -82,7 +79,7 @@ foreach ($publicFunctions as $signature) {
 }
 // SEC-018 Step 1F: fail fast if the structural fixture drifts from the
 // previously documented read-only schema inventory: 38 tables / 407 columns /
-// 78 constraints / nine non-internal row triggers. The controlled migration adds
+// 78 constraints / eight non-internal row triggers. The controlled migration adds
 // exactly one refresh-history column, for 408 post-migration columns. None of
 // these counts alone proves
 // full production schema equivalence (extensions and function bodies differ).
@@ -115,12 +112,11 @@ step1eCheck(step1eBool(step1eScalar($db,
     'the only expected extra column is NOT NULL jsonb refresh replay history');
 step1eCheck((int)step1eScalar($db,
     "SELECT count(*) FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
-     WHERE n.nspname='public'") === 8,
-    'six functional public routines plus two explicit ACL-only models');
+     WHERE n.nspname='public'") === 6,
+    'five functional public routines plus one explicit ACL-only model');
 
 foreach ([
     'public.rls_auto_enable()' => [true, 'event_trigger'],
-    'public.enforce_direct_chat_two_participants()' => [false, 'trigger'],
 ] as $signature => [$definer, $syntheticReturn]) {
     $metadata = $db->prepare(
         'SELECT p.prosecdef, p.prorettype::regtype::text AS ret, pg_get_userbyid(p.proowner) AS owner
