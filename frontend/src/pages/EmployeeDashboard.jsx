@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   User, 
@@ -219,22 +220,7 @@ const EmployeeDashboard = () => {
   const availablePaidLeaves = leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--';
   const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '100%';
 
-  // Keep the dashboard layout visible during its first data fetch rather than
-  // showing a second full-page loading screen after the maintenance status check.
-  // Attendance controls stay hidden until their authoritative data is ready.
-  if (loading) {
-    return (
-      <div className="animate-pulse space-y-5 pb-6" role="status" aria-label="Loading employee dashboard data" aria-busy="true">
-        <div className="h-8 w-48 max-w-full rounded-xl bg-[var(--surface-alt)]" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[14px]">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="h-28 rounded-[20px] border border-[var(--line)] bg-[var(--surface-alt)]" />
-          ))}
-        </div>
-        <div className="h-52 rounded-[24px] border border-[var(--line)] bg-[var(--surface-alt)]" />
-      </div>
-    );
-  }
+  if (loading) return <PageLoader message="Loading workspace..." />;
 
   return (
     <>
