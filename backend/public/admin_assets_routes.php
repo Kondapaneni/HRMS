@@ -212,7 +212,8 @@ $app->put('/api/admin/assets/{id}', function (Request $request, Response $respon
         $values[] = $id;
         $setClause = implode(', ', $fields);
 
-        $query = "UPDATE assets SET $setClause WHERE id = ? RETURNING *";
+        // Timestamp is managed by the SQL update itself, without a per-row database trigger.
+        $query = "UPDATE assets SET $setClause, updated_at = CURRENT_TIMESTAMP WHERE id = ? RETURNING *";
         $stmt = $conn->prepare($query);
         $stmt->execute($values);
         
