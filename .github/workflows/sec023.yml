@@ -1,4 +1,4 @@
-name: SEC-023 frontend dependency vulnerability triage
+name: SEC-023 patched frontend dependency lockfile and advisory gate
 
 on:
   push:
@@ -16,32 +16,79 @@ permissions:
   contents: read
 
 jobs:
-  baseline:
-    name: Read-only npm advisory baseline
+  prepare-patched-lock:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/fix/sec023-npm-audit-hardening'
+    name: Generate scoped patched lockfile on issue branch only
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch only lockfile-compatible advisories with scripts disabled
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm audit fix --package-lock-only --ignore-scripts --no-fund
+          npm audit --audit-level=moderate
+      - name: Commit only manifest and npm lockfile to issue branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- frontend/package.json frontend/package-lock.json; then
+            echo "Already patched; nothing to commit."
+            exit 0
+          fi
+          unexpected="$(git diff --name-only | grep -Ev '^frontend/(package\.json|package-lock\.json)$' || true)"
+          test -z "$unexpected" || { echo "::error::Unexpected modified paths"; exit 1; }
+          git add frontend/package.json frontend/package-lock.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(SEC-023): lock audited patched frontend dependencies'
+          git push origin HEAD:fix/sec023-npm-audit-hardening
+
+  frontend-security:
+    if: github.event_name == 'pull_request'
+    name: Locked npm advisory gate and production build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Report locked-package advisories and patched options
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install locked dependencies without manifest changes
         working-directory: frontend
-        shell: bash
+        run: npm ci --no-fund
+      - name: Reject all moderate, high and critical advisories
+        working-directory: frontend
+        run: npm audit --audit-level=moderate
+      - name: Build frontend production assets
+        working-directory: frontend
+        run: npm run build
+      - name: Existing security, role/navigation and Maps policies
         run: |
-          set -euo pipefail
-          npm audit --json > /tmp/sec023-audit.json || true
-          node --input-type=module - <<'NODE'
-          import { readFileSync } from 'node:fs';
-          const report = JSON.parse(readFileSync('/tmp/sec023-audit.json','utf8'));
-          console.log('SEC023_COUNTS=' + JSON.stringify(report.metadata?.vulnerabilities ?? {}));
-          for (const [name, info] of Object.entries(report.vulnerabilities ?? {})) {
-            console.log('SEC023_FINDING=' + JSON.stringify({
-              name, severity:info.severity, range:info.range,
-              fixAvailable:info.fixAvailable,
-              via:(info.via ?? []).filter(v => typeof v === 'object').map(v=>({name:v.name,range:v.range,url:v.url})),
-            }));
-          }
-          NODE
-          for name in axios react-router react-router-dom follow-redirects form-data; do
-            echo "SEC023_LATEST $name $(npm view "$name" version)"
-          done
+          node tests/sec021_policy_test.mjs --built
+          node tests/sec020_policy_test.mjs --built
+          node tests/sec016_source_test.mjs
+          node tests/sec022_xss_test.mjs
+
+  backend-advisories:
+    if: github.event_name == 'pull_request'
+    name: PHP Composer dependency advisory regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Install locked PHP dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Check Composer dependency advisories
+        run: composer audit --working-dir=backend --no-interaction
