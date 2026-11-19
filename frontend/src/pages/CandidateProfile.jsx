@@ -19,6 +19,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import CandidateMobileProfile from './CandidateMobileProfile';
+import { candidateQueryKeys } from '../queries/candidateQueryKeys';
 
 const CandidateProfile = () => {
   const { profile } = useAuth();
@@ -44,7 +45,7 @@ const CandidateProfile = () => {
   const queryClient = useQueryClient();
 
   const { data: profileData, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ['candidate', 'profile', profile?.id],
+    queryKey: candidateQueryKeys.profile(profile?.id),
     queryFn: async () => {
       const res = await api.get('/candidate/profile');
       return res.data.profile || null;
@@ -80,7 +81,8 @@ const CandidateProfile = () => {
     },
     onSuccess: () => {
       toast.success('Candidate profile updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['candidate', 'profile'] });
+      queryClient.invalidateQueries({ queryKey: candidateQueryKeys.profileBase });
+      queryClient.invalidateQueries({ queryKey: candidateQueryKeys.sidebarBase });
       queryClient.invalidateQueries({ queryKey: ['candidate', 'dashboard'] });
     },
     onError: (error) => {

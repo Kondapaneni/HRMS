@@ -11,19 +11,21 @@ import { useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import AppShell from './AppShell';
+import { candidateQueryKeys } from '../queries/candidateQueryKeys';
 
 const CandidateLayout = () => {
   const { profile } = useAuth();
   const location = useLocation();
 
   const { data: profileData } = useQuery({
-    queryKey: ['candidate', 'profile', profile?.id],
+    queryKey: candidateQueryKeys.sidebar(profile?.id),
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('candidate_profiles')
         .select('avatar_url, documents_tab_seen_at')
         .eq('user_id', profile.id)
         .maybeSingle();
+      if (error) throw error;
       return data;
     },
     enabled: !!profile?.id,
