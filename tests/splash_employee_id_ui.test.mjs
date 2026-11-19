@@ -32,7 +32,7 @@ test('startup waits at least three seconds and preloads authenticated route code
   const boot = read('frontend/src/performance/dashboardBoot.js');
   const auth = read('frontend/src/contexts/AuthContext.jsx');
   assert.match(boot, /MIN_SPLASH_MS\s*=\s*3000/);
-  assert.match(boot, /queryClient\.ensureQueryData\(/);
+  assert.match(boot, /await preloadInitialRoute\(/);
   assert.match(boot, /if \(!profile \|\| profile\.forcePasswordChange\) return/);
   assert.match(boot, /isMaintenanceEnabled\(maintenanceMode\)/);
   assert.match(auth, /await prepareForDashboard\(verifiedProfile, statusPromise\)/);
@@ -44,9 +44,9 @@ test('startup waits at least three seconds and preloads authenticated route code
 
 test('desktop and mobile share a fresh dashboard request definition', () => {
   for (const path of ['frontend/src/pages/EmployeeDashboard.jsx', 'frontend/src/pages/EmployeeMobileDashboard.jsx']) {
-    assert.match(read(path), /useQuery\(employeeDashboardQueryOptions\)/);
+    assert.match(read(path), /useRemoteData\(employeeDashboardRequest\)/);
   }
-  assert.match(read('frontend/src/pages/AdminDashboard.jsx'), /useQuery\(adminDashboardQueryOptions\)/);
+  assert.match(read('frontend/src/pages/AdminDashboard.jsx'), /useRemoteData\(adminDashboardRequest\)/);
   assert.doesNotMatch(read('frontend/src/components/SplashScreen.jsx'), /Loading workspace\.\.\./);
 });
 
