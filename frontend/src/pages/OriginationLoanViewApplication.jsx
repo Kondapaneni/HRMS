@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import { createPortal } from 'react-dom';
 import {
   Lock,
@@ -34,11 +35,7 @@ export default function OriginationLoanViewApplication() {
   const fromPath = location.state?.from || '/employee/loans/origination/applications';
 
   // Fallback query if page is refreshed or visited with a query parameter/missing state
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['origination', 'applications', 'list'],
-    queryFn: getLoanApplications,
-    enabled: !stateApplication,
-  });
+  const { data: response, isLoading } = useQuery({ ...originationQueryOptions.loanApplications(), enabled: !stateApplication });
 
   let application = stateApplication;
   let formData = stateFormData;
