@@ -23,10 +23,9 @@ const CandidateApplications = () => {
   const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
   const [timelineApp, setTimelineApp] = useState(null);
   
-  const { data: applications = [], isLoading } = useQuery({ ...candidateQueryOptions.applications(profile?.id), select: selectCandidateApplicationCards });
-    },
-    enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
+  const { data: applications = [], isLoading, error: applicationsError, refetch: retryApplications } = useQuery({
+    ...candidateQueryOptions.applications(profile?.id),
+    select: selectCandidateApplicationCards,
   });
 
   const getStatusBadge = (status) => {
