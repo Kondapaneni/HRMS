@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'scripts/perf008_encrypted_mumbai_snapshot.sh'
+      - 'scripts/perf008_encrypted_singapore_snapshot.sh'
       - 'scripts/perf008_verify_storage_binary.py'
       - 'tests/perf008_storage_verifier_test.py'
       - '.github/workflows/perf008_migration_preflight.yml'
@@ -19,6 +20,10 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/perf008_encrypted_mumbai_snapshot.sh
+          bash -n scripts/perf008_encrypted_singapore_snapshot.sh
+          grep -Fq "source_ref='qayankfbodyvrhemoauw'" scripts/perf008_encrypted_singapore_snapshot.sh
+          grep -Fq 'Refuse real database backup in CI' scripts/perf008_encrypted_singapore_snapshot.sh
+          grep -Fq 'gpg --no-symkey-cache --symmetric --cipher-algo AES256' scripts/perf008_encrypted_singapore_snapshot.sh
           script=scripts/perf008_encrypted_mumbai_snapshot.sh
           grep -Fq 'Refuse real database backup in CI' "$script"
           grep -Fq 'Use a private PGPASSFILE' "$script"
