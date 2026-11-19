@@ -62,10 +62,10 @@ $app->get('/__sec024_stage_nonapi_route', function (Request $request, Response $
 `;
 let staged=original.replace(middlewareMarker,stageMiddleware+middlewareMarker)
   .replace(routeMarker,stageRoutes+routeMarker);
-assert.equal(staged.split('SEC024 CI-INJECTED ONLY').length-1,2);
-assert(staged.indexOf('SEC024 CI-INJECTED ONLY') < staged.indexOf(boundary),
+assert.equal(staged.split('SEC-024 CI-INJECTED ONLY').length-1,2);
+assert(staged.indexOf('SEC-024 CI-INJECTED ONLY') < staged.indexOf(boundary),
   'Middleware canary must be inside outer error handler');
-assert(staged.indexOf(boundary)<staged.lastIndexOf('SEC024 CI-INJECTED ONLY'),
+assert(staged.indexOf(boundary)<staged.lastIndexOf('SEC-024 CI-INJECTED ONLY'),
   'Route canary must be registered after safe error handler');
 writeFileSync(path,staged);
 console.log('PASS SEC-024: synthetic faults injected into ephemeral test checkout only');
