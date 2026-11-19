@@ -80,7 +80,6 @@ const AdminAttendanceRegularize = () => {
     },
     enabled: !!selectedEmployeeId && !!selectedMonth,
     staleTime: 30 * 1000,
-    onError: () => console.error('Failed to fetch attendance'),
   });
 
   const attendanceData = attendanceResponse?.attendance || [];

@@ -27,4 +27,21 @@ for (const [file, id] of [
   assert.doesNotMatch(page.slice(start, end), /\bonError\s*:/,
     file + ': useQuery must not include removed v5 onError callback');
 }
+for (const [file, ids] of [
+  ['AdminAttendance.jsx', ['admin-attendance-load']],
+  ['AdminHolidays.jsx', ['admin-holidays-load']],
+  ['AdminRecruitment.jsx', ['admin-jobs-load', 'admin-applications-load']],
+  ['AdminAuditLogs.jsx', ['admin-audit-logs-load']],
+]) {
+  const src = read('frontend/src/pages/' + file);
+  for (const id of ids) {
+    assert(src.includes("'" + id + "'"), file + ' must use a stable v5-compatible error toast ID');
+  }
+  assert.match(src, /useQueryErrorToast\(/, file + ' must read query error state after useQuery');
+  assert.doesNotMatch(src, /onError: \(\) => toast\.error\('Failed to load/,
+    file + ' must not rely on v5-removed useQuery onError');
+}
+assert.doesNotMatch(read('frontend/src/pages/AdminAttendanceRegularize.jsx'),
+  /onError: \(\) => console\.error\('Failed to fetch attendance'\)/,
+  'Attendance regularization should not register an ignored useQuery callback');
 console.log('React Query v5 query error notification regression PASS');

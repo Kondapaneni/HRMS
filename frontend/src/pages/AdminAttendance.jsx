@@ -16,6 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import SearchBar from '../components/ui/SearchBar';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 import Avatar from '../components/ui/Avatar';
@@ -42,7 +43,7 @@ const AdminAttendance = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: attendanceResponse, isLoading: initialLoading, isFetching } = useQuery({
+  const { data: attendanceResponse, isLoading: initialLoading, isFetching, error: attendanceLoadError } = useQuery({
     queryKey: ['admin', 'attendance', date, debouncedSearch, page],
     queryFn: async ({ signal }) => {
       const res = await api.get(
@@ -53,8 +54,9 @@ const AdminAttendance = () => {
     },
     placeholderData: (previousData) => previousData,
     staleTime: 10 * 1000, // Attendance changes frequently; show cached rows while updating
-    onError: () => toast.error('Failed to load attendance'),
   });
+
+  useQueryErrorToast(attendanceLoadError, 'Failed to load attendance', 'admin-attendance-load');
 
   const attendanceRows = attendanceResponse?.attendance || [];
   const totalPages = attendanceResponse?.pagination?.totalPages || 1;

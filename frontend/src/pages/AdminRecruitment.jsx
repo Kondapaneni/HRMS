@@ -31,6 +31,7 @@ import {
   CalendarDays
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 const OfferLetterPreview = lazy(() => import('../components/offerLetter/OfferLetterPreview'));
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -54,23 +55,25 @@ const AdminRecruitment = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
+  const { data: jobs = [], isLoading: isLoadingJobs, error: jobsLoadError } = useQuery({
     queryKey: ['admin', 'jobs'],
     queryFn: async () => {
       const res = await api.get('/admin/jobs');
       return res.data.jobs || [];
     },
-    onError: () => toast.error('Failed to load jobs')
   });
 
-  const { data: applications = [], isLoading: isLoadingApps } = useQuery({
+  useQueryErrorToast(jobsLoadError, 'Failed to load jobs', 'admin-jobs-load');
+
+  const { data: applications = [], isLoading: isLoadingApps, error: applicationsLoadError } = useQuery({
     queryKey: ['admin', 'applications', debouncedSearchQuery],
     queryFn: async () => {
       const res = await api.get(`/admin/applications?search=${encodeURIComponent(debouncedSearchQuery)}`);
       return res.data.applications || [];
     },
-    onError: () => toast.error('Failed to load applications')
   });
+
+  useQueryErrorToast(applicationsLoadError, 'Failed to load applications', 'admin-applications-load');
 
   const { data: candidateProfiles = [] } = useQuery({
     queryKey: ['admin', 'candidate_profiles'],

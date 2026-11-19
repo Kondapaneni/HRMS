@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
@@ -60,7 +61,7 @@ const AdminAuditLogs = () => {
 
   const actions = ['INSERT', 'UPDATE', 'DELETE'];
 
-  const { data: logsResponse, isLoading: loading, isFetching } = useQuery({
+  const { data: logsResponse, isLoading: loading, isFetching, error: auditLoadError } = useQuery({
     queryKey: ['admin', 'audit-logs', page, debouncedSearch, moduleFilter, actionFilter, dateFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ page, limit });
@@ -75,8 +76,9 @@ const AdminAuditLogs = () => {
       return response.data;
     },
     placeholderData: (previousData) => previousData,
-    onError: (error) => toast.error(error.response?.data?.error || 'Failed to fetch audit logs'),
   });
+
+  useQueryErrorToast(auditLoadError, auditLoadError?.response?.data?.error || 'Failed to fetch audit logs', 'admin-audit-logs-load');
 
   const logs = logsResponse?.data || [];
   const idMap = logsResponse?.idMap || {};
