@@ -32,12 +32,14 @@ for (const tz of ['UTC', 'America/Los_Angeles', 'Pacific/Auckland', 'Asia/Kolkat
 const page = readFileSync(new URL('../frontend/src/pages/EmployeeAssessments.jsx', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('../frontend/src/components/EmployeeLayout.jsx', import.meta.url), 'utf8');
 const hook = readFileSync(new URL('../frontend/src/hooks/useAssessmentBusinessDate.js', import.meta.url), 'utf8');
+const options = readFileSync(new URL('../frontend/src/queries/employeeQueries.js', import.meta.url), 'utf8');
 const backend = readFileSync(new URL('../backend/public/index.php', import.meta.url), 'utf8');
 
 assert(page.includes('useAssessmentBusinessDate()'), 'assessment page must use the business day hook');
 assert(layout.includes('useAssessmentBusinessDate()'), 'employee nav must use the same business day hook');
-assert(page.includes("queryKey: ['employeeAssessments', todayStr]"), 'assessment list must refetch across business midnight');
-assert(layout.includes("queryKey: ['employeeAssessmentsList', todayStr]"), 'employee nav must refetch across business midnight');
+assert(page.includes('employeeQueryOptions.assessments(todayStr)'), 'assessment list must use the business-day-scoped shared query');
+assert(layout.includes('employeeQueryOptions.assessments(todayStr)'), 'employee nav must use the same business-day-scoped query');
+assert(options.includes("assessments: businessDate => ['employeeAssessments', businessDate]"), 'assessment key must change at business midnight');
 assert(!page.includes("new Date().toISOString().split('T')[0]"), 'UTC ISO today extraction must not return');
 assert(hook.includes('setInterval(updateDay'), 'open tabs must refresh date after midnight');
 assert(hook.includes("addEventListener('visibilitychange'"), 'sleeping tabs must refresh on resume');
