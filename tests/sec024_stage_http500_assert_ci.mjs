@@ -37,6 +37,12 @@ for (const test of faults) {
   assert(body.length>0 && body.length<8192,test.name+': should be a small generic error');
   assert(!forbidden.test(body),test.name+': HTTP body leaked an internal detail');
   assert(!res.headers.get('access-control-allow-origin'),test.name+': untrusted CORS origin reflected');
+  if (test.path.startsWith('/api/')) {
+    assert.match(res.headers.get('cache-control')||'',/no-store/i,
+      test.name+': caught API 500 must be explicitly non-cacheable');
+    assert.match(res.headers.get('pragma')||'',/no-cache/i,
+      test.name+': caught API 500 must include no-cache legacy protection');
+  }
   rows.push({probe:test.name,http:res.status,bytes:body.length,
     cacheNoStore:/no-store/i.test(res.headers.get('cache-control')||''),
     errorContentType:res.headers.get('content-type')||'unset'});
