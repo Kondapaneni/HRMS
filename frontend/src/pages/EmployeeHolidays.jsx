@@ -72,7 +72,7 @@ const EmployeeHolidays = () => {
     },
     placeholderData: (previousData) => previousData,
     staleTime: 60 * 1000,
-      });
+  });
 
   useQueryErrorToast(loadError, 'Failed to load holidays', 'employee-holidays-load');
 

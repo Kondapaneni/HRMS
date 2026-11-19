@@ -94,7 +94,7 @@ const EmployeeExpenses = () => {
       const res = await api.get('/employee/expenses');
       return res.data.expenses || [];
     },
-      });
+  });
 
   useQueryErrorToast(loadError, 'Failed to load expenses.', 'employee-expenses-load');
 

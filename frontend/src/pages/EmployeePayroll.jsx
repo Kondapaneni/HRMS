@@ -75,7 +75,7 @@ const EmployeePayroll = () => {
       return res.data.payslips || [];
     },
     staleTime: 15 * 60 * 1000,
-      });
+  });
 
   useQueryErrorToast(loadError, 'Failed to load payroll data.', 'employee-payroll-load');
 

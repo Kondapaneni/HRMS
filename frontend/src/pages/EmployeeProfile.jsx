@@ -35,7 +35,7 @@ const EmployeeProfile = () => {
       const res = await api.get('/employee/profile');
       return res.data;
     },
-      });
+  });
 
   useQueryErrorToast(loadError, 'Failed to load profile data.', 'employee-profile-load');
 

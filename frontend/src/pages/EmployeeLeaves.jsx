@@ -55,7 +55,7 @@ const EmployeeLeaves = () => {
       const res = await api.get('/employee/leaves');
       return res.data;
     },
-      });
+  });
 
   useQueryErrorToast(loadError, 'Failed to load leaves data.', 'employee-leaves-load');
 
