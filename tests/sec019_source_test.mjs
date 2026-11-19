@@ -24,5 +24,5 @@ assert.match(helper, /random_int\(10_000_000, 99_999_999\)/,
   'Eight-digit codes must use a cryptographically secure uniform RNG');
 assert.match(helper, /MAX_ATTEMPTS/,
   'Bounded collision retry must prevent infinite loops');
-assert.doesNotMatch(helper, /EMP-/, 'New employee codes cannot carry an EMP- prefix');
-console.log('Eight-digit employee ID source checks PASS');
+assert.match(helper, /return 'EMP-' \\. \(string\) random_int\(10_000_000, 99_999_999\)/, 'New employee codes must store the EMP- prefix in the database');
+console.log('EMP-prefixed eight-digit employee ID source checks PASS');
