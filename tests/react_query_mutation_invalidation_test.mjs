@@ -5,7 +5,9 @@ const page = name => readFileSync('frontend/src/pages/' + name + '.jsx', 'utf8')
 const component = name => readFileSync('frontend/src/components/' + name + '.jsx', 'utf8');
 const occurrences = (source, text) => source.split(text).length - 1;
 const requireKey = (source, key, context) => {
-  assert(source.includes("queryClient.invalidateQueries({ queryKey: " + key + " });"),
+  const compact = source.replace(/\s+/g, '');
+  const expected = ("queryClient.invalidateQueries({ queryKey: " + key + " });").replace(/\s+/g, '');
+  assert(compact.includes(expected),
     context + ' must invalidate ' + key + ' after a successful write');
 };
 
