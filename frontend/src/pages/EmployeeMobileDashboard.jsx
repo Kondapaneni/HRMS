@@ -53,7 +53,7 @@ const EmployeeMobileDashboard = () => {
 
 
 
-  const { data: dashboardData, isLoading: loading } = useQuery(employeeDashboardQueryOptions);
+  const { data: dashboardData, isLoading: loading, error: dashboardError, refetch: retryDashboard } = useQuery(employeeDashboardQueryOptions);
 
   // Dedicated query to poll rate-limit status dynamically
   const { data: rateLimitStatus } = useQuery({ ...employeeQueryOptions.mapsRateLimit(), refetchInterval: lockoutSeconds ? 5000 : 30000 });
@@ -203,9 +203,27 @@ const EmployeeMobileDashboard = () => {
   const attendanceBadge = getAttendanceBadge(todayRecord?.status);
 
   if (loading) return <PageLoader message="Loading Dashboard..." />;
+  if (dashboardError) {
+    return (
+      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--text)]">
+        <p className="font-semibold">Dashboard data could not be loaded.</p>
+        <p className="mt-2 text-sm text-[var(--text-2)]">Please retry. Your account session and permissions remain unchanged.</p>
+        <button type="button" onClick={() => void retryDashboard()}
+          className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white">
+          Retry dashboard
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
+      {dashboardData?.resourceErrors?.length > 0 && (
+        <div role="status" className="rounded-xl border border-[var(--line)] bg-[var(--surface-alt)] px-4 py-3 text-sm text-[var(--text-2)]">
+          Some dashboard information is temporarily unavailable: {dashboardData.resourceErrors.join(', ')}.
+          Other sections remain available.
+        </div>
+      )}
 
       {/* Clean White Header & Personal Quick Page Search */}
       <section className="relative z-30 pt-1 pb-1 space-y-4">

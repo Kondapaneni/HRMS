@@ -48,7 +48,7 @@ const EmployeeDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: dashboardData, isLoading: loading } = useQuery(employeeDashboardQueryOptions);
+  const { data: dashboardData, isLoading: loading, error: dashboardError, refetch: retryDashboard } = useQuery(employeeDashboardQueryOptions);
 
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
@@ -202,6 +202,18 @@ const EmployeeDashboard = () => {
   const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '100%';
 
   if (loading) return <PageLoader message="Loading dashboard..." />;
+  if (dashboardError) {
+    return (
+      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--text)]">
+        <p className="font-semibold">Dashboard data could not be loaded.</p>
+        <p className="mt-2 text-sm text-[var(--text-2)]">Please retry. Your account session and permissions remain unchanged.</p>
+        <button type="button" onClick={() => void retryDashboard()}
+          className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white">
+          Retry dashboard
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -212,6 +224,12 @@ const EmployeeDashboard = () => {
 
       {/* Web Desktop Experience */}
       <div className="hidden md:block space-y-6 pb-12 antialiased">
+      {dashboardData?.resourceErrors?.length > 0 && (
+        <div role="status" className="rounded-xl border border-[var(--line)] bg-[var(--surface-alt)] px-4 py-3 text-sm text-[var(--text-2)]">
+          Some dashboard information is temporarily unavailable: {dashboardData.resourceErrors.join(', ')}.
+          Other sections remain available.
+        </div>
+      )}
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
