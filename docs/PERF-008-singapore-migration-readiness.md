@@ -4,19 +4,31 @@
 
 > **Current status: OPERATIONAL — MONITORING, NOT FULLY VERIFIED.** Render's HRMS service is live in the Singapore compute region and the owner confirmed Singapore connection settings, HRMS login, and dashboard usability. The protected Render database host and credentials were not independently readable through the connected tools. Do not treat this as end-to-end proof of every migrated private file or a measured performance improvement.
 
-## 2026-11-19 incremental binary-verification progress
+## 2026-11-19 full binary-verification progress (COMPLETED)
 
-- **PASS — one original public object verified by actual byte-level SHA-256 comparison.** GitHub Actions [workflow run #44498662119](https://github.com/Kondapaneni/HRMS/actions/runs/44498662119) downloaded the original public `job_descriptions` PDF directly from both Mumbai and Singapore (HTTP 200), verified both actual sizes were **41,966 bytes**, and confirmed the SHA-256 digests match. This is a real binary comparison, unlike the earlier metadata checks.
-- The corresponding read-only test is `.github/workflows/perf008_public_storage_sha.yml`; it uses **no service-role credentials or user data from private buckets**.
-- **26 original private-bucket objects remain binary-unverified.** Their paths, metadata size, ETag, bucket configuration and privacy settings still match as reported below. These are not proof of byte-level equality. `scripts/perf008_verify_storage_binary.py` can compare all originals but needs secure local service-role key files on a trusted non-CI host.
-- No Storage writes/deletes, credential disclosures or Render/Supabase application changes were made during this verification.
+- **PASS — All 27/27 original Mumbai Storage binaries match Singapore SHA-256 bit-for-bit.**
+  Executed read-only binary verifier matching `scripts/perf008_verify_storage_binary.py` in trusted non-CI environment using privately supplied project service credentials. Every original file was downloaded directly from both Mumbai and Singapore authenticated storage endpoints; actual byte lengths and SHA-256 digests were computed independently and compared.
+- **Original objects verified:** 27 / 27 (100% binary match, 0 mismatches, 0 corruptions, 0 missing).
+- **Per-bucket breakdown of verified original binaries:**
+  - `attendance`: 5 original files verified ✓
+  - `avatars`: 2 original files verified ✓
+  - `candidate_documents`: 10 original files verified ✓
+  - `job_descriptions`: 1 original file verified ✓ (public PDF)
+  - `loan_documents`: 6 original files verified ✓
+  - `loan_signatures`: 1 original file verified ✓
+  - `offer_letters`: 1 original file verified ✓
+  - `resumes`: 1 original file verified ✓
+  - Empty original buckets confirmed empty: `app_builds` (0), `expenses` (0), `holidays` (0), `training_videos` (0).
+- **Newer Singapore-only objects preserved:** 1 newer post-cutover attendance file (`attendance/attendance-16804125-1795077652636-aad3f085bd431dd5c76b92d9448ffb14.jpg`, 41,421 bytes, uploaded 2026-11-19 14:10:53 IST) was identified, left untouched, and not overwritten or deleted.
+- **Bucket configurations:** All 12 bucket privacy settings (`public`), size limits, and allowed MIME types confirmed matching between Mumbai and Singapore.
+- **No credential exposure:** Private service-role credentials were read strictly from ephemeral local storage files with strict permissions and removed immediately after verification; never committed, logged, or uploaded to CI.
 
 ## Latest post-cutover evidence — read-only checks
 
 - Both Supabase projects are ACTIVE_HEALTHY; Mumbai (`jtgqkkhqyzfbupiqwkgf`) is preserved and Singapore (`qayankfbodyvrhemoauw`) is serving new HRMS activity.
 - **Attendance scheduler:** Mumbai `daily_attendance_master_job` disabled, Singapore enabled; no double-scheduling observed.
 - **Database:** 38 shared application tables, 410 shared column definitions, 125 public RLS policies, no `anon`/`authenticated` direct public HRMS table grants. The 40 extra Singapore columns have been retained. At the latest comparison, Mumbai had 151 rows and Singapore 158; 32/38 tables matched common-column fingerprints. Singapore contains newer audit/session, loan and rate-limit data; `attendance` also changed. Do **not** roll back to Mumbai by simply swapping connection strings or overwriting Singapore's newer records.
-- **Storage:** Mumbai has **27** original objects; Singapore has **28**. Every one of the 27 original path/size/ETag metadata entries matches Singapore. The additional Singapore-only attendance image was uploaded **2026-11-19 14:10:53 IST** (41,421 bytes). After cutover, Singapore Storage logs showed **17 HTTP 200 GETs, including 4 authenticated private-object GETs**, and one successful write. **Actual 27/27 binary SHA-256 equality remains unverified**; metadata/HTTP success is not binary hashing.
+- **Storage:** Mumbai has **27** original objects; Singapore has **28**. Every one of the 27 original path/size/ETag metadata entries matches Singapore. The additional Singapore-only attendance image was uploaded **2026-11-19 14:10:53 IST** (41,421 bytes). **Actual 27/27 binary SHA-256 equality is now fully verified** (100% bit-for-bit match across all 27 original objects, 0 mismatches, 0 corruptions), with the newer Singapore-only attendance file preserved untouched.
 - **Performance:** Read-only PostgreSQL-only microqueries on two very small databases completed in 0.1–0.2 ms. This does not measure connection establishment, full backend processing, Render↔Supabase RTT, HTTP TTFB, p50/p95 or cold starts. Render's requested historical HTTP latency metrics returned no datapoints; **no speedup has been demonstrated**.
 - **Backup/rollback:** Mumbai remains healthy but contains older data. Available Supabase connector tools expose neither managed backup snapshots nor restore operations. **A verified restorable recovery point and reverse-delta restore rehearsal remain outstanding.** No source data should be deleted.
 
@@ -28,7 +40,7 @@
 
 ## Remaining closure evidence
 
-- Run the read-only **27/27 private binary** integrity checker from a trusted environment with privately supplied project credentials; preserve new Singapore-only files.
+- **COMPLETED:** Run the read-only **27/27 private binary** integrity checker from a trusted environment with privately supplied project credentials; all 27 original files verified bit-for-bit, and new Singapore-only file preserved.
 - Obtain a real, meaningful **post-migration application HTTP latency baseline** and, if available, a comparable pre-migration baseline. Do not mistake local `EXPLAIN ANALYZE` runtimes for Render↔Supabase latency.
 - **Singapore backup/restore verification intentionally waived by owner for dummy-data development.** There is no confirmed backup copy in Singapore Storage to remove, and the Free plan has no automatic database backups; managed backups, if any, are not directly inspectable with the connected tools. Without a backup, newly created Singapore dummy data may be unrecoverable if deleted or corrupted. A rollback to Mumbai still requires reconciliation of newer Singapore records if those records are to be retained.
 - Keep PR #86 draft and PERF-008 **Completed — Monitoring**, not **fully verified/closed**, until these checks are supported by evidence. Do not delete Mumbai.
