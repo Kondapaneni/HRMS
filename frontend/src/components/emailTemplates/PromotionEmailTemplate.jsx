@@ -1,3 +1,4 @@
+import EmailTemplatePreview from './EmailTemplatePreview';
 import React, { useState } from 'react';
 import templateHtml from '../../../../backend/src/Templates/promotion_letter_email.html?raw';
 import { Award, TrendingUp, IndianRupee } from 'lucide-react';
@@ -134,10 +135,7 @@ const PromotionEmailTemplate = () => {
         </button>
       </div>
 
-      <div 
-        className="email-template-preview"
-        dangerouslySetInnerHTML={{ __html: previewHtml }} 
-      />
+      <EmailTemplatePreview html={previewHtml} className="email-template-preview" />
     </div>
   );
 };

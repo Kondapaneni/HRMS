@@ -1,3 +1,4 @@
+import EmailTemplatePreview from './EmailTemplatePreview';
 import React from 'react';
 import templateHtml from '../../../../backend/src/Templates/leave_email.html?raw';
 
@@ -11,7 +12,7 @@ const LeaveEmailTemplate = () => {
     .replace(/\{\{endDate\}\}/g, '[End Date]')
     .replace(/\{\{currentYear\}\}/g, new Date().getFullYear());
 
-  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+  return <EmailTemplatePreview html={htmlContent} />;
 };
 
 export default LeaveEmailTemplate;

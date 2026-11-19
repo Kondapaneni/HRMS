@@ -1,3 +1,4 @@
+import EmailTemplatePreview from './EmailTemplatePreview';
 import React from 'react';
 import templateHtml from '../../../../backend/src/Templates/assessment_result_email.html?raw';
 
@@ -12,7 +13,7 @@ const AssessmentResultEmailTemplate = () => {
     .replace(/\{\{resultLink\}\}/g, '#')
     .replace(/\{\{currentYear\}\}/g, new Date().getFullYear());
 
-  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+  return <EmailTemplatePreview html={htmlContent} />;
 };
 
 export default AssessmentResultEmailTemplate;
