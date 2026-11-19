@@ -1,0 +1,47 @@
+name: SEC-024 safe API error boundary and diagnostic redaction
+
+on:
+  pull_request:
+    paths:
+      - 'backend/public/index.php'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/src/Config/Database.php'
+      - 'tests/sec024_*'
+      - '.github/workflows/sec024.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'backend/public/index.php'
+      - 'backend/src/Middleware/AuthMiddleware.php'
+      - 'backend/src/Config/Database.php'
+      - 'tests/sec024_*'
+      - '.github/workflows/sec024.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sec024-error-redaction:
+    name: SEC-024 isolated PHP runtime, JWT and middleware regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install locked PHP dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: SEC-024 PHP syntax and source policy
+        run: |
+          set -euo pipefail
+          php -l backend/public/index.php
+          php -l backend/src/Middleware/AuthMiddleware.php
+          php -l backend/src/Config/Database.php
+          php -l tests/sec024_http_test.php
+          node tests/sec024_source_test.mjs
+      - name: SEC-024 isolated runtime assertions
+        run: php tests/sec024_http_test.php
