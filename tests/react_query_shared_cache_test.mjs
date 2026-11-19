@@ -82,6 +82,40 @@ assert.doesNotMatch(read(path('CandidateDashboard')), /\.catch\(\(\) => \(\{ dat
 assert(read(path('CandidateDashboard')).includes('dashboardError'),
   'Candidate dashboard must display critical failed queries');
 
+const origination = read('frontend/src/queries/originationQueries.js');
+for (const resource of ['loanDashboard', 'loanLeads', 'salesDashboard', 'salesRecent',
+  'branchLeads', 'branchApplications', 'loanApplications']) {
+  assert(origination.includes(resource + ':'), 'Origination query factory missing ' + resource);
+}
+for (const [page, call] of [
+  ['OriginationLoanDashboard', 'loanDashboard()'],
+  ['OriginationLoanLeadsList', 'loanLeads(debouncedSearch)'],
+  ['OriginationMobileLoanLeadsList', 'loanLeads(debouncedSearch)'],
+  ['OriginationSaleDashboard', 'salesDashboard()'],
+  ['OriginationMobileSaleDashboard', 'salesDashboard()'],
+  ['BranchOperationsLeads', 'branchLeads(selectedEmployee, selectedPipeline, selectedStatusFilter, debouncedSearch)'],
+  ['BranchOperationsMobileLeads', 'branchLeads(selectedEmployee, selectedPipeline, selectedStatusFilter, debouncedSearch)'],
+  ['OriginationLoanApplicationsList', 'loanApplications()'],
+  ['OriginationMobileLoanApplicationsList', 'loanApplications()'],
+  ['BranchOperationsLoansApplicationsList', 'branchApplications()'],
+  ['BranchOperationsMobileLoansApplicationsList', 'branchApplications()'],
+]) {
+  assert(read(path(page)).includes('originationQueryOptions.' + call),
+    page + ' must use shared canonical business query');
+}
+for (const page of ['OriginationLoanViewApplication', 'OriginationMobileLoanViewApplications']) {
+  assert(read(path(page)).includes('...originationQueryOptions.loanApplications(), enabled: !stateApplication'),
+    page + ' must preserve disabled fallback fetch when application was passed in navigation state');
+}
+const loanServices = read('frontend/src/services/loanServices.js');
+const salesServices = read('frontend/src/services/salesServices.js');
+assert(loanServices.includes("api.get('/loans/applications', { signal })"),
+  'Loan list must support query cancellation');
+assert(loanServices.includes("api.get('/branch-operations/applications', { signal })"),
+  'Branch list must support query cancellation');
+assert(salesServices.includes("api.get('/sales/dashboard', { signal })"),
+  'Sales dashboard must support query cancellation');
+
 assert.match(dashboard, /Promise\.allSettled/,
   'Independent optional dashboard panels must not block essential data');
 assert.match(dashboard, /client\.fetchQuery\(options\)/,
