@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'scripts/perf008_encrypted_mumbai_snapshot.sh'
+      - 'scripts/perf008_verify_storage_binary.py'
       - '.github/workflows/perf008_migration_preflight.yml'
   workflow_dispatch:
 permissions:
@@ -24,3 +25,12 @@ jobs:
           grep -Fq 'gpg --no-symkey-cache --symmetric --cipher-algo AES256' "$script"
           grep -Fq 'NOT a full Supabase migration' "$script"
           echo 'PERF-008 offline backup-script safety guards PASS'
+      - name: Verify Storage checksum helper is syntactically valid without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/perf008_verify_storage_binary.py
+          python3 scripts/perf008_verify_storage_binary.py --help >/dev/null
+          ! grep -Eq 'upload|\.remove\(' scripts/perf008_verify_storage_binary.py
+          grep -Fq 'GITHUB_ACTIONS' scripts/perf008_verify_storage_binary.py
+          echo 'PERF-008 offline Storage verifier checks PASS'
