@@ -1,6 +1,6 @@
 # ACME HRMS — Consolidated Audit, Issue Status and Remediation Report
 
-**Consolidated:** 2026-11-17 · **Latest security status:** 2026-11-18 · **Original static audit:** 2026-11-11 · **Repository:** `Kondapaneni/HRMS`
+**Consolidated:** 2026-11-17 · **Latest security status:** 2026-11-18 · **Latest PERF-008 monitoring review:** 2026-11-19 · **Original static audit:** 2026-11-11 · **Repository:** `Kondapaneni/HRMS`
 
 This is the **single audit and issue-evidence report**. It contains the latest reconciled status, the full original 39-finding audit baseline, owner-reported live checks, CI/source evidence, detailed SEC remediation history, applicable security change-control notes, and the Android APK distribution guide, and the secure Candidate Offer Letter portal guide. The original static audit is **historical**, not evidence that a fixed issue remains exploitable. Closure does **not** mean all operational/release risks are resolved or that an independent production penetration test occurred.
 
@@ -11,6 +11,7 @@ This is the **single audit and issue-evidence report**. It contains the latest r
 - **39 original findings:** 24 security (SEC-001–SEC-024), 8 performance (PERF-001–PERF-008), and 7 quality (QUAL-001–QUAL-007).
 - **21 closed / 39 (53.8%):** SEC-001 through SEC-021 at their *documented* security scope; **21 / 24 security findings (87.5%)**. All seven original critical-severity findings are closed at their recorded scopes.
 - **18 still open:** SEC-022–SEC-024, PERF-001–PERF-008, QUAL-001–QUAL-007. QUAL-002 has a partial improvement but is **not closed**. No PERF or QUAL finding is marked closed.
+- **PERF-008 monitoring reconciliation (2026-11-19):** The Singapore development migration is operational, and all 27 original Storage binaries were reported SHA-256 identical in a trusted external environment (0 mismatches; one newer Singapore-only object preserved). External public HTTP p50/p95 and Render PHP backend-processing baselines are documented in [draft PR #86](https://github.com/Kondapaneni/HRMS/pull/86). **Not formally closed:** authenticated browser/dashboard end-to-end timing, a comparable historical Mumbai HTTP baseline, and migration-attributable speedup remain unverified. The owner waived development backup/restore testing and accepted its recovery risk. Do not delete or overwrite newer Singapore data. This migration evidence does **not** independently resolve the original PERF-008 single-container/PHP database-pooling scalability finding.
 - **SEC-019 reconciliation:** the separate tracker predated final owner-confirmed SEC-019 closure. On 2026-11-17, the [SEC-019 closure record](#sec-019-remediation-and-verification) reports PR #70's deployed single squash commit, complete live steps 4A–4F, database checks, and accepted follow-ups. This supersedes the old pending status.
 - **Important residuals:** SEC-018 backup/restore recovery not independently verified (owner accepted risk); SEC-015 historical queued credentials/rotation needs separate release work; SEC-005 historical exposure/rotation may remain; legacy SEC-019 loan document aliases and retired cleanup-function record remain. Overall **HRMS is not granted production readiness** by this report.
 
@@ -49,7 +50,7 @@ For the eight PERF findings and seven QUAL findings, see the [original audit bas
 
 ### HRMS Audit Issue Tracker — Checklist
 
-**As of:** 2026-11-18, reconciled with SEC-019 owner-confirmed closure (2026-11-17) and SEC-021 owner-confirmed closure after [PR #76](https://github.com/Kondapaneni/HRMS/pull/76) deployed.
+**As of:** 2026-11-19, reflecting SEC-019/SEC-021 verified development closures and PERF-008 migration monitoring evidence ([draft PR #86](https://github.com/Kondapaneni/HRMS/pull/86)).
 **Baseline:** [AUDIT_REPORT.md](#historical-audit-baseline-2026-11-11) (2026-11-11), [GitHub commits](https://github.com/Kondapaneni/HRMS/commits/main), CI runs and owner-confirmed Android 14 testing.  
 **Important:** Original audit is a historical baseline, not an up-to-date closure record. "Pending / not verified" does **not** prove a vulnerability is still exploitable; it means no completed remediation and verification were established in this progress review.
 
@@ -57,9 +58,9 @@ For the eight PERF findings and seven QUAL findings, see the [original audit bas
 
 - **39 original findings:** 24 security (SEC), 8 performance (PERF), 7 code quality (QUAL).
 - **21 closed:** SEC-001 through SEC-021, each at its documented verification scope. SEC-019 closed on 2026-11-17 after owner-led live checks and read-only database postconditions; SEC-021 closed on 2026-11-18 based on deployed code, CI and owner-reported browser/Android checks. **SEC-018 recovery remains unverified and its residual risk explicitly accepted.** SEC-015 historical credential/queue risk remains separate release work.
-- **1 partially fixed / still open:** QUAL-002.
-- **17 pending / not verified:** No completed remediation plus verification established for these remaining findings.
-- **18 still open in total:** 1 partial (QUAL-002) + 17 pending.
+- **2 partially completed / still open:** QUAL-002, and PERF-008 (migration operational and measured; original pooling issue and authenticated-browser timing remain unresolved).
+- **16 pending / not verified:** No completed remediation plus verification established for these remaining findings.
+- **18 still open in total:** 2 partial (QUAL-002, PERF-008) + 16 pending.
 - **21 / 39 closed = 53.8%.** Security 21 / 24 closed (87.5%); performance 0 / 8; quality 0 / 7.
 - **All 7 of the 7 original critical-severity findings closed** (SEC-001, SEC-002, SEC-008, SEC-009, SEC-010, SEC-011 and SEC-020). **This does not clear HRMS for production**: open high/medium findings, credential rotation and wider release gates remain.
 
@@ -101,7 +102,7 @@ Legend: `[x]` = **CLOSED** in the project issue tracker at its stated, verified 
 - [ ] **PERF-005** — Unbounded Android wakelock and frequent GPS polling (**MEDIUM**) · **Pending / not verified** — No completed remediation plus verification established in this review.
 - [ ] **PERF-006** — Wildcard SQL queries and runtime overhead (**HIGH**) · **Pending / not verified** — No completed remediation plus verification established in this review.
 - [ ] **PERF-007** — Sparse indexes and inefficient UUID casts (**HIGH**) · **Pending / not verified** — No completed remediation plus verification established in this review.
-- [ ] **PERF-008** — Single-container PHP/database pooling limitations (**MEDIUM**) · **Pending / not verified** — No completed remediation plus verification established in this review.
+- [ ] **PERF-008** — Single-container PHP/database pooling limitations (**MEDIUM**) · **OPERATIONAL — MONITORING, not formally closed (2026-11-19).** Singapore migration is functioning; 27/27 original Storage SHA-256 equality was reported from a trusted external verifier and current public HTTP/backend latency baselines were documented. Authenticated browser end-to-end timing, a comparable Mumbai HTTP baseline and migration-caused speedup remain unverified. DEV backup/restore verification was owner-waived; Singapore-only changes must be preserved. **The original PHP pooling/scalability finding is not independently resolved by migration.** [Migration evidence in draft PR #86](https://github.com/Kondapaneni/HRMS/pull/86).
 
 #### Quality — QUAL-001 to QUAL-007
 
