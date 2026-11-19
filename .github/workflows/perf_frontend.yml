@@ -9,6 +9,7 @@ on:
       - 'tests/react_query_v5_error_test.mjs'
       - 'tests/react_query_shared_cache_test.mjs'
       - 'tests/react_query_mutation_invalidation_test.mjs'
+      - 'frontend/scripts/react-query-cache-measurement.mjs'
       - 'tests/perf_cold_route_policy_test.mjs'
       - 'tests/perf_refresh_boot_policy_test.mjs'
       - '.github/workflows/perf_frontend.yml'
@@ -43,6 +44,9 @@ jobs:
         run: |
           npm ci
           npm run build
+      - name: Measure in-memory React Query cache semantics (synthetic)
+        working-directory: frontend
+        run: node scripts/react-query-cache-measurement.mjs
       - name: Verify production assets and SEC-021 safeguards
         run: |
           node tests/perf_frontend_policy_test.mjs --built
