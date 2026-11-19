@@ -5,6 +5,7 @@ on:
       - refactor/remove-react-query-cache
     paths:
       - '.github/workflows/react_query_reset_once.yml'
+      - 'scripts/react_query_purge_once.py'
 permissions:
   contents: write
 jobs:
