@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
-import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { 
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
@@ -461,7 +460,7 @@ const EmployeeProfile = () => {
                 )}
                 {employeeId && (
                   <span className="inline-flex items-center rounded-full bg-[var(--surface-alt)] border border-[var(--line)] px-3 py-0.5 text-xs font-semibold text-[var(--text)]">
-                    ID: {formatEmployeeId(employeeId)}
+                    ID: {employeeId || 'Not set'}
                   </span>
                 )}
                 <span className="inline-flex items-center rounded-full bg-[#E6F6EC] text-[#1F9D55] px-3 py-0.5 text-xs font-semibold">
@@ -607,7 +606,7 @@ const EmployeeProfile = () => {
                   <Shield className="w-4 h-4 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Employee ID</p>
-                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{formatEmployeeId(employeeId)}</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{employeeId || 'Not set'}</p>
                   </div>
                 </div>
 
