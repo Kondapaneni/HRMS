@@ -467,7 +467,6 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
         );
 
         $conn->commit();
-        \App\Utils\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Leave approved successfully']));
         return $response->withHeader('Content-Type', 'application/json');
     } catch (\Exception $e) {
@@ -516,7 +515,6 @@ $app->post('/api/admin/leaves/{id}/reject', function (Request $request, Response
         );
     }
 
-    \App\Utils\Cache::delete('dashboard_stats');
 
     $response->getBody()->write(json_encode(['message' => 'Leave rejected successfully']));
     return $response->withHeader('Content-Type', 'application/json');
