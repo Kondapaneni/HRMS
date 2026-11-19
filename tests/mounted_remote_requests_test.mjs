@@ -27,12 +27,14 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   const bus = useRefreshControl();
   let calls = 0;
   let current;
+  const renders = [];
   const Probe = ({ id }) => {
     current = useRemoteData({
       scope: ['synthetic', id],
       load: async () => ({ id, sequence: ++calls }),
       reloadOnFocus: false,
     });
+    renders.push({ id, data: current.data });
     return createElement('span', null, current.data?.sequence ?? 'loading');
   };
   let host = document.createElement('section');
@@ -48,6 +50,10 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   await act(async () => { await bus.refresh({ scope: ['synthetic'] }); await next(); });
   assert(current.data.sequence > first, 'Mounted view refresh must fetch from the server');
 
+  await act(async () => { root.render(createElement(Probe, { id: 2 })); await next(); });
+  assert.equal(current.data?.id, 2, 'New scope must load its own data');
+  assert(!renders.some(entry => entry.id === 2 && entry.data?.id === 1),
+    'Do not show another scope\'s private data during the render before its effect');
   await act(async () => { root.unmount(); });
   assert.equal(bus.peek(['synthetic', 1]), undefined, 'Unmounted data may not be retained');
   root = createRoot(host);
