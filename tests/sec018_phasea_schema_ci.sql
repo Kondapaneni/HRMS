@@ -795,16 +795,6 @@ BEGIN
   RETURN;
 END;
 $sec018_rls_acl_only$;
-CREATE OR REPLACE FUNCTION public.enforce_direct_chat_two_participants()
- RETURNS trigger
- LANGUAGE plpgsql
- SET search_path TO 'public', 'pg_temp'
-AS $sec018_direct_chat_acl_only$
-BEGIN
-  -- ACL model only. No chat data or foreign tables are fabricated.
-  RETURN NEW;
-END;
-$sec018_direct_chat_acl_only$;
 CREATE OR REPLACE FUNCTION public.process_audit_log()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -941,17 +931,6 @@ BEGIN
 END;
 $function$
 ;
-CREATE OR REPLACE FUNCTION public.update_assets_updated_at_column()
- RETURNS trigger
- LANGUAGE plpgsql
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-    BEGIN
-        NEW.updated_at = CURRENT_TIMESTAMP;
-        RETURN NEW;
-    END;
-    $function$
-;
 ALTER TABLE public.application_timeline ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assessment_attempts ENABLE ROW LEVEL SECURITY;
@@ -998,7 +977,6 @@ CREATE TRIGGER trg_audit_leaves AFTER INSERT OR UPDATE OR DELETE ON public.leave
 CREATE TRIGGER trg_audit_payslips AFTER INSERT OR UPDATE OR DELETE ON public.payslips FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
 CREATE TRIGGER trg_audit_user_feature_access AFTER INSERT OR UPDATE OR DELETE ON public.user_feature_access FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
 CREATE TRIGGER trg_audit_users AFTER INSERT OR UPDATE OR DELETE ON public.users FOR EACH ROW EXECUTE FUNCTION public.process_audit_log();
-CREATE TRIGGER update_assets_updated_at BEFORE UPDATE ON public.assets FOR EACH ROW EXECUTE FUNCTION public.update_assets_updated_at_column();
 -- The real database has an email_queue webhook trigger. Recreate its
 -- name/timing/argument shape in disposable CI, but NEVER install the network
 -- implementation or point at a real service. This stub performs zero I/O.
