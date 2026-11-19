@@ -76,7 +76,7 @@ const CandidateDashboard = () => {
     return 'Good Evening';
   };
 
-  const { data: dashboardData, isLoading } = useQuery({
+  const { data: dashboardData, isLoading, error: dashboardError, refetch: retryDashboard } = useQuery({
     queryKey: ['candidate', 'dashboard', profile?.id],
     queryFn: async ({ client }) => {
       const [profileData, appsData, jobsData] = await Promise.all([
@@ -138,6 +138,18 @@ const CandidateDashboard = () => {
 
   if (isLoading && !dashboardData) {
     return <PageLoader message="Loading Candidate Dashboard..." />;
+  }
+  if (dashboardError) {
+    return (
+      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--text)]">
+        <p className="font-semibold">Candidate dashboard data could not be loaded.</p>
+        <p className="mt-2 text-sm text-[var(--text-2)]">Your application and profile records are not shown until the request succeeds.</p>
+        <button type="button" onClick={() => void retryDashboard()}
+          className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white">
+          Retry dashboard
+        </button>
+      </div>
+    );
   }
 
   return (
