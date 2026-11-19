@@ -14,7 +14,7 @@ IMPORT = re.compile(r'''import\s*\{([^}]+)\}\s*from\s*['"]@tanstack/react-query[
 CHANGED = []
 
 for path in sorted(ROOT.rglob('*')):
-    if path.suffix not in ('.jsx', '.js', '.tsx', '.ts') or path == REMOTE:
+    if path.suffix not in ('.jsx', '.js', '.tsx', '.ts') or path in (REMOTE, ROOT / 'App.jsx'):
         continue
     original = path.read_text(encoding='utf-8')
     if '@tanstack/react-query' not in original:
