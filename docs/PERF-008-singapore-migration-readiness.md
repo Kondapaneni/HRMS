@@ -17,13 +17,13 @@
 
 1. Updated `scripts/perf008_verify_storage_binary.py` to compare all **27 original Mumbai binaries** against their Singapore counterparts while **allowing new Singapore-only files**. Missing original files, altered bytes, altered bucket privacy settings and unexpected source counts still FAIL. It never reads, modifies or deletes destination-only files.
 2. Added isolated, credential-free regression cases in `tests/perf008_storage_verifier_test.py` and wired them into `.github/workflows/perf008_migration_preflight.yml`. **Offline test success is not the real private-file SHA-256 result.**
-3. Added `scripts/perf008_encrypted_singapore_snapshot.sh` for a future encrypted, guarded application-schema snapshot from the *current* Singapore database. This requires securely configured PostgreSQL access in a trusted non-CI environment; **it has not been executed**. Like the Mumbai helper, it is *not* a full Supabase/Storage/roles backup and is not a restoration test.
+3. **Owner requested removal of Singapore backups for this dummy-data development project.** Singapore Supabase is on the **Free** organization plan, which does not include automatic scheduled database backups. A read-only inspection found no backup/archive/snapshot objects in Singapore Storage; its 28 objects remain application data. No managed backup inventory or deletion endpoint is exposed via the connected tools. The unused `scripts/perf008_encrypted_singapore_snapshot.sh` helper was removed from this draft PR; it had never been executed and was never stored on the Singapore server. This action did **not** delete live HRMS data or any provider-managed backups.
 
 ## Remaining closure evidence
 
 - Run the read-only **27/27 private binary** integrity checker from a trusted environment with privately supplied project credentials; preserve new Singapore-only files.
 - Obtain a real, meaningful **post-migration application HTTP latency baseline** and, if available, a comparable pre-migration baseline. Do not mistake local `EXPLAIN ANALYZE` runtimes for Render↔Supabase latency.
-- Create and restore-test a complete **Singapore recovery point**, including current database writes, roles, custom audit secrets, private Storage binaries and appropriate infrastructure/secrets restoration instructions. Prepare selective reverse synchronization for Mumbai if rollback is needed.
+- **Singapore backup/restore verification intentionally waived by owner for dummy-data development.** There is no confirmed backup copy in Singapore Storage to remove, and the Free plan has no automatic database backups; managed backups, if any, are not directly inspectable with the connected tools. Without a backup, newly created Singapore dummy data may be unrecoverable if deleted or corrupted. A rollback to Mumbai still requires reconciliation of newer Singapore records if those records are to be retained.
 - Keep PR #86 draft and PERF-008 **Completed — Monitoring**, not **fully verified/closed**, until these checks are supported by evidence. Do not delete Mumbai.
 
 ---
