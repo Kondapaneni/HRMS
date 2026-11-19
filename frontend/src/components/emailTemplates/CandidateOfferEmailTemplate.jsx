@@ -1,3 +1,4 @@
+import EmailTemplatePreview from './EmailTemplatePreview';
 import templateHtml from '../../../../backend/src/Templates/candidate_offer_email.html?raw';
 
 const CandidateOfferEmailTemplate = () => {
@@ -10,10 +11,7 @@ const CandidateOfferEmailTemplate = () => {
     .replace(/{{currentYear}}/g, new Date().getFullYear());
 
   return (
-    <div 
-      className="email-template-preview"
-      dangerouslySetInnerHTML={{ __html: previewHtml }} 
-    />
+    <EmailTemplatePreview html={previewHtml} className="email-template-preview" />
   );
 };
 

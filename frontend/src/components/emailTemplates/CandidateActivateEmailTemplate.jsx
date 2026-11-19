@@ -1,3 +1,4 @@
+import EmailTemplatePreview from './EmailTemplatePreview';
 import React from 'react';
 import templateHtml from '../../../../backend/src/Templates/candidate_activate_email.html?raw';
 
@@ -9,7 +10,7 @@ const CandidateActivateEmailTemplate = () => {
     .replace('{{currentYear}}', new Date().getFullYear());
 
   return (
-    <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
+    <EmailTemplatePreview html={previewHtml} />
   );
 };
 

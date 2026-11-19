@@ -1,3 +1,4 @@
+import EmailTemplatePreview from './EmailTemplatePreview';
 import templateHtml from '../../../../backend/src/Templates/candidate_interview_email.html?raw';
 
 const CandidateInterviewEmailTemplate = () => {
@@ -11,10 +12,7 @@ const CandidateInterviewEmailTemplate = () => {
     .replace(/{{currentYear}}/g, new Date().getFullYear());
 
   return (
-    <div 
-      className="email-template-preview"
-      dangerouslySetInnerHTML={{ __html: previewHtml }} 
-    />
+    <EmailTemplatePreview html={previewHtml} className="email-template-preview" />
   );
 };
 

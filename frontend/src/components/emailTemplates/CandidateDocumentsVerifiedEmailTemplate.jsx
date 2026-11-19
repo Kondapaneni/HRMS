@@ -1,3 +1,4 @@
+import EmailTemplatePreview from './EmailTemplatePreview';
 import templateHtml from '../../../../backend/src/Templates/candidate_documents_verified_email.html?raw';
 
 const CandidateDocumentsVerifiedEmailTemplate = () => {
@@ -9,10 +10,7 @@ const CandidateDocumentsVerifiedEmailTemplate = () => {
     .replace(/{{currentYear}}/g, new Date().getFullYear());
 
   return (
-    <div 
-      className="email-template-preview"
-      dangerouslySetInnerHTML={{ __html: previewHtml }} 
-    />
+    <EmailTemplatePreview html={previewHtml} className="email-template-preview" />
   );
 };
 

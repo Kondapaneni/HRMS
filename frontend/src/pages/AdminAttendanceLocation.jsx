@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { MapPin, ArrowRightToLine, ArrowLeftFromLine, MapPinOff, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui';
 import useMapsBrowserKey from '../hooks/useMapsBrowserKey';
+import { buildAttendanceInfoWindowContent } from '../utils/attendanceInfoWindow';
 
 const AdminAttendanceLocation = () => {
   const navigate = useNavigate();
@@ -69,27 +70,7 @@ const AdminAttendanceLocation = () => {
       title = isTracker ? `Tracker Punch #${index + 1}` : `Punch In #${index + 1}`;
     }
 
-    let content = `<div style="max-width:320px;font-family:Inter,system-ui,sans-serif;color:#131315;padding:4px;">
-      <div style="font-weight:600;margin-bottom:8px;font-size:13px;color:#131315;">${title}</div>
-      <div style="display:flex;gap:10px;align-items:flex-start;">`;
-
-    const isWebLabel = (url) => url && !url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('/');
-
-    if (photoUrl && !isWebLabel(photoUrl)) {
-      content += `<div style="flex-shrink:0;width:105px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:12px;box-shadow:0 4px 12px rgba(19,19,21,0.08);" /></div>`;
-    } else if (photoUrl && isWebLabel(photoUrl)) {
-      content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#EAF0FA;border:1px solid #D2E0F5;border-radius:10px;color:#5B86C2;font-size:11px;text-align:center;box-sizing:border-box;font-weight:600;">${photoUrl}</div>`;
-    } else {
-      content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#F8F8F8;border:1px solid #EFEFF1;border-radius:10px;color:#6B6B75;font-size:11px;text-align:center;box-sizing:border-box;">No photo</div>`;
-    }
-
-    content += `<div style="font-size:11.5px;line-height:1.5;color:#6B6B75;flex-grow:1;min-width:0;">
-      <div style="word-break:break-word;"><strong style="color:#131315;">Location:</strong><br/>${lat && lng ? `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}` : 'Not available'}</div>
-      <div style="margin-top:6px;word-break:break-word;"><strong style="color:#131315;">Address:</strong><br/>${address || 'Not available'}</div>
-    </div>
-    </div></div>`;
-
-    infoWindow.setContent(content);
+    infoWindow.setContent(buildAttendanceInfoWindowContent({ title, photoUrl, lat, lng, address }, document));
     infoWindow.open(map, marker);
   };
 

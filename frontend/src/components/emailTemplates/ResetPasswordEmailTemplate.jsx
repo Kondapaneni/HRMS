@@ -1,3 +1,4 @@
+import EmailTemplatePreview from './EmailTemplatePreview';
 import React from 'react';
 import templateHtml from '../../../../backend/src/Templates/reset_password.html?raw';
 
@@ -6,7 +7,7 @@ const ResetPasswordEmailTemplate = () => {
     .replace(/\{\{resetLink\}\}/g, '#')
     .replace(/\{\{currentYear\}\}/g, new Date().getFullYear());
 
-  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+  return <EmailTemplatePreview html={htmlContent} />;
 };
 
 export default ResetPasswordEmailTemplate;
