@@ -53,7 +53,7 @@ assert(read(path('EmployeeMobileDashboard')).includes('employeeQueryOptions.maps
 assert(candidateKeys.includes("['candidate', 'sidebarProfile', candidateId]"));
 assert(candidateKeys.includes("['candidate', 'profile', candidateId]"));
 assert(read('frontend/src/components/CandidateLayout.jsx').includes('candidateQueryKeys.sidebar(profile?.id)'));
-assert(read(path('CandidateProfile')).includes('candidateQueryKeys.profile(profile?.id)'),
+assert(read(path('CandidateProfile')).includes('candidateQueryOptions.profile(profile?.id)'),
   'Partial sidebar Supabase rows must never overwrite full API candidate profiles');
 assert(read('frontend/src/components/CandidateLayout.jsx').includes('if (error) throw error'),
   'Supabase sidebar failures must not be cached as valid null profiles');
