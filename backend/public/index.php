@@ -62,10 +62,6 @@ $app->add(function (Request $request, $handler) {
         ->withoutHeader('Content-Encoding');
 });
 
-// SEC-024: Never return file paths, SQL diagnostics, or stack traces to
-// clients. Error details belong in server logs, including DEV deployments.
-$app->addErrorMiddleware(false, true, true);
-
 // Add custom audit middleware
 $app->add(new AuditMiddleware());
 
@@ -134,6 +130,31 @@ $app->add(function (Request $request, $handler) {
     return $response->withAddedHeader('Set-Cookie',
         'hrms_file_auth=' . $matches[1] . '; Max-Age=1800; ' . $cookieAttributes);
 });
+
+// SEC-024: Register error handling LAST: Slim executes middleware in
+// reverse registration order. This makes the safe error handler outermost,
+// covering all middleware as well as route handlers; never reflect internal
+// exception details even when APP_ENV is development.
+// SEC-024/SEC-021: ErrorMiddleware sits outside other response wrappers.
+// When it catches an exception, their no-store header callbacks do not run.
+// Retain Slim's default exception sanitization + server-side logging, then
+// explicitly mark failed API responses non-cacheable.
+$sec024ErrorMiddleware = $app->addErrorMiddleware(false, true, true);
+$sec024BaseErrorHandler = $sec024ErrorMiddleware->getDefaultErrorHandler();
+$sec024ErrorMiddleware->setDefaultErrorHandler(
+    static function (Request $request, \Throwable $exception, bool $displayErrorDetails,
+        bool $logErrors, bool $logErrorDetails) use ($sec024BaseErrorHandler): Response {
+        $response = $sec024BaseErrorHandler(
+            $request, $exception, $displayErrorDetails, $logErrors, $logErrorDetails
+        );
+        if (str_starts_with($request->getUri()->getPath(), '/api/')) {
+            return $response
+                ->withHeader('Cache-Control', 'no-store')
+                ->withHeader('Pragma', 'no-cache');
+        }
+        return $response;
+    }
+);
 
 // Handle preflight OPTIONS requests for CORS
 $app->options('/{routes:.+}', function ($request, $response, $args) {

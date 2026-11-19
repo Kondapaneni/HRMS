@@ -7,8 +7,8 @@ use App\Utils\EmployeeId;
 $seen = [];
 for ($i = 0; $i < 2000; $i++) {
     $id = EmployeeId::generate();
-    if (!preg_match('/\A[1-9][0-9]{7}\z/D', $id) || strlen($id) !== 8) {
-        throw new RuntimeException('Employee code must contain exactly eight decimal digits');
+    if (!preg_match('/\AEMP-[1-9][0-9]{7}\z/D', $id) || strlen($id) !== 12) {
+        throw new RuntimeException('Employee code must be EMP- followed by eight decimal digits');
     }
     $seen[$id] = true;
 }
@@ -23,14 +23,14 @@ if (count($seen) < 1950) {
 $calls = 0;
 [$code, $employeeUuid] = EmployeeId::insertUnique(
     function (string $candidate) use (&$calls): string|false {
-        if (!preg_match('/\A[1-9][0-9]{7}\z/D', $candidate)) {
+        if (!preg_match('/\AEMP-[1-9][0-9]{7}\z/D', $candidate)) {
             throw new RuntimeException('Invalid retry candidate');
         }
         $calls++;
         return $calls < 3 ? false : 'test-employee-uuid';
     }
 );
-if ($calls !== 3 || $employeeUuid !== 'test-employee-uuid' || strlen($code) !== 8) {
+if ($calls !== 3 || $employeeUuid !== 'test-employee-uuid' || strlen($code) !== 12) {
     throw new RuntimeException('Employee code collision retry failed');
 }
 
@@ -62,4 +62,4 @@ if (!$failedClosed) {
     throw new RuntimeException('Unrelated insert failure was swallowed');
 }
 
-echo "Eight-digit employee ID format, secure randomness and retries PASS\n";
+echo "EMP-prefixed employee ID storage format, secure randomness and retries PASS\n";

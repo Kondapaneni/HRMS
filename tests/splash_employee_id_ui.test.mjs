@@ -1,23 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { formatEmployeeId } from '../frontend/src/utils/employeeIdDisplay.js';
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('SEC-019 eight-digit employee ID is prefixed for display only', () => {
-  assert.equal(formatEmployeeId('12345678'), 'EMP-12345678');
-  assert.equal(formatEmployeeId(12345678), 'EMP-12345678');
-  assert.equal(formatEmployeeId(' 12345678 '), 'EMP-12345678');
-  assert.equal(formatEmployeeId('EMP-12345678'), 'EMP-12345678');
-  assert.equal(formatEmployeeId('EMP-LEGACY'), 'EMP-LEGACY');
-  assert.equal(formatEmployeeId('EMP001'), 'EMP001');
-  assert.equal(formatEmployeeId('abc-def'), 'abc-def');
-  assert.equal(formatEmployeeId(''), 'Not set');
-  assert.equal(formatEmployeeId(null, '-'), '-');
+test('SEC-019 database stores the full EMP-prefixed employee code', () => {
+  const helper = read('backend/src/Utils/EmployeeId.php');
+  assert.match(helper, /return 'EMP-' \. \(string\) random_int\(10_000_000, 99_999_999\)/);
+  assert.doesNotMatch(helper, /return \(string\) random_int/, 'Do not save numeric-only employee codes');
 });
 
-test('all major employee ID views use the display formatter', () => {
+test('employee views display the database employee ID directly without adding EMP-', () => {
   const files = [
     'frontend/src/pages/EmployeeDashboard.jsx',
     'frontend/src/pages/EmployeeProfile.jsx',
@@ -27,7 +20,10 @@ test('all major employee ID views use the display formatter', () => {
     'frontend/src/components/EmployeeSelect.jsx',
   ];
   for (const file of files) {
-    assert.match(read(file), /formatEmployeeId\(/, `Expected formatted employee display in ${file}`);
+    const source = read(file);
+    assert.doesNotMatch(source, /formatEmployeeId|employeeIdDisplay|\`EMP-\$\{/,
+      `No frontend prefix formatter or added EMP- allowed in ${file}`);
+    assert.match(source, /employeeId/, `Database employeeId must be displayed in ${file}`);
   }
   assert.doesNotMatch(read('frontend/src/pages/EmployeeDashboard.jsx'), /Loading workspace\.\.\./);
 });

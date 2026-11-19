@@ -1,0 +1,110 @@
+name: SEC-024 isolated staging HTTP 500 fault-injection
+
+on:
+  pull_request:
+    paths:
+      - 'tests/sec024_stage_http500_*'
+      - '.github/workflows/sec024_staging_http500.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-staging-http:
+    name: Production entrypoint, ephemeral HTTP, synthetic PostgreSQL only
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec024_stage_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: SEC024_SYNTHETIC_PG_ONLY
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec024_stage_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      SEC024_STAGING_ISOLATED: 'true'
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec024_stage_ci
+      DB_USERNAME: postgres
+      DB_PASSWORD: SEC024_SYNTHETIC_PG_ONLY
+      DB_PDO_PREPARE_MODE: pooler
+      SEC018_NATIVE_SESSION_ENABLED: 'false'
+      SEC018_DB_USE_RESTRICTED: 'false'
+      SEC018_AUDIT_CONTEXT_ENABLED: 'false'
+      SEC024_STAGING_SERVER_LOG: /tmp/sec024-stage-http.log
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql, curl
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate isolated staging boundaries and install PHP dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in DATABASE_URL SUPABASE_URL SUPABASE_SECRET_KEY SUPABASE_SERVICE_ROLE_KEY RENDER_SERVICE_ID RENDER; do
+            if [ -n "${!key:-}" ]; then echo "REFUSED: unexpected external environment key: $key"; exit 2; fi
+          done
+          test "$DB_HOST" = 127.0.0.1 && test "$DB_DATABASE" = sec024_stage_ci
+          node --check tests/sec024_stage_http500_inject_ci.mjs
+          node --check tests/sec024_stage_http500_assert_ci.mjs
+          composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Create only synthetic maintenance fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          PGPASSWORD=SEC024_SYNTHETIC_PG_ONLY psql -h 127.0.0.1 -U postgres -d sec024_stage_ci -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE TABLE public.global_settings (
+            id integer PRIMARY KEY,
+            maintenance_mode boolean NOT NULL DEFAULT false
+          );
+          INSERT INTO public.global_settings (id,maintenance_mode) VALUES (1,false);
+          SQL
+      - name: Inject exception canaries only into ephemeral CI checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/sec024_stage_http500_inject_ci.mjs
+          php -l backend/public/index.php
+          cat > backend/.env <<'ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec024_stage_ci
+          DB_USERNAME=postgres
+          DB_PASSWORD=SEC024_SYNTHETIC_PG_ONLY
+          DB_PDO_PREPARE_MODE=pooler
+          SEC018_NATIVE_SESSION_ENABLED=false
+          SEC018_DB_USE_RESTRICTED=false
+          SEC018_AUDIT_CONTEXT_ENABLED=false
+          JWT_SECRET=SEC024_SYNTHETIC_JWT_ONLY_NEVER_DEPLOY_THIS_SECRET
+          APP_ENV=production
+          ENV
+      - name: Execute real HTTP 500 faults in isolated staging only
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Listening strictly on loopback. The tracked GitHub index.php remains
+          # untouched; this checkout is discarded with the Actions runner.
+          php -S 127.0.0.1:8789 -t backend/public backend/public/index.php > "$SEC024_STAGING_SERVER_LOG" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          healthy=0
+          for i in {1..20}; do
+            if curl --silent --fail --max-time 2 http://127.0.0.1:8789/ >/dev/null 2>&1; then healthy=1; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          [ "$healthy" = 1 ] || { echo 'FAIL: staging HTTP service unavailable'; exit 1; }
+          if ! node tests/sec024_stage_http500_assert_ci.mjs; then
+            echo 'Synthetic staging server diagnostics (no real credentials configured):'
+            grep -E 'Database connection failed|SEC-020: Maintenance authorization|PDOException|PHP Fatal|Uncaught' "$SEC024_STAGING_SERVER_LOG" | tail -n 20 || true
+            exit 1
+          fi
