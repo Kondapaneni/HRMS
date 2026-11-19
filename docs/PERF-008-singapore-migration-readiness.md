@@ -1,5 +1,7 @@
 # PERF-008 — Singapore cutover verification and recovery status (2026-11-19)
 
+> **Environment classification:** Acme HRMS is a development-only application containing dummy/test data, as confirmed by its owner. The current Render deployment is the development app, not a real-employee production workload. Even so, secure access keys, deployed authentication settings, rollback procedures, and meaningful test evidence must not be invented or exposed.
+
 > **Current status: OPERATIONAL — MONITORING, NOT FULLY VERIFIED.** Render's HRMS service is live in the Singapore compute region and the owner confirmed Singapore connection settings, HRMS login, and dashboard usability. The protected Render database host and credentials were not independently readable through the connected tools. Do not treat this as end-to-end proof of every migrated private file or a measured performance improvement.
 
 ## Latest post-cutover evidence — read-only checks
