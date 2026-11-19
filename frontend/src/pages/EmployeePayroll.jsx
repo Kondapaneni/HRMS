@@ -18,6 +18,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { useAuth } from '../contexts/AuthContext';
 import EmployeeMobilePayroll from './EmployeeMobilePayroll';
 
@@ -67,15 +68,16 @@ const EmployeePayroll = () => {
   const { profile } = useAuth();
   const [selectedPayslip, setSelectedPayslip] = useState(null);
 
-  const { data: payslips = [], isLoading: loading } = useQuery({
+  const { data: payslips = [], isLoading: loading, error: loadError } = useQuery({
     queryKey: ['employee', 'payroll'],
     queryFn: async () => {
       const res = await api.get('/employee/payroll');
       return res.data.payslips || [];
     },
     staleTime: 15 * 60 * 1000,
-    onError: () => toast.error('Failed to load payroll data.'),
-  });
+      });
+
+  useQueryErrorToast(loadError, 'Failed to load payroll data.', 'employee-payroll-load');
 
   const latestPayslip = payslips[0];
   

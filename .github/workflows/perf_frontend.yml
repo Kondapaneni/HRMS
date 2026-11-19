@@ -6,6 +6,7 @@ on:
       - 'frontend/vite.config.js'
       - 'tests/perf_frontend_policy_test.mjs'
       - 'tests/react_query_cache_keys_test.mjs'
+      - 'tests/react_query_v5_error_test.mjs'
       - 'tests/perf_cold_route_policy_test.mjs'
       - 'tests/perf_refresh_boot_policy_test.mjs'
       - '.github/workflows/perf_frontend.yml'
@@ -26,6 +27,7 @@ jobs:
         run: |
           node tests/perf_frontend_policy_test.mjs
           node tests/react_query_cache_keys_test.mjs
+          node tests/react_query_v5_error_test.mjs
           node tests/perf_cold_route_policy_test.mjs
           node tests/perf_refresh_boot_policy_test.mjs
           node tests/sec021_policy_test.mjs

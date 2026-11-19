@@ -16,6 +16,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { useNavigate } from 'react-router-dom';
 import EmployeeMobileProfile from './EmployeeMobileProfile';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,14 +29,15 @@ const EmployeeProfile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isMfaModalOpen, setIsMfaModalOpen] = useState(false);
 
-  const { data: profileResponse, isLoading: loading } = useQuery({
+  const { data: profileResponse, isLoading: loading, error: loadError } = useQuery({
     queryKey: ['employee', 'profile'],
     queryFn: async () => {
       const res = await api.get('/employee/profile');
       return res.data;
     },
-    onError: () => toast.error('Failed to load profile data.'),
-  });
+      });
+
+  useQueryErrorToast(loadError, 'Failed to load profile data.', 'employee-profile-load');
 
   const { data: mfaStatus } = useQuery({
     queryKey: ['mfa', 'status'],

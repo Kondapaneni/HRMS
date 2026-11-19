@@ -19,6 +19,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import EmployeeMobileExpenses from './EmployeeMobileExpenses';
@@ -87,14 +88,15 @@ const EmployeeExpenses = () => {
     return () => { document.body.style.overflow = ''; };
   }, [isModalOpen]);
 
-  const { data: expensesData = [], isLoading } = useQuery({
+  const { data: expensesData = [], isLoading, error: loadError } = useQuery({
     queryKey: ['employee', 'expenses'],
     queryFn: async () => {
       const res = await api.get('/employee/expenses');
       return res.data.expenses || [];
     },
-    onError: () => toast.error('Failed to load expenses.'),
-  });
+      });
+
+  useQueryErrorToast(loadError, 'Failed to load expenses.', 'employee-expenses-load');
 
   const submitExpenseMutation = useMutation({
     mutationFn: async () => {
