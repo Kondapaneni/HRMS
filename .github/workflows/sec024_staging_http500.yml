@@ -103,4 +103,8 @@ jobs:
             sleep 1
           done
           [ "$healthy" = 1 ] || { echo 'FAIL: staging HTTP service unavailable'; exit 1; }
-          node tests/sec024_stage_http500_assert_ci.mjs
+          if ! node tests/sec024_stage_http500_assert_ci.mjs; then
+            echo 'Synthetic staging server diagnostics (no real credentials configured):'
+            grep -E 'Database connection failed|SEC-020: Maintenance authorization|PDOException|PHP Fatal|Uncaught' "$SEC024_STAGING_SERVER_LOG" | tail -n 20 || true
+            exit 1
+          fi
