@@ -1,0 +1,43 @@
+name: Fresh request state / no shared cache regression
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - 'tests/no_shared_cache_policy_test.mjs'
+      - '.github/workflows/no_shared_cache.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  no-shared-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Enforce no React Query imports, cache or persistence
+        run: node tests/no_shared_cache_policy_test.mjs
+      - name: Verify auth, maintenance and frontend navigation protections
+        run: |
+          node tests/sec021_policy_test.mjs
+          node tests/sec008_frontend_security_test.mjs
+          node tests/sec020_policy_test.mjs
+          node tests/perf_cold_route_policy_test.mjs
+          node tests/perf_frontend_policy_test.mjs
+          node tests/perf_refresh_boot_policy_test.mjs
+          node --test tests/splash_employee_id_ui.test.mjs
+      - name: Build frontend from clean, audited lockfile
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Recheck client protections in generated bundle
+        run: |
+          node tests/no_shared_cache_policy_test.mjs
+          node tests/sec021_policy_test.mjs --built
+          node tests/perf_frontend_policy_test.mjs --built
