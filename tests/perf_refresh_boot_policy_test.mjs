@@ -22,8 +22,10 @@ assert.match(warm, /return Promise\.all\(\[preloadingLayouts\.get\(key\), preloa
   'Preload current page and shell at the same time');
 assert.doesNotMatch(route + warm, /PersistQueryClientProvider|sessionStorage\.(?:setItem|getItem)|localStorage\.(?:setItem|getItem)/,
   'No private browser persistence introduced during prefetch');
-assert.match(auth, /void primeInitialMaintenanceStatus\(\);\s*await fetchProfile\(\)/,
-  'Start public maintenance check without delaying secure profile validation');
+assert.match(auth, /const statusPromise = primeInitialMaintenanceStatus\(\);\s*try \{\s*const verifiedProfile = await fetchProfile\(\)/,
+  'Start public maintenance check concurrently with secure profile validation');
+assert.match(auth, /await prepareForDashboard\(verifiedProfile, statusPromise\)/,
+  'Verified dashboard warmup must consume the same public maintenance status');
 assert.match(auth, /await restoreSession\(\)/,
   'SEC-021: refresh-token rotation stays before authenticated /me');
 assert.match(auth, /await api\.get\('\/me'\)/,
