@@ -141,8 +141,8 @@ const AdminPerformance = () => {
       return res.data;
     },
     enabled: !!selectedEmpId,
-    staleTime: 0,
-    refetchOnMount: 'always'
+    staleTime: 30 * 1000,
+    refetchOnMount: true
   });
 
   const currentWeek = useMemo(() => {

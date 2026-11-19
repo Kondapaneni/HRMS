@@ -29,5 +29,23 @@ else
   echo ".env file already exists, skipping generation."
 fi
 
+# PERF-008: Reveal only a non-secret connection-mode hint once per container
+# start. The actual DB_HOST, user, password and connection string are never logged.
+# SEC-018's native-session flag overrides DB_PORT inside Database::getConnection().
+perf008_db_endpoint_hint="unverified"
+case "${DB_HOST:-}" in
+  *.pooler.supabase.com)
+    if [ "${SEC018_NATIVE_SESSION_ENABLED:-false}" = "true" ]; then
+      perf008_db_endpoint_hint="session-pooler"
+    else
+      case "${DB_PORT:-5432}" in
+        6543) perf008_db_endpoint_hint="transaction-pooler" ;;
+        5432) perf008_db_endpoint_hint="session-pooler" ;;
+      esac
+    fi
+    ;;
+esac
+echo "PERF008_DB_ENDPOINT_HINT=${perf008_db_endpoint_hint}"
+
 # Start Apache in foreground
 exec apache2-foreground

@@ -18,8 +18,6 @@ import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { pdf } from '@react-pdf/renderer';
-import PayslipPDF from '../components/PayslipPDF';
 
 const EmployeeMobilePayroll = ({ profile }) => {
   const controls = useDragControls();
@@ -88,6 +86,12 @@ const EmployeeMobilePayroll = ({ profile }) => {
         employeeCode: payslip.employeeCode || payslip.details?.employeeNumber || profile?.employeeId || 'N/A'
       };
       
+      // Defer the ~1.4MB PDF engine until the user requests an actual download.
+      // Navigating to a payroll or employee view must not require PDF rendering.
+      const [{ pdf }, { default: PayslipPDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('../components/PayslipPDF'),
+      ]);
       const blob = await pdf(<PayslipPDF payslip={formattedPayslip} />).toBlob();
       const fileName = `${formattedPayslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthYearString(payslip.month, payslip.year)}.pdf`;
       const file = new File([blob], fileName, { type: 'application/pdf' });

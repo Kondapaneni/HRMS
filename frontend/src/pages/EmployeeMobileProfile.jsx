@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
+import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
@@ -137,7 +138,7 @@ const EmployeeMobileProfile = () => {
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
 
       toast.success('Profile photo updated successfully!');
-      queryClient.invalidateQueries(['employee', 'profile']);
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
       if (fetchProfile) await fetchProfile();
     } catch (error) {
       toast.error(error.message || 'Error uploading image');
@@ -276,7 +277,7 @@ const EmployeeMobileProfile = () => {
       case 'work':
         return (
           <div className="space-y-2.5">
-            <DetailItem icon={Shield} label="Employee ID" value={employeeId} />
+            <DetailItem icon={Shield} label="Employee ID" value={formatEmployeeId(employeeId)} />
             <DetailItem icon={Mail} label="Official Work Email" value={workEmail} />
             <DetailItem icon={CalendarDays} label="Date of Joining" value={formatDate(joinDate)} />
             <DetailItem icon={Briefcase} label="Designation" value={position} />
@@ -453,7 +454,7 @@ const EmployeeMobileProfile = () => {
           <div className="grid grid-cols-2 gap-2.5 w-full pt-2 border-t border-[var(--line)]">
             <div className="bg-[var(--brand-tint)] rounded-[14px] p-2.5 text-center border border-[var(--brand)]/20">
               <p className="text-[9px] uppercase font-semibold text-[var(--brand-deep)] tracking-wider">Employee ID</p>
-              <p className="font-bold text-xs text-[var(--brand-deep)] mt-0.5">{employeeId || '-'}</p>
+              <p className="font-bold text-xs text-[var(--brand-deep)] mt-0.5">{formatEmployeeId(employeeId, '-')}</p>
             </div>
             <div className="bg-[var(--accent-pink-tint)] rounded-[14px] p-2.5 text-center border border-[var(--accent-pink-deep)]/20">
               <p className="text-[9px] uppercase font-semibold text-[var(--accent-pink-deep)] tracking-wider">Department</p>

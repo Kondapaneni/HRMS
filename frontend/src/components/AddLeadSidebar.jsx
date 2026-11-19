@@ -66,15 +66,15 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
       setIsSubmitting(true);
       if (isSale) {
         await createSalesLead(formData);
-        queryClient.invalidateQueries(['sales', 'leads']);
-        queryClient.invalidateQueries(['sales', 'leads', 'list']);
-        queryClient.invalidateQueries(['salesDashboard']);
+        queryClient.invalidateQueries({ queryKey: ['sales', 'leads'] });
+        queryClient.invalidateQueries({ queryKey: ['sales', 'leads', 'list'] });
+        queryClient.invalidateQueries({ queryKey: ['salesDashboard'] });
         toast.success('Sales lead added successfully!');
       } else {
         await createLead(formData);
-        queryClient.invalidateQueries(['origination', 'leads']);
-        queryClient.invalidateQueries(['origination', 'leads', 'list']);
-        queryClient.invalidateQueries(['leadsDashboard']);
+        queryClient.invalidateQueries({ queryKey: ['origination', 'leads'] });
+        queryClient.invalidateQueries({ queryKey: ['origination', 'leads', 'list'] });
+        queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
         toast.success('Lead added successfully!');
       }
       resetForm();

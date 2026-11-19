@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
+import { employeeDashboardQueryOptions } from '../performance/dashboardBoot';
+import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   User, 
@@ -47,28 +49,7 @@ const EmployeeDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: dashboardData, isLoading: loading } = useQuery({
-    queryKey: ['employee', 'dashboard'],
-    queryFn: async () => {
-      const [attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes] = await Promise.all([
-        api.get('/employee/attendance').catch(() => ({ data: [] })),
-        api.get('/employee/leaves').catch(() => ({ data: null })),
-        api.get('/employee/performance').catch(() => ({ data: {} })),
-        api.get('/employee/profile').catch(() => ({ data: {} })),
-        api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } })),
-        api.get('/employee/maps-rate-limit-status').catch(() => ({ data: { locked: false } }))
-      ]);
-      return {
-        attendance: attRes.data,
-        leaves: leavesRes.data,
-        performance: perfRes.data?.currentMonthSummary || null,
-        fullProfile: profileRes.data?.profile || null,
-        latestPayslip: payslipsRes.data?.payslips?.[0] || null,
-        mapsRateLimit: mapsRateRes.data
-      };
-    },
-    staleTime: 30 * 1000
-  });
+  const { data: dashboardData, isLoading: loading } = useQuery(employeeDashboardQueryOptions);
 
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
@@ -220,7 +201,7 @@ const EmployeeDashboard = () => {
   const availablePaidLeaves = leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--';
   const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '100%';
 
-  if (loading) return <PageLoader message="Loading workspace..." />;
+  if (loading) return <PageLoader message="Loading dashboard..." />;
 
   return (
     <>
@@ -546,7 +527,7 @@ const EmployeeDashboard = () => {
                 <div className="flex justify-between py-1 border-b border-[var(--line)]/50">
                   <span className="text-[var(--muted)]">Employee ID</span>
                   <span className="font-medium text-[var(--text)]">
-                    {fullProfile?.employeeId || profile?.employeeId || fullProfile?.employee_code || (fullProfile?.id ? `EMP-${fullProfile.id.replace(/-/g, '').slice(0, 6).toUpperCase()}` : 'EMP-001')}
+                    {formatEmployeeId(fullProfile?.employeeId || profile?.employeeId || fullProfile?.employee_code)}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[var(--line)]/50">

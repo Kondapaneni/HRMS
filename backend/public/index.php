@@ -493,6 +493,15 @@ $app->post('/api/auth/refresh', function (Request $request, Response $response) 
     try {
         $conn = (new Database())->getConnection();
         if (!$conn) throw new RuntimeException('Refresh database unavailable');
+
+        // Preflight all independent database reads and signing configuration
+        // BEFORE consuming the single-use refresh credential. A query failure
+        // after rotation commits would strand the browser with its old cookie,
+        // which the replay guard must reject on its next attempt.
+        $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+        if ($secret === '') throw new RuntimeException('Session signing unavailable');
+
         $result = RefreshSessions::rotate($conn, $provided, $client);
         if (!$result) {
             $response->getBody()->write(json_encode(['error' => 'Refresh session invalid or revoked.']));
@@ -503,8 +512,6 @@ $app->post('/api/auth/refresh', function (Request $request, Response $response) 
             return $response->withHeader('Content-Type', 'application/json')
                 ->withHeader('Cache-Control', 'no-store')->withStatus(401);
         }
-        $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
-        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
         $access = AccessToken::mint($result['user'], $secret, $setting['session_timeout'] ?? '30');
         $payload = ['token' => $access];
         if ($client === 'android') {
@@ -521,6 +528,66 @@ $app->post('/api/auth/refresh', function (Request $request, Response $response) 
     } catch (Throwable $e) {
         error_log('SEC-012 refresh unavailable: ' . $e->getMessage());
         $response->getBody()->write(json_encode(['error' => 'Refresh service temporarily unavailable.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(503);
+    }
+});
+
+/**
+ * SEC-012: Idempotent browser session restoration after page navigation.
+ *
+ * This URL is deliberately under /api/auth/refresh/ so every existing
+ * Path=/api/auth/refresh HttpOnly cookie is sent WITHOUT changing its scope.
+ * Unlike /api/auth/refresh, restoration checks the live credential without
+ * consuming it. In-session token renewal still uses one-use rotation.
+ * Android does not use browser cookies and cannot call this recovery route.
+ */
+$app->post('/api/auth/refresh/restore', function (Request $request, Response $response) {
+    if ($request->getHeaderLine('X-HRMS-Refresh') !== '1'
+        || RefreshSessions::isAndroid($request)) {
+        $response->getBody()->write(json_encode(['error' => 'Restore request not permitted.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(403);
+    }
+    $origin = $request->getHeaderLine('Origin');
+    if ($origin !== '') {
+        $originHost = parse_url($origin, PHP_URL_HOST);
+        $targetHost = $request->getUri()->getHost();
+        if (!is_string($originHost) || strcasecmp($originHost, $targetHost) !== 0
+            || parse_url($origin, PHP_URL_SCHEME) !== 'https') {
+            $response->getBody()->write(json_encode(['error' => 'Cross-origin restore denied.']));
+            return $response->withHeader('Content-Type', 'application/json')
+                ->withHeader('Cache-Control', 'no-store')->withStatus(403);
+        }
+    }
+    $provided = $request->getCookieParams()['hrms_refresh'] ?? null;
+    if (!is_string($provided) || strlen($provided) > 256) {
+        $response->getBody()->write(json_encode(['error' => 'Refresh session required.']));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(401);
+    }
+    try {
+        $conn = (new Database())->getConnection();
+        if (!$conn) throw new RuntimeException('Restore database unavailable');
+
+        // Validate the live session, active account, and session generation.
+        // No session rotation or Set-Cookie on success.
+        $result = RefreshSessions::resumeWeb($conn, $provided);
+        if (!$result) {
+            $response->getBody()->write(json_encode(['error' => 'Refresh session invalid or revoked.']));
+            return $response->withHeader('Content-Type', 'application/json')
+                ->withHeader('Cache-Control', 'no-store')->withStatus(401);
+        }
+        $setting = $conn->query('SELECT session_timeout FROM public.global_settings ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $secret = (string) ($_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: '');
+        $access = AccessToken::mint($result['user'], $secret, $setting['session_timeout'] ?? '30');
+        $response->getBody()->write(json_encode(['token' => $access]));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store')->withStatus(200);
+    } catch (Throwable $e) {
+        // Never log a credential, cookie, or raw database row.
+        error_log('SEC-012 restore service unavailable');
+        $response->getBody()->write(json_encode(['error' => 'Session restoration temporarily unavailable.']));
         return $response->withHeader('Content-Type', 'application/json')
             ->withHeader('Cache-Control', 'no-store')->withStatus(503);
     }
@@ -549,11 +616,37 @@ $app->post('/api/logout', function (Request $request, Response $response, $args)
 
 // Get global news headlines & maintenance status (Public)
 $app->get('/api/news', function (Request $request, Response $response, $args) {
+    // PERF-008: opt-in, request-scoped timings only for explicit probes.
+    // Never log credentials, SQL text, request IDs, user identifiers or payloads.
+    // This endpoint remains public and its response is unchanged.
+    $perf008TimingEnabled = (string) ($_ENV['PERF008_NEWS_TIMING_ENABLED']
+        ?? (getenv('PERF008_NEWS_TIMING_ENABLED') ?: '')) === 'true'
+        && array_key_exists('perf_probe', $request->getQueryParams());
+
+    $perf008StartNs = $perf008TimingEnabled ? hrtime(true) : null;
     $db = new Database();
-    $conn = $db->getConnection();
-    
+    $perf008DbStages = $perf008TimingEnabled ? [] : null;
+    $conn = $db->getConnection($perf008DbStages);
+    $perf008AfterConnectionNs = $perf008TimingEnabled ? hrtime(true) : null;
+
     $stmt = $conn->query('SELECT news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes FROM global_settings ORDER BY id ASC LIMIT 1');
     $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($perf008TimingEnabled && isset(
+        $perf008DbStages['pdo_connect_ms'],
+        $perf008DbStages['identity_check_ms']
+    )) {
+        $perf008AfterQueryNs = hrtime(true);
+        // The total connection stage also includes driver configuration.
+        // Substages are measured only on a freshly created PDO connection.
+        // Never log SQL, user/account identifiers, cookies or response data.
+        error_log(sprintf(
+            'PERF008_NEWS connection_and_identity_ms=%.2f pdo_connect_ms=%.2f identity_check_ms=%.2f settings_query_ms=%.2f',
+            ($perf008AfterConnectionNs - $perf008StartNs) / 1e6,
+            $perf008DbStages['pdo_connect_ms'],
+            $perf008DbStages['identity_check_ms'],
+            ($perf008AfterQueryNs - $perf008AfterConnectionNs) / 1e6
+        ));
+    }
     $headlines = isset($settings['news_headlines']) ? json_decode($settings['news_headlines'], true) : [];
     $maintenanceMode = \App\Middleware\MaintenanceMiddleware::enabled($settings['maintenance_mode'] ?? null);
     $maintenanceMessage = $settings['maintenance_message'] ?? '';

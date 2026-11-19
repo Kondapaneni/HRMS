@@ -61,6 +61,7 @@ const AdminLeaves = () => {
       await api.post(`/admin/leaves/${id}/${action}`);
       toast.success(`Leave request ${action === 'approve' ? 'approved' : 'rejected'}`);
       queryClient.invalidateQueries({ queryKey: ['admin', 'leaves'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     } catch (err) {
       if (previousData) {
         queryClient.setQueryData(queryKey, previousData);

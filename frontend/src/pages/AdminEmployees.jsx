@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
+import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2, Users } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -25,13 +26,12 @@ const AdminEmployees = () => {
 
   const { data: employees = [], isLoading: initialLoading, isFetching } = useQuery({
     queryKey: ['admin', 'employees', debouncedSearch],
-    queryFn: async () => {
-      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`);
+    queryFn: async ({ signal }) => {
+      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`, { signal });
       return res.data.employees || [];
     },
     placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
-    onError: () => toast.error('Failed to load employees'),
+    staleTime: 60 * 1000, // Reuse cached roster between quick tab switches
   });
 
   const handleSearchSubmit = (e) => {
@@ -182,7 +182,7 @@ const AdminEmployees = () => {
 
                       {/* ID */}
                       <td className="px-5 py-3.5 align-middle font-medium text-[var(--text-2)] text-xs">
-                        {emp.employeeId}
+                        {formatEmployeeId(emp.employeeId)}
                       </td>
 
                       {/* Department */}
@@ -266,6 +266,7 @@ const AdminEmployees = () => {
         onSuccess={() => {
           setIsModalOpen(false);
           queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+          queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
         }}
       />
     </div>

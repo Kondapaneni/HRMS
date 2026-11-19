@@ -1,29 +1,24 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api, { restoreSession, setAccessToken, clearSessionAccess } from '../api/axios';
 import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
 import SplashScreen from '../components/SplashScreen';
+import { primeInitialMaintenanceStatus } from '../performance/initialMaintenanceStatus';
+import { prepareAuthenticatedLanding, waitForMinimumSplash } from '../performance/dashboardBoot';
 
 const AuthContext = createContext({});
 
-const PUBLIC_ROUTES = [
-  '/',
-  '/candidate/login',
-  '/candidate/activate',
-  '/forgot-password',
-  '/reset-password',
-];
-
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
-  const location = useLocation();
   const [user, setUser] = useState(null);
   const [hasSession, setHasSession] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
+  const initialSplashStartedAt = useRef(Date.now());
+  const bootstrapStarted = useRef(false);
   // Share the same in-flight bootstrap across StrictMode mount effects and
   // concurrent profile requests. Don't accidentally resolve a second caller early.
   const fetchPromise = useRef(null);
@@ -39,6 +34,7 @@ export const AuthProvider = ({ children }) => {
         const response = await api.get('/me');
         setProfile(response.data);
         setUser({ email: response.data.email, id: response.data.id });
+        return response.data;
       } catch (error) {
         if (error.message === 'No token found'
             || [401, 403].includes(error.response?.status)) {
@@ -48,6 +44,7 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         }
         // Network/maintenance outage is not proof of revocation.
+        return null;
       } finally {
         setProfileLoading(false);
       }
@@ -56,24 +53,65 @@ export const AuthProvider = ({ children }) => {
     try { await work; } finally { fetchPromise.current = null; }
   }, []);
 
-  useEffect(() => {
-    if (isInitialized) return;
+  const prepareForDashboard = useCallback(async (verifiedProfile, statusPromise) => {
+    if (!verifiedProfile) return;
+    // Only use a positive public maintenance check for employee data warmup.
+    // MaintenanceGate remains the authoritative UI gate and checks status
+    // again if this bootstrap response has expired.
+    let maintenanceMode = null;
+    try {
+      const status = await statusPromise;
+      maintenanceMode = status.data?.maintenance_mode ?? null;
+    } catch {
+      // No private prefetch if public maintenance status is unknown.
+    }
+    try {
+      await prepareAuthenticatedLanding(verifiedProfile, queryClient, maintenanceMode);
+    } catch {
+      // Navigation must still recover from transient module/API errors.
+      // The route's own query/error state handles failed loads.
+    }
+  }, [queryClient]);
 
-    // A page reload restores web access through its HttpOnly refresh cookie,
-    // or Android access through the Keystore. No bearer token is read from disk.
+  useEffect(() => {
+    // React StrictMode can replay mount effects: bootstrap only once.
+    if (isInitialized || bootstrapStarted.current) return;
+    bootstrapStarted.current = true;
+
+    // Restore the secure session from HttpOnly cookie or Android Keystore.
+    // The 3s splash and the authorized landing-page data load run in parallel.
     const initializeAuth = async () => {
-      const startTime = Date.now();
-      await fetchProfile();
-      // Preserve the existing protected-route splash without delaying public login.
-      if (!PUBLIC_ROUTES.includes(location.pathname)) {
-        const remaining = 1200 - (Date.now() - startTime);
-        if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+      const statusPromise = primeInitialMaintenanceStatus();
+      try {
+        const verifiedProfile = await fetchProfile();
+        await prepareForDashboard(verifiedProfile, statusPromise);
+      } finally {
+        await waitForMinimumSplash(initialSplashStartedAt.current);
+        setLoading(false);
+        setIsInitialized(true);
       }
-      setLoading(false);
-      setIsInitialized(true);
     };
-    initializeAuth();
-  }, [fetchProfile, isInitialized, location.pathname]);
+    void initializeAuth();
+  }, [fetchProfile, isInitialized, prepareForDashboard]);
+
+  const finishVerifiedLogin = async (responseData) => {
+    const { token, user: userData } = responseData;
+    if (!token) return userData;
+    const splashStartedAt = Date.now();
+    setTransitioning(true);
+    try {
+      await saveNativeSession(responseData);
+      queryClient.clear(); // No previous-account private queries may cross a login.
+      setAccessToken(token);
+      setHasSession(true);
+      const verifiedProfile = await fetchProfile();
+      await prepareForDashboard(verifiedProfile, primeInitialMaintenanceStatus());
+    } finally {
+      await waitForMinimumSplash(splashStartedAt);
+      setTransitioning(false);
+    }
+    return userData;
+  };
 
   const signIn = async (email, password) => {
     const response = await api.post('/login', { email, password });
@@ -84,28 +122,12 @@ export const AuthProvider = ({ children }) => {
         email: response.data.email,
       };
     }
-    const { token, user: userData } = response.data;
-    if (token) {
-      await saveNativeSession(response.data);
-      queryClient.clear(); // No previous-account private queries may cross a login.
-      setAccessToken(token);
-      setHasSession(true);
-    }
-    await fetchProfile();
-    return userData;
+    return finishVerifiedLogin(response.data);
   };
 
   const verifyMfa = async (mfaToken, code, isBackupCode = false) => {
     const response = await api.post('/auth/mfa/verify', { mfaToken, code, isBackupCode });
-    const { token, user: userData } = response.data;
-    if (token) {
-      await saveNativeSession(response.data);
-      queryClient.clear(); // No previous-account private queries may cross a login.
-      setAccessToken(token);
-      setHasSession(true);
-    }
-    await fetchProfile();
-    return userData;
+    return finishVerifiedLogin(response.data);
   };
 
   const sendLoginOtp = async (email) => {
@@ -115,8 +137,8 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithOtp = async (email, otp) => {
     const response = await api.post('/auth/otp/verify', { email, otp });
-    // SEC-008: Email OTP is only the first factor when TOTP MFA is active.
-    // Never persist the pending challenge token as an authenticated session.
+    // SEC-008: An OTP is only the first factor when TOTP MFA is active.
+    // Never persist the pending challenge as an authenticated session.
     if (response.data?.mfaRequired) {
       return {
         mfaRequired: true,
@@ -124,15 +146,7 @@ export const AuthProvider = ({ children }) => {
         email: response.data.email,
       };
     }
-    const { token, user: userData } = response.data;
-    if (token) {
-      await saveNativeSession(response.data);
-      queryClient.clear(); // No previous-account private queries may cross a login.
-      setAccessToken(token);
-      setHasSession(true);
-    }
-    await fetchProfile();
-    return userData;
+    return finishVerifiedLogin(response.data);
   };
 
   const signOut = async (options = {}) => {
@@ -158,6 +172,7 @@ export const AuthProvider = ({ children }) => {
     setHasSession(false);
     setProfile(null);
     setUser(null);
+    setTransitioning(false);
     queryClient.clear();
     try { localStorage.setItem('hrms_session_event', String(Date.now())); } catch { /* denied */ }
   };
@@ -183,6 +198,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     profileLoading,
     isInitialized,
+    transitioning,
     signIn,
     verifyMfa,
     sendLoginOtp,
@@ -193,7 +209,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? <SplashScreen /> : children}
+      {loading ? <SplashScreen /> : <>{children}{transitioning && <SplashScreen />}</>}
     </AuthContext.Provider>
   );
 };

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
+import { consumeInitialMaintenanceStatus } from '../performance/initialMaintenanceStatus';
 import MaintenanceOverlay from './MaintenanceOverlay';
 import {
   isMaintenanceEnabled,
@@ -37,10 +38,10 @@ export default function MaintenanceGate({ children }) {
     try {
       // The endpoint is public, so a locked-out employee can check status
       // without accessing protected APIs. Avoid persisted/stale query cache.
-      const response = await api.get('/news', {
+      const response = await (consumeInitialMaintenanceStatus() || api.get('/news', {
         params: { maintenance_check: Date.now() },
         headers: { 'Cache-Control': 'no-cache' },
-      });
+      }));
       const enabled = isMaintenanceEnabled(response.data?.maintenance_mode);
 
       // A full browser refresh during maintenance may have left a valid

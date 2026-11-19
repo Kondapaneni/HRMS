@@ -82,7 +82,7 @@ const EditProfile = () => {
     },
     onSuccess: async () => {
       toast.success('Profile updated successfully');
-      queryClient.invalidateQueries(['employee', 'profile']);
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
       if (fetchProfile) {
         await fetchProfile();
       }

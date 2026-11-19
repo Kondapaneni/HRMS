@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
+import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit3, Settings, User, Mail, Phone, MapPin, Briefcase,
@@ -10,8 +11,6 @@ import {
   AlertCircle, TrendingUp, X, Sparkles, Loader2
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { pdf } from '@react-pdf/renderer';
-import PayslipPDF from '../components/PayslipPDF';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -46,6 +45,12 @@ const AdminEmployeeView = () => {
 
   const handleDownload = async (payslip) => {
     try {
+      // Defer the ~1.4MB PDF engine until the user requests an actual download.
+      // Navigating to a payroll or employee view must not require PDF rendering.
+      const [{ pdf }, { default: PayslipPDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('../components/PayslipPDF'),
+      ]);
       const blob = await pdf(<PayslipPDF payslip={payslip} />).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -132,8 +137,9 @@ const AdminEmployeeView = () => {
 
       toast.success(res.data?.message || 'Employee promoted successfully!');
       setIsPromoteModalOpen(false);
-      queryClient.invalidateQueries(['admin', 'employee', id]);
-      queryClient.invalidateQueries(['admin', 'employees']);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.error || 'Failed to promote employee');
@@ -203,7 +209,8 @@ const AdminEmployeeView = () => {
 
       await api.put(`/admin/employees/${id}`, { avatar: avatarUrl });
 
-      queryClient.invalidateQueries(['admin', 'employee', id]);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
       toast.success('Profile picture updated successfully!');
     } catch (error) {
       toast.error(error.message || 'Error uploading image');
@@ -291,7 +298,7 @@ const AdminEmployeeView = () => {
               {fullName}
             </h1>
             <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]">
-              {employeeId}
+              {formatEmployeeId(employeeId)}
             </span>
           </div>
           <p className="text-xs text-[var(--muted)] mt-0.5">
@@ -579,7 +586,7 @@ const AdminEmployeeView = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] text-[var(--muted)]">Employee ID</p>
-                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{employeeId || 'Not set'}</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{formatEmployeeId(employeeId)}</p>
                   </div>
                 </div>
 
@@ -811,7 +818,7 @@ const AdminEmployeeView = () => {
                   <div>
                     <p className="text-[11px] text-[var(--muted)]">Employee</p>
                     <p className="text-xs font-medium text-[var(--text)]">
-                      {fullName} <span className="text-[var(--muted)]">({employeeId})</span>
+                      {fullName} <span className="text-[var(--muted)]">({formatEmployeeId(employeeId)})</span>
                     </p>
                   </div>
                   <div className="text-right">

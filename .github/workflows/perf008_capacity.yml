@@ -1,0 +1,92 @@
+name: PERF-008 synthetic transaction pooler capacity
+
+on:
+  pull_request:
+    paths:
+      - 'tests/perf008_pooler_*'
+      - '.github/workflows/perf008_capacity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-capacity:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: perf008_capacity_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: PERF008_SYNTHETIC_ADMIN_ONLY
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d perf008_capacity_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      GITHUB_ACTIONS: 'true'
+      DB_HOST: 127.0.0.1
+      DB_PORT: '6432'
+      DB_DATABASE: perf008_capacity_ci
+      DB_USERNAME: perf008_ci
+      DB_PASSWORD: PERF008_SYNTHETIC_PG_ONLY
+      DB_PDO_PREPARE_MODE: pooler
+      SEC018_NATIVE_SESSION_ENABLED: 'false'
+      SEC018_DB_USE_RESTRICTED: 'false'
+      SEC018_AUDIT_CONTEXT_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - name: PHP syntax and isolated application classes
+        run: |
+          set -euo pipefail
+          php -l tests/perf008_pooler_worker_ci.php
+          node --check tests/perf008_pooler_capacity_ci.mjs
+          php -l backend/src/Config/Database.php
+          composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Set up disposable DB and bounded two-server transaction pooler
+        shell: bash
+        run: |
+          set -euo pipefail
+          PGPASSWORD=PERF008_SYNTHETIC_ADMIN_ONLY psql -h 127.0.0.1 -U postgres -d perf008_capacity_ci -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE perf008_ci LOGIN PASSWORD 'PERF008_SYNTHETIC_PG_ONLY'"
+          sudo apt-get update -qq
+          sudo apt-get install -y pgbouncer
+          sudo systemctl stop pgbouncer || true
+          sudo mkdir -p /tmp/perf008-ci-pool
+          cat <<'INI' | sudo tee /tmp/perf008-ci-pool/pgbouncer.ini >/dev/null
+          [databases]
+          perf008_capacity_ci = host=127.0.0.1 port=5432 dbname=perf008_capacity_ci
+          [pgbouncer]
+          listen_addr = 127.0.0.1
+          listen_port = 6432
+          auth_type = plain
+          auth_file = /tmp/perf008-ci-pool/userlist.txt
+          pool_mode = transaction
+          default_pool_size = 2
+          min_pool_size = 0
+          reserve_pool_size = 0
+          max_client_conn = 60
+          logfile = /tmp/perf008-ci-pool/pool.log
+          pidfile = /tmp/perf008-ci-pool/pool.pid
+          INI
+          echo '"perf008_ci" "PERF008_SYNTHETIC_PG_ONLY"' | sudo tee /tmp/perf008-ci-pool/userlist.txt >/dev/null
+          sudo chown -R postgres:postgres /tmp/perf008-ci-pool
+          sudo -u postgres pgbouncer -d /tmp/perf008-ci-pool/pgbouncer.ini
+          ready=0
+          for i in {1..20}; do
+            if PGPASSWORD=PERF008_SYNTHETIC_PG_ONLY psql -h 127.0.0.1 -p 6432 -U perf008_ci -d perf008_capacity_ci -Atqc 'SELECT current_user' | grep -qx perf008_ci; then ready=1; break; fi
+            sleep 1
+          done
+          [ "$ready" = 1 ] || { echo 'Synthetic pooler failed to start'; exit 1; }
+      - name: Exercise 24 concurrent PHP PDO clients through two server connections
+        run: |
+          set -euo pipefail
+          node tests/perf008_pooler_capacity_ci.mjs
