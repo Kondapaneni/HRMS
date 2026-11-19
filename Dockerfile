@@ -25,9 +25,13 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     unzip \
     git \
-    && docker-php-ext-install pdo pdo_pgsql curl \
+    && docker-php-ext-install pdo pdo_pgsql curl opcache \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Fail the build if the actual PHP runtime cannot load production OPcache.
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-perf008-opcache.ini
+RUN php -r 'if (!extension_loaded("Zend OPcache") || ini_get("opcache.enable") !== "1" || ini_get("opcache.validate_timestamps") !== "0") { fwrite(STDERR, "PERF-008 OPcache configuration failed\\n"); exit(1); }'
 
 # Enable Apache mod_rewrite and mod_headers
 RUN a2enmod rewrite headers
