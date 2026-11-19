@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { employeeDashboardQueryOptions } from '../performance/dashboardBoot';
-import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   User, 
@@ -527,7 +526,7 @@ const EmployeeDashboard = () => {
                 <div className="flex justify-between py-1 border-b border-[var(--line)]/50">
                   <span className="text-[var(--muted)]">Employee ID</span>
                   <span className="font-medium text-[var(--text)]">
-                    {formatEmployeeId(fullProfile?.employeeId || profile?.employeeId || fullProfile?.employee_code)}
+                    {fullProfile?.employeeId || profile?.employeeId || fullProfile?.employee_code || 'Not set'}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[var(--line)]/50">

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
-import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit3, Settings, User, Mail, Phone, MapPin, Briefcase,
@@ -298,7 +297,7 @@ const AdminEmployeeView = () => {
               {fullName}
             </h1>
             <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]">
-              {formatEmployeeId(employeeId)}
+              {employeeId || 'Not set'}
             </span>
           </div>
           <p className="text-xs text-[var(--muted)] mt-0.5">
@@ -586,7 +585,7 @@ const AdminEmployeeView = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] text-[var(--muted)]">Employee ID</p>
-                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{formatEmployeeId(employeeId)}</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{employeeId || 'Not set'}</p>
                   </div>
                 </div>
 
@@ -818,7 +817,7 @@ const AdminEmployeeView = () => {
                   <div>
                     <p className="text-[11px] text-[var(--muted)]">Employee</p>
                     <p className="text-xs font-medium text-[var(--text)]">
-                      {fullName} <span className="text-[var(--muted)]">({formatEmployeeId(employeeId)})</span>
+                      {fullName} <span className="text-[var(--muted)]">({employeeId || 'Not set'})</span>
                     </p>
                   </div>
                   <div className="text-right">
