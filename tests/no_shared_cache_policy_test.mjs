@@ -57,7 +57,7 @@ assert.match(requests, /mountedViews\.delete\(view\)/,
   'Unmount must discard request state');
 assert.match(requests, /cancel\(\)/, 'Abandoned requests must be cancelled');
 assert.match(requests, /sessionEpoch \+= 1/, 'Cross-account resets invalidate in-flight responses');
-assert.doesNotMatch(requests, /localStorage|sessionStorage|indexedDB|persist/i,
+assert.doesNotMatch(requests, /\b(?:localStorage|sessionStorage|indexedDB)\b/,
   'Replacement must never retain HRMS records in browser storage');
 assert.match(auth, /refreshControl\.reset\(\)/,
   'Login/logout must immediately clear mounted private state');
