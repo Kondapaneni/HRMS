@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { isNativeApp, isIOS, getAssetUrl } from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -72,14 +73,15 @@ const EmployeeMobileProfile = () => {
     };
   }, [activeSection]);
 
-  const { data: profileResponse, isLoading: loading } = useQuery({
+  const { data: profileResponse, isLoading: loading, error: loadError } = useQuery({
     queryKey: ['employee', 'profile'],
     queryFn: async () => {
       const res = await api.get('/employee/profile');
       return res.data;
     },
-    onError: () => toast.error('Failed to load profile data.'),
   });
+
+  useQueryErrorToast(loadError, 'Failed to load profile data.', 'employee-profile-load');
 
   const profileData = profileResponse?.profile || null;
   const teamData = profileResponse?.team || null;
