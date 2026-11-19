@@ -53,3 +53,12 @@ test('desktop and mobile share a single dashboard bootstrap query', () => {
   assert.match(read('frontend/src/pages/AdminDashboard.jsx'), /useQuery\(adminDashboardQueryOptions\)/);
   assert.doesNotMatch(read('frontend/src/components/SplashScreen.jsx'), /Loading workspace\.\.\./);
 });
+
+test('no Loading page text between splash and protected lazy routes', () => {
+  const app = read('frontend/src/App.jsx');
+  const auth = read('frontend/src/contexts/AuthContext.jsx');
+  assert.match(app, /<Suspense fallback=\{null\}>/, 'Lazy navigation must not show a second full-page loader');
+  assert.doesNotMatch(app, /Loading page\.\.\.|Opening workspace\.\.\./);
+  assert.match(auth, /<SplashScreen \/>/, 'Three-second auth splash must remain intact');
+  assert.match(read('frontend/src/performance/dashboardBoot.js'), /MIN_SPLASH_MS\s*=\s*3000/);
+});
