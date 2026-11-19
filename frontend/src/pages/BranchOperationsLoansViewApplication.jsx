@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import { createPortal } from 'react-dom';
 import {
   Lock,
@@ -50,11 +51,7 @@ export default function BranchOperationsLoansViewApplication() {
   const fromPath = location.state?.from || '/employee/branch-operations/loans-applications';
 
   // Fallback query if page is refreshed or visited with a query parameter/missing state
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['branchOperations', 'applications', 'list'],
-    queryFn: getBranchLoanApplications,
-    enabled: !stateApplication,
-  });
+  const { data: response, isLoading } = useQuery(originationQueryOptions.branchApplications());
 
   let application = stateApplication;
   let formData = stateFormData;

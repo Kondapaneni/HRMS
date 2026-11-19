@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import SearchBar from '../components/ui/SearchBar';
 import { 
   Search, 
@@ -33,10 +34,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [loanTypeFilter, setLoanTypeFilter] = useState('All');
 
-  const { data: response, isLoading, error } = useQuery({
-    queryKey: ['branchOperations', 'applications', 'list'],
-    queryFn: getBranchLoanApplications,
-  });
+  const { data: response, isLoading, error } = useQuery(originationQueryOptions.branchApplications());
 
   const branch = response?.branch || { name: 'Assigned Branch' };
   const applications = response?.applications || [];

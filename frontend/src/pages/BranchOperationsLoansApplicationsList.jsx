@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/ui/SearchBar';
 import { 
@@ -131,11 +132,7 @@ const BranchOperationsLoansApplicationsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, isFetching, error } = useQuery({
-    queryKey: ['branchOperations', 'applications', 'list'],
-    queryFn: getBranchLoanApplications,
-    staleTime: 2 * 60 * 1000,
-  });
+  const { data: response, isLoading, isFetching, error } = useQuery(originationQueryOptions.branchApplications());
 
   const branch = response?.branch || { name: 'Assigned Branch' };
   const applications = response?.applications || [];
