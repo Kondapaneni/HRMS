@@ -71,8 +71,9 @@ export function useRefreshControl() {
 }
 
 export function useRemoteData(options) {
-  const { scope = [], when = true, pollEveryMs = false,
+  const { scope = [], pollEveryMs = false,
     reloadOnFocus = true, reloadInBackground = false } = options;
+  const when = options.when ?? options.enabled ?? true;
   const scopeId = JSON.stringify(scope);
   const latestOptions = useRef(options);
   latestOptions.current = options;
@@ -104,7 +105,7 @@ export function useRemoteData(options) {
   }, [change]);
 
   const reload = useCallback(async () => {
-    if (!requestRef.current.active || !latestOptions.current.when && latestOptions.current.when !== undefined) {
+    if (!requestRef.current.active || (latestOptions.current.when ?? latestOptions.current.enabled ?? true) === false) {
       return { data: dataRef.current };
     }
     cancel();
@@ -158,6 +159,7 @@ export function useRemoteData(options) {
     };
     mountedViews.add(view);
     if (when) void reload();
+    else change({ isLoading: false, isPending: false, status: 'idle' });
     const focus = () => {
       if (reloadOnFocus && document.visibilityState === 'visible' && when) {
         void reload();
