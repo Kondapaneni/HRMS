@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const LOADING_STEPS = [
-  'Loading workspace...',
-  'Synchronizing secure profile...',
-  'Preparing dashboard...'
+  'Preparing your dashboard...',
+  'Verifying your session...',
+  'Almost ready...'
 ];
 
 const SplashScreen = () => {
