@@ -78,7 +78,7 @@ assert.equal(
 
 const success=await post(valid);
 assert.equal(success.status,201,JSON.stringify(success));
-assert.match(success.json.employeeId,/^[1-9][0-9]{7}$/,'Employee code must be exactly eight numeric digits');
+assert.match(success.json.employeeId,/^EMP-[1-9][0-9]{7}$/,'Employee code must be EMP- followed by exactly eight numeric digits');
 assert.equal(success.json.userId,ids.hired);
 assert.equal(countUserEmployees(ids.hired),1,'Conversion must create exactly one employee');
 assert.equal(

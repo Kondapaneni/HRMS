@@ -13,9 +13,9 @@ final class EmployeeId
 
     public static function generate(): string
     {
-        // Exactly eight decimal digits, no prefix or leading zero.
+        // The database stores EMP- plus exactly eight decimal digits, no leading zero.
         // random_int() draws securely from the operating system CSPRNG.
-        return (string) random_int(10_000_000, 99_999_999);
+        return 'EMP-' . (string) random_int(10_000_000, 99_999_999);
     }
 
     /**
@@ -26,7 +26,7 @@ final class EmployeeId
      * transaction; any other database constraint failure still propagates.
      *
      * @param callable(string): (string|false|null) $insert
-     * @return array{0: string, 1: string} [eight-digit code, employee UUID]
+     * @return array{0: string, 1: string} [EMP-prefixed eight-digit code, employee UUID]
      */
     public static function insertUnique(callable $insert): array
     {
