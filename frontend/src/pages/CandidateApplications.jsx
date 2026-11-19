@@ -13,7 +13,7 @@ import {
   Download
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import api from '../api/axios';
+import { candidateQueryOptions, selectCandidateApplicationCards } from '../queries/candidateQueries';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import CandidateMobileApplications from './CandidateMobileApplications';
@@ -23,39 +23,7 @@ const CandidateApplications = () => {
   const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
   const [timelineApp, setTimelineApp] = useState(null);
   
-  const { data: applications = [], isLoading } = useQuery({
-    queryKey: ['candidate', 'applications', profile?.id],
-    queryFn: async () => {
-      const res = await api.get('/candidate/applications');
-      const apps = res.data.applications || [];
-
-      return apps.map(app => {
-        const timeline = Array.isArray(app.application_timeline) ? app.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];
-        let resumeName = 'Primary Resume';
-        if (app.resume_url) {
-           try {
-             const urlParts = app.resume_url.split('/');
-             resumeName = urlParts[urlParts.length - 1];
-           } catch(e) {}
-        }
-        
-        return {
-          id: app.id,
-          jobTitle: app.jobs?.title || 'Unknown Position',
-          department: app.jobs?.department || 'General',
-          location: app.jobs?.location || 'Headquarters',
-          jobType: app.jobs?.type || 'Full-time',
-          deadline: app.jobs?.deadline,
-          appliedDate: app.applied_date,
-          status: app.status,
-          resumeName: resumeName,
-          resumeUrl: app.resume_url,
-          offerLetterPath: app.offer_letter_path || null,
-          noticePeriod: app.notice_period,
-          coverNote: app.cover_note,
-          timeline: timeline
-        };
-      });
+  const { data: applications = [], isLoading } = useQuery({ ...candidateQueryOptions.applications(profile?.id), select: selectCandidateApplicationCards });
     },
     enabled: !!profile?.id,
     staleTime: 5 * 60 * 1000

@@ -20,6 +20,7 @@ import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import CandidateMobileProfile from './CandidateMobileProfile';
 import { candidateQueryKeys } from '../queries/candidateQueryKeys';
+import { candidateQueryOptions } from '../queries/candidateQueries';
 
 const CandidateProfile = () => {
   const { profile } = useAuth();
@@ -44,15 +45,7 @@ const CandidateProfile = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
-    queryKey: candidateQueryKeys.profile(profile?.id),
-    queryFn: async () => {
-      const res = await api.get('/candidate/profile');
-      return res.data.profile || null;
-    },
-    enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
-  });
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery(candidateQueryOptions.profile(profile?.id));
 
   useEffect(() => {
     if (profileData) {

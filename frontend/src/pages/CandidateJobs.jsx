@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
+import { candidateQueryOptions } from '../queries/candidateQueries';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -35,16 +36,12 @@ const CandidateJobs = () => {
 
   const { data: pageData, isLoading: isLoadingJobs } = useQuery({
     queryKey: ['candidate', 'jobs_page', profile?.id],
-    queryFn: async () => {
-      if (!profile?.id) return null;
-      const [jobsRes, appsRes] = await Promise.all([
-        api.get('/candidate/jobs'),
-        api.get('/candidate/applications')
+    queryFn: async ({ client }) => {
+      const [jobs, applications] = await Promise.all([
+        client.fetchQuery(candidateQueryOptions.jobs(profile?.id)),
+        client.fetchQuery(candidateQueryOptions.applications(profile?.id)),
       ]);
-      return {
-        jobs: jobsRes.data.jobs || [],
-        applications: appsRes.data.applications || []
-      };
+      return { jobs, applications };
     },
     enabled: !!profile?.id,
     staleTime: 5 * 60 * 1000
@@ -62,15 +59,7 @@ const CandidateJobs = () => {
   const departments = [...new Set(jobs.map(job => job.department))];
   const jobTypes = ['full-time', 'part-time', 'contract', 'internship', 'temporary', 'remote'];
 
-  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ['candidate', 'profile_for_jobs', profile?.id],
-    queryFn: async () => {
-      const res = await api.get('/candidate/profile');
-      return res.data.profile;
-    },
-    enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
-  });
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery(candidateQueryOptions.profile(profile?.id));
 
   const resumes = Array.isArray(profileData?.resume_url) ? profileData.resume_url : [];
   

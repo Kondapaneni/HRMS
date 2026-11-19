@@ -13,7 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import api from '../api/axios';
+import { candidateQueryOptions } from '../queries/candidateQueries';
 import CandidateMobileDashboard from './CandidateMobileDashboard';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, theme = 'blue' }) => {
@@ -78,23 +78,16 @@ const CandidateDashboard = () => {
 
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['candidate', 'dashboard', profile?.id],
-    queryFn: async () => {
-      if (!profile?.id) return null;
-
-      const [profileRes, appsRes, jobsRes] = await Promise.all([
-        api.get('/candidate/profile').catch(() => ({ data: { profile: null } })),
-        api.get('/candidate/applications').catch(() => ({ data: { applications: [] } })),
-        api.get('/candidate/jobs').catch(() => ({ data: { jobs: [] } }))
+    queryFn: async ({ client }) => {
+      const [profileData, appsData, jobsData] = await Promise.all([
+        client.fetchQuery(candidateQueryOptions.profile(profile?.id)),
+        client.fetchQuery(candidateQueryOptions.applications(profile?.id)),
+        client.fetchQuery(candidateQueryOptions.jobs(profile?.id)),
       ]);
-
-      return {
-        profileData: profileRes.data.profile || null,
-        appsData: appsRes.data.applications || [],
-        jobsData: jobsRes.data.jobs || []
-      };
+      return { profileData, appsData, jobsData };
     },
     enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
+    staleTime: 5 * 60 * 1000,
   });
 
   const profileData = dashboardData?.profileData;
