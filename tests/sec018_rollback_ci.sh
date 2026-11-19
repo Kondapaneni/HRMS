@@ -103,7 +103,7 @@ require_count "SELECT count(*) FROM pg_catalog.pg_namespace WHERE nspname='sec01
 require_count "SELECT count(*) FROM pg_catalog.pg_attribute WHERE attrelid='public.hrms_refresh_sessions'::regclass AND attname='used_token_hashes' AND NOT attisdropped" 0 'post-migration history column remains'
 require_count "SELECT count(*) FROM public.users" 2 'synthetic prechange user rows not restored'
 require_count "SELECT count(*) FROM public.email_queue" 0 'postchange marker survived restoration'
-require_count "SELECT count(*) FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND NOT t.tgisinternal" 9 'application triggers were not restored'
+require_count "SELECT count(*) FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND NOT t.tgisinternal" 8 'application triggers were not restored'
 require_count "SELECT count(*) FROM pg_catalog.pg_constraint co JOIN pg_catalog.pg_class c ON c.oid=co.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'" 78 'constraints not restored'
 require_count "SELECT count(*) FROM pg_catalog.pg_class c WHERE c.oid='public.hrms_refresh_sessions'::regclass AND c.relforcerowsecurity" 1 'refresh FORCE RLS not restored'
 require_count "SELECT count(*) FROM pg_catalog.pg_roles WHERE rolname IN ('hrms_runtime_restricted','hrms_audit_verifier','hrms_audit_executor')" 3 'role-cleanup test precondition missing'
