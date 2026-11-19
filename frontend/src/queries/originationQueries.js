@@ -4,6 +4,7 @@ import {
   getLeads,
   getBranchLeads,
   getBranchLoanApplications,
+  getLoanApplications,
 } from '../services/loanServices';
 import { getSalesDashboardData, getSalesLeads } from '../services/salesServices';
 
@@ -17,6 +18,7 @@ export const originationQueryKeys = {
   branchLeads: (employee = 'all', pipeline = 'all', status = 'All', search = '') =>
     ['branchOperationsLeads', employee, pipeline, status, search],
   branchApplications: ['branchOperations', 'applications', 'list'],
+  loanApplications: ['origination', 'applications', 'list'],
 };
 
 export const originationQueryOptions = {
@@ -46,6 +48,11 @@ export const originationQueryOptions = {
       queryFn: getBranchLeads,
       staleTime: 30_000,
     }),
+  loanApplications: () => queryOptions({
+    queryKey: originationQueryKeys.loanApplications,
+    queryFn: getLoanApplications,
+    staleTime: 60_000,
+  }),
   branchApplications: () => queryOptions({
     queryKey: originationQueryKeys.branchApplications,
     queryFn: getBranchLoanApplications,
