@@ -16,7 +16,6 @@ import {
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import EmployeeMobileLeaves from './EmployeeMobileLeaves';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -49,15 +48,14 @@ const EmployeeLeaves = () => {
   // Calendar logic inside modal
   const [calendarDate, setCalendarDate] = useState(new Date());
 
-  const { data: leavesData, isLoading: loading, error: loadError } = useQuery({
+  const { data: leavesData, isLoading: loading } = useQuery({
     queryKey: ['employee', 'leaves'],
     queryFn: async () => {
       const res = await api.get('/employee/leaves');
       return res.data;
     },
+    onError: () => toast.error('Failed to load leaves data.'),
   });
-
-  useQueryErrorToast(loadError, 'Failed to load leaves data.', 'employee-leaves-load');
 
   const cancelLeaveMutation = useMutation({
     mutationFn: async (leaveId) => {

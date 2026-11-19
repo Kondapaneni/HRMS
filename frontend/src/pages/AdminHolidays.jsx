@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2
 import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
 import toast from 'react-hot-toast';
-import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -28,7 +27,7 @@ const AdminHolidays = () => {
 
   const monthStr = format(currentMonth, 'yyyy-MM');
 
-  const { data: holidays = [], isLoading: loading, isFetching, error: holidaysLoadError } = useQuery({
+  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
     queryKey: ['admin', 'holidays', monthStr],
     queryFn: async () => {
       const response = await api.get(`/admin/holidays?month=${monthStr}`);
@@ -36,9 +35,8 @@ const AdminHolidays = () => {
     },
     placeholderData: (previousData) => previousData,
     staleTime: 60 * 1000,
+    onError: () => toast.error('Failed to load holidays'),
   });
-
-  useQueryErrorToast(holidaysLoadError, 'Failed to load holidays', 'admin-holidays-load');
 
   const hasLoadedOnce = useRef(false);
   if (!loading && holidays) {

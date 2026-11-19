@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
-import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit3, Settings, User, Mail, Phone, MapPin, Briefcase,
@@ -13,7 +12,6 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { supabase } from '../lib/supabase';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -35,15 +33,14 @@ const AdminEmployeeView = () => {
   });
   const [isPromoting, setIsPromoting] = useState(false);
 
-  const { data, isLoading: loading, isFetching, error: viewLoadError } = useQuery({
+  const { data, isLoading: loading, isFetching } = useQuery({
     queryKey: ['admin', 'employee', id],
     queryFn: async () => {
       const res = await api.get(`/admin/employees/${id}`);
       return res.data;
     },
+    onError: () => toast.error('Failed to load employee details.'),
   });
-
-  useQueryErrorToast(viewLoadError, 'Failed to load employee details.', 'admin-employee-view-load');
 
   const handleDownload = async (payslip) => {
     try {
@@ -300,7 +297,7 @@ const AdminEmployeeView = () => {
               {fullName}
             </h1>
             <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]">
-              {formatEmployeeId(employeeId)}
+              {employeeId || 'Not set'}
             </span>
           </div>
           <p className="text-xs text-[var(--muted)] mt-0.5">
@@ -588,7 +585,7 @@ const AdminEmployeeView = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] text-[var(--muted)]">Employee ID</p>
-                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{formatEmployeeId(employeeId)}</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{employeeId || 'Not set'}</p>
                   </div>
                 </div>
 
@@ -820,7 +817,7 @@ const AdminEmployeeView = () => {
                   <div>
                     <p className="text-[11px] text-[var(--muted)]">Employee</p>
                     <p className="text-xs font-medium text-[var(--text)]">
-                      {fullName} <span className="text-[var(--muted)]">({formatEmployeeId(employeeId)})</span>
+                      {fullName} <span className="text-[var(--muted)]">({employeeId || 'Not set'})</span>
                     </p>
                   </div>
                   <div className="text-right">

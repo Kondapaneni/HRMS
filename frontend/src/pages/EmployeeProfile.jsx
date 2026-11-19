@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
-import { formatEmployeeId } from '../utils/employeeIdDisplay';
 import { 
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
@@ -16,7 +15,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { useQueryErrorToast } from '../hooks/useQueryErrorToast';
 import { useNavigate } from 'react-router-dom';
 import EmployeeMobileProfile from './EmployeeMobileProfile';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,15 +27,14 @@ const EmployeeProfile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isMfaModalOpen, setIsMfaModalOpen] = useState(false);
 
-  const { data: profileResponse, isLoading: loading, error: loadError } = useQuery({
+  const { data: profileResponse, isLoading: loading } = useQuery({
     queryKey: ['employee', 'profile'],
     queryFn: async () => {
       const res = await api.get('/employee/profile');
       return res.data;
     },
+    onError: () => toast.error('Failed to load profile data.'),
   });
-
-  useQueryErrorToast(loadError, 'Failed to load profile data.', 'employee-profile-load');
 
   const { data: mfaStatus } = useQuery({
     queryKey: ['mfa', 'status'],
@@ -463,7 +460,7 @@ const EmployeeProfile = () => {
                 )}
                 {employeeId && (
                   <span className="inline-flex items-center rounded-full bg-[var(--surface-alt)] border border-[var(--line)] px-3 py-0.5 text-xs font-semibold text-[var(--text)]">
-                    ID: {formatEmployeeId(employeeId)}
+                    ID: {employeeId || 'Not set'}
                   </span>
                 )}
                 <span className="inline-flex items-center rounded-full bg-[#E6F6EC] text-[#1F9D55] px-3 py-0.5 text-xs font-semibold">
@@ -609,7 +606,7 @@ const EmployeeProfile = () => {
                   <Shield className="w-4 h-4 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Employee ID</p>
-                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{formatEmployeeId(employeeId)}</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{employeeId || 'Not set'}</p>
                   </div>
                 </div>
 
