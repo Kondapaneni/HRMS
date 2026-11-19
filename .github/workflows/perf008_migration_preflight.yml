@@ -4,6 +4,7 @@ on:
     paths:
       - 'scripts/perf008_encrypted_mumbai_snapshot.sh'
       - 'scripts/perf008_verify_storage_binary.py'
+      - 'tests/perf008_storage_verifier_test.py'
       - '.github/workflows/perf008_migration_preflight.yml'
   workflow_dispatch:
 permissions:
@@ -31,6 +32,7 @@ jobs:
           set -euo pipefail
           python3 -m py_compile scripts/perf008_verify_storage_binary.py
           python3 scripts/perf008_verify_storage_binary.py --help >/dev/null
+          python3 tests/perf008_storage_verifier_test.py
           ! grep -Eq '\\.upload\\(|\\.remove\\(' scripts/perf008_verify_storage_binary.py
           grep -Fq 'GITHUB_ACTIONS' scripts/perf008_verify_storage_binary.py
           echo 'PERF-008 offline Storage verifier checks PASS'
