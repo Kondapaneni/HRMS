@@ -45,14 +45,14 @@ for (const match of app.matchAll(/const \w+ = lazy\(\(\) => import\('\.\/(pages|
     'Lazy route module needs a default export: ' + moduleFile);
 }
 for (const file of ['frontend/src/pages/AdminEmployees.jsx', 'frontend/src/pages/AdminAttendance.jsx']) {
-  assert.match(read(file), /queryFn:\\s*async \\(\\{ signal \\}\\)/,
+  assert.match(read(file), /queryFn:\s*async \(\{ signal \}\)/,
     'Cancel abandoned page queries during rapid navigation: ' + file);
 }
 // The admin dashboard now shares its abortable query with the pre-splash warmup.
-assert.match(read('frontend/src/pages/AdminDashboard.jsx'), /useQuery\\(adminDashboardQueryOptions\\)/,
+assert.match(read('frontend/src/pages/AdminDashboard.jsx'), /useQuery\(adminDashboardQueryOptions\)/,
   'Admin dashboard must use its shared query definition');
 assert.match(read('frontend/src/performance/dashboardBoot.js'),
-  /queryFn:\\s*async \\(\\{ signal \\}\\)/,
+  /queryFn:\s*async \(\{ signal \}\)/,
   'Admin dashboard warmup must still forward cancellation signals');
 assert.match(app, /<Suspense fallback=\{/, 'Lazy routes require a suspense boundary');
 assert(!/import AdminPayroll from|import AdminRecruitment from|import AdminAttendance from/.test(app),
