@@ -1,13 +1,19 @@
-name: SEC-023 patched frontend dependency lockfile and advisory gate
+name: SEC-023 frontend and PHP dependency advisory gates
 
 on:
-  push:
-    branches:
-      - 'fix/sec023-npm-audit-hardening'
   pull_request:
     paths:
       - 'frontend/package.json'
       - 'frontend/package-lock.json'
+      - 'Dockerfile'
+      - 'tests/sec023_*'
+      - '.github/workflows/sec023.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - 'Dockerfile'
       - 'tests/sec023_*'
       - '.github/workflows/sec023.yml'
   workflow_dispatch:
@@ -16,79 +22,52 @@ permissions:
   contents: read
 
 jobs:
-  prepare-patched-lock:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/fix/sec023-npm-audit-hardening'
-    name: Generate scoped patched lockfile on issue branch only
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Patch only lockfile-compatible advisories with scripts disabled
-        working-directory: frontend
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm audit fix --package-lock-only --ignore-scripts --no-fund
-          npm audit --audit-level=moderate
-      - name: Commit only manifest and npm lockfile to issue branch
-        shell: bash
-        run: |
-          set -euo pipefail
-          if git diff --quiet -- frontend/package.json frontend/package-lock.json; then
-            echo "Already patched; nothing to commit."
-            exit 0
-          fi
-          unexpected="$(git diff --name-only | grep -Ev '^frontend/(package\.json|package-lock\.json)$' || true)"
-          test -z "$unexpected" || { echo "::error::Unexpected modified paths"; exit 1; }
-          git add frontend/package.json frontend/package-lock.json
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'fix(SEC-023): lock audited patched frontend dependencies'
-          git push origin HEAD:fix/sec023-npm-audit-hardening
-
   frontend-security:
-    if: github.event_name == 'pull_request'
-    name: Locked npm advisory gate and production build
+    name: npm audit and frontend build (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ matrix.node }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Install locked dependencies without manifest changes
+      - name: Check dependency lockfile floors and Docker reproducibility
+        run: node tests/sec023_dependency_policy_test.mjs
+      - name: Install locked packages
         working-directory: frontend
         run: npm ci --no-fund
-      - name: Reject all moderate, high and critical advisories
+      - name: Reject moderate, high and critical npm advisories
         working-directory: frontend
         run: npm audit --audit-level=moderate
-      - name: Build frontend production assets
+      - name: Produce real frontend build
         working-directory: frontend
         run: npm run build
-      - name: Existing security, role/navigation and Maps policies
+      - name: Auth, Maps, safe previews, routes and performance regression policies
         run: |
-          node tests/sec021_policy_test.mjs --built
-          node tests/sec020_policy_test.mjs --built
+          node tests/sec008_frontend_security_test.mjs
           node tests/sec016_source_test.mjs
+          node tests/sec020_policy_test.mjs --built
+          node tests/sec021_policy_test.mjs --built
           node tests/sec022_xss_test.mjs
+          node tests/sec024_source_test.mjs
+          node tests/perf_frontend_policy_test.mjs --built
+          node tests/perf_cold_route_policy_test.mjs --built
+          node tests/perf_refresh_boot_policy_test.mjs --built
 
-  backend-advisories:
-    if: github.event_name == 'pull_request'
-    name: PHP Composer dependency advisory regression
+  composer-advisories:
+    name: PHP Composer advisories
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-      - name: Install locked PHP dependencies
+      - name: Install locked backend dependencies
         run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
-      - name: Check Composer dependency advisories
+      - name: Reject PHP dependency advisories
         run: composer audit --working-dir=backend --no-interaction
