@@ -16,8 +16,8 @@ export const createLead = async (leadData) => {
  * Fetches dashboard statistics and charts data for loan leads.
  * @returns {Promise<Object>}
  */
-export const getDashboardData = async () => {
-  const response = await api.get('/leads/dashboard');
+export const getDashboardData = async ({ signal } = {}) => {
+  const response = await api.get('/leads/dashboard', { signal });
   return response.data;
 };
 
@@ -25,10 +25,10 @@ export const getDashboardData = async () => {
  * Fetches all loan leads.
  * @returns {Promise<Object>}
  */
-export const getLeads = async ({ queryKey }) => {
+export const getLeads = async ({ queryKey, signal }) => {
   const search = queryKey[3] || '';
   const url = search ? `/leads/list?search=${encodeURIComponent(search)}` : '/leads/list';
-  const response = await api.get(url);
+  const response = await api.get(url, { signal });
   return response.data;
 };
 
@@ -68,8 +68,8 @@ export const submitLoanApplication = async (loanType, formData, status = 'Create
  * Fetches created and draft loan applications.
  * @returns {Promise<Object>}
  */
-export const getLoanApplications = async () => {
-  const response = await api.get('/loans/applications');
+export const getLoanApplications = async ({ signal } = {}) => {
+  const response = await api.get('/loans/applications', { signal });
   return response.data;
 };
 
@@ -159,8 +159,8 @@ export const getBranchDashboardData = async ({ queryKey } = {}) => {
  * Fetches loan applications belonging to the user's branch that have reached Branch Operations stage.
  * @returns {Promise<Object>}
  */
-export const getBranchLoanApplications = async () => {
-  const response = await api.get('/branch-operations/applications');
+export const getBranchLoanApplications = async ({ signal } = {}) => {
+  const response = await api.get('/branch-operations/applications', { signal });
   return response.data;
 };
 
@@ -221,7 +221,7 @@ export const getBranches = async () => {
  * @param {Object} context - React Query query context
  * @returns {Promise<Object>}
  */
-export const getBranchLeads = async ({ queryKey } = {}) => {
+export const getBranchLeads = async ({ queryKey, signal } = {}) => {
   const employeeId = queryKey?.[1] || '';
   const pipeline = queryKey?.[2] || 'all';
   const status = queryKey?.[3] || 'All';
@@ -235,6 +235,6 @@ export const getBranchLeads = async ({ queryKey } = {}) => {
 
   const qs = params.toString();
   const url = qs ? `/branch-operations/leads?${qs}` : '/branch-operations/leads';
-  const response = await api.get(url);
+  const response = await api.get(url, { signal });
   return response.data;
 };

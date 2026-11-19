@@ -39,7 +39,7 @@ export const originationQueryOptions = {
   }),
   salesRecent: () => queryOptions({
     queryKey: originationQueryKeys.salesRecent,
-    queryFn: () => getSalesLeads(),
+    queryFn: ({ signal }) => getSalesLeads({ signal }),
     staleTime: 60_000,
   }),
   branchLeads: (employee = 'all', pipeline = 'all', status = 'All', search = '') =>

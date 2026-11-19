@@ -4,8 +4,8 @@ import api from '../api/axios';
  * Fetches real sales dashboard metrics, trends, and recent leads.
  * @returns {Promise<Object>}
  */
-export const getSalesDashboardData = async () => {
-  const response = await api.get('/sales/dashboard');
+export const getSalesDashboardData = async ({ signal } = {}) => {
+  const response = await api.get('/sales/dashboard', { signal });
   return response.data;
 };
 
@@ -15,13 +15,13 @@ export const getSalesDashboardData = async () => {
  * @returns {Promise<Object>}
  */
 export const getSalesLeads = async (params = {}) => {
-  const { search = '', status = '' } = params;
+  const { search = '', status = '', signal } = params;
   const query = new URLSearchParams();
   if (search) query.append('search', search);
   if (status && status !== 'all') query.append('status', status);
 
   const url = `/sales/leads${query.toString() ? `?${query.toString()}` : ''}`;
-  const response = await api.get(url);
+  const response = await api.get(url, { signal });
   return response.data;
 };
 
