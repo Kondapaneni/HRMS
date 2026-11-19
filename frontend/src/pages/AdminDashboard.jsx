@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import PageLoader from '../components/PageLoader';
+import { adminDashboardQueryOptions } from '../performance/dashboardBoot';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -31,14 +32,7 @@ const AdminDashboard = () => {
       activities: []
     },
     isLoading: loading
-  } = useQuery({
-    queryKey: ['admin', 'dashboard'],
-    queryFn: async ({ signal }) => {
-      const res = await api.get('/admin/dashboard/stats', { signal });
-      return res.data;
-    },
-    staleTime: 30 * 1000 // Dashboard summaries update more frequently than static settings
-  });
+  } = useQuery(adminDashboardQueryOptions);
 
   if (loading) return <PageLoader message="Loading dashboard..." />;
 
