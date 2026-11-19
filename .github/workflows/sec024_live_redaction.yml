@@ -1,0 +1,49 @@
+name: SEC-024 live malformed-JWT response verification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/sec024_live_redaction.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sec024_live_redaction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readonly-invalid-jwt:
+    name: One read-only invalid-token request, no real credentials
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify DEV HTTP 401 does not disclose JWT or server details
+        shell: bash
+        run: |
+          set -euo pipefail
+          # One safe GET to a protected route, with an invalid synthetic token.
+          # No real credentials, invalid UUIDs, 500 injection, or database writes.
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          http_status="$(curl --proto '=https' --tlsv1.2 --silent --show-error \
+            --connect-timeout 10 --max-time 35 \
+            -H 'Accept: application/json' \
+            -H 'Authorization: Bearer bad.token' \
+            --dump-header "$tmp/headers" --output "$tmp/body" \
+            --write-out '%{http_code}' \
+            'https://hrms-qwv3.onrender.com/api/me')"
+          SEC024_STATUS="$http_status" SEC024_HEADER_PATH="$tmp/headers" SEC024_BODY_PATH="$tmp/body" node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          assert.equal(process.env.SEC024_STATUS, '401', 'Protected route must reject malformed token with HTTP 401');
+          const headers=fs.readFileSync(process.env.SEC024_HEADER_PATH,'utf8').toLowerCase();
+          const body=fs.readFileSync(process.env.SEC024_BODY_PATH,'utf8');
+          assert.match(headers, /content-type:\s*application\/json/, 'Response must be JSON');
+          assert.match(headers, /cache-control:[^\r\n]*no-store/, 'Auth error must not be cached');
+          const parsed=JSON.parse(body);
+          assert.equal(parsed.error,'Invalid or expired session token.', 'JWT error must use generic message');
+          assert(!/stack trace|exception|fatal error|sqlstate|jwt_secret|secret empty|firebase|\/var\/www\/|bad\.token/i.test(body),
+            'Never disclose internal details or token in HTTP body');
+          console.log('PASS SEC-024 live HTTP: malformed synthetic bearer 401 JSON, no-store, no diagnostic leak');
+          NODE
