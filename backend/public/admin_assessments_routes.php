@@ -320,7 +320,6 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
         $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $assignedEmployeeIds, $status, $questionsCount, $user->id]);
         $assessmentId = $stmt->fetchColumn();
 
-        @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
 
         if ($assessmentId && !empty($data['assigned_employee_ids']) && $status === 'Active') {
             queueAssessmentAssignedEmail($conn, $assessmentId, $data['assigned_employee_ids']);
@@ -371,7 +370,6 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
         $stmt = $conn->prepare($sql);
         $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $assignedEmployeeIds, $status, $questionsCount, $id]);
 
-        @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
 
         $newAssigned = is_array($data['assigned_employee_ids'] ?? null) ? $data['assigned_employee_ids'] : [];
         $newlyAdded = array_diff($newAssigned, $prevAssigned);
@@ -398,7 +396,6 @@ $app->delete('/api/admin/assessments/{id}', function (Request $request, Response
         $stmt = $conn->prepare('DELETE FROM assessments WHERE id = ?');
         $stmt->execute([$id]);
 
-        @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
 
         $response->getBody()->write(json_encode(['message' => 'Assessment deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
