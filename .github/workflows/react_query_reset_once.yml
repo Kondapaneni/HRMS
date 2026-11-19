@@ -1,0 +1,48 @@
+name: One-time fresh-request migration (isolated branch)
+on:
+  push:
+    branches:
+      - refactor/remove-react-query-cache
+    paths:
+      - '.github/workflows/react_query_reset_once.yml'
+permissions:
+  contents: write
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Apply controlled migration to all frontend modules
+        run: python3 scripts/react_query_purge_once.py
+      - name: Remove all React Query and persistence packages
+        run: |
+          cd frontend
+          npm uninstall @tanstack/react-query @tanstack/react-query-persist-client @tanstack/query-sync-storage-persister --no-audit --no-fund
+      - name: Commit migrated files only to the isolated branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/src frontend/package.json frontend/package-lock.json tests/
+          git diff --cached --quiet && { echo "No migrated files"; exit 1; }
+          git commit -m "refactor(data): remove legacy query hooks and cache packages from all frontend modules"
+          git push origin HEAD:refactor/remove-react-query-cache
+      - name: Build refactored frontend
+        run: |
+          cd frontend
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Run frontend and security source checks
+        run: |
+          node tests/perf_frontend_policy_test.mjs
+          node tests/perf_cold_route_policy_test.mjs
+          node tests/perf_refresh_boot_policy_test.mjs
+          node tests/sec021_policy_test.mjs
+          node tests/sec008_frontend_security_test.mjs
+          node --test tests/splash_employee_id_ui.test.mjs
