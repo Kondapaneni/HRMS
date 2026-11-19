@@ -1,0 +1,179 @@
+name: PERF-008 complete synthetic HRMS regression (no live credentials)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/perf008_comprehensive_synthetic.yml'
+      - 'docs/PERF-008-singapore-migration-readiness.md'
+      - 'scripts/perf008_verify_storage_binary.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  node-policy:
+    name: HRMS security, performance, MFA and Storage source regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run supported source-level regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in \
+            tests/perf008_news_timing_policy_test.mjs \
+            tests/perf_frontend_policy_test.mjs \
+            tests/perf_cold_route_policy_test.mjs \
+            tests/perf_refresh_boot_policy_test.mjs \
+            tests/sec008_frontend_security_test.mjs \
+            tests/sec008_login_reset_test.mjs \
+            tests/sec009_route_policy_test.mjs \
+            tests/sec010_policy_test.mjs \
+            tests/sec011_policy_test.mjs \
+            tests/sec012_policy_test.mjs \
+            tests/sec016_source_test.mjs \
+            tests/sec017_storage_source_test.mjs \
+            tests/sec018_source_test.mjs \
+            tests/sec019_source_test.mjs \
+            tests/sec019_candidate_conversion_source_test.mjs \
+            tests/sec019_reset_guard_test.mjs \
+            tests/sec019_bootstrap_guard_test.mjs \
+            tests/sec020_policy_test.mjs \
+            tests/sec020_maintenance_ui_test.mjs \
+            tests/sec021_policy_test.mjs \
+            tests/sec021_browser_session_test.mjs; do
+              echo "Running: $test"
+              node "$test"
+          done
+
+  php-policy:
+    name: PHP storage, authentication and employee-ID policy checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql, curl, fileinfo, mbstring
+      - name: PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l backend/public/index.php
+          php -l backend/src/Config/Database.php
+          php -l backend/src/Utils/RefreshSessions.php
+          php -l backend/src/Utils/Sec018AuditContext.php
+          php -l backend/public/storage_routes.php
+      - name: Offline PHP regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tests/sec001_storage_test.php
+          php tests/sec003_file_access_test.php
+          php tests/sec019_employee_id_test.php
+          php tests/sec007_cors_test.php
+
+  frontend-build:
+    name: Build web frontend and verify compiled security policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Locked build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Compiled asset checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/perf_frontend_policy_test.mjs --built
+          node tests/perf_cold_route_policy_test.mjs --built
+          node tests/perf_refresh_boot_policy_test.mjs --built
+          node tests/sec021_policy_test.mjs --built
+          node tests/sec020_policy_test.mjs --built
+
+  isolated-sec018:
+    name: Restricted-role and signed-audit synthetic PostgreSQL tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: sec018_phasea_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: SEC018_PHASEA_CI_PG_ONLY
+        ports:
+          - '5432:5432'
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec018_phasea_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec018_phasea_ci
+      DB_USERNAME: postgres
+      DB_PASSWORD: SEC018_PHASEA_CI_PG_ONLY
+      PGPASSWORD: SEC018_PHASEA_CI_PG_ONLY
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql, curl
+      - name: Apply reviewed restricted-role migrations to disposable database
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN BYPASSRLS;'
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f tests/sec018_phasea_schema_ci.sql
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE ON TABLE public.email_queue TO service_role;'
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f supabase/review-only/20261116_sec018_runtime_role_review_only.sql
+          psql -h 127.0.0.1 -U postgres -d sec018_phasea_ci -v ON_ERROR_STOP=1 -f supabase/review-only/20261116_sec018_signed_audit_review_only.sql
+          php tests/sec018_phasea_acceptance_ci.php
+          for mode in default restricted missing-password wrong-role missing-audit native native-transaction-denied native-session-optin; do
+            php tests/sec018_db_switch_ci.php "$mode"
+          done
+
+  isolated-sec019:
+    name: Employee-ID and integrity migrations on disposable PostgreSQL
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: sec019_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec019_test_only
+        ports:
+          - '5432:5432'
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec019_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: sec019_test_only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate migration and employee IDs without connecting to Supabase
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tests/sec019_employee_id_test.php
+          node tests/sec019_source_test.mjs
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -v ON_ERROR_STOP=1 -f tests/sec019_schema_fixture.sql
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -v ON_ERROR_STOP=1 -f supabase/migrations/20261117192545_sec019_reconcile_integrity_after_dev_reset.sql
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -v ON_ERROR_STOP=1 -f supabase/migrations/20261117192545_sec019_reconcile_integrity_after_dev_reset.sql
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -v ON_ERROR_STOP=1 -f tests/sec019_schema_assert.sql
+          psql -h 127.0.0.1 -U postgres -d sec019_ci -v ON_ERROR_STOP=1 -f tests/employee_numeric_id_db_test.sql
