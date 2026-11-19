@@ -13,7 +13,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
@@ -22,14 +22,12 @@ const EmployeeMobileHolidays = () => {
   const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('upcoming'); // 'upcoming' | 'all' | 'past'
 
-  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
-    queryKey: ['employee', 'holidays'],
-    queryFn: async () => {
+  const { data: holidays = [], isLoading: loading, isFetching } = useRemoteData({
+    scope: ['employee', 'holidays'],
+    load: async () => {
       const response = await api.get('/employee/holidays');
       return response.data || [];
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 5 * 60 * 1000,
   });
 
   const hasLoadedOnce = useRef(false);

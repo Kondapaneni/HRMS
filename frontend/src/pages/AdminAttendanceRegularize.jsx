@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Search, Calendar, MapPin, AlertCircle, X, CalendarCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import axios from '../api/axios';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
@@ -12,7 +12,7 @@ import { Button } from '../components/ui';
 
 const AdminAttendanceRegularize = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -61,25 +61,23 @@ const AdminAttendanceRegularize = () => {
   const [modalLoading, setModalLoading] = useState(false);
 
   // Employees dropdown query
-  const { data: employees = [] } = useQuery({
-    queryKey: ['admin', 'employees-dropdown-regularize'],
-    queryFn: async () => {
+  const { data: employees = [] } = useRemoteData({
+    scope: ['admin', 'employees-dropdown-regularize'],
+    load: async () => {
       const response = await axios.get('/admin/employees?limit=500');
       return response.data.employees || [];
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    reloadOnFocus: false,
   });
 
   // Attendance calendar query
-  const { data: attendanceResponse, isLoading: loading, error } = useQuery({
-    queryKey: ['admin', 'attendance-regularize', selectedEmployeeId, selectedMonth],
-    queryFn: async () => {
+  const { data: attendanceResponse, isLoading: loading, error } = useRemoteData({
+    scope: ['admin', 'attendance-regularize', selectedEmployeeId, selectedMonth],
+    load: async () => {
       const response = await axios.get(`/admin/attendance/employee/${selectedEmployeeId}?month=${selectedMonth}`);
       return response.data;
     },
     enabled: !!selectedEmployeeId && !!selectedMonth,
-    staleTime: 30 * 1000,
     onError: () => console.error('Failed to fetch attendance'),
   });
 
@@ -367,9 +365,9 @@ const AdminAttendanceRegularize = () => {
 
       await axios.post('/admin/attendance/regularize', payload);
       setIsModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-regularize'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'attendance'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'attendance-regularize'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'attendance'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
     } catch (err) {
       setModalError(err.response?.data?.error || 'Failed to regularize attendance');
     } finally {

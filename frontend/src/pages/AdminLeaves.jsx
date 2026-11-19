@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import { Calendar, CheckCircle2, XCircle, Clock, Search, User, Check, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,7 +9,7 @@ import { StatCard, StatusBadge, Button, Avatar, SearchBar } from '../components/
 
 const AdminLeaves = () => {
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   
   // Pagination and search
   const [search, setSearch] = useState('');
@@ -26,15 +26,13 @@ const AdminLeaves = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: leavesResponse, isLoading: initialLoading, isFetching } = useQuery({
-    queryKey: ['admin', 'leaves', page, debouncedSearch],
-    queryFn: async () => {
+  const { data: leavesResponse, isLoading: initialLoading, isFetching } = useRemoteData({
+    scope: ['admin', 'leaves', page, debouncedSearch],
+    load: async () => {
       const offset = (page - 1) * limit;
       const response = await api.get(`/admin/leaves?limit=${limit}&offset=${offset}&search=${encodeURIComponent(debouncedSearch)}`);
       return response.data;
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
   });
 
   const leaves = leavesResponse?.leaves || [];
@@ -42,12 +40,12 @@ const AdminLeaves = () => {
   const totalCount = leavesResponse?.total || 0;
 
   const handleAction = async (id, action) => {
-    const queryKey = ['admin', 'leaves', page, debouncedSearch];
-    const previousData = queryClient.getQueryData(queryKey);
+    const scope = ['admin', 'leaves', page, debouncedSearch];
+    const previousData = refreshControl.peek(scope);
 
     // Optimistically update the UI instantly
     if (previousData) {
-      queryClient.setQueryData(queryKey, {
+      refreshControl.update(scope, {
         ...previousData,
         leaves: previousData.leaves.map(leave => 
           leave.id === id 
@@ -60,11 +58,11 @@ const AdminLeaves = () => {
     try {
       await api.post(`/admin/leaves/${id}/${action}`);
       toast.success(`Leave request ${action === 'approve' ? 'approved' : 'rejected'}`);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'leaves'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'leaves'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
     } catch (err) {
       if (previousData) {
-        queryClient.setQueryData(queryKey, previousData);
+        refreshControl.update(scope, previousData);
       }
       toast.error(err.response?.data?.error || `Failed to ${action} leave request.`);
     }

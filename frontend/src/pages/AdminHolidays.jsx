@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2
 import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
 import toast from 'react-hot-toast';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import api from '../api/axios';
@@ -13,7 +13,7 @@ import { Button } from '../components/ui';
 
 const AdminHolidays = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Modal State
@@ -27,14 +27,12 @@ const AdminHolidays = () => {
 
   const monthStr = format(currentMonth, 'yyyy-MM');
 
-  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
-    queryKey: ['admin', 'holidays', monthStr],
-    queryFn: async () => {
+  const { data: holidays = [], isLoading: loading, isFetching } = useRemoteData({
+    scope: ['admin', 'holidays', monthStr],
+    load: async () => {
       const response = await api.get(`/admin/holidays?month=${monthStr}`);
       return response.data;
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 60 * 1000,
     onError: () => toast.error('Failed to load holidays'),
   });
 
@@ -114,7 +112,7 @@ const AdminHolidays = () => {
 
       toast.success('Holiday saved successfully');
       closeModal();
-      queryClient.invalidateQueries({ queryKey: ['admin', 'holidays'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'holidays'] });
     } catch (err) {
       toast.error(err.message || 'Failed to save holiday');
     } finally {
@@ -127,7 +125,7 @@ const AdminHolidays = () => {
     try {
       await api.delete(`/admin/holidays/${dateStr}`);
       toast.success('Holiday removed');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'holidays'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'holidays'] });
     } catch (err) {
       toast.error('Failed to remove holiday');
     }

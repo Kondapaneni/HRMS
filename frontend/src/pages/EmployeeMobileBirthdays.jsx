@@ -13,7 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
@@ -23,13 +23,12 @@ const EmployeeMobileBirthdays = () => {
   const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'week' | 'today'
 
-  const { data: birthdays = [], isLoading: loading } = useQuery({
-    queryKey: ['employee', 'birthdays'],
-    queryFn: async () => {
+  const { data: birthdays = [], isLoading: loading } = useRemoteData({
+    scope: ['employee', 'birthdays'],
+    load: async () => {
       const res = await api.get('/employee/birthdays');
       return res.data?.birthdays || [];
     },
-    staleTime: 5 * 60 * 1000,
   });
 
   const todayBirthdays = birthdays.filter(b => b.daysUntil === 0);

@@ -21,7 +21,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 const EmployeeChatbot = lazy(() => import('./EmployeeChatbot'));
@@ -36,9 +36,9 @@ const EmployeeLayout = () => {
   const todayStr = useAssessmentBusinessDate();
 
   // Check today's assessment
-  const { data: employeeAssessments = [] } = useQuery({
-    queryKey: ['employeeAssessmentsList', todayStr],
-    queryFn: async () => {
+  const { data: employeeAssessments = [] } = useRemoteData({
+    scope: ['employeeAssessmentsList', todayStr],
+    load: async () => {
       try {
         const res = await api.get('/employee/assessments');
         return res.data || [];
@@ -46,13 +46,12 @@ const EmployeeLayout = () => {
         return [];
       }
     },
-    staleTime: 60000,
   });
 
   // Check training videos
-  const { data: employeeTrainingVideos = [] } = useQuery({
-    queryKey: ['employeeTrainingVideosList'],
-    queryFn: async () => {
+  const { data: employeeTrainingVideos = [] } = useRemoteData({
+    scope: ['employeeTrainingVideosList'],
+    load: async () => {
       try {
         const res = await api.get('/employee/training/videos');
         return res.data || [];
@@ -60,7 +59,6 @@ const EmployeeLayout = () => {
         return [];
       }
     },
-    staleTime: 60000,
   });
 
   const hasAssessmentToday = useMemo(() => {
@@ -75,9 +73,9 @@ const EmployeeLayout = () => {
   }, [employeeTrainingVideos]);
 
   // Fetch news & maintenance status
-  const { data: newsData } = useQuery({
-    queryKey: ['newsHeadlines'],
-    queryFn: async () => {
+  const { data: newsData } = useRemoteData({
+    scope: ['newsHeadlines'],
+    load: async () => {
       try {
         const res = await api.get('/news');
         return res.data;
@@ -87,9 +85,8 @@ const EmployeeLayout = () => {
     },
     // MaintenanceGate still checks service availability every 15s; news itself
     // does not require equally aggressive background polling.
-    refetchInterval: 60000,
-    staleTime: 30000,
-    refetchOnWindowFocus: true,
+    pollEveryMs: 60000,
+    reloadOnFocus: true,
   });
 
   const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];

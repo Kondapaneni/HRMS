@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Loader2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 const ApplyMobileLeave = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [error, setError] = useState('');
   
   const [leaveType, setLeaveType] = useState('unpaid');
@@ -17,9 +17,9 @@ const ApplyMobileLeave = () => {
   const [reason, setReason] = useState('');
   const [calendarDate, setCalendarDate] = useState(new Date());
   
-  const { data: leavesData, isLoading: loading } = useQuery({
-    queryKey: ['employee', 'leaves'],
-    queryFn: async () => {
+  const { data: leavesData, isLoading: loading } = useRemoteData({
+    scope: ['employee', 'leaves'],
+    load: async () => {
       const res = await api.get('/employee/leaves');
       return res.data;
     }
@@ -60,14 +60,14 @@ const ApplyMobileLeave = () => {
     }
   }, [startDate, calendarDate, history, leaveType]);
 
-  const applyMutation = useMutation({
-    mutationFn: async (data) => {
+  const applyMutation = useRemoteTask({
+    run: async (data) => {
       await api.post('/employee/leaves/apply', data);
     },
     onSuccess: () => {
       toast.success('Leave request submitted successfully.');
-      queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
-      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+      refreshControl.invalidateQueries({ scope: ['employee', 'leaves'] });
+      refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
       navigate('/employee/leaves');
     },
     onError: (err) => {

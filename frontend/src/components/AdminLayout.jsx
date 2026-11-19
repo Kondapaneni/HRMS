@@ -13,7 +13,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import { warmRoute } from '../performance/routeWarmup';
 import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
@@ -26,17 +26,16 @@ import { supabase } from '../lib/supabase';
 const AdminLayout = () => {
   const { profile, signOut } = useAuth();
   const location = useLocation();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   // Always call hooks in the same order; delegated roles must never issue
   // privileged pending-document count queries.
-  const { data: pendingDocsCount = 0 } = useQuery({
-    queryKey: ['admin_pending_docs'],
+  const { data: pendingDocsCount = 0 } = useRemoteData({
+    scope: ['admin_pending_docs'],
     enabled: profile?.role === 'admin',
-    staleTime: 15 * 1000,
-    refetchOnWindowFocus: true,
-    refetchIntervalInBackground: false,
-    queryFn: async () => {
+    reloadOnFocus: true,
+    reloadInBackground: false,
+    load: async () => {
       const { count, error } = await supabase
         .from('candidate_documents')
         .select('*', { count: 'exact', head: true })
@@ -45,7 +44,7 @@ const AdminLayout = () => {
       if (error) throw error;
       return count || 0;
     },
-    refetchInterval: 30000,
+    pollEveryMs: 30000,
   });
 
   // Warm Employees and Attendance only after the Admin Dashboard succeeds.
@@ -57,13 +56,13 @@ const AdminLayout = () => {
     let timer;
     let idleId;
     const maybeWarm = () => {
-      if (armed || queryClient.getQueryState(['admin', 'dashboard'])?.status !== 'success') return;
+      if (armed || refreshControl.getQueryState(['admin', 'dashboard'])?.status !== 'success') return;
       armed = true;
       timer = setTimeout(() => {
         const run = () => {
           if (cancelled || document.visibilityState !== 'visible') return;
-          void warmRoute('/admin/employees', queryClient, 'admin');
-          void warmRoute('/admin/attendance', queryClient, 'admin');
+          void warmRoute('/admin/employees', refreshControl, 'admin');
+          void warmRoute('/admin/attendance', refreshControl, 'admin');
         };
         if (typeof window.requestIdleCallback === 'function') {
           idleId = window.requestIdleCallback(run, { timeout: 1500 });
@@ -72,7 +71,7 @@ const AdminLayout = () => {
         }
       }, 1000);
     };
-    const unsubscribe = queryClient.getQueryCache().subscribe(maybeWarm);
+    const unsubscribe = refreshControl.subscribe(maybeWarm);
     maybeWarm();
     return () => {
       cancelled = true;
@@ -82,7 +81,7 @@ const AdminLayout = () => {
       }
       unsubscribe();
     };
-  }, [profile?.role, location.pathname, queryClient]);
+  }, [profile?.role, location.pathname, refreshControl]);
 
   // Non-admin roles (hr/manager/employee) with feature access use the Admin Features layout.
   if (profile?.role !== 'admin') {

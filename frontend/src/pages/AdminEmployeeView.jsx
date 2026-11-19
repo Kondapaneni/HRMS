@@ -9,7 +9,7 @@ import {
   Clock, Laptop, Droplets, Download, Camera,
   AlertCircle, TrendingUp, X, Sparkles, Loader2
 } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -20,7 +20,7 @@ import Avatar from '../components/ui/Avatar';
 const AdminEmployeeView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [activeTab, setActiveTab] = useState('personal');
   const [isUploading, setIsUploading] = useState(false);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
@@ -33,9 +33,9 @@ const AdminEmployeeView = () => {
   });
   const [isPromoting, setIsPromoting] = useState(false);
 
-  const { data, isLoading: loading, isFetching } = useQuery({
-    queryKey: ['admin', 'employee', id],
-    queryFn: async () => {
+  const { data, isLoading: loading, isFetching } = useRemoteData({
+    scope: ['admin', 'employee', id],
+    load: async () => {
       const res = await api.get(`/admin/employees/${id}`);
       return res.data;
     },
@@ -136,9 +136,9 @@ const AdminEmployeeView = () => {
 
       toast.success(res.data?.message || 'Employee promoted successfully!');
       setIsPromoteModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'employee', id] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'employees'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.error || 'Failed to promote employee');
@@ -208,8 +208,8 @@ const AdminEmployeeView = () => {
 
       await api.put(`/admin/employees/${id}`, { avatar: avatarUrl });
 
-      queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'employee', id] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'employees'] });
       toast.success('Profile picture updated successfully!');
     } catch (error) {
       toast.error(error.message || 'Error uploading image');

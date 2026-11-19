@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { updateSalesLeadStatus } from '../services/salesServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 import toast from 'react-hot-toast';
@@ -33,7 +33,7 @@ const saleProductTypeOptions = [
 const OriginationMobileSaleLeadDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   // Private lead details live only in navigation/React memory.
   const [lead] = useState(() => location.state?.lead || null);
 
@@ -42,8 +42,8 @@ const OriginationMobileSaleLeadDetails = () => {
   const [currentStatus, setCurrentStatus] = useState(lead?.status || 'New');
   const [currentProductType, setCurrentProductType] = useState(lead?.product_type || '');
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status, product_type }) => updateSalesLeadStatus(id, status, product_type),
+  const statusMutation = useRemoteTask({
+    run: ({ id, status, product_type }) => updateSalesLeadStatus(id, status, product_type),
     onSuccess: (data, variables) => {
       toast.success(variables.status === 'Converted' ? 'Lead converted to Member successfully!' : 'Lead status updated successfully!');
       setCurrentStatus(variables.status);
@@ -52,9 +52,9 @@ const OriginationMobileSaleLeadDetails = () => {
         if (lead) lead.product_type = variables.product_type;
       }
       if (lead) lead.status = variables.status;
-      queryClient.invalidateQueries({ queryKey: ['sales', 'leads'] });
-      queryClient.invalidateQueries({ queryKey: ['sales', 'leads', 'list'] });
-      queryClient.invalidateQueries({ queryKey: ['salesDashboard'] });
+      refreshControl.invalidateQueries({ scope: ['sales', 'leads'] });
+      refreshControl.invalidateQueries({ scope: ['sales', 'leads', 'list'] });
+      refreshControl.invalidateQueries({ scope: ['salesDashboard'] });
       setShowConvertModal(false);
     },
     onError: (error) => {

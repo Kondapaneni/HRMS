@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,7 +37,7 @@ const matchOption = (val, options) => {
 
 const EditMobileProfile = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const { fetchProfile } = useAuth();
   const { setThemePreference } = useTheme();
   
@@ -57,9 +57,9 @@ const EditMobileProfile = () => {
     themePreference: 'system'
   });
 
-  const { data: responseData, isLoading: loading } = useQuery({
-    queryKey: ['employee', 'profile'],
-    queryFn: async () => {
+  const { data: responseData, isLoading: loading } = useRemoteData({
+    scope: ['employee', 'profile'],
+    load: async () => {
       const res = await api.get('/employee/profile');
       return res.data;
     }
@@ -87,8 +87,8 @@ const EditMobileProfile = () => {
     }
   }, [profileData]);
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data) => {
+  const updateProfileMutation = useRemoteTask({
+    run: async (data) => {
       await api.put('/employee/profile', data);
     },
     onSuccess: async () => {
@@ -96,7 +96,7 @@ const EditMobileProfile = () => {
       if (formData.themePreference) {
         setThemePreference(formData.themePreference);
       }
-      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
+      refreshControl.invalidateQueries({ scope: ['employee', 'profile'] });
       if (fetchProfile) await fetchProfile();
       navigate('/employee/profile');
     },

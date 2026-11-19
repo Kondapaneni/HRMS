@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/ui/SearchBar';
 import { 
@@ -117,10 +117,9 @@ const OriginationLoanApplicationsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, error, isFetching } = useQuery({
-    queryKey: ['origination', 'applications', 'list'],
-    queryFn: getLoanApplications,
-    staleTime: 2 * 60 * 1000,
+  const { data: response, isLoading, error, isFetching } = useRemoteData({
+    scope: ['origination', 'applications', 'list'],
+    load: getLoanApplications,
   });
 
   const applications = response?.applications || [];

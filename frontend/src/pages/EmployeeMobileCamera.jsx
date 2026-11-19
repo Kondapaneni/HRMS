@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRefreshControl } from '../state/remote.js';
 import { Camera, RefreshCw, UploadCloud, X, AlertCircle, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../api/axios';
@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 const EmployeeMobileCamera = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const { profile } = useAuth();
 
   const { action, latitude, longitude, address } = location.state || {};
@@ -210,7 +210,7 @@ const EmployeeMobileCamera = () => {
 
       if (updatedAtt) {
         // Optimistically update standalone attendance cache
-        queryClient.setQueryData(['employee', 'attendance'], (old = []) => {
+        refreshControl.setQueryData(['employee', 'attendance'], (old = []) => {
           const list = Array.isArray(old) ? [...old] : [];
           const idx = list.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
           if (idx >= 0) {
@@ -222,7 +222,7 @@ const EmployeeMobileCamera = () => {
         });
 
         // Optimistically update composite dashboard cache
-        queryClient.setQueryData(['employee', 'dashboard'], (old) => {
+        refreshControl.setQueryData(['employee', 'dashboard'], (old) => {
           if (!old) return old;
           const oldAttendance = Array.isArray(old.attendance) ? [...old.attendance] : [];
           const idx = oldAttendance.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
@@ -239,8 +239,8 @@ const EmployeeMobileCamera = () => {
       }
 
       toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
-      queryClient.invalidateQueries({ queryKey: ['employee', 'attendance'] });
-      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+      refreshControl.invalidateQueries({ scope: ['employee', 'attendance'] });
+      refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
       navigate('/employee', { replace: true });
 
     } catch (err) {

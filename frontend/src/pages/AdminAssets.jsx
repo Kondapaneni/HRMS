@@ -31,7 +31,7 @@ import {
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { StatCard, StatusBadge, Button, Avatar } from '../components/ui';
@@ -51,7 +51,7 @@ const getCategoryIcon = (category) => {
 
 const AdminAssets = () => {
   const { token } = useAuth();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   // Filters and Pagination
   const [filter, setFilter] = useState('All');
@@ -89,14 +89,12 @@ const AdminAssets = () => {
   const categories = ['Laptop', 'Monitor', 'Keyboard', 'Mouse', 'Phone', 'Tablet', 'Audio', 'Other'];
 
   // Fetch Assets from API
-  const { data: assetsResponse, isLoading: assetsLoading, isFetching: assetsFetching } = useQuery({
-    queryKey: ['admin', 'assets', page, debouncedSearchQuery, filter, categoryFilter],
-    queryFn: async () => {
+  const { data: assetsResponse, isLoading: assetsLoading, isFetching: assetsFetching } = useRemoteData({
+    scope: ['admin', 'assets', page, debouncedSearchQuery, filter, categoryFilter],
+    load: async () => {
       const res = await api.get(`/admin/assets?page=${page}&limit=${limit}&search=${encodeURIComponent(debouncedSearchQuery)}&status=${filter}&category=${categoryFilter}`);
       return res.data;
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
   });
 
   const assets = assetsResponse?.data || [];
@@ -111,9 +109,9 @@ const AdminAssets = () => {
   const totalPages = Math.ceil(totalCount / limit);
 
   // Fetch Employees for assignment dropdown
-  const { data: users = [] } = useQuery({
-    queryKey: ['admin', 'employees'],
-    queryFn: async () => {
+  const { data: users = [] } = useRemoteData({
+    scope: ['admin', 'employees'],
+    load: async () => {
       const res = await api.get('/admin/employees?limit=200');
       return res.data.employees || [];
     },
@@ -176,7 +174,7 @@ const AdminAssets = () => {
         toast.success('Asset updated successfully.');
       }
       closeModal();
-      queryClient.invalidateQueries({ queryKey: ['admin', 'assets'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'assets'] });
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to save asset.');
     } finally {
@@ -189,7 +187,7 @@ const AdminAssets = () => {
     try {
       await api.delete(`/admin/assets/${id}`);
       toast.success('Asset deleted successfully.');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'assets'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'assets'] });
     } catch (error) {
       toast.error('Failed to delete asset.');
     }
@@ -201,7 +199,7 @@ const AdminAssets = () => {
       await api.put(`/admin/assets/${selectedAsset.id}`, { assigned_to: userId });
       toast.success(userId ? 'Asset assigned successfully.' : 'Asset unassigned.');
       closeModal();
-      queryClient.invalidateQueries({ queryKey: ['admin', 'assets'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'assets'] });
     } catch (error) {
       toast.error('Failed to update assignment.');
     } finally {

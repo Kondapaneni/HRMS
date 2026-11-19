@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Download, Sparkles } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useLocation } from 'react-router-dom';
 import api, { REMOTE_ORIGIN, isNativeApp } from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -32,9 +32,9 @@ export default function UpdateOverlay() {
       window.__ACTIVE_ASSESSMENT_SESSION__ === true
     ));
 
-  const { data: newsData } = useQuery({
-    queryKey: ['newsHeadlines'],
-    queryFn: async () => {
+  const { data: newsData } = useRemoteData({
+    scope: ['newsHeadlines'],
+    load: async () => {
       try {
         const res = await api.get('/news');
         return res.data;
@@ -43,9 +43,8 @@ export default function UpdateOverlay() {
       }
     },
     enabled: isAuthenticated && !isPublicRoute,
-    refetchInterval: 15000,
-    staleTime: 10000,
-    refetchOnWindowFocus: false,
+    pollEveryMs: 15000,
+    reloadOnFocus: false,
     retry: false,
   });
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
@@ -30,7 +30,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 
 const AssessmentResults = () => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -46,32 +46,31 @@ const AssessmentResults = () => {
   }, [searchTerm]);
 
   // Fetch attempts
-  const { data: attempts = [], isLoading, isFetching } = useQuery({
-    queryKey: ['adminAssessmentAttempts'],
-    queryFn: async () => {
+  const { data: attempts = [], isLoading, isFetching } = useRemoteData({
+    scope: ['adminAssessmentAttempts'],
+    load: async () => {
       const res = await api.get('/admin/assessments/attempts');
       return res.data?.data || res.data || [];
     },
-    placeholderData: (previousData) => previousData,
-    refetchInterval: 30000
+    pollEveryMs: 30000
   });
 
   // Fetch assessments for dropdown filter
-  const { data: assessments = [] } = useQuery({
-    queryKey: ['adminAssessments'],
-    queryFn: async () => {
+  const { data: assessments = [] } = useRemoteData({
+    scope: ['adminAssessments'],
+    load: async () => {
       const res = await api.get('/admin/assessments');
       return res.data?.data || res.data || [];
     }
   });
 
   // Delete/Reset mutation
-  const deleteMutation = useMutation({
-    mutationFn: async ({ id }) => {
+  const deleteMutation = useRemoteTask({
+    run: async ({ id }) => {
       await api.delete(`/admin/assessments/attempts/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminAssessmentAttempts'] });
+      refreshControl.invalidateQueries({ scope: ['adminAssessmentAttempts'] });
       toast.success('Attempt record deleted successfully');
       if (selectedAttempt) setSelectedAttempt(null);
     },

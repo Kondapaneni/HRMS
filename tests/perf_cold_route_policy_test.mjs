@@ -17,22 +17,15 @@ assert.match(shell, /onPointerEnter=\{\(\) => onRouteIntent/,
   'Predictive preload begins from actual navigation intent');
 assert.match(shell, /onFocus=\{\(\) => onRouteIntent/,
   'Keyboard navigation can preload routes as well');
-assert.match(layout, /queryClient\.getQueryState\(\['admin', 'dashboard'\]\)\?\.status !== 'success'/,
-  'Do not add admin request pressure until dashboard data has arrived');
+assert.match(layout, /refreshControl\.getState\(\['admin', 'dashboard'\]\)\?\.status !== 'success'/,
+  'Do not load other route chunks until dashboard data arrives');
 assert.match(layout, /profile\?\.role !== 'admin'/,
-  'Admin private prefetch must require authenticated admin role');
-assert.match(routeWarmup, /role !== 'admin' \|\| !queryClient/,
-  'Only verified Admin may trigger private API prefetch');
-assert.match(routeWarmup, /queryClient\.prefetchQuery\(adminQueries\[path\]\)/,
-  'Prefetch authorized common Admin queries using existing QueryClient');
-assert.match(routeWarmup, /\['admin', 'employees', ''\]/,
-  'Preload query key must match the Employees page');
-assert.match(routeWarmup, /\['admin', 'attendance', date, '', 1\]/,
-  'Preload query key must match the Attendance page');
-assert.doesNotMatch(routeWarmup, /localStorage|sessionStorage|PersistQueryClient/,
-  'SEC-021: never persist prefetched private data');
-assert.match(app, /QueryClientProvider/,
-  'All routes must use the single memory-only QueryClient');
+  'Admin route preloading must require authenticated admin role');
+assert.match(routeWarmup, /return preloadRouteModule\(path\)/,
+  'Only route code is prefetched; not private API responses');
+assert.doesNotMatch(routeWarmup, /api\.get|fetchQuery|prefetchQuery|localStorage|sessionStorage/,
+  'Route warmup may not cache or persist private API records');
+assert.doesNotMatch(app, /QueryClientProvider/, 'Root must not retain cross-route responses');
 
 for (const p of [
   'frontend/src/pages/AdminPayroll.jsx',

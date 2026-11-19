@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
@@ -40,7 +40,7 @@ export default function OriginationMobileLoanViewApplications({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [searchParams] = useSearchParams();
   const paramAppId = searchParams.get('id');
 
@@ -49,9 +49,9 @@ export default function OriginationMobileLoanViewApplications({
   const fromPath = propFromPath || location.state?.from || '/employee/loans/origination/applications';
 
   // Fallback query if page is refreshed or visited with a query parameter/missing state
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['origination', 'applications', 'list'],
-    queryFn: getLoanApplications,
+  const { data: response, isLoading } = useRemoteData({
+    scope: ['origination', 'applications', 'list'],
+    load: getLoanApplications,
     enabled: !stateApplication,
   });
 
@@ -190,7 +190,7 @@ export default function OriginationMobileLoanViewApplications({
 
       setLocalTimeline((prev) => [...prev, timelineEvent]);
       setLocalStatus('Under Review');
-      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
+      refreshControl.invalidateQueries({ scope: ['origination', 'applications', 'list'] });
       toast.success('Application transferred to Branch Operations successfully.');
     } catch (err) {
       console.error(err);

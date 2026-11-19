@@ -1,16 +1,16 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteTask, useRefreshControl } from '../state/remote.js';
 import toast from 'react-hot-toast';
 import { markBranchOperationsApplicationAsSeen } from '../services/loanServices';
 
 const APPLICATIONS_QUERY_KEY = ['branchOperations', 'applications', 'list'];
 
 export const useBranchOperationsApplicationReadState = () => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
-  const mutation = useMutation({
-    mutationFn: markBranchOperationsApplicationAsSeen,
+  const mutation = useRemoteTask({
+    run: markBranchOperationsApplicationAsSeen,
     onSuccess: (_response, application) => {
-      queryClient.setQueryData(APPLICATIONS_QUERY_KEY, (data) => {
+      refreshControl.update(APPLICATIONS_QUERY_KEY, (data) => {
         if (!data?.applications) return data;
 
         return {
@@ -25,7 +25,7 @@ export const useBranchOperationsApplicationReadState = () => {
       toast.error("Couldn't sync this application's read status. Please try again.");
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: APPLICATIONS_QUERY_KEY });
+      refreshControl.invalidateQueries({ scope: APPLICATIONS_QUERY_KEY });
     },
   });
 

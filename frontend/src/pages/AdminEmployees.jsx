@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2, Users } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -16,21 +16,19 @@ const AdminEmployees = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: employees = [], isLoading: initialLoading, isFetching } = useQuery({
-    queryKey: ['admin', 'employees', debouncedSearch],
-    queryFn: async ({ signal }) => {
+  const { data: employees = [], isLoading: initialLoading, isFetching } = useRemoteData({
+    scope: ['admin', 'employees', debouncedSearch],
+    load: async ({ signal }) => {
       const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`, { signal });
       return res.data.employees || [];
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 60 * 1000, // Reuse cached roster between quick tab switches
   });
 
   const handleSearchSubmit = (e) => {
@@ -264,8 +262,8 @@ const AdminEmployees = () => {
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
           setIsModalOpen(false);
-          queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
-          queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+          refreshControl.invalidateQueries({ scope: ['admin', 'employees'] });
+          refreshControl.invalidateQueries({ scope: ['admin', 'dashboard'] });
         }}
       />
     </div>

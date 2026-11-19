@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Download, Users, Calendar, IndianRupee, Filter, Building2, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
@@ -51,33 +51,28 @@ const AdminReports = () => {
     }
   };
 
-  const { data: employeesData = [], isLoading: loadingEmployees } = useQuery({
-    queryKey: ['admin_report_employees'],
-    queryFn: async () => {
+  const { data: employeesData = [], isLoading: loadingEmployees } = useRemoteData({
+    scope: ['admin_report_employees'],
+    load: async () => {
       const res = await api.get('/admin/reports/employees?format=json');
       return res.data?.data || (Array.isArray(res.data) ? res.data : []);
     },
-    staleTime: 60 * 1000,
   });
 
-  const { data: attendanceData = [], isLoading: loadingAttendance, isFetching: isFetchingAttendance } = useQuery({
-    queryKey: ['admin_report_attendance', attendanceMonth],
-    queryFn: async () => {
+  const { data: attendanceData = [], isLoading: loadingAttendance, isFetching: isFetchingAttendance } = useRemoteData({
+    scope: ['admin_report_attendance', attendanceMonth],
+    load: async () => {
       const res = await api.get(`/admin/reports/attendance?month=${attendanceMonth}&format=json`);
       return res.data?.data || (Array.isArray(res.data) ? res.data : []);
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 60 * 1000,
   });
 
-  const { data: payrollData = [], isLoading: loadingPayroll, isFetching: isFetchingPayroll } = useQuery({
-    queryKey: ['admin_report_payroll', payrollMonth],
-    queryFn: async () => {
+  const { data: payrollData = [], isLoading: loadingPayroll, isFetching: isFetchingPayroll } = useRemoteData({
+    scope: ['admin_report_payroll', payrollMonth],
+    load: async () => {
       const res = await api.get(`/admin/reports/payroll?month=${payrollMonth}&format=json`);
       return res.data?.data || (Array.isArray(res.data) ? res.data : []);
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 60 * 1000,
   });
 
   const hasLoadedOnce = useRef(false);

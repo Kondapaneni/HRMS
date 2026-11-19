@@ -2,13 +2,11 @@ import api from '../api/axios';
 import { isMaintenanceEnabled } from '../components/maintenancePolicy';
 import { preloadInitialRoute } from './routeWarmup';
 
-// The initial secure dashboard fetch is shared by desktop, mobile, and the
-// auth splash. Keep its result exclusively in the in-memory QueryClient;
-// logout clears it and no account's data is persisted to browser storage.
-export const employeeDashboardQueryOptions = {
-  queryKey: ['employee', 'dashboard'],
-  staleTime: 30_000,
-  queryFn: async () => {
+// Desktop and mobile share the request definition, not fetched records.
+// Every dashboard mount performs its own authorized, fresh server request.
+export const employeeDashboardRequest = {
+  scope: ['employee', 'dashboard'],
+  load: async () => {
     const [
       attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes,
       holidaysRes, expensesRes, birthdaysRes,
@@ -37,20 +35,18 @@ export const employeeDashboardQueryOptions = {
   },
 };
 
-export const adminDashboardQueryOptions = {
-  queryKey: ['admin', 'dashboard'],
-  staleTime: 30_000,
-  queryFn: async ({ signal }) => (await api.get('/admin/dashboard/stats', { signal })).data,
+export const adminDashboardRequest = {
+  scope: ['admin', 'dashboard'],
+  load: async ({ signal }) => (await api.get('/admin/dashboard/stats', { signal })).data,
 };
 
 /**
  * Only warm the verified account's home dashboard on a landing-page reload or
- * successful login. Wait for the initial authorized query while splash is
- * visible so there is no second full-screen "Loading workspace" transition.
+ * successful login. Wait for route module loading during the verified auth splash.
  * No privileged API call is made until /me has verified the account role and
  * the maintenance-status endpoint has confirmed workspaces are available.
  */
-export async function prepareAuthenticatedLanding(profile, queryClient, maintenanceMode) {
+export async function prepareAuthenticatedLanding(profile, maintenanceMode) {
   if (!profile || profile.forcePasswordChange) return;
   const role = profile.role;
   if (!['admin', 'employee', 'hr', 'manager'].includes(role)) return;
@@ -69,10 +65,8 @@ export async function prepareAuthenticatedLanding(profile, queryClient, maintena
       (maintenanceMode === null || maintenanceMode === undefined ||
        isMaintenanceEnabled(maintenanceMode))) return;
 
-  // Even admins require a successful /me before warming private data.
-  await queryClient.ensureQueryData(
-    role === 'admin' ? adminDashboardQueryOptions : employeeDashboardQueryOptions,
-  );
+  // No shared client cache: the mounted dashboard requests fresh data.
+
 }
 
 export const MIN_SPLASH_MS = 3000;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { 
   Camera, 
   Save, 
@@ -41,16 +41,15 @@ const CandidateProfile = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
-  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ['candidate', 'profile', profile?.id],
-    queryFn: async () => {
+  const { data: profileData, isLoading: isLoadingProfile } = useRemoteData({
+    scope: ['candidate', 'profile', profile?.id],
+    load: async () => {
       const res = await api.get('/candidate/profile');
       return res.data.profile || null;
     },
     enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
   });
 
   useEffect(() => {
@@ -67,8 +66,8 @@ const CandidateProfile = () => {
     }
   }, [profileData]);
 
-  const saveMutation = useMutation({
-    mutationFn: async (updatedData) => {
+  const saveMutation = useRemoteTask({
+    run: async (updatedData) => {
       await api.put('/candidate/profile', {
         phone: updatedData.phone,
         address: updatedData.address,
@@ -80,8 +79,8 @@ const CandidateProfile = () => {
     },
     onSuccess: () => {
       toast.success('Candidate profile updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['candidate', 'profile'] });
-      queryClient.invalidateQueries({ queryKey: ['candidate', 'dashboard'] });
+      refreshControl.invalidateQueries({ scope: ['candidate', 'profile'] });
+      refreshControl.invalidateQueries({ scope: ['candidate', 'dashboard'] });
     },
     onError: (error) => {
       console.error('Error saving profile:', error);

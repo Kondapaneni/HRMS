@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/ui/SearchBar';
 import { 
@@ -24,7 +24,7 @@ import PageLoader from '../components/PageLoader';
 import toast from 'react-hot-toast';
 
 const EmployeeTrainingVideos = () => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'completed' | 'pending'
@@ -32,16 +32,16 @@ const EmployeeTrainingVideos = () => {
   const [confirmingVideo, setConfirmingVideo] = useState(null);
   const videoPlayerRef = useRef(null);
 
-  const { data: videos = [], isLoading } = useQuery({
-    queryKey: ['employee', 'trainingVideos'],
-    queryFn: async () => {
+  const { data: videos = [], isLoading } = useRemoteData({
+    scope: ['employee', 'trainingVideos'],
+    load: async () => {
       const res = await api.get('/employee/training/videos');
       return res.data;
     }
   });
 
-  const toggleProgressMutation = useMutation({
-    mutationFn: async ({ videoId, completed }) => {
+  const toggleProgressMutation = useRemoteTask({
+    run: async ({ videoId, completed }) => {
       const res = await api.post('/employee/training/progress', {
         video_id: videoId,
         completed
@@ -49,16 +49,16 @@ const EmployeeTrainingVideos = () => {
       return res.data;
     },
     onMutate: async ({ videoId, completed }) => {
-      await queryClient.cancelQueries({ queryKey: ['employee', 'trainingVideos'] });
-      const previousVideos = queryClient.getQueryData(['employee', 'trainingVideos']);
-      queryClient.setQueryData(['employee', 'trainingVideos'], (old = []) => {
+      await refreshControl.cancelQueries({ scope: ['employee', 'trainingVideos'] });
+      const previousVideos = refreshControl.getQueryData(['employee', 'trainingVideos']);
+      refreshControl.setQueryData(['employee', 'trainingVideos'], (old = []) => {
         return old.map(v => v.id === videoId ? { ...v, is_completed: completed } : v);
       });
       return { previousVideos };
     },
     onError: (err, variables, context) => {
       if (context?.previousVideos) {
-        queryClient.setQueryData(['employee', 'trainingVideos'], context.previousVideos);
+        refreshControl.setQueryData(['employee', 'trainingVideos'], context.previousVideos);
       }
       toast.error(err.response?.data?.error || 'Failed to update progress');
     },
@@ -68,7 +68,7 @@ const EmployeeTrainingVideos = () => {
       } else {
         toast('Marked as uncompleted', { icon: '↩️' });
       }
-      queryClient.invalidateQueries({ queryKey: ['employee', 'trainingVideos'] });
+      refreshControl.invalidateQueries({ scope: ['employee', 'trainingVideos'] });
     }
   });
 

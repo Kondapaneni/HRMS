@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import SearchBar from '../components/ui/SearchBar';
 import { 
   Search, 
@@ -33,9 +33,9 @@ const BranchOperationsMobileLoansApplicationsList = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [loanTypeFilter, setLoanTypeFilter] = useState('All');
 
-  const { data: response, isLoading, error } = useQuery({
-    queryKey: ['branchOperations', 'applications', 'list'],
-    queryFn: getBranchLoanApplications,
+  const { data: response, isLoading, error } = useRemoteData({
+    scope: ['branchOperations', 'applications', 'list'],
+    load: getBranchLoanApplications,
   });
 
   const branch = response?.branch || { name: 'Assigned Branch' };

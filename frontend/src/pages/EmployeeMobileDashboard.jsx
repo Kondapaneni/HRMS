@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
-import { employeeDashboardQueryOptions } from '../performance/dashboardBoot';
+import { employeeDashboardRequest } from '../performance/dashboardBoot';
 import { 
   LogIn, 
   LogOut, 
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,7 +37,7 @@ import {
 const EmployeeMobileDashboard = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lockoutSeconds, setLockoutSeconds] = useState(null);
   const [liveSeconds, setLiveSeconds] = useState(0);
@@ -47,9 +47,9 @@ const EmployeeMobileDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: trainingVideos = [] } = useQuery({
-    queryKey: ['employee', 'trainingVideos'],
-    queryFn: async () => {
+  const { data: trainingVideos = [] } = useRemoteData({
+    scope: ['employee', 'trainingVideos'],
+    load: async () => {
       try {
         const res = await api.get('/employee/training/videos');
         return res.data || [];
@@ -57,19 +57,18 @@ const EmployeeMobileDashboard = () => {
         return [];
       }
     },
-    staleTime: 60000,
   });
 
   const hasTrainingVideos = Array.isArray(trainingVideos) && trainingVideos.length > 0;
 
 
 
-  const { data: dashboardData, isLoading: loading } = useQuery(employeeDashboardQueryOptions);
+  const { data: dashboardData, isLoading: loading } = useRemoteData(employeeDashboardRequest);
 
   // Dedicated query to poll rate-limit status dynamically
-  const { data: rateLimitStatus } = useQuery({
-    queryKey: ['employee', 'mapsRateLimit'],
-    queryFn: async () => {
+  const { data: rateLimitStatus } = useRemoteData({
+    scope: ['employee', 'mapsRateLimit'],
+    load: async () => {
       try {
         const res = await api.get('/employee/maps-rate-limit-status');
         return res.data;
@@ -77,8 +76,7 @@ const EmployeeMobileDashboard = () => {
         return { locked: false, secondsRemaining: null };
       }
     },
-    refetchInterval: lockoutSeconds ? 5000 : 30000,
-    staleTime: 4000,
+    pollEveryMs: lockoutSeconds ? 5000 : 30000,
   });
 
   const attendance = dashboardData?.attendance || [];
@@ -106,14 +104,14 @@ const EmployeeMobileDashboard = () => {
         setLockoutSeconds(prev => {
           if (prev && prev > 1) return prev - 1;
           // When timer expires, immediately invalidate queries to unblock buttons
-          queryClient.invalidateQueries({ queryKey: ['employee', 'mapsRateLimit'] });
-          queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+          refreshControl.invalidateQueries({ scope: ['employee', 'mapsRateLimit'] });
+          refreshControl.invalidateQueries({ scope: ['employee', 'dashboard'] });
           return null;
         });
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [lockoutSeconds, queryClient]);
+  }, [lockoutSeconds, refreshControl]);
 
   const isLocked = lockoutSeconds !== null && lockoutSeconds > 0;
   const formatLockoutTimer = (seconds) => {

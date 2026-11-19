@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import {
   Search,
   Loader2,
@@ -117,14 +117,12 @@ const AdminPerformance = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: employees = [], isLoading: isLoadingEmployees, isFetching: isFetchingEmployees } = useQuery({
-    queryKey: ['admin', 'employees', debouncedSearch],
-    queryFn: async () => {
+  const { data: employees = [], isLoading: isLoadingEmployees, isFetching: isFetchingEmployees } = useRemoteData({
+    scope: ['admin', 'employees', debouncedSearch],
+    load: async () => {
       const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}&limit=100`);
       return res.data.employees || [];
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
   });
 
   useEffect(() => {
@@ -133,16 +131,14 @@ const AdminPerformance = () => {
     }
   }, [employees, selectedEmpId]);
 
-  const { data: perfData, isLoading: isLoadingPerf } = useQuery({
-    queryKey: ['admin', 'performance', selectedEmpId],
-    queryFn: async () => {
+  const { data: perfData, isLoading: isLoadingPerf } = useRemoteData({
+    scope: ['admin', 'performance', selectedEmpId],
+    load: async () => {
       if (!selectedEmpId) return null;
       const res = await api.get(`/admin/performance?id=${selectedEmpId}`);
       return res.data;
     },
     enabled: !!selectedEmpId,
-    staleTime: 30 * 1000,
-    refetchOnMount: true
   });
 
   const currentWeek = useMemo(() => {

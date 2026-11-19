@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -41,7 +41,7 @@ const AssessmentCreate = () => {
   const { id } = useParams();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   // Step state: 1 = Select Questions, 2 = Assign Employees, 3 = Configure Info & Rules
   const [step, setStep] = useState(1);
@@ -79,9 +79,9 @@ const AssessmentCreate = () => {
   }, [questionSearch]);
 
   // Fetch question bank
-  const { data: questionBank = [], isLoading: loadingQuestions } = useQuery({
-    queryKey: ['adminQuestions', selectedDeptFilter],
-    queryFn: async () => {
+  const { data: questionBank = [], isLoading: loadingQuestions } = useRemoteData({
+    scope: ['adminQuestions', selectedDeptFilter],
+    load: async () => {
       const url = selectedDeptFilter === 'All' 
         ? '/admin/questions' 
         : `/admin/questions?department=${encodeURIComponent(selectedDeptFilter)}`;
@@ -91,18 +91,18 @@ const AssessmentCreate = () => {
   });
 
   // Fetch employees for assignment
-  const { data: employees = [], isLoading: loadingEmployees } = useQuery({
-    queryKey: ['adminEmployeesForAssignment'],
-    queryFn: async () => {
+  const { data: employees = [], isLoading: loadingEmployees } = useRemoteData({
+    scope: ['adminEmployeesForAssignment'],
+    load: async () => {
       const res = await api.get('/admin/employees');
       return res.data?.employees || res.data || [];
     }
   });
 
   // Fetch existing assessment if editing
-  const { data: existingAssessment, isLoading: loadingAssessment } = useQuery({
-    queryKey: ['adminAssessment', id],
-    queryFn: async () => {
+  const { data: existingAssessment, isLoading: loadingAssessment } = useRemoteData({
+    scope: ['adminAssessment', id],
+    load: async () => {
       const res = await api.get(`/admin/assessments/${id}`);
       return res.data?.data || res.data;
     },
@@ -133,8 +133,8 @@ const AssessmentCreate = () => {
     }
   }, [existingAssessment, isEditing]);
 
-  const saveMutation = useMutation({
-    mutationFn: async (payload) => {
+  const saveMutation = useRemoteTask({
+    run: async (payload) => {
       if (isEditing) {
         return await api.put(`/admin/assessments/${id}`, payload);
       } else {
@@ -142,7 +142,7 @@ const AssessmentCreate = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminAssessments'] });
+      refreshControl.invalidateQueries({ scope: ['adminAssessments'] });
       toast.success(isEditing ? 'Assessment updated successfully!' : 'Assessment created with custom rules & questions!');
       navigate('/admin/assessments/management');
     },

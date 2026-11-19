@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import axios from '../api/axios';
 import { toast } from 'react-hot-toast';
 import { MapPin, ArrowRightToLine, ArrowLeftFromLine, MapPinOff, ArrowLeft } from 'lucide-react';
@@ -23,9 +23,9 @@ const AdminAttendanceLocation = () => {
   const pinnedMarkerRef = useRef(null);
   const { browserKey, loadingBrowserKey } = useMapsBrowserKey();
 
-  const { data, isLoading: loading } = useQuery({
-    queryKey: ['admin', 'attendance-location', id],
-    queryFn: async () => {
+  const { data, isLoading: loading } = useRemoteData({
+    scope: ['admin', 'attendance-location', id],
+    load: async () => {
       const response = await axios.get(`/admin/attendance/location/${id}`);
       return response.data;
     },

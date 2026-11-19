@@ -8,7 +8,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { supabase } from '../lib/supabase';
 import AppShell from './AppShell';
 
@@ -16,9 +16,9 @@ const CandidateLayout = () => {
   const { profile } = useAuth();
   const location = useLocation();
 
-  const { data: profileData } = useQuery({
-    queryKey: ['candidate', 'profile', profile?.id],
-    queryFn: async () => {
+  const { data: profileData } = useRemoteData({
+    scope: ['candidate', 'profile', profile?.id],
+    load: async () => {
       const { data } = await supabase
         .from('candidate_profiles')
         .select('avatar_url, documents_tab_seen_at')

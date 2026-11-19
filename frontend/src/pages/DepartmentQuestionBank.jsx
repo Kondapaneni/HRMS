@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
@@ -38,7 +38,7 @@ const DEPARTMENTS = [
 ];
 
 const DepartmentQuestionBank = () => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -61,9 +61,9 @@ const DepartmentQuestionBank = () => {
     correct_options: [0] // array of integer indices
   });
 
-  const { data: questions = [], isLoading, isFetching } = useQuery({
-    queryKey: ['adminQuestions', selectedDeptFilter, debouncedSearchQuery],
-    queryFn: async () => {
+  const { data: questions = [], isLoading, isFetching } = useRemoteData({
+    scope: ['adminQuestions', selectedDeptFilter, debouncedSearchQuery],
+    load: async () => {
       const params = new URLSearchParams();
       if (selectedDeptFilter !== 'All') params.append('department', selectedDeptFilter);
       if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
@@ -72,7 +72,6 @@ const DepartmentQuestionBank = () => {
       const res = await api.get(url);
       return res.data?.data || res.data || [];
     },
-    placeholderData: (previousData) => previousData,
   });
 
   const stats = useMemo(() => {
@@ -83,8 +82,8 @@ const DepartmentQuestionBank = () => {
     return { total, single, multiple, depts };
   }, [questions]);
 
-  const saveMutation = useMutation({
-    mutationFn: async ({ formData }) => {
+  const saveMutation = useRemoteTask({
+    run: async ({ formData }) => {
       if (editingId) {
         return await api.put(`/admin/questions/${editingId}`, formData);
       } else {
@@ -92,7 +91,7 @@ const DepartmentQuestionBank = () => {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['adminQuestions'] });
+      refreshControl.invalidateQueries({ scope: ['adminQuestions'] });
       toast.success(editingId ? 'Question updated successfully!' : 'Question added to bank!');
       if (variables?.closeAfterSave) {
         setShowModal(false);
@@ -116,10 +115,10 @@ const DepartmentQuestionBank = () => {
     }
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => await api.delete(`/admin/questions/${id}`),
+  const deleteMutation = useRemoteTask({
+    run: async (id) => await api.delete(`/admin/questions/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminQuestions'] });
+      refreshControl.invalidateQueries({ scope: ['adminQuestions'] });
       toast.success('Question deleted successfully!');
     },
     onError: () => toast.error('Failed to delete question')

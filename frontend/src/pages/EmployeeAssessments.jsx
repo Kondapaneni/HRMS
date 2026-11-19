@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import useAssessmentBusinessDate from '../hooks/useAssessmentBusinessDate';
@@ -189,17 +189,14 @@ const EmployeeAssessments = () => {
   const todayStr = useAssessmentBusinessDate();
 
   // Optimized React Query config (Requirement 7)
-  const { data: assessments = [], isLoading, isError } = useQuery({
-    queryKey: ['employeeAssessments', todayStr],
-    queryFn: async () => {
+  const { data: assessments = [], isLoading, isError } = useRemoteData({
+    scope: ['employeeAssessments', todayStr],
+    load: async () => {
       const res = await api.get('/employee/assessments');
       return res.data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false,
+    reloadOnFocus: false,
     retry: 1,
-    placeholderData: keepPreviousData
   });
 
   // Memoize start handler (Requirement 8)

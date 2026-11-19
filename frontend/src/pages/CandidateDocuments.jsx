@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import SearchBar from '../components/ui/SearchBar';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import { 
@@ -50,27 +50,25 @@ const documentTypes = [
 const CandidateDocuments = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [uploadingType, setUploadingType] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('ALL');
   const [previewDoc, setPreviewDoc] = useState(null);
   const fileInputRefs = useRef({});
 
-  const { data: documents = [], isLoading } = useQuery({
-    queryKey: ['candidate_documents', profile?.id],
-    queryFn: async () => {
+  const { data: documents = [], isLoading } = useRemoteData({
+    scope: ['candidate_documents', profile?.id],
+    load: async () => {
       if (!profile?.id) return [];
       const res = await api.get('/candidate/documents');
       return res.data.documents || [];
     },
     enabled: !!profile?.id,
-    staleTime: 15 * 1000,
-    refetchOnMount: true
   });
 
-  const uploadMutation = useMutation({
-    mutationFn: async ({ docTypeId, file }) => {
+  const uploadMutation = useRemoteTask({
+    run: async ({ docTypeId, file }) => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${profile.id}/${docTypeId}_${Date.now()}.${fileExt}`;
       
@@ -104,7 +102,7 @@ const CandidateDocuments = () => {
     },
     onSuccess: () => {
       toast.success('Document uploaded successfully');
-      queryClient.invalidateQueries({ queryKey: ['candidate_documents', profile?.id] });
+      refreshControl.invalidateQueries({ scope: ['candidate_documents', profile?.id] });
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to upload document');

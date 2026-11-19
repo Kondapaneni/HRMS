@@ -25,8 +25,8 @@ assert.match(finalizer, /if \(!token\) return userData/,
   'Missing token cannot create an authenticated session');
 assert.match(finalizer, /setAccessToken\(token\)/,
   'Only verified, completed login may install the authenticated access token');
-assert.match(finalizer, /queryClient\.clear\(\)/,
-  'Completed login must clear previous-account private cache');
+assert.match(finalizer, /refreshControl\.reset\(\)/,
+  'Completed login must reset previous-account private cache');
 
 const otpUiStart = login.indexOf('const handleVerifyOtp = async');
 const otpUiEnd = login.indexOf('\n\n\n  return (', otpUiStart);

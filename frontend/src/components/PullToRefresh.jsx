@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRefreshControl } from '../state/remote.js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
@@ -14,7 +14,7 @@ const MAX_PULL = 110;       // max visual pull distance
  *  - Smooth haptic vibration on reach
  */
 const PullToRefresh = ({ children, onRefresh }) => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -84,7 +84,7 @@ const PullToRefresh = ({ children, onRefresh }) => {
         if (onRefresh) {
           await onRefresh();
         } else {
-          await queryClient.refetchQueries();
+          await refreshControl.refetchQueries();
         }
         setIsSuccess(true);
       } catch (err) {
@@ -101,7 +101,7 @@ const PullToRefresh = ({ children, onRefresh }) => {
       setPullDistance(0);
       currentPullRef.current = 0;
     }
-  }, [isRefreshing, onRefresh, queryClient]);
+  }, [isRefreshing, onRefresh, refreshControl]);
 
   useEffect(() => {
     const options = { passive: false };

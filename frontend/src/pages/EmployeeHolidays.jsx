@@ -15,7 +15,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
 import toast from 'react-hot-toast';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
 import EmployeeMobileHolidays from './EmployeeMobileHolidays';
 
@@ -63,14 +63,12 @@ const EmployeeHolidays = () => {
 
   const monthStr = format(currentMonth, 'yyyy-MM');
 
-  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
-    queryKey: ['employee', 'holidays', monthStr],
-    queryFn: async () => {
+  const { data: holidays = [], isLoading: loading, isFetching } = useRemoteData({
+    scope: ['employee', 'holidays', monthStr],
+    load: async () => {
       const response = await api.get(`/employee/holidays?month=${monthStr}`);
       return response.data;
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 60 * 1000,
     onError: () => toast.error('Failed to load holidays'),
   });
 

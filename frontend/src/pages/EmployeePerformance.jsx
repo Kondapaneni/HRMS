@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { Activity, Users, CalendarDays, Clock, Sparkles, TrendingUp, BarChart2 } from 'lucide-react';
 import {
   BarChart,
@@ -104,9 +104,9 @@ const EmployeeRow = ({ item, isSelf = false }) => {
 };
 
 const EmployeePerformance = () => {
-  const { data: perfData, isLoading } = useQuery({
-    queryKey: ['employee', 'performance'],
-    queryFn: async () => {
+  const { data: perfData, isLoading } = useRemoteData({
+    scope: ['employee', 'performance'],
+    load: async () => {
       const res = await api.get('/employee/performance');
       return res.data;
     }

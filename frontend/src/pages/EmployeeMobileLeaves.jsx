@@ -11,31 +11,30 @@ import {
   FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 const EmployeeMobileLeaves = () => {
-  const { data: leavesData, isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['employee', 'leaves'],
-    queryFn: async () => {
+  const { data: leavesData, isLoading: loading, error: queryError } = useRemoteData({
+    scope: ['employee', 'leaves'],
+    load: async () => {
       const res = await api.get('/employee/leaves');
       return res.data;
     },
-    staleTime: 5 * 60 * 1000,
   });
 
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
-  const cancelLeaveMutation = useMutation({
-    mutationFn: async (leaveId) => {
+  const cancelLeaveMutation = useRemoteTask({
+    run: async (leaveId) => {
       const res = await api.put(`/employee/leaves/${leaveId}/cancel`);
       return res.data;
     },
     onSuccess: () => {
       toast.success('Leave request cancelled successfully');
-      queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
+      refreshControl.invalidateQueries({ scope: ['employee', 'leaves'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to cancel leave request');

@@ -1,4 +1,3 @@
-import api from '../api/axios';
 
 // Only the requested/likely module chunks are fetched, never every route.
 // These dynamic imports reuse Vite's existing code-split module URLs.
@@ -73,33 +72,9 @@ export function preloadRouteModule(path) {
   return loading.get(path);
 }
 
-// Only a verified Admin session may prefetch private admin APIs. Results stay
-// in SEC-021's memory-only QueryClient; logout clears them.
-export function warmRoute(path, queryClient, role) {
+// Preload route *code only*. No private API prefetch or data retention.
+// Protected API requests start after verified auth when the view mounts.
+export function warmRoute(path, _unused, role) {
   if (!role) return Promise.resolve();
-  const modulePromise = preloadRouteModule(path);
-  if (role !== 'admin' || !queryClient) return modulePromise;
-
-  const date = new Date().toISOString().split('T')[0];
-  const adminQueries = {
-    '/admin': {
-      queryKey: ['admin', 'dashboard'],
-      staleTime: 30_000,
-      queryFn: async ({ signal }) => (await api.get('/admin/dashboard/stats', { signal })).data,
-    },
-    '/admin/employees': {
-      queryKey: ['admin', 'employees', ''],
-      staleTime: 60_000,
-      queryFn: async ({ signal }) =>
-        (await api.get('/admin/employees?search=', { signal })).data.employees || [],
-    },
-    '/admin/attendance': {
-      queryKey: ['admin', 'attendance', date, '', 1],
-      staleTime: 10_000,
-      queryFn: async ({ signal }) =>
-        (await api.get(`/admin/attendance?date=${date}&search=&page=1&limit=10`, { signal })).data,
-    },
-  };
-  if (adminQueries[path]) void queryClient.prefetchQuery(adminQueries[path]);
-  return modulePromise;
+  return preloadRouteModule(path);
 }

@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { updateLeadStatus } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 import toast from 'react-hot-toast';
@@ -25,7 +25,7 @@ import toast from 'react-hot-toast';
 const OriginationMobileLoanLeadDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   // Private lead details live only in navigation/React memory.
   const [lead] = useState(() => location.state?.lead || null);
 
@@ -34,8 +34,8 @@ const OriginationMobileLoanLeadDetails = () => {
   const [currentStatus, setCurrentStatus] = useState(lead?.status || 'New');
   const [currentLoanType, setCurrentLoanType] = useState(lead?.loan_type || '');
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status, loan_type }) => updateLeadStatus(id, status, loan_type),
+  const statusMutation = useRemoteTask({
+    run: ({ id, status, loan_type }) => updateLeadStatus(id, status, loan_type),
     onSuccess: (data, variables) => {
       toast.success(variables.status === 'Converted' ? 'Lead converted to Member successfully!' : 'Lead status updated successfully!');
       setCurrentStatus(variables.status);
@@ -44,9 +44,9 @@ const OriginationMobileLoanLeadDetails = () => {
         if (lead) lead.loan_type = variables.loan_type;
       }
       if (lead) lead.status = variables.status;
-      queryClient.invalidateQueries({ queryKey: ['origination', 'leads'] });
-      queryClient.invalidateQueries({ queryKey: ['origination', 'leads', 'list'] });
-      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
+      refreshControl.invalidateQueries({ scope: ['origination', 'leads'] });
+      refreshControl.invalidateQueries({ scope: ['origination', 'leads', 'list'] });
+      refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
       setShowConvertModal(false);
     },
     onError: (error) => {

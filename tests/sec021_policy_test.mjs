@@ -18,8 +18,8 @@ const vite = read('frontend/vite.config.js');
 
 assert(!/PersistQueryClientProvider|createSyncStoragePersister|persistOptions/.test(root),
   'No TanStack query response is written to browser storage');
-assert(root.includes('QueryClientProvider') && root.includes('queryClient'),
-  'Private queries remain in a short-lived memory-only React Query cache');
+assert(!root.includes('QueryClientProvider') && !root.includes('queryClient'),
+  'No React Query provider or private cross-route client cache exists');
 assert(!/gcTime:\s*24\s*\*\s*60/.test(root), 'No 24-hour private query retention');
 assert(storage.includes('REACT_QUERY_OFFLINE_CACHE')
   && storage.includes('TANSTACK_QUERY_OFFLINE_CACHE'), 'Legacy persisted query payloads purged');
@@ -36,7 +36,7 @@ assert(axios.includes('withCredentials: true')
   && axios.includes("'X-HRMS-Refresh': '1'")
   && axios.includes('navigator.locks.request'), 'HttpOnly refresh stays same-origin and serialized');
 assert(auth.includes('await restoreSession()')
-  && auth.includes('queryClient.clear()')
+  && auth.includes('refreshControl.reset()')
   && auth.includes('clearSessionAccess()'), 'Auth restores from cookie and clears account cache');
 assert(candidate.includes('setAccessToken(res.data.token)'), 'Candidate login uses memory token');
 assert(gate.includes('hasSession') && !gate.includes("localStorage.getItem('token')"),

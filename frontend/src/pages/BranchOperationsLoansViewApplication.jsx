@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { createPortal } from 'react-dom';
 import {
   Lock,
@@ -50,9 +50,9 @@ export default function BranchOperationsLoansViewApplication() {
   const fromPath = location.state?.from || '/employee/branch-operations/loans-applications';
 
   // Fallback query if page is refreshed or visited with a query parameter/missing state
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['branchOperations', 'applications', 'list'],
-    queryFn: getBranchLoanApplications,
+  const { data: response, isLoading } = useRemoteData({
+    scope: ['branchOperations', 'applications', 'list'],
+    load: getBranchLoanApplications,
     enabled: !stateApplication,
   });
 
@@ -158,10 +158,9 @@ export default function BranchOperationsLoansViewApplication() {
   };
 
   // Fetch all company branches to map branch IDs to human-readable names
-  const { data: branches = [] } = useQuery({
-    queryKey: ['branches', 'list'],
-    queryFn: getBranches,
-    staleTime: 1000 * 60 * 30,
+  const { data: branches = [] } = useRemoteData({
+    scope: ['branches', 'list'],
+    load: getBranches,
   });
 
   const branchMap = useMemo(() => {

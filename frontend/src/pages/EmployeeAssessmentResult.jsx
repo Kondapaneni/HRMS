@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
 import {
@@ -40,9 +40,9 @@ const EmployeeAssessmentResult = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [navigate]);
 
-  const { data: result, isLoading: loading } = useQuery({
-    queryKey: ['assessmentResult', attemptId],
-    queryFn: async () => {
+  const { data: result, isLoading: loading } = useRemoteData({
+    scope: ['assessmentResult', attemptId],
+    load: async () => {
       const res = await api.get(`/employee/assessments/attempts/${attemptId}/result`);
       const d = res.data;
       return {
@@ -57,9 +57,7 @@ const EmployeeAssessmentResult = () => {
       score: stateResult.score ?? stateResult.total_score ?? 0,
       total_marks: stateResult.total_marks ?? stateResult.max_score ?? 0
     } : undefined,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
-    refetchOnWindowFocus: false
+    reloadOnFocus: false
   });
 
   if (loading) {

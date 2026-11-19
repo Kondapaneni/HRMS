@@ -15,7 +15,7 @@ import {
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { Link } from 'react-router-dom';
 import CandidateMobileJobs from './CandidateMobileJobs';
 
@@ -31,11 +31,11 @@ const CandidateJobs = () => {
   const [noticePeriod, setNoticePeriod] = useState('Immediate');
   const [coverNote, setCoverNote] = useState('');
   
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
-  const { data: pageData, isLoading: isLoadingJobs } = useQuery({
-    queryKey: ['candidate', 'jobs_page', profile?.id],
-    queryFn: async () => {
+  const { data: pageData, isLoading: isLoadingJobs } = useRemoteData({
+    scope: ['candidate', 'jobs_page', profile?.id],
+    load: async () => {
       if (!profile?.id) return null;
       const [jobsRes, appsRes] = await Promise.all([
         api.get('/candidate/jobs'),
@@ -47,7 +47,6 @@ const CandidateJobs = () => {
       };
     },
     enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
   });
 
   const jobs = pageData?.jobs || [];
@@ -62,14 +61,13 @@ const CandidateJobs = () => {
   const departments = [...new Set(jobs.map(job => job.department))];
   const jobTypes = ['full-time', 'part-time', 'contract', 'internship', 'temporary', 'remote'];
 
-  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ['candidate', 'profile_for_jobs', profile?.id],
-    queryFn: async () => {
+  const { data: profileData, isLoading: isLoadingProfile } = useRemoteData({
+    scope: ['candidate', 'profile_for_jobs', profile?.id],
+    load: async () => {
       const res = await api.get('/candidate/profile');
       return res.data.profile;
     },
     enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
   });
 
   const resumes = Array.isArray(profileData?.resume_url) ? profileData.resume_url : [];
@@ -101,8 +99,8 @@ const CandidateJobs = () => {
     return matchesSearch && matchesDept && matchesType;
   });
 
-  const applyMutation = useMutation({
-    mutationFn: async ({ job, resumeUrl, noticePeriod, coverNote }) => {
+  const applyMutation = useRemoteTask({
+    run: async ({ job, resumeUrl, noticePeriod, coverNote }) => {
       const res = await api.post('/candidate/applications', {
         job_id: job.id,
         resume_url: resumeUrl,
@@ -112,8 +110,8 @@ const CandidateJobs = () => {
       return res.data;
     },
     onMutate: async ({ job, resumeUrl, noticePeriod, coverNote }) => {
-      await queryClient.cancelQueries({ queryKey: ['candidate', 'jobs_page', profile?.id] });
-      const previousPageData = queryClient.getQueryData(['candidate', 'jobs_page', profile?.id]);
+      await refreshControl.cancelQueries({ scope: ['candidate', 'jobs_page', profile?.id] });
+      const previousPageData = refreshControl.getQueryData(['candidate', 'jobs_page', profile?.id]);
 
       if (previousPageData) {
         const optimisticApp = {
@@ -134,7 +132,7 @@ const CandidateJobs = () => {
           }
         };
 
-        queryClient.setQueryData(['candidate', 'jobs_page', profile?.id], {
+        refreshControl.setQueryData(['candidate', 'jobs_page', profile?.id], {
           ...previousPageData,
           applications: [optimisticApp, ...(previousPageData.applications || [])]
         });
@@ -150,7 +148,7 @@ const CandidateJobs = () => {
       toast.success(`Successfully applied for ${variables.job.title}!`);
       
       if (data?.application) {
-        queryClient.setQueryData(['candidate', 'jobs_page', profile?.id], (old) => {
+        refreshControl.setQueryData(['candidate', 'jobs_page', profile?.id], (old) => {
           if (!old) return old;
           const filtered = (old.applications || []).filter(a => a.job_id !== variables.job.id);
           const realApp = {
@@ -167,13 +165,13 @@ const CandidateJobs = () => {
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: ['candidate', 'jobs_page'] });
-      queryClient.invalidateQueries({ queryKey: ['candidate', 'dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['candidate', 'applications'] });
+      refreshControl.invalidateQueries({ scope: ['candidate', 'jobs_page'] });
+      refreshControl.invalidateQueries({ scope: ['candidate', 'dashboard'] });
+      refreshControl.invalidateQueries({ scope: ['candidate', 'applications'] });
     },
     onError: (error, variables, context) => {
       if (context?.previousPageData) {
-        queryClient.setQueryData(['candidate', 'jobs_page', profile?.id], context.previousPageData);
+        refreshControl.setQueryData(['candidate', 'jobs_page', profile?.id], context.previousPageData);
       }
       console.error(error);
       toast.error('Failed to submit application.');

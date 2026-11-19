@@ -17,7 +17,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { updateLeadStatus } from '../services/loanServices';
 import { updateSalesLeadStatus } from '../services/salesServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
@@ -41,7 +41,7 @@ const saleProductTypeOptions = [
 
 const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
   const isSale = type === 'sale';
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   const [viewMode, setViewMode] = useState('details'); // 'details' | 'convert'
   const [selectedType, setSelectedType] = useState(
@@ -59,13 +59,13 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
     }
   }, [isOpen, lead, isSale]);
 
-  const loanStatusMutation = useMutation({
-    mutationFn: ({ id, status, loan_type }) => updateLeadStatus(id, status, loan_type),
+  const loanStatusMutation = useRemoteTask({
+    run: ({ id, status, loan_type }) => updateLeadStatus(id, status, loan_type),
     onSuccess: (data, variables) => {
       toast.success(variables.status === 'Converted' ? 'Lead converted to Member successfully!' : 'Lead status updated!');
-      queryClient.invalidateQueries({ queryKey: ['origination', 'leads'] });
-      queryClient.invalidateQueries({ queryKey: ['origination', 'leads', 'list'] });
-      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
+      refreshControl.invalidateQueries({ scope: ['origination', 'leads'] });
+      refreshControl.invalidateQueries({ scope: ['origination', 'leads', 'list'] });
+      refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
       setViewMode('details');
       onClose();
     },
@@ -74,13 +74,13 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
     }
   });
 
-  const saleStatusMutation = useMutation({
-    mutationFn: ({ id, status, product_type }) => updateSalesLeadStatus(id, status, product_type),
+  const saleStatusMutation = useRemoteTask({
+    run: ({ id, status, product_type }) => updateSalesLeadStatus(id, status, product_type),
     onSuccess: (data, variables) => {
       toast.success(variables.status === 'Converted' ? 'Lead converted successfully!' : 'Sales lead status updated!');
-      queryClient.invalidateQueries({ queryKey: ['sales', 'leads'] });
-      queryClient.invalidateQueries({ queryKey: ['sales', 'leads', 'list'] });
-      queryClient.invalidateQueries({ queryKey: ['salesDashboard'] });
+      refreshControl.invalidateQueries({ scope: ['sales', 'leads'] });
+      refreshControl.invalidateQueries({ scope: ['sales', 'leads', 'list'] });
+      refreshControl.invalidateQueries({ scope: ['salesDashboard'] });
       setViewMode('details');
       onClose();
     },

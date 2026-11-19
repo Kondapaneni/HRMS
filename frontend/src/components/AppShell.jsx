@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, LogOut, Sliders, Settings, Menu, X, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRefreshControl } from '../state/remote.js';
 import { warmRoute } from '../performance/routeWarmup';
 import RouteSkeleton from './RouteSkeleton';
 import Avatar from './ui/Avatar';
@@ -40,9 +40,9 @@ export const AppShell = ({
   children,
 }) => {
   const { profile, signOut } = useAuth();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const onRouteIntent = (path) => {
-    if (profile?.role) void warmRoute(path, queryClient, profile.role);
+    if (profile?.role) void warmRoute(path, refreshControl, profile.role);
   };
   const navigate = useNavigate();
   const location = useLocation();

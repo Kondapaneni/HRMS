@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import PageLoader from '../components/PageLoader';
-import { adminDashboardQueryOptions } from '../performance/dashboardBoot';
+import { adminDashboardRequest } from '../performance/dashboardBoot';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import StatCard from '../components/ui/StatCard';
 const AdminDashboardCharts = lazy(() => import('../components/AdminDashboardCharts'));
 
@@ -31,7 +31,7 @@ const AdminDashboard = () => {
       activities: []
     },
     isLoading: loading
-  } = useQuery(adminDashboardQueryOptions);
+  } = useRemoteData(adminDashboardRequest);
 
   if (loading) return <PageLoader message="Loading dashboard..." />;
 

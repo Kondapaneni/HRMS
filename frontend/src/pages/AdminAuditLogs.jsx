@@ -19,7 +19,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import StatCard from '../components/ui/StatCard';
@@ -60,9 +60,9 @@ const AdminAuditLogs = () => {
 
   const actions = ['INSERT', 'UPDATE', 'DELETE'];
 
-  const { data: logsResponse, isLoading: loading, isFetching } = useQuery({
-    queryKey: ['admin', 'audit-logs', page, debouncedSearch, moduleFilter, actionFilter, dateFilter],
-    queryFn: async () => {
+  const { data: logsResponse, isLoading: loading, isFetching } = useRemoteData({
+    scope: ['admin', 'audit-logs', page, debouncedSearch, moduleFilter, actionFilter, dateFilter],
+    load: async () => {
       const params = new URLSearchParams({ page, limit });
       if (debouncedSearch) params.append('search', debouncedSearch);
       if (moduleFilter) params.append('module', moduleFilter);
@@ -74,7 +74,6 @@ const AdminAuditLogs = () => {
       const response = await api.get(`/admin/audit-logs?${params.toString()}`);
       return response.data;
     },
-    placeholderData: (previousData) => previousData,
     onError: (error) => toast.error(error.response?.data?.error || 'Failed to fetch audit logs'),
   });
 

@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import MfaSecurityCard from '../components/MfaSecurityCard';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import api, { isNativeApp, isIOS, getAssetUrl } from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -19,7 +19,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeMobileProfile = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const { fetchProfile } = useAuth();
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -28,12 +28,11 @@ const EmployeeMobileProfile = () => {
   // Only offer an APK when the signing workflow has published a matching
   // release manifest alongside the current signed binary. Never serve the
   // older committed APK as if it included newly deployed security fixes.
-  const { data: androidRelease, isLoading: checkingAndroidRelease } = useQuery({
-    queryKey: ['android', 'signed-release'],
+  const { data: androidRelease, isLoading: checkingAndroidRelease } = useRemoteData({
+    scope: ['android', 'signed-release'],
     enabled: !isNativeApp && !isIOS,
     retry: false,
-    staleTime: 0,
-    queryFn: async () => {
+    load: async () => {
       try {
         const url = `${getAssetUrl('/downloads/android-release.json')}?t=${Date.now()}`;
         const response = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
@@ -50,9 +49,9 @@ const EmployeeMobileProfile = () => {
     },
   });
 
-  const { data: mfaStatus } = useQuery({
-    queryKey: ['mfa', 'status'],
-    queryFn: async () => {
+  const { data: mfaStatus } = useRemoteData({
+    scope: ['mfa', 'status'],
+    load: async () => {
       const res = await api.get('/mfa/status');
       return res.data;
     },
@@ -72,9 +71,9 @@ const EmployeeMobileProfile = () => {
     };
   }, [activeSection]);
 
-  const { data: profileResponse, isLoading: loading } = useQuery({
-    queryKey: ['employee', 'profile'],
-    queryFn: async () => {
+  const { data: profileResponse, isLoading: loading } = useRemoteData({
+    scope: ['employee', 'profile'],
+    load: async () => {
       const res = await api.get('/employee/profile');
       return res.data;
     },
@@ -137,7 +136,7 @@ const EmployeeMobileProfile = () => {
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
 
       toast.success('Profile photo updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
+      refreshControl.invalidateQueries({ scope: ['employee', 'profile'] });
       if (fetchProfile) await fetchProfile();
     } catch (error) {
       toast.error(error.message || 'Error uploading image');

@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -67,13 +67,12 @@ const EmployeePayroll = () => {
   const { profile } = useAuth();
   const [selectedPayslip, setSelectedPayslip] = useState(null);
 
-  const { data: payslips = [], isLoading: loading } = useQuery({
-    queryKey: ['employee', 'payroll'],
-    queryFn: async () => {
+  const { data: payslips = [], isLoading: loading } = useRemoteData({
+    scope: ['employee', 'payroll'],
+    load: async () => {
       const res = await api.get('/employee/payroll');
       return res.data.payslips || [];
     },
-    staleTime: 15 * 60 * 1000,
     onError: () => toast.error('Failed to load payroll data.'),
   });
 

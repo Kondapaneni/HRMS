@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { getSalesLeads } from '../services/salesServices';
 import { getLoanApplications } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
@@ -24,15 +24,15 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
   const { phone } = useParams();
 
   // Fetch leads if propMember or location.state.member is missing
-  const { data: response, isLoading: isLoadingLeads } = useQuery({
-    queryKey: ['sales', 'leads', 'member-details', phone],
-    queryFn: () => getSalesLeads(),
+  const { data: response, isLoading: isLoadingLeads } = useRemoteData({
+    scope: ['sales', 'leads', 'member-details', phone],
+    load: () => getSalesLeads(),
     enabled: !propMember && !location.state?.member
   });
 
-  const { data: appsResponse, isLoading: isLoadingApps } = useQuery({
-    queryKey: ['origination', 'applications', 'list'],
-    queryFn: getLoanApplications,
+  const { data: appsResponse, isLoading: isLoadingApps } = useRemoteData({
+    scope: ['origination', 'applications', 'list'],
+    load: getLoanApplications,
   });
 
   const createdLeadIds = React.useMemo(() => {

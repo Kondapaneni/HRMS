@@ -9,14 +9,14 @@ import {
   UserPlus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRefreshControl } from '../state/remote.js';
 import toast from 'react-hot-toast';
 import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
 
 const OriginationMobileLoanAddLead = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -56,9 +56,9 @@ const OriginationMobileLoanAddLead = () => {
     try {
       setIsSubmitting(true);
       await createLead(formData);
-      queryClient.invalidateQueries({ queryKey: ['origination', 'leads'] });
-      queryClient.invalidateQueries({ queryKey: ['origination', 'leads', 'list'] });
-      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
+      refreshControl.invalidateQueries({ scope: ['origination', 'leads'] });
+      refreshControl.invalidateQueries({ scope: ['origination', 'leads', 'list'] });
+      refreshControl.invalidateQueries({ scope: ['leadsDashboard'] });
       toast.success('Lead added successfully!');
       navigate('/employee/loans/origination/leads');
     } catch (error) {

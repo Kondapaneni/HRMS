@@ -3,7 +3,7 @@ import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { Globe, Clock, Edit2, Trash2, AlertTriangle, X, Plus, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -11,7 +11,7 @@ import Button from '../components/ui/Button';
 
 const AdminAttendanceConfig = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   const [showGeoModal, setShowGeoModal] = useState(false);
   const [showShiftModal, setShowShiftModal] = useState(false);
@@ -20,9 +20,9 @@ const AdminAttendanceConfig = () => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: extrasData, isLoading } = useQuery({
-    queryKey: ['admin', 'attendance-extras'],
-    queryFn: async () => {
+  const { data: extrasData, isLoading } = useRemoteData({
+    scope: ['admin', 'attendance-extras'],
+    load: async () => {
       const [geoRes, shiftRes] = await Promise.all([
         api.get('/admin/geolocations'),
         api.get('/admin/shifttimes')
@@ -48,7 +48,7 @@ const AdminAttendanceConfig = () => {
       }
       setShowGeoModal(false);
       setEditingGeo(null);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'attendance-extras'] });
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save geo location');
     } finally {
@@ -74,7 +74,7 @@ const AdminAttendanceConfig = () => {
       }
       setShowShiftModal(false);
       setEditingShift(null);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'attendance-extras'] });
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save shift time');
     } finally {
@@ -96,7 +96,7 @@ const AdminAttendanceConfig = () => {
         await api.delete(`/admin/shifttimes/${itemToDelete.id}`);
         toast.success('Shift time deleted successfully');
       }
-      queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
+      refreshControl.invalidateQueries({ scope: ['admin', 'attendance-extras'] });
     } catch (err) {
       toast.error('Failed to delete item');
     } finally {

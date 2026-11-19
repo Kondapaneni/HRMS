@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
@@ -27,7 +27,7 @@ import MfaSecurityCard from '../components/MfaSecurityCard';
 
 const AdminSettings = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   const [settings, setSettings] = useState({
     sessionTimeout: '30',
@@ -43,9 +43,9 @@ const AdminSettings = () => {
     maintenanceMessage: 'The application is currently undergoing maintenance. Please check back later.',
   });
 
-  const { isLoading: loading, data: fetchedSettings } = useQuery({
-    queryKey: ['adminSettings'],
-    queryFn: async () => {
+  const { isLoading: loading, data: fetchedSettings } = useRemoteData({
+    scope: ['adminSettings'],
+    load: async () => {
       const response = await api.get('/admin/settings');
       return response.data;
     }
@@ -93,14 +93,14 @@ const AdminSettings = () => {
     setSettings(prev => ({ ...prev, newsHeadlines: newHeadlines }));
   };
 
-  const updateSettingsMutation = useMutation({
-    mutationFn: async (newSettings) => {
+  const updateSettingsMutation = useRemoteTask({
+    run: async (newSettings) => {
       const response = await api.post('/admin/settings', newSettings);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminSettings'] });
-      queryClient.invalidateQueries({ queryKey: ['newsHeadlines'] });
+      refreshControl.invalidateQueries({ scope: ['adminSettings'] });
+      refreshControl.invalidateQueries({ scope: ['newsHeadlines'] });
       toast.success('System settings saved successfully!');
     },
     onError: () => {
