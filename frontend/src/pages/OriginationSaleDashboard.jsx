@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import { getSalesDashboardData, getSalesLeads } from '../services/salesServices';
 import { 
   Users, 
@@ -33,15 +34,9 @@ import OriginationMobileSaleDashboard from './OriginationMobileSaleDashboard';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const OriginationSaleDashboard = () => {
-  const { data, isLoading } = useQuery({
-    queryKey: ['salesDashboard'],
-    queryFn: getSalesDashboardData
-  });
+  const { data, isLoading } = useQuery(originationQueryOptions.salesDashboard());
 
-  const { data: leadsResponse, isLoading: leadsLoading } = useQuery({
-    queryKey: ['sales', 'leads', 'recent'],
-    queryFn: () => getSalesLeads()
-  });
+  const { data: leadsResponse, isLoading: leadsLoading } = useQuery(originationQueryOptions.salesRecent());
 
   const recentLeads = (leadsResponse?.leads || []).slice(0, 5);
 

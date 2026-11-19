@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import SearchBar from '../components/ui/SearchBar';
 import { getLeads } from '../services/loanServices';
 import { 
@@ -33,10 +34,7 @@ const OriginationLoanLeadsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, isFetching, error } = useQuery({
-    queryKey: ['origination', 'leads', 'list', debouncedSearch],
-    queryFn: getLeads,
-  });
+  const { data: response, isLoading, isFetching, error } = useQuery(originationQueryOptions.loanLeads(debouncedSearch));
 
   const rawLeads = response?.leads || [];
 

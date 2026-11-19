@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import { 
   Search, 
   Phone, 
@@ -34,12 +35,7 @@ const BranchOperationsLeads = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data, isLoading, isFetching, error } = useQuery({
-    queryKey: ['branchOperationsLeads', selectedEmployee, selectedPipeline, selectedStatusFilter, debouncedSearch],
-    queryFn: getBranchLeads,
-    placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
-  });
+  const { data, isLoading, isFetching, error } = useQuery({ ...originationQueryOptions.branchLeads(selectedEmployee, selectedPipeline, selectedStatusFilter, debouncedSearch), placeholderData: previousData => previousData });
 
   const branch = data?.branch || { name: 'Assigned Branch' };
   const allCreators = data?.creators || [];

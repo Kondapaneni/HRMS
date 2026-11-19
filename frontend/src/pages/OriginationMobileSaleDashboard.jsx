@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import { 
   Users, 
   TrendingUp, 
@@ -50,15 +51,9 @@ const OriginationMobileSaleDashboard = () => {
   };
 
   // Fetch dashboard metrics
-  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
-    queryKey: ['salesDashboard'],
-    queryFn: getSalesDashboardData
-  });
+  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery(originationQueryOptions.salesDashboard());
 
-  const { data: leadsResponse, isLoading: leadsLoading } = useQuery({
-    queryKey: ['sales', 'leads', 'recent'],
-    queryFn: () => getSalesLeads()
-  });
+  const { data: leadsResponse, isLoading: leadsLoading } = useQuery(originationQueryOptions.salesRecent());
 
   const recentLeads = (leadsResponse?.leads || []).slice(0, 5);
 

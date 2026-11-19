@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { originationQueryOptions } from '../queries/originationQueries';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
 import { 
@@ -32,10 +33,7 @@ const OriginationMobileLoanLeadsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, error } = useQuery({
-    queryKey: ['origination', 'leads', 'list', debouncedSearch],
-    queryFn: getLeads,
-  });
+  const { data: response, isLoading, error } = useQuery(originationQueryOptions.loanLeads(debouncedSearch));
 
   const rawLeads = response?.leads || [];
 
