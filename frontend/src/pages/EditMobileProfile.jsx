@@ -97,6 +97,7 @@ const EditMobileProfile = () => {
         setThemePreference(formData.themePreference);
       }
       queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
       if (fetchProfile) await fetchProfile();
       navigate('/employee/profile');
     },

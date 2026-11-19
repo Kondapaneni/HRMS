@@ -49,6 +49,7 @@ const AdminAttendanceConfig = () => {
       setShowGeoModal(false);
       setEditingGeo(null);
       queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'geofences'] });
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save geo location');
     } finally {
@@ -75,6 +76,7 @@ const AdminAttendanceConfig = () => {
       setShowShiftModal(false);
       setEditingShift(null);
       queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'geofences'] });
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save shift time');
     } finally {
@@ -97,6 +99,7 @@ const AdminAttendanceConfig = () => {
         toast.success('Shift time deleted successfully');
       }
       queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'geofences'] });
     } catch (err) {
       toast.error('Failed to delete item');
     } finally {

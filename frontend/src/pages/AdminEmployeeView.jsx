@@ -140,7 +140,10 @@ const AdminEmployeeView = () => {
       setIsPromoteModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'employees-dropdown'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'performance'] });
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.error || 'Failed to promote employee');
@@ -212,6 +215,8 @@ const AdminEmployeeView = () => {
 
       queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'employees-dropdown'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
       toast.success('Profile picture updated successfully!');
     } catch (error) {
       toast.error(error.message || 'Error uploading image');

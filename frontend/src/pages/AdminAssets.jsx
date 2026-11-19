@@ -177,6 +177,7 @@ const AdminAssets = () => {
       }
       closeModal();
       queryClient.invalidateQueries({ queryKey: ['admin', 'assets'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to save asset.');
     } finally {
@@ -190,6 +191,7 @@ const AdminAssets = () => {
       await api.delete(`/admin/assets/${id}`);
       toast.success('Asset deleted successfully.');
       queryClient.invalidateQueries({ queryKey: ['admin', 'assets'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
     } catch (error) {
       toast.error('Failed to delete asset.');
     }
@@ -202,6 +204,7 @@ const AdminAssets = () => {
       toast.success(userId ? 'Asset assigned successfully.' : 'Asset unassigned.');
       closeModal();
       queryClient.invalidateQueries({ queryKey: ['admin', 'assets'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
     } catch (error) {
       toast.error('Failed to update assignment.');
     } finally {

@@ -110,6 +110,7 @@ const AdminTrainingVideos = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'trainingVideos'] });
       setIsModalOpen(false);
       setTitle('');
       setVideoFile(null);
@@ -131,6 +132,7 @@ const AdminTrainingVideos = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'trainingVideos'] });
       setIsAssignModalOpen(false);
       setSelectedVideoForAssign(null);
       toast.success('Course employee enrollments updated!');
@@ -146,6 +148,7 @@ const AdminTrainingVideos = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'trainingVideos'] });
       toast.success('Training video deleted');
     },
     onError: () => toast.error('Failed to delete training video')

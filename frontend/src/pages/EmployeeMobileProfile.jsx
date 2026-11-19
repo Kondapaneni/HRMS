@@ -135,6 +135,7 @@ const EmployeeMobileProfile = () => {
 
       toast.success('Profile photo updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
       if (fetchProfile) await fetchProfile();
     } catch (error) {
       toast.error(error.message || 'Error uploading image');

@@ -368,6 +368,8 @@ const AdminAttendanceRegularize = () => {
       setIsModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-regularize'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     } catch (err) {
       setModalError(err.response?.data?.error || 'Failed to regularize attendance');
