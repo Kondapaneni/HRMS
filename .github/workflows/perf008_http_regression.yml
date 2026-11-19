@@ -1,0 +1,453 @@
+name: PERF-008 synthetic HTTP integration rerun (no live credentials)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/perf008_http_regression.yml'
+      - 'docs/PERF-008-singapore-migration-readiness.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+# From sec008.yml: sec008-security
+  mfa-http:
+    name: Synthetic MFA / OTP API integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec008_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec008_test_password_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec008_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec008_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec008_test_password_only
+      JWT_SECRET: SEC008_TEST_SECRET_ONLY_DO_NOT_USE_IN_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql, pdo_sqlite, sqlite3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate PHP and browser security assertions
+        run: |
+          php -l backend/public/index.php
+          php -l backend/public/sec008_mfa_guard.php
+          php -l backend/public/sec003_file_access.php
+          php -l backend/src/Middleware/AuthMiddleware.php
+          php -l tests/sec008_mfa_guard_test.php
+          php -l tests/sec008_integration_seed.php
+          node tests/sec008_frontend_security_test.mjs
+      - name: Install backend dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Test MFA scope, expiry and AuthMiddleware denial
+        run: php tests/sec008_mfa_guard_test.php
+      - name: Seed isolated test users
+        run: php tests/sec008_integration_seed.php
+      - name: Test actual PHP/JSON login and MFA endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          # PHP's Dotenv populates $_ENV from backend/.env in production.
+          # Supply ONLY synthetic CI database/authentication values.
+          cat > backend/.env <<'SEC008_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec008_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec008_test_password_only
+          JWT_SECRET=SEC008_TEST_SECRET_ONLY_DO_NOT_USE_IN_PRODUCTION
+          APP_ENV=production
+          SEC008_TEST_ENV
+          php -S 127.0.0.1:8769 -t backend/public backend/public/index.php > /tmp/sec008-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8769/version.json > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then
+            echo "SEC-008 test server did not start"
+            tail -n 80 /tmp/sec008-server.log
+            exit 1
+          fi
+          node tests/sec008_login_flow_test.mjs
+
+# From sec012.yml: auth-http
+  session-http:
+    name: Synthetic PostgreSQL auth + JWT replay denials
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec012_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec012_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec012_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec012_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec012_synthetic_only
+      JWT_SECRET: SEC012_TEST_ONLY_SECRET_NOT_FOR_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Lint auth routes and source-policy tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in backend/src/Utils/SessionVersion.php backend/src/Utils/OtpCode.php backend/src/Utils/AccessToken.php backend/src/Utils/RefreshSessions.php backend/src/Middleware/AuthMiddleware.php backend/src/Middleware/MaintenanceMiddleware.php backend/public/index.php backend/public/mfa_routes.php backend/public/candidate_auth_routes.php backend/public/sec003_file_access.php tests/sec012_*.php; do
+            php -l "$file"
+          done
+          node tests/sec012_policy_test.mjs
+          node tests/sec012_refresh_preflight_policy_test.mjs
+      - name: Install backend test dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Exercise OTP HMAC and version claim helpers
+        run: php tests/sec012_helpers_test.php
+      - name: Seed synthetic database and start local PHP API
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tests/sec012_seed.php
+          cat > backend/.env <<'SEC012_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec012_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec012_synthetic_only
+          JWT_SECRET=SEC012_TEST_ONLY_SECRET_NOT_FOR_PRODUCTION
+          APP_ENV=production
+          SEC012_TEST_ENV
+          php -S 127.0.0.1:8773 -t backend/public backend/public/index.php > /tmp/sec012-server.log 2>&1 &
+          echo $! > /tmp/sec012-php.pid
+          for i in {1..25}; do
+            if curl --fail --silent http://127.0.0.1:8773/version.json > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          tail -n 80 /tmp/sec012-server.log
+          exit 1
+      - name: Replay JWT after logout/change/reset and verify OTP digest through real HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'kill "$(cat /tmp/sec012-php.pid)" 2>/dev/null || true' EXIT
+          node tests/sec012_http_test.mjs
+          node tests/sec012_refresh_http_test.mjs
+
+# From sec017.yml: synthetic-upload-http
+  storage-http:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec014_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec014_synthetic_only
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec014_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec014_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec014_synthetic_only
+      JWT_SECRET: SEC014_TEST_ONLY_NOT_FOR_DEPLOYMENT
+      SUPABASE_SECRET_KEY: ''
+      SUPABASE_URL: ''
+      APP_ENV: production
+      DB_PDO_PREPARE_MODE: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, fileinfo, pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated PHP API dependencies and seed synthetic accounts
+        run: |
+          composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+          php tests/sec014_seed.php
+          php tests/sec016_role_seed.php
+      - name: Verify unauthenticated and invalid uploads against synthetic HTTP API
+        run: |
+          cat > backend/.env <<'SEC017_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec014_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec014_synthetic_only
+          JWT_SECRET=SEC014_TEST_ONLY_NOT_FOR_DEPLOYMENT
+          APP_ENV=production
+          SEC017_TEST_ENV
+          php -S 127.0.0.1:8775 -t backend/public backend/public/index.php >/tmp/sec017-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..25}; do
+            if curl --fail --silent http://127.0.0.1:8775/version.json >/dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then tail -n 120 /tmp/sec017-server.log; exit 1; fi
+          node tests/sec017_storage_http_test.mjs || { tail -n 120 /tmp/sec017-server.log; exit 1; }
+
+# From sec020.yml: server-authorization
+  maintenance-http:
+    name: Synthetic maintenance API and verified administrator policy
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec020_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec020_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec020_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec020_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec020_synthetic_only
+      JWT_SECRET: SEC020_TEST_ONLY_FOR_CI_NOT_PRODUCTION
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate source, PHP syntax and browser bypass removal
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in backend/src/Middleware/MaintenanceMiddleware.php backend/public/index.php tests/sec020_*.php; do
+            php -l "$file"
+          done
+          node tests/sec020_policy_test.mjs
+          node tests/sec020_maintenance_ui_test.mjs
+      - name: Install backend PHP dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Test dynamic maintenance states, admin MFA, forged/deactivated roles and recovery routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tests/sec020_seed.php
+          php tests/sec020_middleware_test.php
+
+# From sec011.yml: ownership
+  ownership-http:
+    name: Real HTTP cross-user and cross-branch isolation
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [baseline, restricted]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec011_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec011_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec011_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec011_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec011_synthetic_only
+      JWT_SECRET: SEC011_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP and JS syntax, route security policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in backend/src/Security/OriginationAccess.php backend/public/origination_loans_application_routes.php backend/public/origination_activities_routes.php backend/public/branch_operations_application_routes.php tests/sec011_seed.php tests/sec011_assert.php; do
+            php -l "$file"
+          done
+          node --check tests/sec011_http_test.mjs
+          node tests/sec011_policy_test.mjs
+      - name: Install backend dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Seed isolated two-branch loan and activity fixtures
+        run: php tests/sec011_seed.php
+      - name: Install actual SEC-018 restricted role and signed verifier
+        if: matrix.runtime == 'restricted'
+        run: php tests/sec018_sec011_overlay_ci.php
+      - name: Exercise real HTTP endpoints with synthetic JWTs
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > backend/.env <<'SEC011_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec011_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec011_synthetic_only
+          JWT_SECRET=SEC011_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+          APP_ENV=production
+          SEC011_TEST_ENV
+          if [ "${{ matrix.runtime }}" = restricted ]; then
+            sed -i 's/DB_USERNAME=postgres/DB_USERNAME=hrms_runtime_restricted/;s/DB_PASSWORD=sec011_synthetic_only/DB_PASSWORD=SEC018_PHASEA_CI_RUNTIME_ONLY/' backend/.env
+            echo 'SEC018_AUDIT_CONTEXT_ENABLED=true' >> backend/.env
+            echo 'SEC018_AUDIT_HMAC_KEY=ac9f1c12ebd1677a7a32e1c79b4d2a808feca339589d302d1bdb102edc4b9e1a' >> backend/.env
+          fi
+          env -u DB_USERNAME -u DB_PASSWORD php -S 127.0.0.1:8771 -t backend/public backend/public/index.php > /tmp/sec011-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8771/version.json > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then
+            echo "Synthetic SEC-011 test server failed to start"
+            tail -n 120 /tmp/sec011-server.log
+            exit 1
+          fi
+          node tests/sec011_http_test.mjs || {
+            tail -n 150 /tmp/sec011-server.log
+            exit 1
+          }
+          php tests/sec011_assert.php
+
+# From sec009.yml: authorization
+  role-http:
+    name: Real middleware and HTTP candidate isolation
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec009_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec009_synthetic_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec009_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: sec009_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: sec009_synthetic_only
+      JWT_SECRET: SEC009_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Lint affected PHP and check role declarations
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l backend/src/Middleware/AuthMiddleware.php
+          for file in backend/public/*.php tests/sec009_seed.php tests/sec009_middleware_test.php; do
+            php -l "$file"
+          done
+          node tests/sec009_route_policy_test.mjs
+      - name: Install backend dependencies
+        run: composer install --working-dir=backend --no-interaction --prefer-dist --no-progress
+      - name: Seed and verify real middleware against synthetic PostgreSQL
+        run: |
+          php tests/sec009_seed.php
+          php tests/sec009_middleware_test.php
+      - name: Real HTTP endpoint access denial tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Backend Dotenv initialization reads only this synthetic test env.
+          cat > backend/.env <<'SEC009_TEST_ENV'
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=sec009_test
+          DB_USERNAME=postgres
+          DB_PASSWORD=sec009_synthetic_only
+          JWT_SECRET=SEC009_TEST_ONLY_NEVER_USE_IN_PRODUCTION
+          APP_ENV=production
+          SEC009_TEST_ENV
+          php -S 127.0.0.1:8770 -t backend/public backend/public/index.php > /tmp/sec009-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8770/version.json > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then
+            echo "Synthetic SEC-009 test server failed to start"
+            tail -n 100 /tmp/sec009-server.log
+            exit 1
+          fi
+          node tests/sec009_http_test.mjs
