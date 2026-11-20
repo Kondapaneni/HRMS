@@ -118,7 +118,7 @@ const OriginationMobileLoanDashboard = () => {
     }
   };
 
-  if (isDashboardLoading || leadsLoading) {
+  if (isDashboardLoading && dashboardData === undefined) {
     return <PageLoader message="Loading Origination Dashboard..." />;
   }
 
@@ -370,9 +370,7 @@ const OriginationMobileLoanDashboard = () => {
         </div>
 
         <div className="divide-y divide-[var(--line)]">
-          {leadsLoading ? (
-            <p className="text-center py-6 text-xs text-[var(--muted)]">Loading recent leads...</p>
-          ) : recentLeads.length === 0 ? (
+          {leadsLoading ? null : recentLeads.length === 0 ? (
             <p className="text-center py-6 text-xs text-[var(--muted)]">No pipeline leads recorded yet.</p>
           ) : (
             recentLeads.map((lead) => {
