@@ -96,8 +96,9 @@ export function useRemoteData(options) {
   const latestOptions = useRef(options);
   latestOptions.current = options;
   const [blockedAfterReset, setBlockedAfterReset] = useState(false);
+  const [deniedError, setDeniedError] = useState(null);
   const queryClient = useQueryClient();
-  const active = Boolean(when && !blockedAfterReset);
+  const active = Boolean(when && !blockedAfterReset && !deniedError);
   const activeRef = useRef(active);
   activeRef.current = active;
 
@@ -119,34 +120,50 @@ export function useRemoteData(options) {
     refetchOnMount: 'always',
     queryFn: async ({ signal }) => {
       const epoch = sessionEpoch;
-      const loaded = await latestOptions.current.load({
-        signal, scope: latestOptions.current.scope,
-      });
-      // An in-flight reply must not resurrect data after auth reset.
-      if (epoch !== sessionEpoch || signal.aborted) {
-        throw new Error('Request invalidated by session transition');
+      try {
+        const loaded = await latestOptions.current.load({
+          signal, scope: latestOptions.current.scope,
+        });
+        // An in-flight reply must not resurrect data after auth reset.
+        if (epoch !== sessionEpoch || signal.aborted) {
+          throw new Error('Request invalidated by session transition');
+        }
+        // React Query disallows undefined as a successful response.
+        return loaded === undefined ? EMPTY_REMOTE_VALUE : loaded;
+      } catch (error) {
+        if (epoch === sessionEpoch && !signal.aborted &&
+            [401, 403].includes(error?.response?.status)) {
+          // A revoked view must never display its earlier successful result.
+          // Remove that payload before the denied query is disabled.
+          queryClient.setQueryData(queryKey, EMPTY_REMOTE_VALUE);
+          setDeniedError(error);
+          latestOptions.current.onError?.(error);
+        }
+        throw error;
       }
-      // React Query disallows undefined as a successful response.
-      return loaded === undefined ? EMPTY_REMOTE_VALUE : loaded;
     },
   });
 
-  const getData = useCallback(() =>
-    unpack(queryClient.getQueryData(queryKey)), [queryClient, queryId]);
+  const getData = useCallback(() => {
+    const current = queryClient.getQueryState(queryKey);
+    if (deniedError || current?.status === 'error') return undefined;
+    return unpack(current?.data);
+  }, [queryClient, queryId, deniedError]);
   const refetchRef = useRef(query.refetch);
   refetchRef.current = query.refetch;
 
   const reload = useCallback(async () => {
-    if (!activeRef.current) return { data: getData() };
+    if (!activeRef.current) return { data: getData(), error: deniedError };
     const result = await refetchRef.current({ cancelRefetch: true });
     return { data: unpack(result.data), error: result.error };
-  }, [getData]);
+  }, [getData, deniedError]);
 
   const cancel = useCallback(() => {
     void queryClient.cancelQueries({ queryKey, exact: true });
   }, [queryClient, queryId]);
 
   const update = useCallback(value => {
+    if (!activeRef.current) return;
     queryClient.setQueryData(queryKey, previous => {
       const current = unpack(previous);
       const next = typeof value === 'function' ? value(current) : value;
@@ -163,16 +180,17 @@ export function useRemoteData(options) {
     queryClient.removeQueries({ queryKey, exact: true });
   }, [cancel, queryClient, queryId]);
 
-  const value = !active ? undefined : unpack(query.data);
+  const value = active && !query.isError ? unpack(query.data) : undefined;
+  const visibleDenial = blockedAfterReset ? null : deniedError;
   const visibleState = {
     ...query,
     data: value,
-    error: active ? query.error : null,
-    status: blockedAfterReset ? 'pending' : when ? query.status : 'idle',
-    isPending: blockedAfterReset ? true : when ? query.isPending : false,
+    error: visibleDenial || (active ? query.error : null),
+    status: blockedAfterReset ? 'pending' : visibleDenial ? 'error' : when ? query.status : 'idle',
+    isPending: blockedAfterReset ? true : visibleDenial ? false : when ? query.isPending : false,
     isLoading: active && query.isLoading,
     isFetching: active && query.isFetching,
-    isError: active && query.isError,
+    isError: Boolean(visibleDenial) || (active && query.isError),
     isSuccess: active && query.isSuccess,
     refetch: reload,
   };
