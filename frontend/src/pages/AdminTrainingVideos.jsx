@@ -27,6 +27,7 @@ import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
 import { compressVideo, uploadToSupabaseWithProgress, formatBytes } from '../utils/videoCompressor';
 import { StatCard, Button, Avatar } from '../components/ui';
+import PaginationControls from '../components/ui/PaginationControls';
 
 const AdminTrainingVideos = () => {
   const refreshControl = useRefreshControl();
@@ -34,12 +35,15 @@ const AdminTrainingVideos = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filterTab, setFilterTab] = useState('All'); // 'All', 'Assigned', 'Open'
+  const [videoPage, setVideoPage] = useState(1);
 
   const [title, setTitle] = useState('');
   const [videoFile, setVideoFile] = useState(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedVideoForAssign, setSelectedVideoForAssign] = useState(null);
   const [assignSearchQuery, setAssignSearchQuery] = useState('');
+  const [debouncedAssignSearch, setDebouncedAssignSearch] = useState('');
+  const [assignPage, setAssignPage] = useState(1);
   const [modalAssignedEmployees, setModalAssignedEmployees] = useState([]);
   
   // Compression & Upload State
@@ -55,53 +59,38 @@ const AdminTrainingVideos = () => {
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
+      setVideoPage(1);
       setDebouncedSearchQuery(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: videos = [], isLoading: videosLoading } = useRemoteData({
-    scope: ['admin', 'trainingVideos'],
-    load: async () => {
-      const res = await api.get('/admin/training/videos');
-      return res.data?.videos || res.data?.data || (Array.isArray(res.data) ? res.data : []);
-    }
+  useEffect(() => {
+    const timer = setTimeout(() => { setAssignPage(1); setDebouncedAssignSearch(assignSearchQuery); }, 300);
+    return () => clearTimeout(timer);
+  }, [assignSearchQuery]);
+
+  const { data: videoResponse, isLoading: videosLoading, isFetching: fetchingVideos, error: videosError } = useRemoteData({
+    scope: ['admin', 'trainingVideos', videoPage, debouncedSearchQuery, filterTab],
+    load: async ({ signal }) => (await api.get('/admin/training/videos', {
+      params: { page: videoPage, limit: 12, search: debouncedSearchQuery, assignment: filterTab }, signal
+    })).data,
   });
+  const videos = videoResponse?.videos || [];
+  const videoTotal = Number(videoResponse?.total ?? 0);
+  const stats = videoResponse?.stats || { total: 0, assignedCourses: 0, enrolledStaff: 0 };
+  const filteredVideos = videos;
 
-  const { data: employees = [], isLoading: employeesLoading } = useRemoteData({
-    scope: ['admin', 'employeesList'],
-    load: async () => {
-      const res = await api.get('/admin/employees?limit=1000');
-      return res.data?.employees || [];
-    },
+  const { data: employeeResponse, isLoading: employeesLoading, isFetching: fetchingEmployees, error: employeeError } = useRemoteData({
+    scope: ['admin', 'training-assignment-employees', assignPage, debouncedAssignSearch],
+    load: async ({ signal }) => (await api.get('/admin/employees', {
+      params: { page: assignPage, limit: 50, search: debouncedAssignSearch }, signal
+    })).data,
+    enabled: isAssignModalOpen,
+    reloadOnFocus: false
   });
-
-  const stats = useMemo(() => {
-    const total = videos.length;
-    const assignedCourses = videos.filter(v => v.assigned_employee_ids && v.assigned_employee_ids.length > 0).length;
-    const allEnrolledSet = new Set();
-    videos.forEach(v => {
-      if (Array.isArray(v.assigned_employee_ids)) {
-        v.assigned_employee_ids.forEach(id => allEnrolledSet.add(id));
-      }
-    });
-    const enrolledStaff = allEnrolledSet.size;
-    return { total, assignedCourses, enrolledStaff };
-  }, [videos]);
-
-  const filteredVideos = useMemo(() => {
-    return videos.filter(v => {
-      const matchSearch = debouncedSearchQuery === '' ||
-        (v.title && v.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
-
-      let matchTab = true;
-      const hasAssignments = v.assigned_employee_ids && v.assigned_employee_ids.length > 0;
-      if (filterTab === 'Assigned') matchTab = hasAssignments;
-      else if (filterTab === 'Open') matchTab = !hasAssignments;
-
-      return matchSearch && matchTab;
-    });
-  }, [videos, debouncedSearchQuery, filterTab]);
+  const employees = employeeResponse?.employees || [];
+  const employeeTotal = Number(employeeResponse?.pagination?.total ?? employeeResponse?.total ?? 0);
 
   const addVideoMutation = useRemoteTask({
     run: async (videoData) => {
@@ -286,7 +275,7 @@ const AdminTrainingVideos = () => {
             <button
               key={tab}
               type="button"
-              onClick={() => setFilterTab(tab)}
+              onClick={() => { setFilterTab(tab); setVideoPage(1); }}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                 filterTab === tab
                   ? 'bg-[var(--ink)] text-white shadow-xs'
@@ -383,6 +372,8 @@ const AdminTrainingVideos = () => {
                     onClick={() => {
                       setSelectedVideoForAssign(video);
                       setModalAssignedEmployees(video.assigned_employee_ids || []);
+                       setAssignPage(1);
+                       setDebouncedAssignSearch('');
                       setAssignSearchQuery('');
                       setIsAssignModalOpen(true);
                     }}
@@ -398,6 +389,9 @@ const AdminTrainingVideos = () => {
         </div>
       )}
 
+      {videosError && <p role="alert" className="p-4 text-sm text-red-600">Training videos could not be loaded.</p>}
+      <PaginationControls page={videoPage} limit={12} total={videoTotal}
+        isFetching={fetchingVideos} onPageChange={setVideoPage} />
       {/* Upload Video Slideover Right Drawer */}
       {isModalOpen && createPortal(
         <div 
@@ -675,18 +669,18 @@ const AdminTrainingVideos = () => {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setModalAssignedEmployees(employees.map(e => e.id))}
+                    onClick={() => setModalAssignedEmployees(prev => [...new Set([...prev, ...employees.map(e => e.id)])])}
                     className="text-[var(--brand-deep)] font-semibold hover:underline cursor-pointer"
                   >
-                    Select All
+                    Select visible page
                   </button>
                   <span className="text-[var(--line)]">•</span>
                   <button
                     type="button"
-                    onClick={() => setModalAssignedEmployees([])}
+                    onClick={() => setModalAssignedEmployees(prev => prev.filter(id => !employees.some(e => e.id === id)))}
                     className="text-[var(--muted)] font-semibold hover:underline cursor-pointer"
                   >
-                    Deselect
+                    Deselect visible page
                   </button>
                 </div>
               </div>
@@ -698,10 +692,7 @@ const AdminTrainingVideos = () => {
                 <p className="text-xs text-[var(--muted)] p-4 text-center">Loading employee directory...</p>
               ) : (
                 (() => {
-                  const filtered = employees.filter(emp => {
-                    const name = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
-                    return name.includes(assignSearchQuery.toLowerCase()) || (emp.department && emp.department.toLowerCase().includes(assignSearchQuery.toLowerCase()));
-                  });
+                  const filtered = employees;
 
                   if (filtered.length === 0) {
                     return <p className="text-xs text-[var(--muted)] p-4 text-center">No matching employees found.</p>;
@@ -751,6 +742,10 @@ const AdminTrainingVideos = () => {
               )}
             </div>
 
+            {employeeError && <p role="alert" className="px-4 text-xs text-red-600">Employee lookup failed. Enrollment cannot be safely changed.</p>}
+            {fetchingEmployees && <p className="px-4 text-xs text-[var(--muted)]">Searching employees…</p>}
+            <PaginationControls page={assignPage} limit={50} total={employeeTotal}
+              isFetching={fetchingEmployees} onPageChange={setAssignPage} />
             {/* Drawer Footer */}
             <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
               <button
@@ -762,7 +757,7 @@ const AdminTrainingVideos = () => {
               </button>
               <button
                 type="button"
-                disabled={assignVideoMutation.isPending}
+                disabled={assignVideoMutation.isPending || Boolean(employeeError)}
                 onClick={() => {
                   assignVideoMutation.mutate({
                     id: selectedVideoForAssign.id,
