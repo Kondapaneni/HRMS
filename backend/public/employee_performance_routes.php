@@ -18,8 +18,11 @@ $app->get('/api/employee/performance', function (Request $request, Response $res
     // Get employee details
     $stmt = $conn->prepare('
         SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email,
-               e.department, e.position, e.status, e.avatar, e."joinDate", e."managerId", e."weekOff"
-        FROM employee e WHERE e."userId" = ?
+               e.department, e.position, e.status, e.avatar, e."joinDate", e."managerId", e."weekOff",
+               e."shiftTime", s."startTime" AS "shiftStartTime"
+        FROM employee e
+        LEFT JOIN shift_times s ON e."shiftTime" = s."shiftLabel"
+        WHERE e."userId" = ?
     ');
     $stmt->execute([$userId]);
     $employee = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -77,6 +80,10 @@ $app->get('/api/employee/performance', function (Request $request, Response $res
 
     $currentMetrics = buildMetrics($employee, $months, $holidays, $attendanceByEmployee, $today);
     $currentMonthSummary = buildCurrentMonthSummary($employee, $today, $holidays, $attendanceByEmployee);
+    $currentMonthSummary = array_merge(
+        $currentMonthSummary,
+        buildCurrentMonthOnTimeSummary($employee, $today, $attendanceByEmployee)
+    );
 
     $peerMetrics = [];
     foreach ($peers as $peer) {
