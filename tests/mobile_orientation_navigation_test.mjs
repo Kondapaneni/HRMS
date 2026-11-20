@@ -44,8 +44,8 @@ test('do not regress working root scrolling/layout and application access', () =
     'Keep page scroll inside AppShell, not the browser document');
   const shell = read('frontend/src/components/AppShell.jsx');
   assert.match(shell, /h-\[100dvh\]/, 'Keep dynamic viewport sizing and navigation shell');
-  assert.match(shell, /<Suspense fallback=\{<RouteSkeleton\s*\/>\}>/,
-    'Do not regress async navigation skeleton policy');
+  assert.match(shell, /<Suspense fallback=\{<PageLoader message="Opening page\.\.\." \/>\}>/,
+    'Do not regress secure silent navigation policy');
 });
 
 test('loading captions remain hidden and dashboard data stays progressive', () => {
