@@ -22,6 +22,7 @@ import {
   Search
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import PaginationControls from '../components/ui/PaginationControls';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 
@@ -69,6 +70,13 @@ const AssessmentCreate = () => {
   });
 
   const [searchEmployee, setSearchEmployee] = useState('');
+  const [debouncedEmployeeSearch, setDebouncedEmployeeSearch] = useState('');
+  const [employeePage, setEmployeePage] = useState(1);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { setEmployeePage(1); setDebouncedEmployeeSearch(searchEmployee); }, 300);
+    return () => clearTimeout(timer);
+  }, [searchEmployee]);
 
   // Debounce question search
   useEffect(() => {
@@ -90,14 +98,16 @@ const AssessmentCreate = () => {
     }
   });
 
-  // Fetch employees for assignment
-  const { data: employees = [], isLoading: loadingEmployees } = useRemoteData({
-    scope: ['adminEmployeesForAssignment'],
-    load: async () => {
-      const res = await api.get('/admin/employees');
-      return res.data?.employees || res.data || [];
-    }
+  // Employee assignment selection spans all pages. Only the currently
+  // visible page is transferred from PostgreSQL; chosen IDs stay in form state.
+  const { data: employeeResponse, isLoading: loadingEmployees, isFetching: fetchingEmployees, error: employeeError } = useRemoteData({
+    scope: ['adminEmployeesForAssignment', employeePage, debouncedEmployeeSearch],
+    load: async ({ signal }) => (await api.get('/admin/employees', {
+      params: { page: employeePage, limit: 50, search: debouncedEmployeeSearch }, signal
+    })).data,
   });
+  const employees = employeeResponse?.employees || [];
+  const employeeTotal = Number(employeeResponse?.pagination?.total ?? employeeResponse?.total ?? 0);
 
   // Fetch existing assessment if editing
   const { data: existingAssessment, isLoading: loadingAssessment } = useRemoteData({
@@ -451,6 +461,9 @@ const AssessmentCreate = () => {
                 </tbody>
               </table>
             </div>
+            {employeeError && <p role="alert" className="p-3 text-xs text-red-600">Could not load employee selections.</p>}
+            <PaginationControls page={employeePage} limit={50} total={employeeTotal}
+              isFetching={fetchingEmployees} onPageChange={setEmployeePage} />
           </div>
         </div>
       )}
@@ -510,12 +523,12 @@ const AssessmentCreate = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const allIds = employees.map(e => e.userId || e.id);
-                  setForm(f => ({ ...f, assigned_employee_ids: allIds }));
+                  const visibleIds = employees.map(e => e.userId || e.id);
+                  setForm(f => ({ ...f, assigned_employee_ids: [...new Set([...f.assigned_employee_ids, ...visibleIds])] }));
                 }}
                 className="font-medium text-[var(--brand-deep)] hover:underline cursor-pointer"
               >
-                Select all
+                Select visible page
               </button>
               <span className="text-[var(--line)]">•</span>
               <button
@@ -541,16 +554,7 @@ const AssessmentCreate = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--line)]">
-                  {employees.filter(e => {
-                    if (!searchEmployee) return true;
-                    const s = searchEmployee.toLowerCase();
-                    return (
-                      (e.firstName?.toLowerCase().includes(s)) ||
-                      (e.lastName?.toLowerCase().includes(s)) ||
-                      (e.email?.toLowerCase().includes(s)) ||
-                      (e.department?.toLowerCase().includes(s))
-                    );
-                  }).map(emp => {
+                  {employees.map(emp => {
                     const empId = emp.userId || emp.id;
                     const isSelected = form.assigned_employee_ids.includes(empId);
                     const initials = `${(emp.firstName || '').charAt(0)}${(emp.lastName || '').charAt(0)}`.toUpperCase() || 'E';
