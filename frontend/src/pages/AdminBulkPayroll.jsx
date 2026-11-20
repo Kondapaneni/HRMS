@@ -56,6 +56,7 @@ const AdminBulkPayroll = () => {
       params: { month: selectedMonth, year: selectedYear, search: debouncedSearchQuery, page, limit },
       signal,
     })).data,
+    onSuccess: () => setMessage(previous => previous?.type === 'error' ? null : previous),
     onError: () => setMessage({ type: 'error', text: 'Failed to fetch pending employees' }),
   });
   const employees = pendingResponse?.employees || [];
@@ -96,7 +97,6 @@ const AdminBulkPayroll = () => {
       toast.success(result.message || 'Bulk payslips generated successfully!');
       setMessage({ type: 'success', text: result.message || 'Bulk payslips generated successfully!' });
       setSelectedIds([]);
-      await refreshControl.refresh({ scope: ['admin', 'payroll', 'pending'] });
       await refreshControl.refresh({ scope: ['admin', 'payroll'] });
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Failed to generate bulk payslips';
