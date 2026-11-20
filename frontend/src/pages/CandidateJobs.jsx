@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
+import { fetchPublishedJobCatalog } from '../query/publishedJobCatalog.js';
 import { Link } from 'react-router-dom';
 import CandidateMobileJobs from './CandidateMobileJobs';
 
@@ -37,12 +38,12 @@ const CandidateJobs = () => {
     scope: ['candidate', 'jobs_page', profile?.id],
     load: async () => {
       if (!profile?.id) return null;
-      const [jobsRes, appsRes] = await Promise.all([
-        api.get('/candidate/jobs'),
+      const [jobs, appsRes] = await Promise.all([
+        fetchPublishedJobCatalog(profile),
         api.get('/candidate/applications')
       ]);
       return {
-        jobs: jobsRes.data.jobs || [],
+        jobs,
         applications: appsRes.data.applications || []
       };
     },
