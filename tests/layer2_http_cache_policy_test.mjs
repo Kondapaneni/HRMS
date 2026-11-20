@@ -29,7 +29,7 @@ assert(apache.includes('RewriteCond %{REQUEST_FILENAME} -f'),
   'Immutable asset must exist on disk');
 assert(apache.includes('RewriteRule ^assets/ - [END]'),
   'Missing assets must not resolve to SPA HTML');
-const assetRewrite = apache.split('\\n').find(line => line.startsWith('RewriteRule ^assets/.+-'));
+const assetRewrite = apache.split('\n').find(line => line.startsWith('RewriteRule ^assets/.+-'));
 assert(assetRewrite?.includes('[E=HRMS_VITE_ASSET:1]') &&
   assetRewrite.includes('{8,}'), 'Only fingerprinted /assets/ requests may opt into caching');
 const fileRules = [...apache.matchAll(/<FilesMatch "([^"]+)">([\s\S]*?)<\/FilesMatch>/g)];
