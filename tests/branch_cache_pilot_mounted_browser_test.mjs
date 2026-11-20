@@ -47,6 +47,12 @@ try {
     assert.equal(source.split(oldText).length, 2, 'The actual hook import must match exactly');
     source = source.replace(oldText, replacement);
   }
+  // The real hook uses a five-minute garbage-collection timer in production.
+  // Shorten only that timer in this synthetic Node browser to avoid holding
+  // the test process open; the production TTL remains separately CI-asserted.
+  assert.equal(source.split('gcTime: 5 * 60 * 1000').length, 2,
+    'The branch hook must keep its five-minute production retention policy');
+  source = source.replace('gcTime: 5 * 60 * 1000', 'gcTime: 100');
   writeFileSync(outputPath, source + [
     '',
     "export { QueryClientProvider } from '@tanstack/react-query';",
