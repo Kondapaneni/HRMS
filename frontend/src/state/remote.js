@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
  * Mounted-view request state. There is deliberately NO data cache:
@@ -14,6 +15,9 @@ const mountedViews = new Set();
 const listeners = new Set();
 const resetListeners = new Set();
 let sessionEpoch = 0;
+let mountedViewSerial = 0;
+const EMPTY_REMOTE_VALUE = Object.freeze({ kind: 'hrms-undefined-remote-result' });
+const unpack = value => value === EMPTY_REMOTE_VALUE ? undefined : value;
 
 const asParts = value => Array.isArray(value) ? value : value == null ? [] : [value];
 const matches = (viewParts, prefix) => {
@@ -72,143 +76,186 @@ export function useRefreshControl() {
   return controller;
 }
 
+/**
+ * TanStack Query owns the lifecycle of all mounted HRMS read views. Private,
+ * live data never shares a cache entry across mounts, accounts, filters or
+ * routes: unique instance keys, staleTime 0, gcTime 0, and no persistence.
+ *
+ * The legacy controller surface is retained for existing page mutation
+ * handlers, so migration does not change route workflows or their security
+ * assumptions. Only the explicitly audited Branch reference hook retains
+ * results for five minutes.
+ */
 export function useRemoteData(options) {
   const { scope = [], pollEveryMs = false,
     reloadOnFocus = true, reloadInBackground = false } = options;
   const when = options.when ?? options.enabled ?? true;
   const scopeId = JSON.stringify(scope);
+  const viewId = useRef(null);
+  if (viewId.current === null) viewId.current = ++mountedViewSerial;
   const latestOptions = useRef(options);
   latestOptions.current = options;
-  const [state, setState] = useState({
-    scopeId, data: undefined, error: null, status: 'pending',
-    isLoading: Boolean(when), isPending: true, isFetching: false,
+  const [blockedAfterReset, setBlockedAfterReset] = useState(false);
+  const queryClient = useQueryClient();
+  const active = Boolean(when && !blockedAfterReset);
+  const activeRef = useRef(active);
+  activeRef.current = active;
+
+  // The epoch changes synchronously before a logout or account transition.
+  // A key never identifies two different mounted views or session epochs.
+  const queryKey = ['hrms', 'mounted-read', 'v1',
+    sessionEpoch, viewId.current, scopeId];
+  const queryId = JSON.stringify(queryKey);
+
+  const query = useQuery({
+    queryKey,
+    enabled: active,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+    networkMode: 'always',
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: 'always',
+    queryFn: async ({ signal }) => {
+      const epoch = sessionEpoch;
+      const loaded = await latestOptions.current.load({
+        signal, scope: latestOptions.current.scope,
+      });
+      // An in-flight reply must not resurrect data after auth reset.
+      if (epoch !== sessionEpoch || signal.aborted) {
+        throw new Error('Request invalidated by session transition');
+      }
+      // React Query disallows undefined as a successful response.
+      return loaded === undefined ? EMPTY_REMOTE_VALUE : loaded;
+    },
   });
-  const dataRef = useRef(undefined);
-  const stateRef = useRef(state);
-  const requestRef = useRef({ counter: 0, abort: null, active: false });
 
-  const change = useCallback(next => {
-    stateRef.current = { ...stateRef.current, ...next };
-    setState(stateRef.current);
-    emit();
-  }, []);
-
-  const cancel = useCallback(() => {
-    requestRef.current.counter += 1;
-    requestRef.current.abort?.abort();
-    requestRef.current.abort = null;
-  }, []);
-
-  const update = useCallback(value => {
-    const updated = typeof value === 'function' ? value(dataRef.current) : value;
-    dataRef.current = updated;
-    change({ data: updated, error: null, status: 'success',
-      isPending: false, isLoading: false, isFetching: false });
-  }, [change]);
+  const getData = useCallback(() =>
+    unpack(queryClient.getQueryData(queryKey)), [queryClient, queryId]);
+  const refetchRef = useRef(query.refetch);
+  refetchRef.current = query.refetch;
 
   const reload = useCallback(async () => {
-    if (!requestRef.current.active || (latestOptions.current.when ?? latestOptions.current.enabled ?? true) === false) {
-      return { data: dataRef.current };
-    }
+    if (!activeRef.current) return { data: getData() };
+    const result = await refetchRef.current({ cancelRefetch: true });
+    return { data: unpack(result.data), error: result.error };
+  }, [getData]);
+
+  const cancel = useCallback(() => {
+    void queryClient.cancelQueries({ queryKey, exact: true });
+  }, [queryClient, queryId]);
+
+  const update = useCallback(value => {
+    queryClient.setQueryData(queryKey, previous => {
+      const current = unpack(previous);
+      const next = typeof value === 'function' ? value(current) : value;
+      return next === undefined ? EMPTY_REMOTE_VALUE : next;
+    });
+    emit();
+  }, [queryClient, queryId]);
+
+  const reset = useCallback(() => {
+    // Never permit the mounted page to refetch during/after account logout.
+    activeRef.current = false;
+    setBlockedAfterReset(true);
     cancel();
-    const serial = requestRef.current.counter;
-    const epoch = sessionEpoch;
-    const abort = new AbortController();
-    requestRef.current.abort = abort;
-    change({ isFetching: true, isLoading: dataRef.current === undefined,
-      isPending: dataRef.current === undefined, error: null,
-      status: dataRef.current === undefined ? 'pending' : 'success' });
-    try {
-      const loaded = await latestOptions.current.load({
-        signal: abort.signal, scope: latestOptions.current.scope,
-      });
-      if (requestRef.current.counter !== serial || epoch !== sessionEpoch ||
-          !requestRef.current.active) return { data: undefined };
-      dataRef.current = loaded;
-      change({ data: loaded, isFetching: false, isLoading: false,
-        isPending: false, status: 'success', error: null });
-      latestOptions.current.onSuccess?.(loaded);
-      return { data: loaded };
-    } catch (error) {
-      if (requestRef.current.counter !== serial || epoch !== sessionEpoch ||
-          !requestRef.current.active) return { data: undefined };
-      change({ isFetching: false, isLoading: false, isPending: false,
-        status: 'error', error });
-      latestOptions.current.onError?.(error);
-      return { data: undefined, error };
-    } finally {
-      if (requestRef.current.counter === serial) requestRef.current.abort = null;
-    }
-  }, [cancel, change]);
+    queryClient.removeQueries({ queryKey, exact: true });
+  }, [cancel, queryClient, queryId]);
+
+  const value = !active ? undefined : unpack(query.data);
+  const visibleState = {
+    ...query,
+    data: value,
+    error: active ? query.error : null,
+    status: blockedAfterReset ? 'pending' : when ? query.status : 'idle',
+    isPending: blockedAfterReset ? true : when ? query.isPending : false,
+    isLoading: active && query.isLoading,
+    isFetching: active && query.isFetching,
+    isError: active && query.isError,
+    isSuccess: active && query.isSuccess,
+    refetch: reload,
+  };
+  const stateRef = useRef(visibleState);
+  stateRef.current = visibleState;
 
   useEffect(() => {
-    // A route remount or changed scope never inherits another view's response.
-    dataRef.current = undefined;
-    change({ scopeId, data: undefined, error: null, isFetching: false,
-      isLoading: Boolean(when), isPending: true, status: 'pending' });
-    requestRef.current.active = true;
     const view = {
-      scope: asParts(scope),
-      reload, cancel, update,
-      read: () => dataRef.current,
-      state: () => stateRef.current,
-      reset: () => {
-        cancel();
-        dataRef.current = undefined;
-        change({ data: undefined, error: null, status: 'pending',
-          isPending: true, isFetching: false, isLoading: false });
-      },
+      scope: asParts(scope), reload, cancel, update,
+      read: getData, state: () => stateRef.current, reset,
     };
     mountedViews.add(view);
-    if (when) void reload();
-    else change({ isLoading: false, isPending: false, status: 'idle' });
-    const focus = () => {
-      if (reloadOnFocus && document.visibilityState === 'visible' && when) {
+    return () => {
+      mountedViews.delete(view);
+      cancel();
+    };
+  }, [scopeId, reload, cancel, update, getData, reset]);
+
+  // TanStack Query v5 removed onSuccess/onError from useQuery. Preserve
+  // the existing page callback contract, once per completed request.
+  const callbackRef = useRef({ success: '', error: '' });
+  useEffect(() => {
+    if (!active) return;
+    if (query.isSuccess && query.dataUpdatedAt) {
+      const stamp = queryId + ':' + query.dataUpdatedAt;
+      if (callbackRef.current.success !== stamp) {
+        callbackRef.current.success = stamp;
+        latestOptions.current.onSuccess?.(unpack(query.data));
+      }
+    }
+    if (query.isError && query.errorUpdatedAt) {
+      const stamp = queryId + ':' + query.errorUpdatedAt;
+      if (callbackRef.current.error !== stamp) {
+        callbackRef.current.error = stamp;
+        latestOptions.current.onError?.(query.error);
+      }
+    }
+    emit();
+  }, [active, queryId, query.isSuccess, query.isError,
+    query.dataUpdatedAt, query.errorUpdatedAt]);
+
+  useEffect(() => {
+    if (!reloadOnFocus) return;
+    const onFocus = () => {
+      if (document.visibilityState === 'visible' && activeRef.current) {
         void reload();
       }
     };
-    if (reloadOnFocus) {
-      window.addEventListener('focus', focus);
-      document.addEventListener('visibilitychange', focus);
-    }
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
     return () => {
-      mountedViews.delete(view);
-      requestRef.current.active = false;
-      cancel();
-      if (reloadOnFocus) {
-        window.removeEventListener('focus', focus);
-        document.removeEventListener('visibilitychange', focus);
-      }
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
     };
-  }, [scopeId, when, reload, cancel, change, update, reloadOnFocus]);
+  }, [reloadOnFocus, reload]);
 
   useEffect(() => {
-    if (!pollEveryMs || !when) return;
+    if (!pollEveryMs || !active) return;
     const ms = typeof pollEveryMs === 'number' ? pollEveryMs : 0;
     if (ms < 1000) return;
     const timer = setInterval(() => {
-      if (reloadInBackground || document.visibilityState === 'visible') void reload();
+      if (reloadInBackground || document.visibilityState === 'visible') {
+        void reload();
+      }
     }, ms);
     return () => clearInterval(timer);
-  }, [pollEveryMs, when, reload, reloadInBackground]);
+  }, [pollEveryMs, active, reload, reloadInBackground]);
 
-  // A changed identity/scope must never render the prior view's private response
-  // even for one render before the new effect starts its fresh request.
-  const visible = state.scopeId === scopeId ? state : {
-    data: undefined, error: null, status: when ? 'pending' : 'idle',
-    isLoading: Boolean(when), isPending: Boolean(when), isFetching: false,
-  };
-  return {
-    ...visible,
-    isError: visible.status === 'error',
-    isSuccess: visible.status === 'success',
-    refetch: reload,
-  };
+  return visibleState;
 }
 
 export function useRemoteTask(options) {
   const latest = useRef(options);
   latest.current = options;
+  // Route mutation execution through TanStack Query without globally retaining
+  // private mutation results or changing legacy callback / epoch semantics.
+  const mutation = useMutation({
+    mutationFn: variables => latest.current.run(variables),
+    retry: false,
+    gcTime: 0,
+    networkMode: 'always',
+  });
+  const runMutation = mutation.mutateAsync;
   const [state, setState] = useState({
     data: undefined, error: null, isPending: false, isLoading: false,
     status: 'idle',
@@ -236,7 +283,7 @@ export function useRemoteTask(options) {
     let context, result, failure;
     try {
       context = await latest.current.onMutate?.(variables);
-      result = await latest.current.run(variables);
+      result = await runMutation(variables);
       if (startedInEpoch !== sessionEpoch) return undefined;
       await latest.current.onSuccess?.(result, variables, context);
       await perCall.onSuccess?.(result, variables, context);
@@ -260,15 +307,16 @@ export function useRemoteTask(options) {
         await perCall.onSettled?.(result, failure, variables, context);
       }
     }
-  }, []);
+  }, [runMutation]);
   const mutate = useCallback((variables, perCall) => {
     void mutateAsync(variables, perCall).catch(() => {
       // Promise rejection is delivered by mutateAsync or onError callbacks.
     });
   }, [mutateAsync]);
   const reset = useCallback(() => {
+    mutation.reset();
     setState({ data: undefined, error: null, isPending: false, isLoading: false,
       status: 'idle' });
-  }, []);
+  }, [mutation]);
   return { ...state, mutate, mutateAsync, reset };
 }
