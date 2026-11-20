@@ -4,14 +4,13 @@ import { X, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
-import { useAuth } from '../contexts/AuthContext';
+import { useBranchDirectory } from '../query/useBranchDirectory.js';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   const navigate = useNavigate();
-  const { session } = useAuth();
-  const [branches, setBranches] = useState([]);
+  const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranchDirectory(isOpen);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -35,7 +34,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetchBranches();
       setFormData(initialFormState);
     } else {
       setFormData(initialFormState);
@@ -45,17 +43,15 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     }
   }, [isOpen]);
 
-  const fetchBranches = async () => {
-    try {
-      const res = await api.get('/branches');
-      setBranches(res.data.branches || []);
-      if (res.data.branches && res.data.branches.length > 0) {
-        setFormData(prev => ({ ...prev, branch_id: res.data.branches[0].id }));
-      }
-    } catch (e) {
-      console.error("Failed to fetch branches", e);
+  // Set a default once per opening, without resetting a user's selection
+  // when a stale reference list revalidates in the background.
+  useEffect(() => {
+    if (isOpen && branches.length) {
+      setFormData(previous => previous.branch_id
+        ? previous : { ...previous, branch_id: branches[0].id });
     }
-  };
+  }, [isOpen, branches]);
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -260,6 +256,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
                 <label className="block text-xs font-semibold text-[var(--text)] mb-1">Assigned Branch *</label>
                 <select 
                   required 
+                  disabled={branchesLoading || branchesError}
                   name="branch_id" 
                   value={formData.branch_id} 
                   onChange={handleChange} 
@@ -269,6 +266,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>
+                {branchesError && <p role="alert" className="mt-1 text-xs text-red-600">Unable to load branches. Reopen the form to retry.</p>}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[var(--text)] mb-1">Joining Date *</label>
