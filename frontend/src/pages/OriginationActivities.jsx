@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
@@ -346,7 +347,7 @@ const QuickCreateModal = ({
 // =========================================================================
 // Main Desktop Component
 // =========================================================================
-const OriginationActivities = () => {
+const OriginationActivitiesDesktop = () => {
   const location = useLocation();
   const refreshControl = useRefreshControl();
 
@@ -751,12 +752,10 @@ const OriginationActivities = () => {
   return (
     <>
       {/* Mobile Activities Render */}
-      <div className="md:hidden">
-        <OriginationMobileActivities />
-      </div>
+      
 
       {/* Web Desktop Calendar View (Black & White Monochromatic Theme) */}
-      <div className="hidden md:flex flex-col min-h-[860px] select-none antialiased space-y-4 pb-12">
+      <div className="flex flex-col min-h-[860px] select-none antialiased space-y-4 pb-12">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0 px-0.5">
@@ -1497,6 +1496,11 @@ const OriginationActivities = () => {
       </div>
     </>
   );
+};
+
+const OriginationActivities = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <OriginationMobileActivities /> : <OriginationActivitiesDesktop />;
 };
 
 export default OriginationActivities;
