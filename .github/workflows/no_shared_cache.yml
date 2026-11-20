@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - 'frontend/src/**'
+      - 'frontend/index.html'
+      - 'frontend/public/**'
+      - 'backend/public/.htaccess'
+      - 'backend/public/index.php'
+      - 'tests/layer2_http_cache_policy_test.mjs'
       - 'frontend/package.json'
       - 'frontend/package-lock.json'
       - 'tests/no_shared_cache_policy_test.mjs'
@@ -30,6 +35,7 @@ jobs:
       - name: Verify auth, maintenance and frontend navigation protections
         run: |
           node tests/sec021_policy_test.mjs
+          node tests/layer2_http_cache_policy_test.mjs
           node tests/sec008_frontend_security_test.mjs
           node tests/sec020_policy_test.mjs
           node tests/perf_cold_route_policy_test.mjs
@@ -63,4 +69,5 @@ jobs:
         run: |
           node tests/no_shared_cache_policy_test.mjs
           node tests/sec021_policy_test.mjs --built
+          node tests/layer2_http_cache_policy_test.mjs --built
           node tests/perf_frontend_policy_test.mjs --built
