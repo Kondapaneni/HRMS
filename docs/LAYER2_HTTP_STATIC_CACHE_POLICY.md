@@ -23,9 +23,10 @@ enables `mod_headers` and processes `backend/public/.htaccess`.
 | `/Avatar/`, `/Resume/`, `/Loan-Document/`, other PHP media proxies | Existing per-route no-store policies unchanged | Never mark dynamic private files public/immutable |
 | Unversioned JS/CSS and missing assets | Not given immutable TTL | A URL without a proven content hash must not persist for a year |
 
-The Apache immutable rule requires **both** an original `/assets/` request path
-and a matching content-hashed filename, protecting against accidentally giving
-SPA fallback HTML or PHP documents a long-lived cache lifetime. Existing browser
+The Apache immutable rule requires **all three**: an `/assets/` request path,
+a matching content-hashed filename, and an existing file on disk. Missing
+`/assets/` files return 404 instead of SPA fallback HTML and are not marked
+immutable; private PHP documents never qualify. Existing browser
 security headers (HSTS/CSP/frame policy/nosniff) remain unchanged.
 
 ## Online-only guarantee
