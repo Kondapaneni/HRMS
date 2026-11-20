@@ -286,12 +286,6 @@
   --color-neutral-bg: var(--neutral-bg);
 }
 
-/* ---------- Shimmer animation ---------- */
-@keyframes shimmer {
-  0% { transform: translateX(-150%) skewX(-15deg); }
-  100% { transform: translateX(150%) skewX(-15deg); }
-}
-
 /* ---------- Chrome autofill detection & floating label support ---------- */
 @keyframes onAutoFillStart {
   from {/**/}
