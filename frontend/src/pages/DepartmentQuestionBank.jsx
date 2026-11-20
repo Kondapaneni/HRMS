@@ -21,6 +21,7 @@ import {
   Loader2
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import PaginationControls from '../components/ui/PaginationControls';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
@@ -40,6 +41,8 @@ const DEPARTMENTS = [
 const DepartmentQuestionBank = () => {
   const refreshControl = useRefreshControl();
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -48,6 +51,7 @@ const DepartmentQuestionBank = () => {
   // Debounce search query (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
+      setPage(1);
       setDebouncedSearchQuery(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
@@ -61,26 +65,17 @@ const DepartmentQuestionBank = () => {
     correct_options: [0] // array of integer indices
   });
 
-  const { data: questions = [], isLoading, isFetching } = useRemoteData({
-    scope: ['adminQuestions', selectedDeptFilter, debouncedSearchQuery],
-    load: async () => {
-      const params = new URLSearchParams();
-      if (selectedDeptFilter !== 'All') params.append('department', selectedDeptFilter);
-      if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
-      
-      const url = `/admin/questions?${params.toString()}`;
-      const res = await api.get(url);
-      return res.data?.data || res.data || [];
-    },
+  const { data: response, isLoading, isFetching, error: listError } = useRemoteData({
+    scope: ['adminQuestions', selectedDeptFilter, debouncedSearchQuery, page],
+    load: async ({ signal }) => {
+      const params = { page, limit: pageSize, search: debouncedSearchQuery };
+      if (selectedDeptFilter !== 'All') params.department = selectedDeptFilter;
+      return (await api.get('/admin/questions', { params, signal })).data;
+    }
   });
-
-  const stats = useMemo(() => {
-    const total = questions.length;
-    const single = questions.filter(q => q.question_type === 'mcq_single' || !q.question_type).length;
-    const multiple = questions.filter(q => q.question_type === 'mcq_multiple').length;
-    const depts = new Set(questions.map(q => q.department)).size;
-    return { total, single, multiple, depts };
-  }, [questions]);
+  const questions = response?.questions || [];
+  const total = Number(response?.pagination?.total ?? response?.total ?? 0);
+  const stats = response?.stats || { total: 0, single: 0, multiple: 0, depts: 0 };
 
   const saveMutation = useRemoteTask({
     run: async ({ formData }) => {
@@ -206,7 +201,7 @@ const DepartmentQuestionBank = () => {
           <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
             Department question bank
             <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
-              {questions.length} Items
+              {total.toLocaleString('en-IN')} Items
             </span>
           </h1>
           <p className="text-[13px] text-[var(--muted)] mt-1">
@@ -258,19 +253,19 @@ const DepartmentQuestionBank = () => {
           {/* Department Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
             <button
-              onClick={() => setSelectedDeptFilter('All')}
+              onClick={() => { setSelectedDeptFilter('All'); setPage(1); }}
               className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                 selectedDeptFilter === 'All'
                   ? 'bg-[var(--ink)] text-white'
                   : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
-              All departments ({selectedDeptFilter === 'All' ? questions.length : 'All'})
+              All departments ({selectedDeptFilter === 'All' ? total : 'All'})
             </button>
             {DEPARTMENTS.map((dept) => (
               <button
                 key={dept}
-                onClick={() => setSelectedDeptFilter(dept)}
+                onClick={() => { setSelectedDeptFilter(dept); setPage(1); }}
                 className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                   selectedDeptFilter === dept
                     ? 'bg-[var(--ink)] text-white'
@@ -427,6 +422,8 @@ const DepartmentQuestionBank = () => {
         </div>
       </div>
 
+      {listError && <p role="alert" className="text-red-600">Could not load question bank.</p>}
+      <PaginationControls page={page} limit={pageSize} total={total} isFetching={isFetching} onPageChange={setPage} />
       {/* Slideover Right Drawer */}
       {showModal && createPortal(
         <div 
