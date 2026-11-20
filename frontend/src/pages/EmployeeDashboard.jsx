@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { employeeDashboardRequest } from '../performance/dashboardBoot';
+import { employeeDashboardRequest, employeeDashboardExtrasRequest } from '../performance/dashboardBoot';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   User, 
@@ -49,12 +49,13 @@ const EmployeeDashboard = () => {
   }, []);
 
   const { data: dashboardData, isLoading: loading } = useRemoteData(employeeDashboardRequest);
+  const { data: dashboardExtras } = useRemoteData(employeeDashboardExtrasRequest);
 
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
-  const performance = dashboardData?.performance || null;
+  const performance = dashboardExtras?.performance || null;
   const fullProfile = dashboardData?.fullProfile || profile;
-  const latestPayslip = dashboardData?.latestPayslip || null;
+  const latestPayslip = dashboardExtras?.latestPayslip || null;
   const todayRecord = findTodayAttendanceRecord(attendance);
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
@@ -198,7 +199,7 @@ const EmployeeDashboard = () => {
 
   // Stats calculation
   const availablePaidLeaves = leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--';
-  const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '100%';
+  const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '—';
 
   if (loading) return <PageLoader message="Loading dashboard..." />;
 
@@ -434,7 +435,7 @@ const EmployeeDashboard = () => {
                 <div className="grid grid-cols-2 gap-3 text-[13px]">
                   <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] space-y-1">
                     <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Attendance rate</p>
-                    <p className="text-[20px] font-medium text-[var(--text)]">{performance?.attendancePct !== undefined ? `${performance.attendancePct}%` : '100%'}</p>
+                    <p className="text-[20px] font-medium text-[var(--text)]">{performance?.attendancePct !== undefined ? `${performance.attendancePct}%` : '—'}</p>
                   </div>
 
                   <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] space-y-1">
