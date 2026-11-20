@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseDeliveryEvent, claimPendingEmail } from '../supabase/functions/send-email/auth.mjs';
+import { gmailCredentials, safeEmailFailure } from '../supabase/functions/send-email/diagnostics.mjs';
 
 const id = '550e8400-e29b-41d4-a716-446655440000';
 const token = '82d48336-d7e5-40f7-b55a-16a2738c3cc5';
@@ -38,4 +39,32 @@ test('conditionally claims only the matching pending message; cannot replay', as
     ['eq', 'id', id], ['eq', 'delivery_token', token], ['eq', 'status', 'pending'],
     ['select', 'id,to_email,subject,body'],
   ]);
+});
+
+test('Gmail App Password separators are stripped, but normal characters are unchanged', () => {
+  const vars = new Map([
+    ['GMAIL_USER', '  mail@example.invalid  '],
+    ['GMAIL_APP_PASSWORD', 'abcd efgh ijkl mnop'],
+  ]);
+  assert.deepEqual(gmailCredentials({ get: key => vars.get(key) }), {
+    user: 'mail@example.invalid',
+    pass: 'abcdefghijklmnop',
+  });
+  assert.deepEqual(gmailCredentials({ get: () => undefined }), { user: '', pass: '' });
+});
+
+test('mail diagnostics reveal failure category without logging secrets or SMTP response text', () => {
+  const secret = 'secret-password-should-not-appear';
+  const error = Object.assign(new Error('535 rejected credential ' + secret), {
+    code: 'EAUTH', responseCode: 535,
+  });
+  const line = safeEmailFailure('smtp-send', error);
+  assert.match(line, /stage=smtp-send code=EAUTH smtp_status=535/);
+  assert.doesNotMatch(line, /secret|credential|rejected/);
+  assert.equal(safeEmailFailure('gmail-app-password-missing', new Error('missing')),
+    'SEC-002: email delivery failed stage=gmail-app-password-missing code=unknown smtp_status=none');
+  assert.equal(safeEmailFailure('attacker-email@example.invalid', error),
+    'SEC-002: email delivery failed stage=unknown code=EAUTH smtp_status=535');
+  assert.equal(safeEmailFailure('smtp-send', { code: secret, responseCode: 200 }),
+    'SEC-002: email delivery failed stage=smtp-send code=unknown smtp_status=none');
 });
