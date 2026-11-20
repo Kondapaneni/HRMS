@@ -33,5 +33,20 @@ try {
     // This case is addressed by never taking a template filename from the request;
     // the route only selects values in the private RECRUITMENT_TYPES allowlist.
 }
+// Test arbitrary numbered rounds against the real server-owned template policy
+// in a local transaction. Preserve the shared synthetic fixture for HTTP tests.
+$pdo->beginTransaction();
+try {
+    $stmtRound = $pdo->prepare('UPDATE applications SET status = ? WHERE id = ?');
+    foreach (['4th Round Interview', '10th Round Interview', '11th Round Interview',
+              '12th Round Interview', '21st Round Interview', 'Final Round Interview'] as $round) {
+        $stmtRound->execute([$round, '00000000-0000-4000-8000-00000000b501']);
+        $email = EmailSecurity::recruitment($pdo, '00000000-0000-4000-8000-00000000b501', 'interview');
+        checkPolicy015(str_contains($email['body'], $round),
+            'Secure interview notification must support ' . $round);
+    }
+} finally {
+    $pdo->rollBack();
+}
 checkPolicy015(str_contains(EmailSecurity::welcome('Demo','demo@example.invalid',str_repeat('a',64)), '/reset-password?token='), 'Welcome setup link available');
 echo "PASS SEC-015 server-side rendering, record-bound recipients and type/status policy\n";
