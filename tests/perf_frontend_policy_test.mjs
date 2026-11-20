@@ -15,6 +15,19 @@ const requests = read('frontend/src/state/remote.js');
 assert.match(requests, /No data is retained when a view unmounts/);
 assert.doesNotMatch(app, /QueryClient|PersistQueryClientProvider/);
 assert.match(app, /<AuthProvider>/);
+// A production incident proved Vite can build when a route guard references
+// an undeclared const. Prevent the root router from crashing on every URL.
+const routeDeclarationScope = app.slice(0, app.indexOf('function App()'));
+for (const [name, roles] of Object.entries({
+  ADMIN_DASHBOARD_ROLES: "['admin']",
+  EMPLOYEE_DASHBOARD_ROLES: "['employee', 'hr', 'manager']",
+  CANDIDATE_DASHBOARD_ROLES: "['candidate']",
+})) {
+  assert(routeDeclarationScope.includes('const ' + name + ' = ' + roles),
+    'Route guard variable must be defined BEFORE App renders: ' + name);
+}
+assert.match(app, /\.\.\.ADMIN_DASHBOARD_ROLES, \.\.\.EMPLOYEE_DASHBOARD_ROLES/,
+  'Protected admin shell must preserve its verified route role wiring');
 const lazyPages = (app.match(/const \w+ = lazy\(\(\) => import\('\.\/pages\//g) || []).length;
 assert(lazyPages >= 60, 'Route modules must use lazy imports: found ' + lazyPages);
 for (const match of app.matchAll(/const \w+ = lazy\(\(\) => import\('\.\/(pages|components)\/([^']+)'\)\);/g)) {
