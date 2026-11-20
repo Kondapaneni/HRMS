@@ -17,11 +17,15 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const React = require('react');
 const { createRoot } = require('react-dom/client');
+const { QueryClientProvider } = require('@tanstack/react-query');
+const { memoryQueryClient } = await import('../frontend/src/query/memoryClient.js');
 const { act, createElement } = React;
 const { useRemoteData, useRemoteTask, useRefreshControl } =
   await import('../frontend/src/state/remote.js');
 
 const next = () => new Promise(resolve => setTimeout(resolve, 0));
+const withQuery = child => createElement(QueryClientProvider,
+  { client: memoryQueryClient }, child);
 
 test('mounted views load fresh data each time, scoped refreshes, no cross-route cache', async () => {
   const bus = useRefreshControl();
@@ -40,7 +44,7 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   let host = document.createElement('section');
   document.body.append(host);
   let root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe, { id: 1 })); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe, { id: 1 }))); await next(); });
   assert.equal(current.data.id, 1);
   const first = current.data.sequence;
   assert.equal(bus.peek(['synthetic', 1])?.sequence, first);
@@ -50,14 +54,17 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   await act(async () => { await bus.refresh({ scope: ['synthetic'] }); await next(); });
   assert(current.data.sequence > first, 'Mounted view refresh must fetch from the server');
 
-  await act(async () => { root.render(createElement(Probe, { id: 2 })); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe, { id: 2 }))); await next(); });
   assert.equal(current.data?.id, 2, 'New scope must load its own data');
   assert(!renders.some(entry => entry.id === 2 && entry.data?.id === 1),
     'Do not show another scope\'s private data during the render before its effect');
   await act(async () => { root.unmount(); });
   assert.equal(bus.peek(['synthetic', 1]), undefined, 'Unmounted data may not be retained');
+  await next();
+  assert.equal(memoryQueryClient.getQueryCache().findAll({ queryKey: ['hrms', 'mounted-read'] }).length,
+    0, 'Private TanStack views must be garbage-collected after unmount');
   root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe, { id: 1 })); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe, { id: 1 }))); await next(); });
   assert(current.data.sequence > first + 1, 'Revisit must fetch new data rather than use an old snapshot');
   await act(async () => { root.unmount(); });
   host.remove();
@@ -78,7 +85,7 @@ test('logout reset discards mounted private state and prevents stale request com
   const host = document.createElement('div');
   document.body.append(host);
   const root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe)); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
   assert.equal(typeof deliver, 'function');
   await act(async () => { bus.reset(); });
   await act(async () => {
@@ -105,7 +112,7 @@ test('failed assessment-style requests expose isError instead of an empty succes
   const host = document.createElement('section');
   document.body.append(host);
   const root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe)); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
   assert.equal(current.isError, true, 'Failed queries must provide isError for UI alert');
   assert.equal(current.isSuccess, false, 'Failures must not render as successful empty results');
   assert.equal(current.isLoading, false, 'Request failure must stop the loading indicator');
@@ -133,7 +140,7 @@ test('mutations retain callbacks and error handling without retaining responses 
   const host = document.createElement('div');
   document.body.append(host);
   const root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe)); });
+  await act(async () => { root.render(withQuery(createElement(Probe))); });
   await act(async () => {
     const response = await operation.mutateAsync({ fail: false });
     assert.equal(response.saved, true);
@@ -147,4 +154,5 @@ test('mutations retain callbacks and error handling without retaining responses 
   host.remove();
 });
 
+memoryQueryClient.clear();
 dom.window.close();
