@@ -36,7 +36,7 @@ import {
   isEmployeeOnLeaveToday,
 } from '../utils/attendanceUtils';
 
-const EmployeeDashboard = () => {
+const EmployeeDesktopDashboard = () => {
   const { profile } = useAuth();
   const refreshControl = useRefreshControl();
   const [punchingAction, setPunchingAction] = useState(null);
@@ -205,13 +205,9 @@ const EmployeeDashboard = () => {
 
   return (
     <>
-      {/* Mobile Experience Render */}
-      <div className="md:hidden">
-        <EmployeeMobileDashboard />
-      </div>
-
-      {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      {/* Only mount the actual desktop view; the mobile dashboard is rendered
+          separately, not hidden with CSS while still fetching private APIs. */}
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -675,6 +671,22 @@ const EmployeeDashboard = () => {
       </div>
     </>
   );
+};
+
+// Rendering both dashboards under CSS-hidden wrappers doubled the API
+// fan-out on desktop and mobile. Mount exactly one responsive dashboard.
+const EmployeeDashboard = () => {
+  const [mobile, setMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const update = () => setMobile(media.matches);
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
+  return mobile ? <EmployeeMobileDashboard /> : <EmployeeDesktopDashboard />;
 };
 
 export default EmployeeDashboard;
