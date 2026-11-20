@@ -108,7 +108,7 @@ const AdminRecruitment = () => {
   const jobChoices = jobChoicesResponse?.jobs || [];
   const jobChoicesTotal = Number(jobChoicesResponse?.total || 0);
 
-  const { data: branches = [], isError: branchesError } = useBranchDirectory();
+  const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranchDirectory();
 
   // Job Modal State
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
@@ -127,6 +127,18 @@ const AdminRecruitment = () => {
   const [convertData, setConvertData] = useState({
     firstName: '', lastName: '', email: '', phone: '', department: '', position: '', branch: '', joinDate: '', salary: '', status: 'Active', managerId: ''
   });
+
+  // The conversion form can open before the branch reference request finishes.
+  // Fill its default only when safe; never overwrite an explicit selection.
+  useEffect(() => {
+    if (isConvertModalOpen && branches.length) {
+      setConvertData(previous => previous.branch
+        ? previous : { ...previous, branch: branches[0].id });
+    }
+  }, [isConvertModalOpen, branches.length, branches[0]?.id]);
+
+  const validConversionBranch = !branchesLoading && !branchesError &&
+    branches.some(branch => String(branch.id) === String(convertData.branch));
 
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [offerData, setOfferData] = useState({
@@ -282,7 +294,10 @@ const AdminRecruitment = () => {
 
   const handleConvertToEmployee = (e) => {
     e.preventDefault();
-    if (!selectedApp) return;
+    if (!selectedApp || !validConversionBranch) {
+      toast.error('Choose a valid branch after the branch list finishes loading.');
+      return;
+    }
     convertEmployeeMutation.mutate();
   };
 
@@ -1088,7 +1103,7 @@ const AdminRecruitment = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Branch *</label>
-                    <select required value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all cursor-pointer">
+                    <select required disabled={branchesLoading || branchesError || branches.length === 0} value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all cursor-pointer">
                       {branches.map(b => (
                         <option key={b.id} value={b.id}>{b.name}</option>
                       ))}
@@ -1119,7 +1134,7 @@ const AdminRecruitment = () => {
               <button
                 type="submit"
                 form="convert-candidate-form"
-                disabled={convertEmployeeMutation.isPending}
+                disabled={convertEmployeeMutation.isPending || !validConversionBranch}
                 className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 <UserCheck size={14} />
