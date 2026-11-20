@@ -11,12 +11,9 @@ export default function LandscapeOverlay() {
   if (!shouldShow) return null;
   return (
     <>
-      {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
+      {/* Informational only: do not block taps after delayed WebView rotation events. */}
       <div 
         role="status" aria-label="Rotate back to portrait" aria-live="polite"
-        // This is only an informational illustration: it has no controls.
-        // Never let a stale iOS PWA / Android WebView compositing layer block
-        // navigation taps if an orientation event arrives late.
         className="orientation-warning pointer-events-none fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#131315]/45 backdrop-blur-md p-6 text-center select-none"
       >
         {/* Card Container matching Login UI */}
