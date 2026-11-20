@@ -121,3 +121,46 @@ test('ready dashboard data renders without waiting for the secondary leads API',
     'Protected data must remain fresh and never be reused across unmounts');
   assert.match(read('frontend/src/query/memoryClient.js'), /memoryQueryClient\.clear\(\)/);
 });
+
+test('iOS standalone and Android WebView root stays in layout flow after rotation', () => {
+  const css = read('frontend/src/index.css');
+  const roots = css.match(/\/\* ---------- Root and body ---------- \*\/\s*html,\s*body\s*\{([^}]+)\}/)?.[1];
+  assert(roots, 'Global root CSS must be present');
+  assert.doesNotMatch(roots, /position:\s*fixed/,
+    'A fixed html/body root can strand a stale touch hit-test layer after rotation');
+  assert.match(roots, /overflow:\s*hidden/,
+    'Keep document scrolling contained; workspace owns the scrollable viewport');
+  const root = css.match(/#root\s*\{([^}]+)\}/)?.[1];
+  assert.match(root || '', /height:\s*100%/,
+    'Keep the React app anchored to the viewport');
+  const shell = read('frontend/src/components/AppShell.jsx');
+  assert.match(shell, /h-\[100dvh\]/,
+    'Workspace must continue to size itself to the dynamic viewport');
+});
+
+test('non-interactive orientation hint never intercepts any tap, even when stale', () => {
+  const overlay = read('frontend/src/components/LandscapeOverlay.jsx');
+  assert.match(overlay, /orientation-warning pointer-events-none fixed inset-0/,
+    'The informational overlay must not intercept touches while orientation updates lag');
+  assert.match(overlay, /role="status"/,
+    'An informational notice cannot claim modal focus/touch authority');
+  assert.doesNotMatch(overlay, /aria-modal="true"/);
+  assert.doesNotMatch(overlay, /pointer-events-auto/,
+    'An overlay descendant must not explicitly reactivate pointer handling');
+  assert.match(overlay, /if \(!shouldShow\) return null;/,
+    'The notice must unmount completely when portrait is recognized');
+});
+
+test('mobile navigation drawer closes on rotation and portrait viewport restoration', () => {
+  const shell = read('frontend/src/components/AppShell.jsx');
+  assert.match(shell, /window\.addEventListener\('orientationchange', closeOnRotation\)/);
+  assert.match(shell, /window\.addEventListener\('resize', onViewportResize\)/);
+  assert.match(shell, /window\.visualViewport\?\.addEventListener\('resize', onViewportResize\)/);
+  assert.match(shell, /portraitQuery\?\.addEventListener\?\.\('change', closeOnRotation\)/);
+  assert.match(shell, /if \(portrait !== lastPortrait\) closeOnRotation\(\)/);
+  assert.match(shell, /setIsMobileMenuOpen\(false\)/);
+  assert.match(shell, /window\.removeEventListener\('orientationchange', closeOnRotation\)/);
+  assert.match(shell, /window\.removeEventListener\('resize', onViewportResize\)/);
+  assert.match(shell, /window\.visualViewport\?\.removeEventListener\('resize', onViewportResize\)/);
+  assert.match(shell, /portraitQuery\?\.removeEventListener\?\.\('change', closeOnRotation\)/);
+});
