@@ -13,10 +13,10 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
     $queryParams = $request->getQueryParams();
     $department = trim($queryParams['department'] ?? '');
     $search = trim($queryParams['search'] ?? '');
-    $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 50;
-    $offset = isset($queryParams['offset']) ? (int)$queryParams['offset'] : (isset($queryParams['page']) ? (max(1, (int)$queryParams['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
+    $limit = min(100, max(1, (int)($queryParams['limit'] ?? 50)));
+    $offset = isset($queryParams['offset']) ? max(0, (int)$queryParams['offset'])
+        : (max(1, (int)($queryParams['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
 
     $db = new Database();
     $conn = $db->getConnection();
@@ -39,7 +39,7 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
         }
 
         $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $sql = "SELECT id, title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, status, assessment_date, questions_count, selected_questions, assigned_employee_ids, created_by, created_at, updated_at FROM assessments {$whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT id, title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, status, assessment_date, questions_count, selected_questions, assigned_employee_ids, created_by, created_at, updated_at FROM assessments {$whereClause} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?";
         $stmt = $conn->prepare($sql);
         $paramIndex = 1;
         foreach ($params as $p) {
@@ -59,6 +59,17 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
 
+        // Statistics are computed from all matching assessments, not the page.
+        $statsStmt = $conn->prepare(
+            "SELECT COUNT(*) AS total,
+                    COUNT(*) FILTER (WHERE status = 'Active' OR status IS NULL) AS active,
+                    COUNT(DISTINCT COALESCE(NULLIF(department,''), 'General')) AS depts,
+                    SUM(COALESCE(questions_count,0)) AS total_questions,
+                    ROUND(AVG(COALESCE(passing_percentage,70))) AS avg_pass
+             FROM assessments {$whereClause}"
+        );
+        $statsStmt->execute($params);
+        $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
         foreach ($assessments as &$a) {
             $a['instructions'] = AssessmentConstants::DEFAULT_INSTRUCTIONS;
             if (!empty($a['selected_questions']) && is_string($a['selected_questions'])) {
@@ -71,7 +82,18 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
         $response->getBody()->write(json_encode([
             'data' => $assessments,
             'assessments' => $assessments,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'stats' => [
+                'total' => (int)($stats['total'] ?? 0), 'active' => (int)($stats['active'] ?? 0),
+                'depts' => (int)($stats['depts'] ?? 0), 'totalQuestions' => (int)($stats['total_questions'] ?? 0),
+                'avgPass' => (int)($stats['avg_pass'] ?? 70)
+            ],
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($assessments) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
@@ -84,10 +106,10 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
 $app->get('/api/admin/assessments/attempts', function (Request $request, Response $response, $args) {
     $queryParams = $request->getQueryParams();
     $assessmentId = $queryParams['assessment_id'] ?? null;
-    $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 50;
-    $offset = isset($queryParams['offset']) ? (int)$queryParams['offset'] : (isset($queryParams['page']) ? (max(1, (int)$queryParams['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
+    $limit = min(100, max(1, (int)($queryParams['limit'] ?? 50)));
+    $offset = isset($queryParams['offset']) ? max(0, (int)$queryParams['offset'])
+        : (max(1, (int)($queryParams['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
 
     $db = new Database();
     $conn = $db->getConnection();
@@ -99,6 +121,17 @@ $app->get('/api/admin/assessments/attempts', function (Request $request, Respons
             $whereSql .= ' AND att.assessment_id = ?';
             $params[] = $assessmentId;
         }
+        $search = trim((string)($queryParams['search'] ?? ''));
+        if ($search !== '') {
+            $whereSql .= ' AND (EXISTS (SELECT 1 FROM assessments ax WHERE ax.id = att.assessment_id AND ax.title ILIKE ?) OR EXISTS (SELECT 1 FROM employee ex WHERE (ex.id = att.employee_id OR ex."userId" = att.employee_id) AND (ex."firstName" ILIKE ? OR ex."lastName" ILIKE ? OR ex.email ILIKE ? OR ex."employeeId" ILIKE ?)) OR EXISTS (SELECT 1 FROM users ux WHERE ux.id = att.employee_id AND (ux."firstName" ILIKE ? OR ux."lastName" ILIKE ? OR ux.email ILIKE ?)))';
+            $term = '%' . $search . '%';
+            array_push($params, ...array_fill(0, 8, $term));
+        }
+        $status = (string)($queryParams['status'] ?? 'all');
+        if ($status === 'passed') $whereSql .= ' AND att.passed IS TRUE';
+        elseif ($status === 'failed') $whereSql .= ' AND att.passed IS FALSE';
+        elseif ($status === 'violation') $whereSql .= " AND att.submit_reason IS NOT NULL AND att.submit_reason NOT IN ('manual','normal','time_expired')";
+
 
         $sql = "
             SELECT att.*, 
@@ -116,7 +149,7 @@ $app->get('/api/admin/assessments/attempts', function (Request $request, Respons
             LEFT JOIN employee e ON att.employee_id = e.\"userId\" OR att.employee_id = e.id
             LEFT JOIN users u ON att.employee_id = u.id
             {$whereSql}
-            ORDER BY COALESCE(att.end_time, att.start_time) DESC
+            ORDER BY COALESCE(att.end_time, att.start_time) DESC, att.id DESC
             LIMIT ? OFFSET ?
         ";
 
@@ -139,6 +172,12 @@ $app->get('/api/admin/assessments/attempts', function (Request $request, Respons
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
 
+        $fullStats = $conn->query(
+            "SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE passed IS TRUE) AS passed,
+                    AVG(COALESCE(percentage,0)) AS avg_score,
+                    COUNT(*) FILTER (WHERE submit_reason IS NOT NULL AND submit_reason NOT IN ('manual','normal','time_expired')) AS violations
+             FROM assessment_attempts WHERE status != 'in_progress'"
+        )->fetch(PDO::FETCH_ASSOC);
         foreach ($attempts as &$att) {
             $att['score'] = isset($att['score']) ? (float)$att['score'] : 0;
             $att['total_score'] = $att['score'];
@@ -170,7 +209,18 @@ $app->get('/api/admin/assessments/attempts', function (Request $request, Respons
         $response->getBody()->write(json_encode([
             'data' => $attempts,
             'attempts' => $attempts,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'stats' => [
+                'total' => (int)($fullStats['total'] ?? 0), 'passedCount' => (int)($fullStats['passed'] ?? 0),
+                'avgScore' => (int)round((float)($fullStats['avg_score'] ?? 0)),
+                'violationsCount' => (int)($fullStats['violations'] ?? 0)
+            ],
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($attempts) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
@@ -415,10 +465,10 @@ $app->get('/api/admin/questions', function (Request $request, Response $response
     $queryParams = $request->getQueryParams();
     $department = trim($queryParams['department'] ?? '');
     $search = trim($queryParams['search'] ?? '');
-    $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 50;
-    $offset = isset($queryParams['offset']) ? (int)$queryParams['offset'] : (isset($queryParams['page']) ? (max(1, (int)$queryParams['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
+    $limit = min(100, max(1, (int)($queryParams['limit'] ?? 50)));
+    $offset = isset($queryParams['offset']) ? max(0, (int)$queryParams['offset'])
+        : (max(1, (int)($queryParams['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
 
     $db = new Database();
     $conn = $db->getConnection();
@@ -441,7 +491,7 @@ $app->get('/api/admin/questions', function (Request $request, Response $response
         }
 
         $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $sql = "SELECT id, department, question_type, question_text, options, correct_option, correct_options, created_by, created_at, updated_at FROM department_question_bank {$whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT id, department, question_type, question_text, options, correct_option, correct_options, created_by, created_at, updated_at FROM department_question_bank {$whereClause} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?";
         $stmt = $conn->prepare($sql);
         $paramIndex = 1;
         foreach ($params as $p) {
@@ -461,6 +511,15 @@ $app->get('/api/admin/questions', function (Request $request, Response $response
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
 
+        $statsStmt = $conn->prepare(
+            "SELECT COUNT(*) AS total,
+                    COUNT(*) FILTER (WHERE question_type IS NULL OR question_type = 'mcq_single') AS single,
+                    COUNT(*) FILTER (WHERE question_type = 'mcq_multiple') AS multiple,
+                    COUNT(DISTINCT department) AS depts
+             FROM department_question_bank {$whereClause}"
+        );
+        $statsStmt->execute($params);
+        $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
         // Decode options and correct_options json
         foreach ($questions as &$q) {
             if (!empty($q['options']) && is_string($q['options'])) {
@@ -487,7 +546,17 @@ $app->get('/api/admin/questions', function (Request $request, Response $response
         $response->getBody()->write(json_encode([
             'data' => $questions,
             'questions' => $questions,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'stats' => [
+                'total' => (int)($stats['total'] ?? 0), 'single' => (int)($stats['single'] ?? 0),
+                'multiple' => (int)($stats['multiple'] ?? 0), 'depts' => (int)($stats['depts'] ?? 0)
+            ],
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($questions) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
