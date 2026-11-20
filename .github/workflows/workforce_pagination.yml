@@ -1,0 +1,45 @@
+name: Workforce paging and aggregate integrity
+on:
+  pull_request:
+    paths:
+      - 'backend/public/admin_employees_routes.php'
+      - 'backend/public/admin_feature_access_routes.php'
+      - 'backend/public/admin_reports_routes.php'
+      - 'backend/public/admin_assessments_routes.php'
+      - 'backend/public/admin_recruitment_routes.php'
+      - 'backend/public/admin_training_routes.php'
+      - 'frontend/src/**'
+      - 'tests/workforce_pagination_synthetic_test.mjs'
+      - '.github/workflows/workforce_pagination.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  large-roster-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 0 to 5001 synthetic roster pagination, hierarchy and no-global-permissions guards
+        run: node --test tests/workforce_pagination_synthetic_test.mjs
+      - name: PHP syntax check for all modified backend routes
+        run: |
+          docker run --rm -v "${GITHUB_WORKSPACE}:/work:ro" -w /work php:8.2-cli sh -ec '
+            php -l backend/public/admin_employees_routes.php
+            php -l backend/public/admin_feature_access_routes.php
+            php -l backend/public/admin_reports_routes.php
+            php -l backend/public/admin_assessments_routes.php
+            php -l backend/public/admin_recruitment_routes.php
+            php -l backend/public/admin_training_routes.php
+          '
+      - name: Existing salary/role/security regression policies
+        run: |
+          node tests/sec009_route_policy_test.mjs
+          node tests/sec010_policy_test.mjs
+          node tests/sec011_policy_test.mjs
+          node tests/sec021_policy_test.mjs
+          node tests/sec024_source_test.mjs
