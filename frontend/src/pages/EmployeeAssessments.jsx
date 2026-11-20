@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -209,34 +210,7 @@ const EmployeeAssessments = () => {
     return Array.isArray(assessments) ? assessments.filter(a => a.assessment_date && a.assessment_date === todayStr) : [];
   }, [assessments, todayStr]);
 
-  // Skeleton loader instead of blank screen (Requirement 9)
-  if (isLoading) {
-    return (
-      <div className="w-full space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="h-8 w-64 bg-slate-200 rounded-lg animate-pulse mb-2" />
-            <div className="h-4 w-80 bg-slate-100 rounded animate-pulse" />
-          </div>
-          <div className="h-8 w-28 bg-slate-200 rounded-lg animate-pulse" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 animate-pulse flex flex-col">
-              <div className="h-6 w-3/4 bg-slate-200 rounded-md" />
-              <div className="h-4 w-1/2 bg-slate-100 rounded" />
-              <div className="grid grid-cols-3 gap-2 bg-slate-50 rounded-xl p-3 border border-slate-100">
-                <div className="h-8 bg-slate-200 rounded" />
-                <div className="h-8 bg-slate-200 rounded" />
-                <div className="h-8 bg-slate-200 rounded" />
-              </div>
-              <div className="h-10 w-full bg-slate-200 rounded-lg mt-auto" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <PageLoader message="Loading assessments..." />;
 
   if (isError) {
     return (
