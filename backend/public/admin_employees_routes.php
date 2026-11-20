@@ -37,6 +37,14 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
             $queryParams[] = trim((string)$params[$key]);
         }
     }
+    // Exact-user lookup lets selectors preserve a selected user across pages.
+    // It uses the same authorization and compensation-safe projection as lists.
+    foreach (['userId' => 'e."userId"::text', 'employeeRecordId' => 'e.id::text'] as $key => $column) {
+        if (isset($params[$key]) && trim((string)$params[$key]) !== '') {
+            $filters[] = $column . ' = ?';
+            $queryParams[] = trim((string)$params[$key]);
+        }
+    }
     $whereClause = $filters ? ' WHERE ' . implode(' AND ', $filters) : '';
 
     try {

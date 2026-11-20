@@ -60,16 +60,6 @@ const AdminAttendanceRegularize = () => {
   const [modalError, setModalError] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
 
-  // Employees dropdown query
-  const { data: employees = [] } = useRemoteData({
-    scope: ['admin', 'employees-dropdown-regularize'],
-    load: async () => {
-      const response = await axios.get('/admin/employees?limit=500');
-      return response.data.employees || [];
-    },
-    reloadOnFocus: false,
-  });
-
   // Attendance calendar query
   const { data: attendanceResponse, isLoading: loading, error } = useRemoteData({
     scope: ['admin', 'attendance-regularize', selectedEmployeeId, selectedMonth],
@@ -524,7 +514,6 @@ const AdminAttendanceRegularize = () => {
           <div>
             <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Select Employee</label>
             <EmployeeSelect
-              employees={employees}
               selectedId={selectedEmployeeId}
               onChange={(id) => setSelectedEmployeeId(id)}
               placeholder="Search and Select Employee..."
