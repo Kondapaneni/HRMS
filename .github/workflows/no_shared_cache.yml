@@ -38,6 +38,11 @@ jobs:
         run: |
           npm ci
           npm run build
+      - name: Validate registry integrity metadata for the two pinned query dependencies
+        working-directory: frontend
+        run: |
+          npm view @tanstack/react-query@5.108.0 dist.integrity
+          npm view @tanstack/query-core@5.108.0 dist.integrity
       - name: Runtime branch cache security, then mounted-view and auth-reset lifecycle
         working-directory: frontend
         run: |
