@@ -11,8 +11,8 @@ const charts = read('frontend/src/components/AdminDashboardCharts.jsx');
 const recruitment = read('frontend/src/pages/AdminRecruitment.jsx');
 const employeeLayout = read('frontend/src/components/EmployeeLayout.jsx');
 
-assert.match(shell, /<Suspense fallback=\{<RouteSkeleton\s*\/>\}>/,
-  'First-time route chunks must suspend inside AppShell, retaining navigation');
+assert.match(shell, /<Suspense fallback=\{<PageLoader message="Opening page\.\.\." \/>\}>/,
+  'First-time route chunks must suspend silently inside AppShell, retaining navigation');
 assert.match(shell, /onPointerEnter=\{\(\) => onRouteIntent/,
   'Predictive preload begins from actual navigation intent');
 assert.match(shell, /onFocus=\{\(\) => onRouteIntent/,
