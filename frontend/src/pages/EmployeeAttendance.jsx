@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useEffect, useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { 
@@ -25,7 +26,7 @@ import {
   isEmployeeOnLeaveToday,
 } from '../utils/attendanceUtils';
 
-const EmployeeAttendance = () => {
+const EmployeeAttendanceDesktop = () => {
   const { profile } = useAuth();
   const refreshControl = useRefreshControl();
   const [error, setError] = useState(null);
@@ -235,12 +236,10 @@ const EmployeeAttendance = () => {
   return (
     <>
       {/* Mobile Experience Render */}
-      <div className="md:hidden">
-        <EmployeeMobileAttendance />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -493,6 +492,11 @@ const EmployeeAttendance = () => {
       </div>
     </>
   );
+};
+
+const EmployeeAttendance = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <EmployeeMobileAttendance /> : <EmployeeAttendanceDesktop />;
 };
 
 export default EmployeeAttendance;
