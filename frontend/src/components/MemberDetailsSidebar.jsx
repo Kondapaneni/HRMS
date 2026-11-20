@@ -122,15 +122,13 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
                       <div className="font-semibold text-[var(--text)] text-xs">
                         {title}
                       </div>
-                      {
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                           isCreated 
                             ? 'bg-[#E8F0FB] text-[#3B6FB6] border-[#3B6FB6]/20' 
                             : 'bg-[#FDF3DC] text-[#B7791F] border-[#B7791F]/20'
                         }`}>
                           <CheckCircle2 size={11} /> {isCreated ? 'Created' : 'Converted'}
-                        </span>
-                      }
+                      </span>
                     </div>
                     
                     {isCreated ? (

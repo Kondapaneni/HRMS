@@ -7,7 +7,7 @@ import React from 'react';
  */
 export const PageLoader = ({ message = 'Loading...' }) => (
   <div role="status" aria-live="polite" aria-busy="true"
-    className="w-full min-h-[40vh] py-3 sm:py-5 space-y-5 select-none">
+    className="w-full min-h-[calc(100dvh-8rem)] py-3 sm:py-5 space-y-5 select-none">
     <p className="text-xs font-medium text-[var(--muted)]">{message}</p>
     <div aria-hidden="true" className="space-y-5 motion-safe:animate-pulse">
       <div className="flex items-center justify-between gap-4">

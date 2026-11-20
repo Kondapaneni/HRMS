@@ -220,7 +220,8 @@ export const DataTable = ({
             </tr>
           </thead>
           <tbody>
-            {displayRows.length === 0 ? (              <tr>
+            {displayRows.length === 0 ? (
+              <tr>
                 <td
                   colSpan={columns.length + (onSelectAll ? 1 : 0)}
                   className="py-12 text-center"
