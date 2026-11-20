@@ -199,7 +199,16 @@ const EmployeeDesktopDashboard = () => {
 
   // Stats calculation
   const availablePaidLeaves = leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--';
-  const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '—';
+  // The server uses recorded check-ins and the employee's scheduled shift.
+  // A missing shift or no eligible punch is not a 0% punctuality score.
+  const onTimeScore = Number.isFinite(performance?.onTimePct)
+    ? `${performance.onTimePct}%`
+    : '—';
+  const onTimeSubtitle = performance?.onTimeStatus === 'shift_not_configured'
+    ? 'Shift start not configured'
+    : performance?.onTimeStatus === 'no_check_ins'
+      ? 'No recorded check-ins this month'
+      : 'Current month benchmark';
 
   if (loading) return <PageLoader message="Loading dashboard..." />;
 
@@ -248,7 +257,7 @@ const EmployeeDesktopDashboard = () => {
           <StatCard 
             title="On-time score" 
             value={onTimeScore} 
-            subtitle="Current month benchmark" 
+            subtitle={onTimeSubtitle} 
             icon={TrendingUp} 
           />
           <StatCard 
