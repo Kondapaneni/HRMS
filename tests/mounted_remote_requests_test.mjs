@@ -17,11 +17,22 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const React = require('react');
 const { createRoot } = require('react-dom/client');
+const { QueryClientProvider, memoryQueryClient } =
+  await import('../frontend/src/query/memoryClient.js');
 const { act, createElement } = React;
 const { useRemoteData, useRemoteTask, useRefreshControl } =
   await import('../frontend/src/state/remote.js');
 
 const next = () => new Promise(resolve => setTimeout(resolve, 0));
+const waitFor = async (predicate, label) => {
+  for (let attempt = 0; attempt < 40; attempt++) {
+    if (predicate()) return;
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+  }
+  assert.fail('Timed out waiting for ' + label);
+};
+const withQuery = child => createElement(QueryClientProvider,
+  { client: memoryQueryClient }, child);
 
 test('mounted views load fresh data each time, scoped refreshes, no cross-route cache', async () => {
   const bus = useRefreshControl();
@@ -40,7 +51,8 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   let host = document.createElement('section');
   document.body.append(host);
   let root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe, { id: 1 })); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe, { id: 1 }))); await next(); });
+  await waitFor(() => current.data?.id === 1, 'first mounted query');
   assert.equal(current.data.id, 1);
   const first = current.data.sequence;
   assert.equal(bus.peek(['synthetic', 1])?.sequence, first);
@@ -48,16 +60,23 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   await act(async () => { await bus.refresh({ scope: ['unrelated'] }); await next(); });
   assert.equal(current.data.sequence, first, 'Unrelated view notification cannot refetch this view');
   await act(async () => { await bus.refresh({ scope: ['synthetic'] }); await next(); });
+  await waitFor(() => current.data?.sequence > first, 'scoped refresh');
   assert(current.data.sequence > first, 'Mounted view refresh must fetch from the server');
 
-  await act(async () => { root.render(createElement(Probe, { id: 2 })); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe, { id: 2 }))); await next(); });
+  await waitFor(() => current.data?.id === 2, 'changed query scope');
   assert.equal(current.data?.id, 2, 'New scope must load its own data');
   assert(!renders.some(entry => entry.id === 2 && entry.data?.id === 1),
     'Do not show another scope\'s private data during the render before its effect');
   await act(async () => { root.unmount(); });
   assert.equal(bus.peek(['synthetic', 1]), undefined, 'Unmounted data may not be retained');
+  await next();
+  assert.equal(memoryQueryClient.getQueryCache().findAll({ queryKey: ['hrms', 'mounted-read'] }).length,
+    0, 'Private TanStack views must be garbage-collected after unmount');
   root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe, { id: 1 })); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe, { id: 1 }))); await next(); });
+  await waitFor(() => current.data?.id === 1 && current.data.sequence > first + 1,
+    'fresh query after remount');
   assert(current.data.sequence > first + 1, 'Revisit must fetch new data rather than use an old snapshot');
   await act(async () => { root.unmount(); });
   host.remove();
@@ -78,7 +97,7 @@ test('logout reset discards mounted private state and prevents stale request com
   const host = document.createElement('div');
   document.body.append(host);
   const root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe)); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
   assert.equal(typeof deliver, 'function');
   await act(async () => { bus.reset(); });
   await act(async () => {
@@ -86,6 +105,60 @@ test('logout reset discards mounted private state and prevents stale request com
     await next();
   });
   assert.equal(current.data, undefined, 'Old-account response must never reappear after logout');
+  await act(async () => { root.unmount(); });
+  host.remove();
+});
+
+test('permission revocation hides prior results and blocks further protected refetches', async () => {
+  const bus = useRefreshControl();
+  let current;
+  let revoked = false;
+  let calls = 0;
+  let deniedCallbacks = 0;
+  const Probe = () => {
+    current = useRemoteData({
+      scope: ['synthetic', 'protected-revocation'],
+      reloadOnFocus: false,
+      load: async () => {
+        calls += 1;
+        if (revoked) {
+          const error = new Error('Forbidden');
+          error.response = { status: 403 };
+          throw error;
+        }
+        return { privateValue: 'synthetic secret only' };
+      },
+      onError: () => { deniedCallbacks += 1; },
+    });
+    return createElement('span', null, current.data?.privateValue ?? 'not-visible');
+  };
+  const host = document.createElement('div');
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
+  await waitFor(() => Boolean(current.data?.privateValue), 'initial protected data');
+  assert.equal(bus.peek(['synthetic', 'protected-revocation'])?.privateValue,
+    'synthetic secret only');
+
+  revoked = true;
+  await act(async () => {
+    await bus.refresh({ scope: ['synthetic', 'protected-revocation'] });
+    await next();
+  });
+  await waitFor(() => current.isError, '403 suppression');
+  assert.equal(current.error?.response?.status, 403);
+  assert.equal(current.data, undefined, 'A revoked page must hide old data');
+  assert.equal(bus.peek(['synthetic', 'protected-revocation']), undefined,
+    'A revoked view cannot expose old data through the refresh controller');
+  assert.equal(host.textContent, 'not-visible');
+  assert.equal(deniedCallbacks, 1);
+  const requestsAtDenial = calls;
+  await act(async () => {
+    await bus.refresh({ scope: ['synthetic', 'protected-revocation'] });
+    await next();
+  });
+  assert.equal(calls, requestsAtDenial,
+    'A denied query must remain stopped until a new verified session');
   await act(async () => { root.unmount(); });
   host.remove();
 });
@@ -105,7 +178,8 @@ test('failed assessment-style requests expose isError instead of an empty succes
   const host = document.createElement('section');
   document.body.append(host);
   const root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe)); await next(); });
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
+  await waitFor(() => current.isError, 'failed query error state');
   assert.equal(current.isError, true, 'Failed queries must provide isError for UI alert');
   assert.equal(current.isSuccess, false, 'Failures must not render as successful empty results');
   assert.equal(current.isLoading, false, 'Request failure must stop the loading indicator');
@@ -133,7 +207,7 @@ test('mutations retain callbacks and error handling without retaining responses 
   const host = document.createElement('div');
   document.body.append(host);
   const root = createRoot(host);
-  await act(async () => { root.render(createElement(Probe)); });
+  await act(async () => { root.render(withQuery(createElement(Probe))); });
   await act(async () => {
     const response = await operation.mutateAsync({ fail: false });
     assert.equal(response.saved, true);
@@ -147,4 +221,5 @@ test('mutations retain callbacks and error handling without retaining responses 
   host.remove();
 });
 
+memoryQueryClient.clear();
 dom.window.close();

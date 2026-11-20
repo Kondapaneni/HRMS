@@ -40,7 +40,9 @@ test('the shared network service uses the current hook contract and aborts aband
   const section = src.slice(src.indexOf('export const getLeads ='), src.indexOf('export const updateLeadStatus'));
   assert.doesNotMatch(section, /queryKey/, 'The old queryKey contract must never return');
   assert.match(read('frontend/src/state/remote.js'), /latestOptions\.current\.load\(\{/);
-  assert.match(read('frontend/src/state/remote.js'), /signal: abort\.signal, scope: latestOptions\.current\.scope/);
+  assert.match(read('frontend/src/state/remote.js'), /signal, scope: latestOptions\.current\.scope/);
+  assert.match(read('frontend/src/state/remote.js'), /signal\.aborted/,
+    'TanStack Query abort signals must reject abandoned reads');
 });
 
 test('both desktop screens and mobile companions load through the repaired service', () => {

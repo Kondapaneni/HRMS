@@ -1,5 +1,5 @@
-// First independent memory-only query pilot. Preserve SEC-021 constraints
-// without forbidding the explicitly scoped, reviewed branch reference cache.
+// Application-wide TanStack Query execution with zero-retention private views.
+// Only the reviewed Branch reference directory can retain data between routes.
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -34,14 +34,15 @@ for (const name of ['@tanstack/react-query-persist-client', '@tanstack/query-syn
 for (const path of paths) {
   const text = read(path);
   const allowed = ['frontend/src/main.jsx', 'frontend/src/query/memoryClient.js',
-    'frontend/src/query/useBranchDirectory.js'].includes(path);
+    'frontend/src/query/useBranchDirectory.js',
+    'frontend/src/state/remote.js'].includes(path);
   if (!allowed) {
     assert.doesNotMatch(text,
       /@tanstack\/react-query|QueryClientProvider|\bQueryClient\b|\buseQueryClient\b|\buseQuery\s*\(|\buseMutation\s*\(|\bqueryClient\b/,
-      'Only the reviewed branch pilot may import TanStack Query: ' + path);
+      'TanStack Query imports must use the reviewed central read/task layer: ' + path);
     if (!path.endsWith('api/browserStorage.js')) {
       assert.doesNotMatch(text, /\bstaleTime\s*:|\bgcTime\s*:|\bplaceholderData\s*:/,
-        'No other HRMS data views may retain cached response data: ' + path);
+        'Only reviewed central query modules may set cache options: ' + path);
     }
   }
   assert.doesNotMatch(text,
@@ -90,6 +91,20 @@ assert.match(auth, /refreshControl\.reset\(\)/,
 assert.match(auth, /await restoreSession\(\)/);
 assert.match(auth, /await api\.get\('\/me'\)/);
 assert.match(requests, /const mountedViews = new Set\(\)/);
+assert.match(requests, /useQuery\(\{/,
+  'Mounted read views must execute through TanStack Query');
+assert.match(requests, /useMutation\(\{/,
+  'Mounted tasks must execute through TanStack Mutation');
+assert.match(requests, /staleTime: 0/,
+  'Protected reads must always be stale and fetched on mount');
+assert.match(requests, /gcTime: 0/,
+  'Protected read data must be discarded immediately after unmount');
+assert.match(requests, /sessionEpoch, viewId.current, scopeId/,
+  'Protected query keys must isolate mount instance, auth epoch and filters');
+assert.match(requests, /blockedAfterReset/,
+  'Mounted protected views must stay disabled on logout');
+assert.match(requests, /epoch !== sessionEpoch \|\| signal.aborted/,
+  'Late requests must never restore data after account switch');
 assert.match(requests, /mountedViews\.delete\(view\)/, 'Legacy views discard state on unmount');
 assert.match(requests, /cancel\(\)/, 'Abandoned legacy requests are canceled');
 assert.match(requests, /sessionEpoch \+= 1/);

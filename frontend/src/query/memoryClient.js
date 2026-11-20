@@ -1,4 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
+// Re-export the provider from the same ESM module instance for isolated tests.
+export { QueryClientProvider } from '@tanstack/react-query';
 
 // A newly designed, in-memory cache. Nothing is persisted to browser storage.
 // Other HRMS data stays on the existing fresh-request path during this pilot.
