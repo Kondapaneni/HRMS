@@ -59,6 +59,32 @@ export const AppShell = ({
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // A drawer opened in portrait must not leave its full-screen scrim above
+  // the app after a rotate/rotate-back transition. iOS standalone PWAs may
+  // update screen orientation and viewport geometry in different events.
+  useEffect(() => {
+    let lastPortrait = window.innerWidth <= window.innerHeight;
+    const closeOnRotation = () => {
+      lastPortrait = window.innerWidth <= window.innerHeight;
+      setIsMobileMenuOpen(false);
+    };
+    const onViewportResize = () => {
+      const portrait = window.innerWidth <= window.innerHeight;
+      if (portrait !== lastPortrait) closeOnRotation();
+    };
+    const portraitQuery = window.matchMedia?.('(orientation: portrait)');
+    window.addEventListener('orientationchange', closeOnRotation);
+    window.addEventListener('resize', onViewportResize);
+    window.visualViewport?.addEventListener('resize', onViewportResize);
+    portraitQuery?.addEventListener?.('change', closeOnRotation);
+    return () => {
+      window.removeEventListener('orientationchange', closeOnRotation);
+      window.removeEventListener('resize', onViewportResize);
+      window.visualViewport?.removeEventListener('resize', onViewportResize);
+      portraitQuery?.removeEventListener?.('change', closeOnRotation);
+    };
+  }, []);
+
   // Listen for custom hide event
   useEffect(() => {
     const handleToggle = (e) => {
