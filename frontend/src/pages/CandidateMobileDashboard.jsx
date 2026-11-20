@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import {
   Briefcase,
   FileText,
@@ -82,6 +83,8 @@ const CandidateMobileDashboard = ({ profileData, completionStats, applications, 
         );
     }
   };
+
+  if (isLoading) return <PageLoader message="Loading candidate dashboard..." />;
 
   return (
     <div className="space-y-4 pb-14 antialiased select-none font-sans">

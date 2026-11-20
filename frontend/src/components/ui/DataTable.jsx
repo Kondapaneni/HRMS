@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PageLoader from '../PageLoader';
 import { Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown } from 'lucide-react';
 import SearchBar from './SearchBar';
 import StatusBadge from './StatusBadge';
@@ -135,6 +136,8 @@ export const DataTable = ({
     displayRows.length > 0 &&
     displayRows.every((r) => selectedRows.includes(r[keyField]));
 
+  if (isLoading) return <PageLoader message="Loading records..." />;
+
   return (
     <div className={`bg-[var(--surface)] rounded-[24px] p-[18px] transition-colors ${className}`}>
       {/* Toolbar */}
@@ -217,24 +220,7 @@ export const DataTable = ({
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
-              // Skeleton rows
-              Array.from({ length: Math.min(5, currentLimit) }).map((_, rIdx) => (
-                <tr key={rIdx} className="h-[52px] border-b border-[var(--line)]">
-                  {onSelectAll && (
-                    <td className="px-3">
-                      <div className="w-4 h-4 bg-[var(--line)] rounded-[4px] animate-pulse" />
-                    </td>
-                  )}
-                  {columns.map((c, cIdx) => (
-                    <td key={cIdx} className="px-3">
-                      <div className="h-4 bg-[var(--line)] rounded-[6px] animate-pulse w-3/4" />
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : displayRows.length === 0 ? (
-              <tr>
+            {displayRows.length === 0 ? (              <tr>
                 <td
                   colSpan={columns.length + (onSelectAll ? 1 : 0)}
                   className="py-12 text-center"
