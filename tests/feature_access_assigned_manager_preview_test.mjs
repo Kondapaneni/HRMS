@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const backend = readFileSync('backend/public/admin_feature_access_routes.php', 'utf8');
 const frontend = readFileSync('frontend/src/pages/AdminFeatureAccess.jsx', 'utf8');
+const pagination = readFileSync('frontend/src/components/ui/PaginationControls.jsx', 'utf8');
 
 test('global manager previews do not depend on the first 50 roster rows', () => {
   assert.match(backend, /featurePreviews/);
@@ -83,4 +84,17 @@ test('only allowlisted manager columns sort assigned staff before LIMIT/OFFSET',
   assert.match(frontend, /assignedFirstFeature: selectedFeature\.key/);
 });
 
-console.log('Feature Access summary, assigned ordering and stable drawer layout PASS');
+test('drawer pagination is a single row regardless of page-label length', () => {
+  assert.match(frontend, /onPageChange=\{setPage\} compact/);
+  assert.match(pagination, /isFetching = false, compact = false/);
+  const compactSection = pagination.slice(pagination.indexOf('className={compact'), pagination.indexOf('aria-label="Directory pagination"'));
+  assert.match(compactSection, /flex flex-nowrap/);
+  assert.match(compactSection, /overflow-x-auto whitespace-nowrap/);
+  assert.doesNotMatch(compactSection.split(':')[0], /flex-wrap(?!\s*-)/);
+  assert.match(pagination, /flex shrink-0 items-center/);
+  assert.match(pagination, /Showing \$\{start\}–\$\{end\} \/ \$\{safeTotal.toLocaleString/);
+  assert.match(pagination, /disabled=\{page <= 1 \|\| isFetching\}/);
+  assert.match(pagination, /disabled=\{page >= totalPages \|\| isFetching\}/);
+});
+
+console.log('Feature Access summary, assigned ordering and single-row drawer pagination PASS');
