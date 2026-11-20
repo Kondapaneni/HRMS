@@ -90,6 +90,14 @@ test('selectors do not truncate at 200, 500, 1000 or silently select a whole org
     const s=read('frontend/src/pages/'+file+'.jsx');
     assert.doesNotMatch(s,/\/admin\/employees\?limit=(?:200|500|1000)\b/,file+' must search full roster');
   }
+  const bulk = read('frontend/src/pages/AdminBulkPayroll.jsx');
+  assert.match(bulk,/PaginationControls/);
+  assert.match(bulk,/Select only the visible page/);
+  assert.match(bulk,/new Set\(\[\.\.\.previous, \.\.\.current\]\)/);
+  const pending = read('backend/public/admin_payroll_routes.php');
+  assert.match(pending,/api\/admin\/payroll\/pending-employees/);
+  assert.match(pending,/totalPages/);
+  assert.match(pending,/PDO::PARAM_INT/);
   const training=read('frontend/src/pages/AdminTrainingVideos.jsx');
   assert.match(training,/Select visible page/);
   const assessment=read('frontend/src/pages/AssessmentCreate.jsx');
