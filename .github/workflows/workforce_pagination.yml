@@ -8,6 +8,7 @@ on:
       - 'backend/public/admin_assessments_routes.php'
       - 'backend/public/admin_recruitment_routes.php'
       - 'backend/public/admin_training_routes.php'
+      - 'backend/public/admin_payroll_routes.php'
       - 'frontend/src/**'
       - 'tests/workforce_pagination_synthetic_test.mjs'
       - '.github/workflows/workforce_pagination.yml'
@@ -35,6 +36,7 @@ jobs:
             php -l backend/public/admin_assessments_routes.php
             php -l backend/public/admin_recruitment_routes.php
             php -l backend/public/admin_training_routes.php
+            php -l backend/public/admin_payroll_routes.php
           '
       - name: Existing salary/role/security regression policies
         run: |
