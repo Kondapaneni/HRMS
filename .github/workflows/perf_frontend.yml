@@ -4,6 +4,11 @@ on:
     paths:
       - 'frontend/src/**'
       - 'frontend/vite.config.js'
+      - 'frontend/index.html'
+      - 'frontend/public/**'
+      - 'backend/public/.htaccess'
+      - 'backend/public/index.php'
+      - 'tests/layer2_http_cache_policy_test.mjs'
       - 'tests/perf_frontend_policy_test.mjs'
       - 'tests/layer1_full_coverage_test.mjs'
       - 'tests/perf_navigation_spinner_policy_test.mjs'
@@ -27,6 +32,7 @@ jobs:
       - name: Validate frontend query, auth, route policies and SEC-021
         run: |
           node tests/perf_frontend_policy_test.mjs
+          node tests/layer2_http_cache_policy_test.mjs
           node tests/perf_navigation_spinner_policy_test.mjs
           node tests/layer1_full_coverage_test.mjs
           node --test tests/loan_origination_directories_contract_test.mjs
@@ -46,6 +52,7 @@ jobs:
       - name: Verify production assets and SEC-021 safeguards
         run: |
           node tests/perf_frontend_policy_test.mjs --built
+          node tests/layer2_http_cache_policy_test.mjs --built
           node tests/perf_cold_route_policy_test.mjs --built
           node tests/perf_refresh_boot_policy_test.mjs --built
           node tests/sec021_policy_test.mjs --built
