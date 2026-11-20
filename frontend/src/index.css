@@ -326,7 +326,10 @@ html, body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  position: fixed;
+  /* Keep the document in normal layout flow. iOS home-screen PWAs and
+     Android WebViews can retain stale touch hit-test coordinates when the
+     root document itself is fixed through a rotation. AppShell continues
+     to own scrolling inside its 100dvh viewport. */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: auto;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
