@@ -12,7 +12,6 @@ const React = require('react');
 const { createElement, act } = React;
 const { createRoot } = require('react-dom/client');
 const { JSDOM } = require('jsdom');
-const { QueryClientProvider } = require('@tanstack/react-query');
 
 const dom = new JSDOM('<!doctype html><html><body><main id="test-root"></main></body></html>', {
   url: 'https://synthetic.invalid/',
@@ -50,12 +49,13 @@ try {
   }
   writeFileSync(outputPath, source + [
     '',
+    "export { QueryClientProvider } from '@tanstack/react-query';",
     "export { memoryQueryClient } from './memoryClient.js';",
     'export { discardPrivateQueries };',
     '',
   ].join('\n'));
 
-  const { useBranchDirectory, memoryQueryClient, discardPrivateQueries } =
+  const { useBranchDirectory, QueryClientProvider, memoryQueryClient, discardPrivateQueries } =
     await import(pathToFileURL(outputPath).href);
   const host = document.getElementById('test-root');
   const root = createRoot(host);
