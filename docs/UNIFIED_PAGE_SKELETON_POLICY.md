@@ -7,10 +7,11 @@ skeleton originally used by most Admin/Employee/Candidate pages.
 A single theme-aware component, accessibility labels, and large min-height
 replace differing spinner pages and custom grey/pulsing placeholder layouts.
 
-`App.jsx` and every `AppShell` nested lazy route render the same PageLoader
-through `Suspense`. `RouteSkeleton.jsx` remains only as an adapter for
-existing navigation/prefetch tests; it renders the exact PageLoader component,
-not a second shape. ProtectedRoute and Login's existing-session verification
+Every `AppShell` nested lazy route renders the same `PageLoader` through
+`Suspense`. The top-level `App.jsx` Suspense remains `fallback={null}`
+to preserve the auth splash and persistent navigation; it must not add
+a competing full-screen loader. `RouteSkeleton.jsx` is an adapter for
+existing route tests and renders `PageLoader`, not a second skeleton design. ProtectedRoute and Login's existing-session verification
 also render this shared loader without revealing previous account data.
 
 ## Data-loading coverage
