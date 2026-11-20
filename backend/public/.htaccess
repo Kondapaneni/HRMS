@@ -1,5 +1,11 @@
 RewriteEngine On
 
+# Layer 2: only existing Vite-fingerprinted files get immutable response headers.
+# Missing /assets/ files must return 404, not the React index.html fallback.
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^assets/.+-[A-Za-z0-9_-]{8,}\.(?:js|mjs|css|woff2?|ttf|otf|eot|png|jpe?g|gif|svg|webp|avif|ico)$ - [E=HRMS_VITE_ASSET:1]
+RewriteRule ^assets/ - [END]
+
 # Pass Authorization header to PHP
 CGIPassAuth On
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
@@ -47,9 +53,8 @@ DirectoryIndex index.html index.php
     </Files>
 
     # Vite emits content-hashed filenames under /assets/. Both the served
-    # filename AND original request path must match before applying immutable
-    # caching. This excludes dynamic media, API responses, and SPA 404 fallbacks.
-    SetEnvIf Request_URI "^/assets/" HRMS_VITE_ASSET=1
+    # filename AND a positive disk-file check must match before applying
+    # immutable caching. Dynamic media and missing assets do not qualify.
     <FilesMatch "^.+-[A-Za-z0-9_-]{8,}\.(?:js|mjs|css|woff2?|ttf|otf|eot|png|jpe?g|gif|svg|webp|avif|ico)$">
         Header onsuccess unset Cache-Control env=HRMS_VITE_ASSET
         Header always set Cache-Control "public, max-age=31536000, immutable" env=HRMS_VITE_ASSET
