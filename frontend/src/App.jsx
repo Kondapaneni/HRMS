@@ -191,6 +191,15 @@ const CandidateApplications = lazy(() => import('./pages/CandidateApplications')
 const CandidateProfile = lazy(() => import('./pages/CandidateProfile'));
 const CandidateDocuments = lazy(() => import('./pages/CandidateDocuments'));
 
+/**
+ * Route role definitions — must mirror the backend role policy.
+ * Database-verified roles are the security authority; UI guards only
+ * decide which navigation shell to show. No React Query cache is involved.
+ */
+const ADMIN_DASHBOARD_ROLES = ['admin'];
+const EMPLOYEE_DASHBOARD_ROLES = ['employee', 'hr', 'manager'];
+const CANDIDATE_DASHBOARD_ROLES = ['candidate'];
+
 function App() {
   return (
     <>
