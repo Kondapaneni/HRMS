@@ -5,7 +5,7 @@ import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import { 
   IndianRupee, 
@@ -53,7 +53,7 @@ function numberToWords(num) {
 
 const AdminPayroll = () => {
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const navigate = useNavigate();
   
   // Pagination and search
@@ -82,25 +82,23 @@ const AdminPayroll = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Fetch employees for the dropdown
-  const { data: employees = [] } = useQuery({
-    queryKey: ['admin', 'employees-dropdown'],
-    queryFn: async () => {
+  const { data: employees = [] } = useRemoteData({
+    scope: ['admin', 'employees-dropdown'],
+    load: async () => {
       const response = await api.get(`/admin/employees?limit=500`);
       return response.data.employees || [];
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    reloadOnFocus: false,
   });
 
   // Fetch payslips (paginated)
-  const { data: payrollResponse, isLoading: loading } = useQuery({
-    queryKey: ['admin', 'payroll', page, debouncedSearch],
-    queryFn: async () => {
+  const { data: payrollResponse, isLoading: loading } = useRemoteData({
+    scope: ['admin', 'payroll', page, debouncedSearch],
+    load: async () => {
       const offset = (page - 1) * limit;
       const response = await api.get(`/admin/payroll?limit=${limit}&offset=${offset}&search=${encodeURIComponent(debouncedSearch)}`);
       return response.data;
     },
-    staleTime: 15 * 60 * 1000,
   });
 
   const payslips = payrollResponse?.payslips || [];
@@ -124,7 +122,7 @@ const AdminPayroll = () => {
       
       toast.success('Payslip generated successfully!');
       setSelectedEmployee('');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'payroll'] });
+      refreshControl.refresh({ scope: ['admin', 'payroll'] });
     } catch (err) {
       console.error('Error generating payslip:', err);
       toast.error(err.response?.data?.error || 'Failed to generate payslip.');
@@ -172,7 +170,7 @@ const AdminPayroll = () => {
     try {
       await api.delete(`/admin/payroll/${payslipId}`);
       toast.success('Payslip deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'payroll'] });
+      refreshControl.refresh({ scope: ['admin', 'payroll'] });
     } catch (err) {
       console.error('Error deleting payslip:', err);
       toast.error(err.response?.data?.error || 'Failed to delete payslip');

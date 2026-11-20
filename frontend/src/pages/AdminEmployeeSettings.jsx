@@ -6,21 +6,21 @@ import { ArrowLeft, Shield, Clock, Power, X, AlertTriangle } from 'lucide-react'
 import { motion } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 
 const AdminEmployeeSettings = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   const [showExitModal, setShowExitModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState('');
 
-  const { data: employeeData, isLoading: loading } = useQuery({
-    queryKey: ['admin', 'employee-settings', id],
-    queryFn: async () => {
+  const { data: employeeData, isLoading: loading } = useRemoteData({
+    scope: ['admin', 'employee-settings', id],
+    load: async () => {
       const res = await api.get(`/admin/employees/${id}`);
       return res.data.employee;
     },
@@ -52,17 +52,17 @@ const AdminEmployeeSettings = () => {
         employmentStatusReason: ''
       };
 
-  const updateSettingMutation = useMutation({
-    mutationFn: async ({ key, value, extraData }) =>
+  const updateSettingMutation = useRemoteTask({
+    run: async ({ key, value, extraData }) =>
       api.put(`/admin/employees/${id}/settings`, {
         [key]: value,
         ...extraData
       }),
     onMutate: async ({ key, value, extraData }) => {
-      await queryClient.cancelQueries({ queryKey: ['admin', 'employee-settings', id] });
-      const previousEmployee = queryClient.getQueryData(['admin', 'employee-settings', id]);
+      await refreshControl.cancel({ scope: ['admin', 'employee-settings', id] });
+      const previousEmployee = refreshControl.peek(['admin', 'employee-settings', id]);
 
-      queryClient.setQueryData(['admin', 'employee-settings', id], (old) => {
+      refreshControl.update(['admin', 'employee-settings', id], (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -75,15 +75,15 @@ const AdminEmployeeSettings = () => {
     },
     onError: (err, variables, context) => {
       if (context?.previousEmployee) {
-        queryClient.setQueryData(['admin', 'employee-settings', id], context.previousEmployee);
+        refreshControl.update(['admin', 'employee-settings', id], context.previousEmployee);
       }
       toast.error('Failed to update setting');
       console.error(err);
     },
     onSuccess: () => {
       toast.success('Setting updated successfully');
-      queryClient.invalidateQueries({
-        queryKey: ['admin', 'employee-settings', id]
+      refreshControl.refresh({
+        scope: ['admin', 'employee-settings', id]
       });
     }
   });

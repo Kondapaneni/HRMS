@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { 
   Users, 
   TrendingUp, 
@@ -50,14 +50,14 @@ const OriginationMobileSaleDashboard = () => {
   };
 
   // Fetch dashboard metrics
-  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
-    queryKey: ['salesDashboard'],
-    queryFn: getSalesDashboardData
+  const { data: dashboardData, isLoading: isDashboardLoading } = useRemoteData({
+    scope: ['salesDashboard'],
+    load: getSalesDashboardData
   });
 
-  const { data: leadsResponse, isLoading: leadsLoading } = useQuery({
-    queryKey: ['sales', 'leads', 'recent'],
-    queryFn: () => getSalesLeads()
+  const { data: leadsResponse, isLoading: leadsLoading } = useRemoteData({
+    scope: ['sales', 'leads', 'recent'],
+    load: () => getSalesLeads()
   });
 
   const recentLeads = (leadsResponse?.leads || []).slice(0, 5);

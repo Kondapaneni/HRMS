@@ -1,0 +1,38 @@
+name: Backend fresh records and no business-data cache
+
+on:
+  pull_request:
+    paths:
+      - 'backend/public/**'
+      - 'backend/src/**'
+      - 'Dockerfile'
+      - 'docker/php/opcache.ini'
+      - 'tests/no_backend_business_cache_*'
+      - 'tests/perf008_infra_source_test.mjs'
+      - '.github/workflows/no_backend_business_cache.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fresh-backend-records:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No application data caches and existing backend safeguards
+        run: |
+          set -euo pipefail
+          node tests/no_backend_business_cache_policy_test.mjs
+          node tests/perf008_infra_source_test.mjs
+          node tests/sec020_policy_test.mjs
+          node tests/sec021_policy_test.mjs
+      - name: PHP 8.2 syntax and deterministic fresh-read smoke
+        run: |
+          set -euo pipefail
+          docker run --rm -v "${GITHUB_WORKSPACE}:/work:ro" -w /work php:8.2-cli sh -ec '
+            find backend/public backend/src -name "*.php" -print0 | xargs -0 -n1 php -l >/tmp/hrms_php_lint.log
+            tail -n 5 /tmp/hrms_php_lint.log
+            php -l tests/no_backend_business_cache_smoke.php
+            php tests/no_backend_business_cache_smoke.php
+          '

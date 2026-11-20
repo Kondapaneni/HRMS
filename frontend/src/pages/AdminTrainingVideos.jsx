@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import SearchBar from '../components/ui/SearchBar';
@@ -29,7 +29,7 @@ import { compressVideo, uploadToSupabaseWithProgress, formatBytes } from '../uti
 import { StatCard, Button, Avatar } from '../components/ui';
 
 const AdminTrainingVideos = () => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -60,21 +60,20 @@ const AdminTrainingVideos = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: videos = [], isLoading: videosLoading } = useQuery({
-    queryKey: ['admin', 'trainingVideos'],
-    queryFn: async () => {
+  const { data: videos = [], isLoading: videosLoading } = useRemoteData({
+    scope: ['admin', 'trainingVideos'],
+    load: async () => {
       const res = await api.get('/admin/training/videos');
       return res.data?.videos || res.data?.data || (Array.isArray(res.data) ? res.data : []);
     }
   });
 
-  const { data: employees = [], isLoading: employeesLoading } = useQuery({
-    queryKey: ['admin', 'employeesList'],
-    queryFn: async () => {
+  const { data: employees = [], isLoading: employeesLoading } = useRemoteData({
+    scope: ['admin', 'employeesList'],
+    load: async () => {
       const res = await api.get('/admin/employees?limit=1000');
       return res.data?.employees || [];
     },
-    staleTime: 5 * 60 * 1000
   });
 
   const stats = useMemo(() => {
@@ -104,12 +103,12 @@ const AdminTrainingVideos = () => {
     });
   }, [videos, debouncedSearchQuery, filterTab]);
 
-  const addVideoMutation = useMutation({
-    mutationFn: async (videoData) => {
+  const addVideoMutation = useRemoteTask({
+    run: async (videoData) => {
       await api.post('/admin/training/videos', videoData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+      refreshControl.refresh({ scope: ['admin', 'trainingVideos'] });
       setIsModalOpen(false);
       setTitle('');
       setVideoFile(null);
@@ -125,12 +124,12 @@ const AdminTrainingVideos = () => {
     }
   });
 
-  const assignVideoMutation = useMutation({
-    mutationFn: async ({ id, assigned_employee_ids }) => {
+  const assignVideoMutation = useRemoteTask({
+    run: async ({ id, assigned_employee_ids }) => {
       await api.put(`/admin/training/videos/${id}/assign`, { assigned_employee_ids });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+      refreshControl.refresh({ scope: ['admin', 'trainingVideos'] });
       setIsAssignModalOpen(false);
       setSelectedVideoForAssign(null);
       toast.success('Course employee enrollments updated!');
@@ -140,12 +139,12 @@ const AdminTrainingVideos = () => {
     }
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
+  const deleteMutation = useRemoteTask({
+    run: async (id) => {
       await api.delete(`/admin/training/videos/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+      refreshControl.refresh({ scope: ['admin', 'trainingVideos'] });
       toast.success('Training video deleted');
     },
     onError: () => toast.error('Failed to delete training video')

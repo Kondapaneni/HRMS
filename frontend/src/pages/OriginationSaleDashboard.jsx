@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { getSalesDashboardData, getSalesLeads } from '../services/salesServices';
 import { 
   Users, 
@@ -33,14 +33,14 @@ import OriginationMobileSaleDashboard from './OriginationMobileSaleDashboard';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const OriginationSaleDashboard = () => {
-  const { data, isLoading } = useQuery({
-    queryKey: ['salesDashboard'],
-    queryFn: getSalesDashboardData
+  const { data, isLoading } = useRemoteData({
+    scope: ['salesDashboard'],
+    load: getSalesDashboardData
   });
 
-  const { data: leadsResponse, isLoading: leadsLoading } = useQuery({
-    queryKey: ['sales', 'leads', 'recent'],
-    queryFn: () => getSalesLeads()
+  const { data: leadsResponse, isLoading: leadsLoading } = useRemoteData({
+    scope: ['sales', 'leads', 'recent'],
+    load: () => getSalesLeads()
   });
 
   const recentLeads = (leadsResponse?.leads || []).slice(0, 5);

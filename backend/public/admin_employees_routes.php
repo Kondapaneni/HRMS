@@ -300,7 +300,6 @@ $app->put('/api/admin/employees/{id}', function (Request $request, Response $res
         }
         
         $conn->commit();
-        \App\Utils\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Employee updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -394,7 +393,6 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
         }
         
         $conn->commit();
-        \App\Utils\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Settings updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -545,7 +543,6 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
         $conn->commit();
         // Cache refresh is best-effort: never report an error after commit.
         try {
-            \App\Utils\Cache::delete('dashboard_stats');
         } catch (\Throwable $cacheError) {
             error_log('SEC-019 candidate conversion cache invalidation failed');
         }
@@ -667,7 +664,6 @@ SQL
 
         $conn->commit();
 
-        \App\Utils\Cache::delete('dashboard_stats');
 
         $response->getBody()->write(json_encode([
             'message' => 'Employee created successfully',
@@ -953,7 +949,6 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
 
         $conn->commit();
 
-        \App\Utils\Cache::delete('dashboard_stats');
 
         $response->getBody()->write(json_encode([
             'message' => 'Employee promoted successfully and promotion letter queued',

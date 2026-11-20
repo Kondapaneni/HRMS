@@ -16,18 +16,17 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
 
 const EmployeeMobilePayroll = ({ profile }) => {
   const controls = useDragControls();
-  const { data: payslips = [], isLoading: loading } = useQuery({
-    queryKey: ['employee', 'payroll'],
-    queryFn: async () => {
+  const { data: payslips = [], isLoading: loading } = useRemoteData({
+    scope: ['employee', 'payroll'],
+    load: async () => {
       const res = await api.get('/employee/payroll');
       return res.data?.payslips || [];
     },
-    staleTime: 5 * 60 * 1000,
   });
   const [selectedPayslip, setSelectedPayslip] = useState(null);
 

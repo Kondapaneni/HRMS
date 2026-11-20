@@ -67,17 +67,10 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
     $conn = $db->getConnection();
 
     try {
-        // 1. Backend Caching of static active assessment metadata (TTL 5 minutes)
-        $cacheFile = sys_get_temp_dir() . '/assessments_meta_cache.json';
-        $metaList = null;
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 300) {
-            $metaList = json_decode(file_get_contents($cacheFile), true);
-        }
-        if (!is_array($metaList)) {
-            $stmtMeta = $conn->query('SELECT id, title, department, duration_minutes, marks_per_question, max_attempts, assessment_date, created_at, status, COALESCE(questions_count, 0) AS questions_count, assigned_employee_ids FROM assessments WHERE status = \'Active\' ORDER BY created_at DESC');
-            $metaList = $stmtMeta->fetchAll(PDO::FETCH_ASSOC);
-            @file_put_contents($cacheFile, json_encode($metaList));
-        }
+        // Fetch current active metadata on every request; employee assignment
+        // and attempt information remain filtered using the verified user ID.
+        $stmtMeta = $conn->query('SELECT id, title, department, duration_minutes, marks_per_question, max_attempts, assessment_date, created_at, status, COALESCE(questions_count, 0) AS questions_count, assigned_employee_ids FROM assessments WHERE status = \'Active\' ORDER BY created_at DESC');
+        $metaList = $stmtMeta->fetchAll(PDO::FETCH_ASSOC);
 
         // 2. Fetch employee department and attempt stats in single scans
         $stmtUser = $conn->prepare('SELECT department FROM users WHERE id = ?');

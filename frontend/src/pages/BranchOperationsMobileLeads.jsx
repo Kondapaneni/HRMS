@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
 import { 
@@ -38,11 +38,9 @@ const BranchOperationsMobileLeads = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data, isLoading, isFetching, error } = useQuery({
-    queryKey: ['branchOperationsLeads', selectedEmployee, selectedPipeline, selectedStatusFilter, debouncedSearch],
-    queryFn: getBranchLeads,
-    placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000,
+  const { data, isLoading, isFetching, error } = useRemoteData({
+    scope: ['branchOperationsLeads', selectedEmployee, selectedPipeline, selectedStatusFilter, debouncedSearch],
+    load: getBranchLeads,
   });
 
   const branch = data?.branch || { name: 'Assigned Branch' };

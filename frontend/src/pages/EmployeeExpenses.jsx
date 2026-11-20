@@ -16,7 +16,7 @@ import {
   X,
   Sparkles
 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -68,7 +68,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
 
 const EmployeeExpenses = () => {
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -87,17 +87,17 @@ const EmployeeExpenses = () => {
     return () => { document.body.style.overflow = ''; };
   }, [isModalOpen]);
 
-  const { data: expensesData = [], isLoading } = useQuery({
-    queryKey: ['employee', 'expenses'],
-    queryFn: async () => {
+  const { data: expensesData = [], isLoading } = useRemoteData({
+    scope: ['employee', 'expenses'],
+    load: async () => {
       const res = await api.get('/employee/expenses');
       return res.data.expenses || [];
     },
     onError: () => toast.error('Failed to load expenses.'),
   });
 
-  const submitExpenseMutation = useMutation({
-    mutationFn: async () => {
+  const submitExpenseMutation = useRemoteTask({
+    run: async () => {
       let bill_url = null;
       if (billFile) {
         const fileExt = billFile.name.split('.').pop();
@@ -122,7 +122,7 @@ const EmployeeExpenses = () => {
     },
     onSuccess: () => {
       toast.success('Expense claim submitted successfully');
-      queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
+      refreshControl.refresh({ scope: ['employee', 'expenses'] });
       handleCloseModal();
     },
     onError: (err) => {
@@ -130,14 +130,14 @@ const EmployeeExpenses = () => {
     }
   });
 
-  const deleteExpenseMutation = useMutation({
-    mutationFn: async (id) => {
+  const deleteExpenseMutation = useRemoteTask({
+    run: async (id) => {
       const res = await api.delete(`/employee/expenses/${id}`);
       return res.data;
     },
     onSuccess: () => {
       toast.success('Expense claim deleted');
-      queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
+      refreshControl.refresh({ scope: ['employee', 'expenses'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to delete expense');

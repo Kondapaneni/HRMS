@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
 import { toast } from 'react-hot-toast';
 import { 
@@ -45,9 +45,9 @@ const EmployeeMobileMap = () => {
   }, [action, navigate]);
 
   // Fetch geofences from backend
-  const { data, isLoading: loadingGeofences, error: geofencesError } = useQuery({
-    queryKey: ['employee', 'geofences'],
-    queryFn: async () => {
+  const { data, isLoading: loadingGeofences, error: geofencesError } = useRemoteData({
+    scope: ['employee', 'geofences'],
+    load: async () => {
       try {
         const response = await api.get('/employee/geofences');
         return response.data;
@@ -68,7 +68,6 @@ const EmployeeMobileMap = () => {
       }
     },
     retry: false,
-    staleTime: 0
   });
 
   // Countdown timer for map lockout

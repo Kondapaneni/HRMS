@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl, useRemoteTask } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import EmployeeMobileLeaves from './EmployeeMobileLeaves';
@@ -22,7 +22,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 
 const EmployeeLeaves = () => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [, setError] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,24 +48,24 @@ const EmployeeLeaves = () => {
   // Calendar logic inside modal
   const [calendarDate, setCalendarDate] = useState(new Date());
 
-  const { data: leavesData, isLoading: loading } = useQuery({
-    queryKey: ['employee', 'leaves'],
-    queryFn: async () => {
+  const { data: leavesData, isLoading: loading } = useRemoteData({
+    scope: ['employee', 'leaves'],
+    load: async () => {
       const res = await api.get('/employee/leaves');
       return res.data;
     },
     onError: () => toast.error('Failed to load leaves data.'),
   });
 
-  const cancelLeaveMutation = useMutation({
-    mutationFn: async (leaveId) => {
+  const cancelLeaveMutation = useRemoteTask({
+    run: async (leaveId) => {
       const res = await api.put(`/employee/leaves/${leaveId}/cancel`);
       return res.data;
     },
     onSuccess: () => {
       toast.success('Leave cancelled successfully');
-      queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
-      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'leaves'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to cancel leave');
@@ -111,8 +111,8 @@ const EmployeeLeaves = () => {
       setStartDate('');
       setEndDate('');
       setReason('');
-      queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
-      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'leaves'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
     } catch (err) {
       const errMsg = err.response?.data?.error || 'Failed to submit leave request.';
       setError(errMsg);

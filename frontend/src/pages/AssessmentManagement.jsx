@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -42,7 +42,7 @@ const DEPARTMENTS = [
 
 const AssessmentManagement = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -57,9 +57,9 @@ const AssessmentManagement = () => {
   }, [searchQuery]);
 
   // Fetch all assessments
-  const { data: assessments = [], isLoading, isFetching } = useQuery({
-    queryKey: ['adminAssessments', selectedDeptFilter, debouncedSearchQuery],
-    queryFn: async () => {
+  const { data: assessments = [], isLoading, isFetching } = useRemoteData({
+    scope: ['adminAssessments', selectedDeptFilter, debouncedSearchQuery],
+    load: async () => {
       const params = new URLSearchParams();
       if (selectedDeptFilter !== 'All') params.append('department', selectedDeptFilter);
       if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
@@ -68,7 +68,6 @@ const AssessmentManagement = () => {
       const res = await api.get(url);
       return res.data?.data || res.data || [];
     },
-    placeholderData: (previousData) => previousData,
   });
 
   // Calculate statistics
@@ -90,12 +89,12 @@ const AssessmentManagement = () => {
   }, [assessments]);
 
   // Delete mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
+  const deleteMutation = useRemoteTask({
+    run: async (id) => {
       await api.delete(`/admin/assessments/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminAssessments'] });
+      refreshControl.refresh({ scope: ['adminAssessments'] });
       toast.success('Assessment deleted successfully');
     },
     onError: (err) => {

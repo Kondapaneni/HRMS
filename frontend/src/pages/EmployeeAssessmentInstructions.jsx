@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import {
@@ -22,16 +22,14 @@ const EmployeeAssessmentInstructions = () => {
     }
   }, [assessmentId, navigate]);
 
-  const { data: assessment, isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['employeeAssessment', assessmentId],
-    queryFn: async () => {
+  const { data: assessment, isLoading: loading, error: queryError } = useRemoteData({
+    scope: ['employeeAssessment', assessmentId],
+    load: async () => {
       const res = await api.get(`/employee/assessments/${assessmentId}`);
       return res.data;
     },
     enabled: !!assessmentId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false,
+    reloadOnFocus: false,
     retry: 1
   });
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import SearchBar from '../components/ui/SearchBar';
 import { getSalesLeads } from '../services/salesServices';
 import { 
@@ -25,9 +25,9 @@ const OriginationSaleMembersList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, isFetching, error } = useQuery({
-    queryKey: ['sales', 'leads', 'list', debouncedSearch],
-    queryFn: () => getSalesLeads({ search: debouncedSearch }),
+  const { data: response, isLoading, isFetching, error } = useRemoteData({
+    scope: ['sales', 'leads', 'list', debouncedSearch],
+    load: () => getSalesLeads({ search: debouncedSearch }),
   });
 
   // Filter only converted sales leads and group by phone

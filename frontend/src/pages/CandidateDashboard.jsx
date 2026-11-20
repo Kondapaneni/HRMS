@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import {
   Briefcase,
   FileText,
@@ -76,9 +76,9 @@ const CandidateDashboard = () => {
     return 'Good Evening';
   };
 
-  const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ['candidate', 'dashboard', profile?.id],
-    queryFn: async () => {
+  const { data: dashboardData, isLoading } = useRemoteData({
+    scope: ['candidate', 'dashboard', profile?.id],
+    load: async () => {
       if (!profile?.id) return null;
 
       const [profileRes, appsRes, jobsRes] = await Promise.all([
@@ -94,7 +94,6 @@ const CandidateDashboard = () => {
       };
     },
     enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
   });
 
   const profileData = dashboardData?.profileData;

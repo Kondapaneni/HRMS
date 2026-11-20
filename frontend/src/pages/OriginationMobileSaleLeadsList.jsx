@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
 import { 
@@ -32,9 +32,9 @@ const OriginationMobileSaleLeadsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, error } = useQuery({
-    queryKey: ['sales', 'leads', 'list', debouncedSearch],
-    queryFn: () => getSalesLeads({ search: debouncedSearch }),
+  const { data: response, isLoading, error } = useRemoteData({
+    scope: ['sales', 'leads', 'list', debouncedSearch],
+    load: () => getSalesLeads({ search: debouncedSearch }),
   });
 
   const rawLeads = response?.leads || response?.data || [];

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import {
   X,
   CheckCircle2,
@@ -170,15 +170,15 @@ const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, isUpdating, is
 const AdminVerifyDocuments = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const { profile } = useAuth();
 
   const [updatingDocId, setUpdatingDocId] = React.useState(null);
   const [filterTab, setFilterTab] = useState('All');
 
-  const { data: application, isLoading: isAppLoading } = useQuery({
-    queryKey: ['application', id],
-    queryFn: async () => {
+  const { data: application, isLoading: isAppLoading } = useRemoteData({
+    scope: ['application', id],
+    load: async () => {
       const res = await api.get(`/admin/applications/${id}`);
       return res.data?.application || null;
     }
@@ -186,17 +186,17 @@ const AdminVerifyDocuments = () => {
 
   const isConverted = application?.status === 'Converted to Employee';
 
-  const { data: candidatesInfo = [] } = useQuery({
-    queryKey: ['admin', 'candidates_info'],
-    queryFn: async () => {
+  const { data: candidatesInfo = [] } = useRemoteData({
+    scope: ['admin', 'candidates_info'],
+    load: async () => {
       const res = await api.get('/admin/candidates');
       return res.data.candidates || [];
     }
   });
 
-  const { data: documents = [], isLoading: isDocsLoading } = useQuery({
-    queryKey: ['admin_documents', application?.candidate_id],
-    queryFn: async () => {
+  const { data: documents = [], isLoading: isDocsLoading } = useRemoteData({
+    scope: ['admin_documents', application?.candidate_id],
+    load: async () => {
       if (!application?.candidate_id) return [];
       const res = await api.get(`/admin/candidate-documents?candidate_id=${application.candidate_id}`);
       return res.data?.documents || [];
@@ -204,8 +204,8 @@ const AdminVerifyDocuments = () => {
     enabled: !!application?.candidate_id
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ docId, status }) => {
+  const updateStatusMutation = useRemoteTask({
+    run: async ({ docId, status }) => {
       if (isConverted) {
         throw new Error('Candidate has already been converted to an employee. Document statuses are locked.');
       }
@@ -219,16 +219,16 @@ const AdminVerifyDocuments = () => {
       setUpdatingDocId(null);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin_documents', application?.candidate_id] });
-      queryClient.invalidateQueries({ queryKey: ['admin_pending_docs'] });
-      queryClient.invalidateQueries({ queryKey: ['application', id] });
+      refreshControl.refresh({ scope: ['admin_documents', application?.candidate_id] });
+      refreshControl.refresh({ scope: ['admin_pending_docs'] });
+      refreshControl.refresh({ scope: ['application', id] });
       toast.success('Document status updated');
     },
     onError: (err) => toast.error(err.response?.data?.error || err.message || 'Failed to update status')
   });
 
-  const sendEmailMutation = useMutation({
-    mutationFn: async () => {
+  const sendEmailMutation = useRemoteTask({
+    run: async () => {
       // SEC-015: the server verifies this application's candidate and
       // required documents, then renders the approved HTML template.
       const res = await api.post('/admin/send-email', {
@@ -245,7 +245,7 @@ const AdminVerifyDocuments = () => {
     },
     onSuccess: () => {
       toast.success('Confirmation email sent to candidate');
-      queryClient.invalidateQueries({ queryKey: ['application', id] });
+      refreshControl.refresh({ scope: ['application', id] });
     },
     onError: () => toast.error('Failed to send email')
   });

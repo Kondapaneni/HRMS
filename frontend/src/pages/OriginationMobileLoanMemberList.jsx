@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
 import { 
@@ -29,15 +29,15 @@ const OriginationMobileLoanMemberList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, error } = useQuery({
-    queryKey: ['origination', 'leads', 'list', debouncedSearch],
-    queryFn: getLeads,
+  const { data: response, isLoading, error } = useRemoteData({
+    scope: ['origination', 'leads', 'list', debouncedSearch],
+    load: getLeads,
   });
 
   // Pre-fetch applications list so mobile member details load status instantly without flicker
-  useQuery({
-    queryKey: ['origination', 'applications', 'list'],
-    queryFn: getLoanApplications,
+  useRemoteData({
+    scope: ['origination', 'applications', 'list'],
+    load: getLoanApplications,
   });
 
   // Filter only converted leads and group by phone

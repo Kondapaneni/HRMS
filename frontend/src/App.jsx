@@ -1,6 +1,5 @@
 import React, { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import InitialRouteWarmup from './performance/InitialRouteWarmup'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -192,32 +191,9 @@ const CandidateApplications = lazy(() => import('./pages/CandidateApplications')
 const CandidateProfile = lazy(() => import('./pages/CandidateProfile'));
 const CandidateDocuments = lazy(() => import('./pages/CandidateDocuments'));
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000,           // Private data is fresh for one minute in this tab only
-      gcTime: 5 * 60 * 1000,          // Garbage collect inactive private queries after 5 minutes
-      refetchOnWindowFocus: true,       // silently refresh when user returns to tab
-      refetchOnReconnect: true,         // silently refresh after network reconnect
-      refetchOnMount: true,             // fetch on mount only when cache is stale
-      retry: 1,                         // retry failed requests once
-    },
-  },
-})
-
-
-/**
- * Route role definitions — must mirror the backend require_role() calls.
- * Role is always sourced from the database via /auth/me; these arrays are
- * UX guards only. The backend is the authoritative enforcement point.
- */
-const ADMIN_DASHBOARD_ROLES = ['admin']
-const EMPLOYEE_DASHBOARD_ROLES = ['employee', 'hr', 'manager']
-const CANDIDATE_DASHBOARD_ROLES = ['candidate']
-
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <Router>
         <CapacitorLifecycle />
         <InitialRouteWarmup />
@@ -470,7 +446,7 @@ function App() {
           </ThemeProvider>
         </AuthProvider>
       </Router>
-    </QueryClientProvider>
+    </>
   )
 }
 

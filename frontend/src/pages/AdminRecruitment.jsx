@@ -3,7 +3,7 @@ import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -39,7 +39,7 @@ import Button from '../components/ui/Button';
 const AdminRecruitment = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -54,51 +54,51 @@ const AdminRecruitment = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
-    queryKey: ['admin', 'jobs'],
-    queryFn: async () => {
+  const { data: jobs = [], isLoading: isLoadingJobs } = useRemoteData({
+    scope: ['admin', 'jobs'],
+    load: async () => {
       const res = await api.get('/admin/jobs');
       return res.data.jobs || [];
     },
     onError: () => toast.error('Failed to load jobs')
   });
 
-  const { data: applications = [], isLoading: isLoadingApps } = useQuery({
-    queryKey: ['admin', 'applications', debouncedSearchQuery],
-    queryFn: async () => {
+  const { data: applications = [], isLoading: isLoadingApps } = useRemoteData({
+    scope: ['admin', 'applications', debouncedSearchQuery],
+    load: async () => {
       const res = await api.get(`/admin/applications?search=${encodeURIComponent(debouncedSearchQuery)}`);
       return res.data.applications || [];
     },
     onError: () => toast.error('Failed to load applications')
   });
 
-  const { data: candidateProfiles = [] } = useQuery({
-    queryKey: ['admin', 'candidate_profiles'],
-    queryFn: async () => {
+  const { data: candidateProfiles = [] } = useRemoteData({
+    scope: ['admin', 'candidate_profiles'],
+    load: async () => {
       const res = await api.get('/admin/candidate-profiles');
       return res.data.profiles || [];
     }
   });
 
-  const { data: candidatesInfo = [] } = useQuery({
-    queryKey: ['admin', 'candidates_info'],
-    queryFn: async () => {
+  const { data: candidatesInfo = [] } = useRemoteData({
+    scope: ['admin', 'candidates_info'],
+    load: async () => {
       const res = await api.get('/admin/candidates');
       return res.data.candidates || [];
     }
   });
 
-  const { data: allCandidateDocuments = [] } = useQuery({
-    queryKey: ['admin', 'all_candidate_documents'],
-    queryFn: async () => {
+  const { data: allCandidateDocuments = [] } = useRemoteData({
+    scope: ['admin', 'all_candidate_documents'],
+    load: async () => {
       const res = await api.get('/admin/candidate-documents');
       return res.data.documents || [];
     }
   });
 
-  const { data: branches = [] } = useQuery({
-    queryKey: ['admin', 'branches'],
-    queryFn: async () => {
+  const { data: branches = [] } = useRemoteData({
+    scope: ['admin', 'branches'],
+    load: async () => {
       const res = await api.get('/branches');
       return res.data.branches || [];
     }
@@ -132,8 +132,8 @@ const AdminRecruitment = () => {
   const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
   const [timelineApp, setTimelineApp] = useState(null);
 
-  const createJobMutation = useMutation({
-    mutationFn: async () => {
+  const createJobMutation = useRemoteTask({
+    run: async () => {
       let description_pdf_url = null;
       if (jobFile) {
         const fileExt = jobFile.name.split('.').pop();
@@ -158,7 +158,7 @@ const AdminRecruitment = () => {
       setIsJobModalOpen(false);
       setJobFormData({ title: '', department: '', location: '', type: 'Full Time', experience: '', salary_min: '', salary_max: '', vacancy: '1', skills: '', qualification: '', description: '', status: 'Draft', deadline: '' });
       setJobFile(null);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
+      refreshControl.refresh({ scope: ['admin', 'jobs'] });
     },
     onError: (error) => {
       console.error(error);
@@ -171,13 +171,13 @@ const AdminRecruitment = () => {
     createJobMutation.mutate();
   };
 
-  const updateJobStatusMutation = useMutation({
-    mutationFn: async ({ jobId, status }) => {
+  const updateJobStatusMutation = useRemoteTask({
+    run: async ({ jobId, status }) => {
       await api.put(`/admin/jobs/${jobId}/status`, { status });
     },
     onSuccess: () => {
       toast.success('Job status updated');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
+      refreshControl.refresh({ scope: ['admin', 'jobs'] });
     },
     onError: (error) => {
       console.error(error);
@@ -185,8 +185,8 @@ const AdminRecruitment = () => {
     }
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterPath = null }) => {
+  const updateStatusMutation = useRemoteTask({
+    run: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterPath = null }) => {
       await api.put(`/admin/applications/${app.id}/status`, {
         status: newStatus,
         notes: additionalNotes || `Application status updated to ${newStatus}`,
@@ -205,7 +205,7 @@ const AdminRecruitment = () => {
     },
     onSuccess: (newStatus) => {
       toast.success(`Application updated to ${newStatus}`);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] });
+      refreshControl.refresh({ scope: ['admin', 'applications'] });
     },
     onError: (error) => {
       console.error(error);
@@ -236,8 +236,8 @@ const AdminRecruitment = () => {
     });
   };
 
-  const convertEmployeeMutation = useMutation({
-    mutationFn: async () => {
+  const convertEmployeeMutation = useRemoteTask({
+    run: async () => {
       if (!selectedApp?.id || !selectedApp?.candidate_id) {
         throw new Error('Select a valid hired candidate application.');
       }
@@ -262,10 +262,10 @@ const AdminRecruitment = () => {
     },
     onSuccess: ({ employeeId }) => {
       setIsConvertModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'candidates_info'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      refreshControl.refresh({ scope: ['admin', 'applications'] });
+      refreshControl.refresh({ scope: ['admin', 'candidates_info'] });
+      refreshControl.refresh({ scope: ['admin', 'employees'] });
+      refreshControl.refresh({ scope: ['admin', 'dashboard'] });
       toast.success(`Candidate converted to employee (ID: ${employeeId})`);
     },
     onError: (error) => {

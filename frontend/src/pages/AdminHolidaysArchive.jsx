@@ -5,35 +5,35 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { Button } from '../components/ui';
 
 const AdminHolidaysArchive = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   const {
     data: archivedHolidays = [],
     isLoading: loading
-  } = useQuery({
-    queryKey: ['admin', 'holidays-archive'],
-    queryFn: async () => {
+  } = useRemoteData({
+    scope: ['admin', 'holidays-archive'],
+    load: async () => {
       const response = await api.get('/admin/holidays/archived');
       return response.data;
     }
   });
 
-  const restoreHolidayMutation = useMutation({
-    mutationFn: async (dateStr) => {
+  const restoreHolidayMutation = useRemoteTask({
+    run: async (dateStr) => {
       return api.put(`/admin/holidays/${dateStr}/restore`);
     },
     onSuccess: () => {
       toast.success('Holiday restored successfully');
-      queryClient.invalidateQueries({
-        queryKey: ['admin', 'holidays-archive']
+      refreshControl.refresh({
+        scope: ['admin', 'holidays-archive']
       });
-      queryClient.invalidateQueries({
-        queryKey: ['admin', 'holidays']
+      refreshControl.refresh({
+        scope: ['admin', 'holidays']
       });
     },
     onError: () => {

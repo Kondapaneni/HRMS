@@ -4,49 +4,48 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, User, Briefcase, Clock } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import Button from '../components/ui/Button';
 
 const AdminEmployeeEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({});
   const [managerSearch, setManagerSearch] = useState('');
   const [showManagerDropdown, setShowManagerDropdown] = useState(false);
 
-  const employeeQuery = useQuery({
-    queryKey: ['admin', 'employee', id],
-    queryFn: async () => {
+  const employeeQuery = useRemoteData({
+    scope: ['admin', 'employee', id],
+    load: async () => {
       const res = await api.get(`/admin/employees/${id}`);
       return res.data;
     },
     enabled: !!id
   });
 
-  const managersQuery = useQuery({
-    queryKey: ['admin', 'employees-dropdown'],
-    queryFn: async () => {
+  const managersQuery = useRemoteData({
+    scope: ['admin', 'employees-dropdown'],
+    load: async () => {
       const res = await api.get('/admin/employees?limit=500');
       return res.data.employees || [];
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    reloadOnFocus: false,
   });
 
-  const branchesQuery = useQuery({
-    queryKey: ['admin', 'branches'],
-    queryFn: async () => {
+  const branchesQuery = useRemoteData({
+    scope: ['admin', 'branches'],
+    load: async () => {
       const res = await api.get('/branches');
       return res.data.branches || [];
     }
   });
 
-  const shiftsQuery = useQuery({
-    queryKey: ['admin', 'shifttimes'],
-    queryFn: async () => {
+  const shiftsQuery = useRemoteData({
+    scope: ['admin', 'shifttimes'],
+    load: async () => {
       const res = await api.get('/admin/shifttimes');
       return res.data || [];
     }
@@ -75,15 +74,15 @@ const AdminEmployeeEdit = () => {
     }
   }, [formData.managerId, managersQuery.data]);
 
-  const updateEmployeeMutation = useMutation({
-    mutationFn: async () => {
+  const updateEmployeeMutation = useRemoteTask({
+    run: async () => {
       return api.put(`/admin/employees/${id}`, formData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'employee', id] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'performance'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      refreshControl.refresh({ scope: ['admin', 'employee', id] });
+      refreshControl.refresh({ scope: ['admin', 'employees'] });
+      refreshControl.refresh({ scope: ['admin', 'performance'] });
+      refreshControl.refresh({ scope: ['admin', 'dashboard'] });
     }
   });
 

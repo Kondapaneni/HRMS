@@ -11,7 +11,7 @@ import {
 import MfaSecurityCard from '../components/MfaSecurityCard';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -21,24 +21,24 @@ import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeProfile = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const { fetchProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('personal');
   const [isUploading, setIsUploading] = useState(false);
   const [isMfaModalOpen, setIsMfaModalOpen] = useState(false);
 
-  const { data: profileResponse, isLoading: loading } = useQuery({
-    queryKey: ['employee', 'profile'],
-    queryFn: async () => {
+  const { data: profileResponse, isLoading: loading } = useRemoteData({
+    scope: ['employee', 'profile'],
+    load: async () => {
       const res = await api.get('/employee/profile');
       return res.data;
     },
     onError: () => toast.error('Failed to load profile data.'),
   });
 
-  const { data: mfaStatus } = useQuery({
-    queryKey: ['mfa', 'status'],
-    queryFn: async () => {
+  const { data: mfaStatus } = useRemoteData({
+    scope: ['mfa', 'status'],
+    load: async () => {
       const res = await api.get('/mfa/status');
       return res.data;
     },
@@ -113,7 +113,7 @@ const EmployeeProfile = () => {
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
       
       toast.success('Profile picture updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
+      refreshControl.refresh({ scope: ['employee', 'profile'] });
       
       if (fetchProfile) {
         await fetchProfile();

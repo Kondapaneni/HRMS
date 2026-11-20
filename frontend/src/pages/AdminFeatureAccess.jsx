@@ -24,7 +24,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { StatCard, Button, Avatar } from '../components/ui';
 
 const featuresList = [
@@ -109,7 +109,7 @@ const featuresList = [
 
 const AdminFeatureAccess = () => {
   const { token } = useAuth();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   // Modal / Drawer State
   const [selectedFeature, setSelectedFeature] = useState(null);
@@ -124,16 +124,16 @@ const AdminFeatureAccess = () => {
   const {
     data: users = [],
     isLoading: loading
-  } = useQuery({
-    queryKey: ['admin', 'feature-access'],
-    queryFn: async () => {
+  } = useRemoteData({
+    scope: ['admin', 'feature-access'],
+    load: async () => {
       const response = await api.get('/admin/feature-access');
       return response.data?.users || response.data?.data || (Array.isArray(response.data) ? response.data : []);
     }
   });
 
-  const saveRolesMutation = useMutation({
-    mutationFn: async (changes) => {
+  const saveRolesMutation = useRemoteTask({
+    run: async (changes) => {
       await Promise.all(
         changes.map(change =>
           api.post('/admin/feature-access', {
@@ -145,10 +145,10 @@ const AdminFeatureAccess = () => {
       );
     },
     onMutate: async (changes) => {
-      await queryClient.cancelQueries({ queryKey: ['admin', 'feature-access'] });
-      const previousUsers = queryClient.getQueryData(['admin', 'feature-access']);
+      await refreshControl.cancel({ scope: ['admin', 'feature-access'] });
+      const previousUsers = refreshControl.peek(['admin', 'feature-access']);
 
-      queryClient.setQueryData(['admin', 'feature-access'], (old) => {
+      refreshControl.update(['admin', 'feature-access'], (old) => {
         if (!old) return old;
         return old.map(u => {
           const change = changes.find(c => c.userId === u.id);
@@ -163,13 +163,13 @@ const AdminFeatureAccess = () => {
     },
     onError: (err, changes, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData(['admin', 'feature-access'], context.previousUsers);
+        refreshControl.update(['admin', 'feature-access'], context.previousUsers);
       }
       toast.error('Failed to update some user roles.');
     },
     onSuccess: () => {
       toast.success('Feature manager roles updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'feature-access'] });
+      refreshControl.refresh({ scope: ['admin', 'feature-access'] });
     }
   });
 

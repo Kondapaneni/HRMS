@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRefreshControl } from '../../state/remote.js';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   FormGrid,
@@ -21,7 +21,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
   const { profile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   // Extract default values from React Router state (passed quietly without query parameters) or user profile from DB
   const initialName = 
@@ -421,7 +421,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       // Save draft directly to DB table public.loan_applications in JSON format
       await submitLoanApplication('Business Loan', cleanData, 'Draft');
       toast.success('Business Loan draft saved to database!');
-      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
+      refreshControl.refresh({ scope: ['origination', 'applications', 'list'] });
     } catch (err) {
       console.error('Error saving draft to database:', err);
       toast.error(err.response?.data?.error || 'Failed to save draft to database.');
@@ -441,8 +441,8 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       setIsDeleting(true);
       await deleteLoanApplication(loadedAppId || targetAppId);
       toast.success('Draft deleted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
-      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
+      refreshControl.refresh({ scope: ['origination', 'applications', 'list'] });
+      refreshControl.refresh({ scope: ['leadsDashboard'] });
       navigate('/employee/loans/origination/applications');
     } catch (err) {
       console.error('Error deleting draft:', err);
@@ -475,8 +475,8 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
         const res = await updateLoanApplicationDetails(targetAppId, cleanData, 'Business Loan');
         toast.success('Application updated successfully with audit trail!');
         
-        await queryClient.invalidateQueries({ queryKey: ['branchOperations'] });
-        await queryClient.refetchQueries({ queryKey: ['branchOperations', 'applications', 'list'] });
+        await refreshControl.refresh({ scope: ['branchOperations'] });
+        await refreshControl.refresh({ scope: ['branchOperations', 'applications', 'list'] });
 
         const updatedApp = res?.application ? {
           ...res.application,
@@ -519,8 +519,8 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       // Submit full form data to public.loan_applications in JSON format as Created
       await submitLoanApplication('Business Loan', cleanData, 'Created');
       toast.success('Business Loan Application Created Successfully!');
-      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
-      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
+      refreshControl.refresh({ scope: ['origination', 'applications', 'list'] });
+      refreshControl.refresh({ scope: ['leadsDashboard'] });
       setTimeout(() => {
         navigate('/employee/loans/origination/applications');
       }, 1000);

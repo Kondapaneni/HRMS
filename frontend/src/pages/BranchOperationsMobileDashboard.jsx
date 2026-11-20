@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getBranchDashboardData } from '../services/loanServices';
@@ -59,9 +59,9 @@ const BranchOperationsMobileDashboard = () => {
     return 'Good Evening';
   };
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['branchOperationsDashboard', selectedEmployee, selectedPipeline],
-    queryFn: getBranchDashboardData
+  const { data, isLoading } = useRemoteData({
+    scope: ['branchOperationsDashboard', selectedEmployee, selectedPipeline],
+    load: getBranchDashboardData
   });
 
   const branch = data?.branch || { name: 'Assigned Branch' };

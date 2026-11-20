@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, Briefcase, CheckCircle2, ArrowRight, Lock, MapPin, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { getLoanApplications } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 import { format } from 'date-fns';
@@ -11,9 +11,9 @@ import { format } from 'date-fns';
 const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
   const isSale = type === 'sale';
 
-  const { data: appsResponse, isLoading: isLoadingApps } = useQuery({
-    queryKey: ['origination', 'applications', 'list'],
-    queryFn: getLoanApplications,
+  const { data: appsResponse, isLoading: isLoadingApps } = useRemoteData({
+    scope: ['origination', 'applications', 'list'],
+    load: getLoanApplications,
   });
 
   const createdLeadIds = React.useMemo(() => {

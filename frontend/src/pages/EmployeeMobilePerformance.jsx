@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { 
   Clock, 
   CalendarDays, 
@@ -30,13 +30,12 @@ const EmployeeMobilePerformance = () => {
   const [trendTab, setTrendTab] = useState('attendance'); // 'attendance' | 'leaves'
   const [peerTab, setPeerTab] = useState('peers'); // 'peers' | 'reports'
 
-  const { data: perfData, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['employee', 'performance'],
-    queryFn: async () => {
+  const { data: perfData, isLoading, isFetching, refetch } = useRemoteData({
+    scope: ['employee', 'performance'],
+    load: async () => {
       const res = await api.get('/employee/performance');
       return res.data;
     },
-    staleTime: 60 * 1000,
   });
 
   const currentWeek = useMemo(() => {

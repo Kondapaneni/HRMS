@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 
 const ui = readFileSync('frontend/src/pages/AdminRecruitment.jsx', 'utf8');
 const backend = readFileSync('backend/public/admin_employees_routes.php', 'utf8');
-const block = ui.split('const convertEmployeeMutation = useMutation({')[1]
+const block = ui.split('const convertEmployeeMutation = useRemoteTask({')[1]
   ?.split('const handleConvertToEmployee')[0];
 assert(block, 'Candidate conversion workflow must exist');
 assert.match(block, /api\.post\('\/admin\/employees\/convert'/,

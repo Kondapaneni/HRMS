@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 
 const read = file => readFileSync(new URL('../' + file, import.meta.url), 'utf8');
 const docker = read('Dockerfile');
 const ini = read('docker/php/opcache.ini');
 const entry = read('docker-entrypoint.sh');
 const db = read('backend/src/Config/Database.php');
-const cache = read('backend/src/Utils/Cache.php');
 
 assert.match(docker, /docker-php-ext-install pdo pdo_pgsql curl opcache/, 'PHP Docker image must compile OPcache');
 assert.match(docker, /COPY docker\/php\/opcache\.ini \/usr\/local\/etc\/php\/conf\.d\/zz-perf008-opcache\.ini/, 'OPcache settings must be loaded by Apache');
@@ -33,5 +32,6 @@ assert(db.includes("getenv('DB_PDO_PREPARE_MODE') ?: 'pooler'") &&
   db.includes("self::$conn->query('SELECT current_user')->fetchColumn()") &&
   db.includes("if ($prepareMode === 'native' && (int) $port === 6543)"), 'Preserve SEC-018 pooler-safe prepare mode and mandatory role check');
 assert(!docker.includes('docker-php-ext-install apcu'), 'Do not silently enable mutable/shared business cache without security review');
-assert(cache.includes("function_exists('apcu_fetch')"), 'Preserve the current disabled-by-default data cache');
+assert(!existsSync(new URL('../backend/src/Utils/Cache.php', import.meta.url)),
+  'Remove the obsolete business-data cache utility; OPcache still only retains compiled PHP');
 console.log('PASS PERF-008: OPcache image, redacted pooler startup diagnostics and SEC-018 compatibility');

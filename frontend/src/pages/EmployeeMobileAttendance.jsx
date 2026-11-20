@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
 
 const EmployeeMobileAttendance = () => {
@@ -25,14 +25,12 @@ const EmployeeMobileAttendance = () => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  const { data: history = [], isLoading: loading, isFetching, error: queryError } = useQuery({
-    queryKey: ['employee', 'attendance', selectedMonth],
-    queryFn: async () => {
+  const { data: history = [], isLoading: loading, isFetching, error: queryError } = useRemoteData({
+    scope: ['employee', 'attendance', selectedMonth],
+    load: async () => {
       const res = await api.get(`/employee/attendance?month=${selectedMonth}`);
       return res.data;
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 5 * 60 * 1000,
   });
 
   const hasLoadedOnce = useRef(false);

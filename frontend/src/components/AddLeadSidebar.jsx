@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
 import { createSalesLead } from '../services/salesServices';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRefreshControl } from '../state/remote.js';
 import {
   TextField,
   PhoneField,
@@ -15,7 +15,7 @@ import {
 
 const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
   const isSale = type === 'sale';
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -66,15 +66,15 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
       setIsSubmitting(true);
       if (isSale) {
         await createSalesLead(formData);
-        queryClient.invalidateQueries({ queryKey: ['sales', 'leads'] });
-        queryClient.invalidateQueries({ queryKey: ['sales', 'leads', 'list'] });
-        queryClient.invalidateQueries({ queryKey: ['salesDashboard'] });
+        refreshControl.refresh({ scope: ['sales', 'leads'] });
+        refreshControl.refresh({ scope: ['sales', 'leads', 'list'] });
+        refreshControl.refresh({ scope: ['salesDashboard'] });
         toast.success('Sales lead added successfully!');
       } else {
         await createLead(formData);
-        queryClient.invalidateQueries({ queryKey: ['origination', 'leads'] });
-        queryClient.invalidateQueries({ queryKey: ['origination', 'leads', 'list'] });
-        queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
+        refreshControl.refresh({ scope: ['origination', 'leads'] });
+        refreshControl.refresh({ scope: ['origination', 'leads', 'list'] });
+        refreshControl.refresh({ scope: ['leadsDashboard'] });
         toast.success('Lead added successfully!');
       }
       resetForm();

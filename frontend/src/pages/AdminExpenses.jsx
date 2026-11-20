@@ -19,7 +19,7 @@ import {
   ExternalLink, 
   Tag
 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { StatCard, StatusBadge, Button, Avatar } from '../components/ui';
@@ -61,7 +61,7 @@ const getBillReceiptUrl = (billUrl) => {
 };
 
 const AdminExpenses = () => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   
   // Filters & Search
   const [filter, setFilter] = useState('All');
@@ -87,14 +87,12 @@ const AdminExpenses = () => {
   }, [search]);
 
   // Query Server for expenses
-  const { data: responseData, isLoading, isFetching } = useQuery({
-    queryKey: ['admin', 'expenses', page, debouncedSearch, filter, categoryFilter],
-    queryFn: async () => {
+  const { data: responseData, isLoading, isFetching } = useRemoteData({
+    scope: ['admin', 'expenses', page, debouncedSearch, filter, categoryFilter],
+    load: async () => {
       const res = await api.get(`/admin/expenses?page=${page}&limit=${limit}&search=${encodeURIComponent(debouncedSearch)}&status=${filter}&category=${categoryFilter}`);
       return res.data;
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 5 * 60 * 1000,
   });
 
   const expenses = responseData?.expenses || [];
@@ -112,14 +110,14 @@ const AdminExpenses = () => {
   const totalPages = Math.ceil(totalCount / limit);
 
   // Mutation for updating status
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status, remarks }) => {
+  const updateStatusMutation = useRemoteTask({
+    run: async ({ id, status, remarks }) => {
       const res = await api.put(`/admin/expenses/${id}`, { status, remarks });
       return res.data;
     },
     onSuccess: () => {
       toast.success(`Expense ${actionType.toLowerCase()} successfully`);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'expenses'] });
+      refreshControl.refresh({ scope: ['admin', 'expenses'] });
       setIsDrawerOpen(false);
       setSelectedExpense(null);
     },

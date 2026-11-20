@@ -15,14 +15,14 @@ import {
   Lock,
   Smartphone
 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 export default function MfaSecurityCard() {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   // Dialog & Flow States
   const [isSetupOpen, setIsSetupOpen] = useState(false);
@@ -44,17 +44,17 @@ export default function MfaSecurityCard() {
   const [newRegenCodes, setNewRegenCodes] = useState([]);
 
   // Fetch MFA Status
-  const { data: mfaStatus, isLoading, refetch } = useQuery({
-    queryKey: ['mfa', 'status'],
-    queryFn: async () => {
+  const { data: mfaStatus, isLoading, refetch } = useRemoteData({
+    scope: ['mfa', 'status'],
+    load: async () => {
       const res = await api.get('/mfa/status');
       return res.data;
     },
   });
 
   // Start Setup Mutation
-  const startSetupMutation = useMutation({
-    mutationFn: async () => {
+  const startSetupMutation = useRemoteTask({
+    run: async () => {
       const res = await api.post('/mfa/setup');
       return res.data;
     },
@@ -71,15 +71,15 @@ export default function MfaSecurityCard() {
   });
 
   // Confirm Setup Mutation
-  const confirmSetupMutation = useMutation({
-    mutationFn: async (code) => {
+  const confirmSetupMutation = useRemoteTask({
+    run: async (code) => {
       const res = await api.post('/mfa/confirm', { code });
       return res.data;
     },
     onSuccess: (data) => {
       setBackupCodes(data.backupCodes || []);
       setSetupStep(3);
-      queryClient.invalidateQueries({ queryKey: ['mfa', 'status'] });
+      refreshControl.refresh({ scope: ['mfa', 'status'] });
       toast.success('Two-factor authentication successfully verified!');
     },
     onError: (err) => {
@@ -88,14 +88,14 @@ export default function MfaSecurityCard() {
   });
 
   // Regenerate Backup Codes Mutation
-  const regenCodesMutation = useMutation({
-    mutationFn: async (code) => {
+  const regenCodesMutation = useRemoteTask({
+    run: async (code) => {
       const res = await api.post('/mfa/backup-codes/regenerate', { code });
       return res.data;
     },
     onSuccess: (data) => {
       setNewRegenCodes(data.backupCodes || []);
-      queryClient.invalidateQueries({ queryKey: ['mfa', 'status'] });
+      refreshControl.refresh({ scope: ['mfa', 'status'] });
       toast.success('New backup recovery codes generated');
     },
     onError: (err) => {
@@ -104,8 +104,8 @@ export default function MfaSecurityCard() {
   });
 
   // Disable MFA Mutation
-  const disableMfaMutation = useMutation({
-    mutationFn: async ({ password, code }) => {
+  const disableMfaMutation = useRemoteTask({
+    run: async ({ password, code }) => {
       const res = await api.post('/mfa/disable', { password, code });
       return res.data;
     },
@@ -113,7 +113,7 @@ export default function MfaSecurityCard() {
       setIsDisableOpen(false);
       setDisablePassword('');
       setDisableCode('');
-      queryClient.invalidateQueries({ queryKey: ['mfa', 'status'] });
+      refreshControl.refresh({ scope: ['mfa', 'status'] });
       toast.success('Two-factor authentication disabled');
     },
     onError: (err) => {

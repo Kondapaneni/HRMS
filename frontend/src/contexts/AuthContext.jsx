@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useRefreshControl } from '../state/remote.js';
 import api, { restoreSession, setAccessToken, clearSessionAccess } from '../api/axios';
 import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
 import SplashScreen from '../components/SplashScreen';
@@ -9,7 +9,7 @@ import { prepareAuthenticatedLanding, waitForMinimumSplash } from '../performanc
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [user, setUser] = useState(null);
   const [hasSession, setHasSession] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -66,12 +66,12 @@ export const AuthProvider = ({ children }) => {
       // No private prefetch if public maintenance status is unknown.
     }
     try {
-      await prepareAuthenticatedLanding(verifiedProfile, queryClient, maintenanceMode);
+      await prepareAuthenticatedLanding(verifiedProfile, maintenanceMode);
     } catch {
       // Navigation must still recover from transient module/API errors.
       // The route's own query/error state handles failed loads.
     }
-  }, [queryClient]);
+  }, [refreshControl]);
 
   useEffect(() => {
     // React StrictMode can replay mount effects: bootstrap only once.
@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }) => {
     setTransitioning(true);
     try {
       await saveNativeSession(responseData);
-      queryClient.clear(); // No previous-account private queries may cross a login.
+      refreshControl.reset(); // Immediately clear mounted private records on account switch.
       setAccessToken(token);
       setHasSession(true);
       const verifiedProfile = await fetchProfile();
@@ -173,7 +173,7 @@ export const AuthProvider = ({ children }) => {
     setProfile(null);
     setUser(null);
     setTransitioning(false);
-    queryClient.clear();
+    refreshControl.reset();
     try { localStorage.setItem('hrms_session_event', String(Date.now())); } catch { /* denied */ }
   };
 
@@ -185,11 +185,11 @@ export const AuthProvider = ({ children }) => {
       setHasSession(false);
       setUser(null);
       setProfile(null);
-      queryClient.clear();
+      refreshControl.reset();
     };
     window.addEventListener('storage', syncLogout);
     return () => window.removeEventListener('storage', syncLogout);
-  }, [queryClient]);
+  }, [refreshControl]);
 
   const value = {
     user,

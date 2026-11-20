@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { employeeDashboardQueryOptions } from '../performance/dashboardBoot';
+import { employeeDashboardRequest } from '../performance/dashboardBoot';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   User, 
@@ -24,7 +24,7 @@ import {
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import EmployeeMobileDashboard from './EmployeeMobileDashboard';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -38,7 +38,7 @@ import {
 
 const EmployeeDashboard = () => {
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lockoutSeconds, setLockoutSeconds] = useState(null);
@@ -48,7 +48,7 @@ const EmployeeDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: dashboardData, isLoading: loading } = useQuery(employeeDashboardQueryOptions);
+  const { data: dashboardData, isLoading: loading } = useRemoteData(employeeDashboardRequest);
 
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
@@ -73,13 +73,13 @@ const EmployeeDashboard = () => {
       const timer = setInterval(() => {
         setLockoutSeconds(prev => {
           if (prev && prev > 1) return prev - 1;
-          queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+          refreshControl.refresh({ scope: ['employee', 'dashboard'] });
           return null;
         });
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [lockoutSeconds, queryClient]);
+  }, [lockoutSeconds, refreshControl]);
 
   const isLocked = lockoutSeconds !== null && lockoutSeconds > 0;
 
@@ -156,7 +156,7 @@ const EmployeeDashboard = () => {
 
           const updatedAtt = punchRes.data?.attendance;
           if (updatedAtt) {
-            queryClient.setQueryData(['employee', 'dashboard'], (old) => {
+            refreshControl.update(['employee', 'dashboard'], (old) => {
               if (!old) return old;
               const oldAttendance = Array.isArray(old.attendance) ? [...old.attendance] : [];
               const idx = oldAttendance.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
@@ -173,7 +173,7 @@ const EmployeeDashboard = () => {
           }
 
           toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
-          queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+          refreshControl.refresh({ scope: ['employee', 'dashboard'] });
         } catch (error) {
           console.error(error);
           toast.error(error.response?.data?.error || `Failed to ${action}.`);

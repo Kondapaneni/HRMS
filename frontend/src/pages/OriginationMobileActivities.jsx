@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import toast from 'react-hot-toast';
 import SearchBar from '../components/ui/SearchBar';
 import { 
@@ -47,7 +47,7 @@ import { MobileActivityCreatePage, MobileActivityDetailsModal } from '../compone
 const OriginationMobileActivities = () => {
   const { profile } = useAuth();
   const location = useLocation();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
 
   // Detect module context
   const isSales = location.pathname.startsWith('/employee/sales');
@@ -85,9 +85,9 @@ const OriginationMobileActivities = () => {
   }, [selectedEvent, viewMode]);
 
   // Fetch activities
-  const { data = {}, isLoading, error } = useQuery({
-    queryKey: ['origination', 'activities', workspaceScope],
-    queryFn: async () => {
+  const { data = {}, isLoading, error } = useRemoteData({
+    scope: ['origination', 'activities', workspaceScope],
+    load: async () => {
       const response = await api.get('/origination/activities', {
         params: { scope: workspaceScope }
       });
@@ -117,13 +117,13 @@ const OriginationMobileActivities = () => {
   }, [isSales, isBranchOperations, branchInfo]);
 
   // Mutations
-  const createMutation = useMutation({
-    mutationFn: async (payload) => {
+  const createMutation = useRemoteTask({
+    run: async (payload) => {
       const response = await api.post('/origination/activities', payload);
       return response.data?.activity;
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['origination', 'activities'] });
+      refreshControl.refresh({ scope: ['origination', 'activities'] });
       const assignedCount = Array.isArray(variables?.assignedTo) ? variables.assignedTo.length : 1;
       toast.success(assignedCount > 1 
         ? `Activities scheduled for ${assignedCount} team members`
@@ -138,13 +138,13 @@ const OriginationMobileActivities = () => {
     }
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: async ({ id, status }) => {
+  const toggleMutation = useRemoteTask({
+    run: async ({ id, status }) => {
       const response = await api.patch(`/origination/activities/${id}/toggle-status`, { currentStatus: status });
       return response.data?.activity;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['origination', 'activities'] });
+      refreshControl.refresh({ scope: ['origination', 'activities'] });
       toast.success('Activity status updated');
       if (selectedEvent) {
         setSelectedEvent(prev => prev ? ({ ...prev, status: prev.status === 'Completed' ? 'Scheduled' : 'Completed' }) : null);

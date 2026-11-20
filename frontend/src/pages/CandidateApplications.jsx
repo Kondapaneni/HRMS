@@ -15,7 +15,7 @@ import {
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import CandidateMobileApplications from './CandidateMobileApplications';
 
 const CandidateApplications = () => {
@@ -23,9 +23,9 @@ const CandidateApplications = () => {
   const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
   const [timelineApp, setTimelineApp] = useState(null);
   
-  const { data: applications = [], isLoading } = useQuery({
-    queryKey: ['candidate', 'applications', profile?.id],
-    queryFn: async () => {
+  const { data: applications = [], isLoading } = useRemoteData({
+    scope: ['candidate', 'applications', profile?.id],
+    load: async () => {
       const res = await api.get('/candidate/applications');
       const apps = res.data.applications || [];
 
@@ -58,7 +58,6 @@ const CandidateApplications = () => {
       });
     },
     enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000
   });
 
   const getStatusBadge = (status) => {

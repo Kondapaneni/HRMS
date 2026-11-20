@@ -11,7 +11,7 @@ import {
   Loader2
 } from 'lucide-react';
 import api from '../api/axios';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import EmployeeMobileAttendance from './EmployeeMobileAttendance';
@@ -27,19 +27,18 @@ import {
 
 const EmployeeAttendance = () => {
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [error, setError] = useState(null);
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const { data: employeeProfileResponse } = useQuery({
-    queryKey: ['employee', 'profile'],
-    queryFn: async () => {
+  const { data: employeeProfileResponse } = useRemoteData({
+    scope: ['employee', 'profile'],
+    load: async () => {
       const res = await api.get('/employee/profile');
       return res.data;
     },
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: true,
+    reloadOnFocus: true,
   });
   const attendanceProfile = employeeProfileResponse?.profile || profile;
   const isWebAttendanceEnabled =
@@ -66,14 +65,12 @@ const EmployeeAttendance = () => {
     isLoading: loading,
     isFetching,
     error: queryError
-  } = useQuery({
-    queryKey: ['employee', 'attendance', selectedMonth],
-    queryFn: async () => {
+  } = useRemoteData({
+    scope: ['employee', 'attendance', selectedMonth],
+    load: async () => {
       const res = await api.get(`/employee/attendance?month=${selectedMonth}`);
       return res.data;
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 30 * 1000
   });
 
   const hasLoadedOnce = useRef(false);
@@ -81,29 +78,28 @@ const EmployeeAttendance = () => {
     hasLoadedOnce.current = true;
   }
 
-  const { data: leavesData } = useQuery({
-    queryKey: ['employee', 'leaves'],
-    queryFn: async () => {
+  const { data: leavesData } = useRemoteData({
+    scope: ['employee', 'leaves'],
+    load: async () => {
       const res = await api.get('/employee/leaves');
       return res.data;
     },
-    staleTime: 5 * 60 * 1000
   });
 
   const leavesHistory = leavesData?.history || [];
   const todayRecord = findTodayAttendanceRecord(history);
   const isOnLeaveToday = isEmployeeOnLeaveToday(leavesHistory, todayRecord);
 
-  const punchMutation = useMutation({
-    mutationFn: async (payload) => {
+  const punchMutation = useRemoteTask({
+    run: async (payload) => {
       return api.post('/employee/attendance/punch', payload);
     },
     onSuccess: (data, variables) => {
       toast.success(`Successfully ${variables.action.replace('-', ' ')}ed!`);
-      queryClient.invalidateQueries({
-        queryKey: ['employee', 'attendance']
+      refreshControl.refresh({
+        scope: ['employee', 'attendance']
       });
-      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+      refreshControl.refresh({ scope: ['employee', 'dashboard'] });
       const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
       if (selectedMonth !== currentMonthStr) {
         setSelectedMonth(currentMonthStr);

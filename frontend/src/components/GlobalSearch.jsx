@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import { Search, Loader2, User } from 'lucide-react';
 import api from '../api/axios';
@@ -30,9 +30,9 @@ const GlobalSearch = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const { data: results = [], isFetching } = useQuery({
-    queryKey: ['globalSearch', debouncedQuery],
-    queryFn: async () => {
+  const { data: results = [], isFetching } = useRemoteData({
+    scope: ['globalSearch', debouncedQuery],
+    load: async () => {
       if (!debouncedQuery.trim()) return [];
       const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedQuery)}&limit=5`);
       return res.data.employees || [];

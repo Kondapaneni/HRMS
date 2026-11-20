@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import { createPortal } from 'react-dom';
 import {
   Lock,
@@ -25,7 +25,7 @@ import OriginationMobileLoanViewApplications from './OriginationMobileLoanViewAp
 export default function OriginationLoanViewApplication() {
   const location = useLocation();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshControl = useRefreshControl();
   const [searchParams] = useSearchParams();
   const paramAppId = searchParams.get('id');
 
@@ -34,9 +34,9 @@ export default function OriginationLoanViewApplication() {
   const fromPath = location.state?.from || '/employee/loans/origination/applications';
 
   // Fallback query if page is refreshed or visited with a query parameter/missing state
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['origination', 'applications', 'list'],
-    queryFn: getLoanApplications,
+  const { data: response, isLoading } = useRemoteData({
+    scope: ['origination', 'applications', 'list'],
+    load: getLoanApplications,
     enabled: !stateApplication,
   });
 
@@ -204,7 +204,7 @@ export default function OriginationLoanViewApplication() {
 
       setLocalTimeline((prev) => [...prev, timelineEvent]);
       setLocalStatus('Under Review');
-      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
+      refreshControl.refresh({ scope: ['origination', 'applications', 'list'] });
       toast.success('Application transferred to Branch Operations successfully.');
     } catch (err) {
       console.error(err);
@@ -215,10 +215,9 @@ export default function OriginationLoanViewApplication() {
   };
 
   // Fetch all company branches to map branch IDs to human-readable names
-  const { data: branches = [] } = useQuery({
-    queryKey: ['branches', 'list'],
-    queryFn: getBranches,
-    staleTime: 1000 * 60 * 30,
+  const { data: branches = [] } = useRemoteData({
+    scope: ['branches', 'list'],
+    load: getBranches,
   });
 
   const branchMap = useMemo(() => {

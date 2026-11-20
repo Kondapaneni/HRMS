@@ -11,7 +11,7 @@ import {
   CalendarCheck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import { useAuth } from '../contexts/AuthContext';
 import SearchBar from '../components/ui/SearchBar';
 import api from '../api/axios';
@@ -42,17 +42,15 @@ const AdminAttendance = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: attendanceResponse, isLoading: initialLoading, isFetching } = useQuery({
-    queryKey: ['admin', 'attendance', date, debouncedSearch, page],
-    queryFn: async ({ signal }) => {
+  const { data: attendanceResponse, isLoading: initialLoading, isFetching } = useRemoteData({
+    scope: ['admin', 'attendance', date, debouncedSearch, page],
+    load: async ({ signal }) => {
       const res = await api.get(
         `/admin/attendance?date=${date}&search=${encodeURIComponent(debouncedSearch)}&page=${page}&limit=10`,
         { signal }
       );
       return res.data;
     },
-    placeholderData: (previousData) => previousData,
-    staleTime: 10 * 1000, // Attendance changes frequently; show cached rows while updating
     onError: () => toast.error('Failed to load attendance'),
   });
 

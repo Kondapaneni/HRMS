@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption } from '@headlessui/react';
 import { Check, Search, Loader2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
 
 const EmployeeSelect = ({ 
@@ -26,15 +26,14 @@ const EmployeeSelect = ({
   }, [query, hasProvidedEmployees]);
 
   // Live server-side employee search: ONLY runs if initialEmployees is not provided AND user typed a query
-  const { data: serverEmployees = [], isFetching } = useQuery({
-    queryKey: ['employee-select-search', debouncedQuery],
-    queryFn: async () => {
+  const { data: serverEmployees = [], isFetching } = useRemoteData({
+    scope: ['employee-select-search', debouncedQuery],
+    load: async () => {
       const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedQuery)}&limit=50`);
       return res.data.employees || [];
     },
     enabled: !hasProvidedEmployees && Boolean(debouncedQuery.trim()),
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    reloadOnFocus: false,
   });
 
   // Client-side instant filtering when initialEmployees is provided

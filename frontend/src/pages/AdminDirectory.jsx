@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { useQuery } from '@tanstack/react-query';
+import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { Search, Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
@@ -24,9 +24,9 @@ const AdminDirectory = () => {
     }
   }, [search]);
 
-  const { data: employees = [], isLoading } = useQuery({
-    queryKey: ['admin', 'employees', 'directory'],
-    queryFn: async () => {
+  const { data: employees = [], isLoading } = useRemoteData({
+    scope: ['admin', 'employees', 'directory'],
+    load: async () => {
       const res = await api.get('/admin/employees?limit=1000');
       return res.data.employees || [];
     },
