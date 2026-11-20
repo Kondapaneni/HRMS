@@ -1,8 +1,13 @@
 \set ON_ERROR_STOP on
 
 -- Isolated synthetic database ONLY. Never run against the live HRMS database.
-SELECT CASE WHEN current_database() = 'sec018_offer_test'
-  THEN 1 ELSE 1 / 0 END AS isolated_test_guard;
+DO $guard$
+BEGIN
+  IF current_database() <> 'sec018_offer_test' THEN
+    RAISE EXCEPTION 'Refusing to run outside isolated sec018_offer_test database';
+  END IF;
+END;
+$guard$;
 
 -- Synthetic tables and roles are installed by the CI workflow.
 INSERT INTO public.applications(id) VALUES
