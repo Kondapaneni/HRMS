@@ -1,129 +1,64 @@
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 
-const read = (path) => readFileSync(path, 'utf8');
-const app = read('frontend/src/App.jsx');
+const read = path => readFileSync(path, 'utf8');
+const pages = readdirSync('frontend/src/pages').filter(name => name.endsWith('.jsx'));
+assert(pages.length >= 115, 'All HRMS page modules must remain available');
+
+const loader = read('frontend/src/components/PageLoader.jsx');
 const shell = read('frontend/src/components/AppShell.jsx');
-const shared = read('frontend/src/components/PageLoader.jsx');
-const bridge = read('frontend/src/components/RouteSkeleton.jsx');
-const guard = read('frontend/src/components/ProtectedRoute.jsx');
+const auth = read('frontend/src/components/ProtectedRoute.jsx');
+const root = read('frontend/src/App.jsx');
 const table = read('frontend/src/components/ui/DataTable.jsx');
-const sidebar = read('frontend/src/components/MemberDetailsSidebar.jsx');
+const member = read('frontend/src/components/MemberDetailsSidebar.jsx');
 
-const pages = readdirSync('frontend/src/pages')
-  .filter(name => /\.jsx$/.test(name)).sort();
+// All existing PageLoader usages stay mounted behind the same private-data
+// authorization/loading conditions, but now produce no visible DOM or animation.
+assert.match(loader, /export const PageLoader/);
+assert.match(loader, /className="sr-only"/,
+  'Keep a screen-reader-only status with no visible loader');
+assert.match(loader, /role="status"/);
+assert.match(loader, /aria-busy="true"/);
+assert.doesNotMatch(loader, /animate-|motion-safe|animate-pulse|animate-spin|shimmer|bg-\[|rounded-|h-\d|grid|space-y-|min-h-/,
+  'The shared loader may not contain any visual skeleton blocks or animation');
+assert.doesNotMatch(loader, /<div\b|<p\b|<svg\b|<img\b|<canvas\b/,
+  'The shared loader has no visual surface');
+assert(!existsSync('frontend/src/components/RouteSkeleton.jsx'),
+  'Do not restore a separate route skeleton component');
+assert(!existsSync('frontend/src/components/ui/Skeleton.jsx'),
+  'Do not restore reusable shimmer blocks');
+assert.doesNotMatch(read('frontend/src/components/ui/index.js'), /export \{ Skeleton \}/);
+assert.doesNotMatch(read('frontend/src/index.css'), /@keyframes shimmer/,
+  'Unused shimmer animation must be removed');
 
-assert(pages.length >= 115, 'All HRMS page modules must remain in scope');
-assert.match(shared, /export const PageLoader/);
-assert.match(shared, /role="status"/);
-assert.match(shared, /aria-live="polite"/);
-assert.match(shared, /aria-busy="true"/);
-assert.match(shared, /min-h-\[calc\(100dvh-8rem\)\]/);
-assert.doesNotMatch(shared, /Loader2|animate-spin/,
-  'The one shared full-page skeleton may not be replaced by a spinner');
-assert.match(bridge, /return <PageLoader message="Opening page\.\.\." \/>/);
-assert.match(shell, /<Suspense fallback=\{<RouteSkeleton\s*\/>\}>/,
-  'Nested code-split routes retain navigation and show the shared skeleton');
-assert.match(app, /<Suspense fallback=\{null\}>/,
-  'Preserve the splash and existing top-level navigation; nested shells provide PageLoader');
-assert.match(guard, /<PageLoader message="Verifying your session\.\.\."/);
-assert.match(guard, /<PageLoader message="Verifying your permissions\.\.\."/);
-assert(!/min-h-screen flex items-center justify-center bg-slate-50/.test(guard),
-  'Protected page loading cannot fall back to standalone loading text');
+assert.match(shell, /<Suspense fallback=\{<PageLoader message="Opening page\.\.\." \/>\}>/,
+  'Code-split navigation can wait silently, without a rendered skeleton');
+assert.match(root, /<Suspense fallback=\{null\}>/,
+  'Keep the existing root splash and access boundaries');
+assert.match(auth, /<PageLoader message="Verifying your session\.\.\."/);
+assert.match(auth, /<PageLoader message="Verifying your permissions\.\.\."/);
+assert.match(table, /if \(isLoading\) return <PageLoader/,
+  'Do not render unauthorized or incomplete table data during loading');
+assert.match(member, /if \(isLoadingApps && !appsResponse\)/,
+  'Member details must remain protected until their fresh request completes');
 
-// All pages with first-load useRemoteData must use the shared full PageLoader.
-// Presentational mobile children without their own requests inherit the parent
-// loader; mutation button spinners are action progress, NOT page-load skeletons.
-const remoteMissing = [];
-const fullPage = [];
-for (const name of pages) {
-  const src = read('frontend/src/pages/' + name);
-  const hasPageLoader = /<PageLoader\b/.test(src);
-  if (hasPageLoader) fullPage.push(name);
-  if (/useRemoteData\s*\(/.test(src) &&
-      /\bisLoading\b/.test(src) && !hasPageLoader) {
-    remoteMissing.push(name);
-  }
+const uses = pages.filter(name => /<PageLoader\b/.test(read('frontend/src/pages/' + name)));
+assert(uses.length >= 90,
+  'Existing first-load guards across data-heavy pages must remain in place');
+for (const name of uses) {
+  const code = read('frontend/src/pages/' + name);
+  assert.doesNotMatch(code, /<Skeleton\b|animate-shimmer/,
+    'Do not reintroduce visual skeletons: ' + name);
 }
-assert.deepEqual(remoteMissing, [],
-  'Initial remote-data loaders must never be partial/spinners: ' + remoteMissing.join(', '));
+assert.match(read('frontend/src/pages/EmployeeMobileCamera.jsx'), /onLoadedMetadata=\{handleVideoLoaded\}/,
+  'Camera must remain mounted to receive metadata while loading is invisible');
 
-// The remaining modules are pure presentation, forms or action-only screens
-// with no initial remote-data waiting state. They must not flash an artificial
-// skeleton or hide an in-progress MFA/upload/attendance operation.
-const noInitialFetchModules = [
-  'AdminEmailTemplates',
-  'BranchOperationsLoansEditApplication','BranchOperationsMobileLoansEditApplication',
-  'CandidateLogin','CandidateMobileApplications','CandidateMobileDocuments',
-  'CandidateMobileJobs','CandidateMobileProfile',
-  'ChangePassword','ComingSoon','ForgotPassword','NotFound','Offline','ResetPassword',
-  'OriginationLoanForms','OriginationSaleForms',
-  'OriginationMobileLoanAddLead','OriginationMobileSaleAddLead',
-  'OriginationMobileLoanForms','OriginationMobileSaleForms',
-  'OriginationMobileLoanLeadDetails','OriginationMobileSaleLeadDetails'
-].map(name => name + '.jsx').sort();
-const actualNoPageLoader = pages.filter(name => !fullPage.includes(name));
-assert.deepEqual(actualNoPageLoader, noInitialFetchModules,
-  'Every HRMS page must use PageLoader when it has initial loading, or be an approved immediate view');
-for (const name of actualNoPageLoader) {
-  const src = read('frontend/src/pages/' + name);
-  assert.doesNotMatch(src, /useRemoteData\s*\(|api\.get\s*\(/,
-    'An immediate view cannot bypass the approved full-page skeleton for remote reads: ' + name);
-}
-
-
-const requiredDataPages = [
-  'AdminDashboard','AdminEmployees','EmployeeDashboard','EmployeeMobileDashboard',
-  'CandidateDashboard','CandidateMobileDashboard','OriginationLoanDashboard',
-  'OriginationSaleDashboard','OriginationLoanLeadsList','OriginationSaleLeadsList',
-  'OriginationLoanMembersList','OriginationSaleMembersList',
-  'OriginationMobileLoanLeadsList','OriginationMobileSaleLeadsList',
-  'OriginationMobileLoanMemberList','OriginationMobileSaleMemberList',
-  'OriginationLoanApplicationsList','OriginationMobileLoanApplicationsList',
-  'BranchOperationsLoansApplicationsList','BranchOperationsMobileLoansApplicationsList',
-  'OriginationActivities','OriginationMobileActivities',
-  'OriginationLoanViewApplication','OriginationMobileLoanViewApplications',
-  'BranchOperationsLoansViewApplication','BranchOperationsMobileLoansViewApplication',
-  'OriginationMobileLoanMemberDetails','OriginationMobileSaleMemberDetails',
-  'EmployeeMobileCamera','EmployeeMobileMap',
-  'EmployeeAssessments','EmployeeAssessmentInstructions','EmployeeAssessmentResult',
-  'Login','CandidateActivate'
-];
-for (const name of requiredDataPages) {
-  const src = read('frontend/src/pages/' + name + '.jsx');
-  assert.match(src, /<PageLoader\b/, 'Missing approved loader in ' + name);
-}
-
-for (const path of [
-  'frontend/src/pages/EmployeeAssessments.jsx',
-  'frontend/src/pages/EmployeeAssessmentInstructions.jsx',
-  'frontend/src/pages/OriginationMobileLoanMemberDetails.jsx',
-  'frontend/src/pages/OriginationMobileSaleMemberDetails.jsx',
-  'frontend/src/components/MemberDetailsSidebar.jsx',
-  'frontend/src/components/ui/DataTable.jsx',
-  'frontend/src/components/RouteSkeleton.jsx',
-  'frontend/src/pages/AdminDashboard.jsx',
-  'frontend/src/pages/CandidateActivate.jsx'
-]) {
-  const src = read(path);
-  assert.doesNotMatch(src, /animate-pulse/,
-    'Remove alternate/partial skeleton components: ' + path);
-}
-assert.match(table, /if \(isLoading\) return <PageLoader/);
-assert.match(sidebar, /if \(isLoadingApps && !appsResponse\)/);
-assert.match(sidebar, /<PageLoader message="Loading member details\.\.\."/);
-assert.match(read('frontend/src/pages/EmployeeMobileCamera.jsx'),
-  /<PageLoader message="Starting camera\.\.\."/);
-// Camera must stay mounted behind the loading overlay to receive onLoadedMetadata.
-assert.match(read('frontend/src/pages/EmployeeMobileCamera.jsx'), /onLoadedMetadata=\{handleVideoLoaded\}/);
-
-// Private data remains fresh and authorized; this is a view change only.
+// Private data and session security are independent of display placeholders.
 const remote = read('frontend/src/state/remote.js');
+const context = read('frontend/src/contexts/AuthContext.jsx');
 assert.match(remote, /gcTime: retention\?\.gcTime \?\? 0/);
-const auth = read('frontend/src/contexts/AuthContext.jsx');
-assert.match(auth, /discardPrivateQueries\(\)/);
-console.log('Unified PageLoader skeleton policy PASS:', {
-  modules: pages.length, fullPageUsers: fullPage.length,
-  otherModules: pages.length - fullPage.length,
-  protectedLazyRoutes: true
+assert.match(context, /discardPrivateQueries\(\)/);
+console.log('Skeleton-free HRMS page-loading policy PASS:', {
+  pageModules: pages.length, protectedPageLoadingBranches: uses.length,
+  noVisibleSkeletonUI: true,
 });
