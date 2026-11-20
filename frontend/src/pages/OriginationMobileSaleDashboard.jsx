@@ -115,7 +115,7 @@ const OriginationMobileSaleDashboard = () => {
     }
   };
 
-  if (isDashboardLoading) {
+  if (isDashboardLoading || leadsLoading) {
     return <PageLoader message="Loading Sales Dashboard..." />;
   }
 
