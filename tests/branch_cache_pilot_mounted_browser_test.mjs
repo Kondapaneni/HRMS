@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { writeFileSync, unlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -34,7 +34,7 @@ globalThis.__cachePilotGet = async (path, options) => {
 
 // Bundle the real branch query hook and its real memory client. Only external
 // identity/transport dependencies are simulated, not the query implementation.
-const outputPath = resolve('frontend/src/query/.branch-hook-browser-test.mjs');
+const outputPath = resolve('src/query/.branch-hook-browser-test.mjs');
 try {
   const generated = await build({
     stdin: {
@@ -42,7 +42,7 @@ try {
         "export { useBranchDirectory } from './src/query/useBranchDirectory.js';",
         "export { memoryQueryClient, discardPrivateQueries } from './src/query/memoryClient.js';",
       ].join('\n'),
-      resolveDir: resolve('frontend'),
+      resolveDir: resolve('.'),
       sourcefile: 'branch-runtime-entry.js',
       loader: 'js',
     },
