@@ -32,8 +32,13 @@ for (const path of paths) {
   const allowed = ['frontend/src/main.jsx', 'frontend/src/query/memoryClient.js',
     'frontend/src/query/useBranchDirectory.js'].includes(path);
   if (!allowed) {
-    assert.doesNotMatch(text, /@tanstack\/react-query|\buseQuery\(|\buseMutation\(/,
+    assert.doesNotMatch(text,
+      /@tanstack\/react-query|QueryClientProvider|\bQueryClient\b|\buseQueryClient\b|\buseQuery\s*\(|\buseMutation\s*\(|\bqueryClient\b/,
       'Only the reviewed branch pilot may import TanStack Query: ' + path);
+    if (!path.endsWith('api/browserStorage.js')) {
+      assert.doesNotMatch(text, /\bstaleTime\s*:|\bgcTime\s*:|\bplaceholderData\s*:/,
+        'No other HRMS data views may retain cached response data: ' + path);
+    }
   }
   assert.doesNotMatch(text,
     /(?:localStorage|sessionStorage|indexedDB)\.(?:setItem|put)\s*\(\s*['"](?:hrms.?query|query.?cache|REACT_QUERY_OFFLINE_CACHE|TANSTACK_QUERY_OFFLINE_CACHE)/i,
@@ -58,6 +63,7 @@ assert.match(entry, /clearLegacySensitiveStorage\(\)/);
 assert.match(entry, /registration\.unregister\(\)/);
 assert.match(root, /<AuthProvider>/);
 assert.match(root, /<MaintenanceGate>/);
+assert.match(root, /<Suspense fallback=\{null\}>/, 'Route-level lazy loading must remain intact');
 assert.match(root, /<BackgroundLocationTracker \/>/);
 assert.match(cache, /new QueryClient\(/);
 assert.match(cache, /gcTime: 0/);
@@ -72,16 +78,39 @@ assert.match(branches, /discardPrivateQueries\(\)/);
 assert.match(branches, /verified && !query\.isError/);
 assert.equal((auth.match(/discardPrivateQueries\(\)/g) || []).length, 4,
   'Auth rejects account switching, logout, cross-tab logout and verified profile rejection');
+assert.match(auth, /refreshControl\.reset\(\)/,
+  'Nonpilot remote state must reset on account changes');
 assert.match(auth, /await restoreSession\(\)/);
 assert.match(auth, /await api\.get\('\/me'\)/);
 assert.match(requests, /const mountedViews = new Set\(\)/);
+assert.match(requests, /mountedViews\.delete\(view\)/, 'Legacy views discard state on unmount');
+assert.match(requests, /cancel\(\)/, 'Abandoned legacy requests are canceled');
 assert.match(requests, /sessionEpoch \+= 1/);
 assert.doesNotMatch(requests, /localStorage|sessionStorage|indexedDB/);
 assert.doesNotMatch(warmup, /api\.get|prefetchQuery|loadOnce/);
+const boot = read('frontend/src/performance/dashboardBoot.js');
+assert.match(boot, /await preloadInitialRoute\(/,
+  'Existing code-only preloading remains unchanged');
 assert(storage.includes('REACT_QUERY_OFFLINE_CACHE') &&
   storage.includes('TANSTACK_QUERY_OFFLINE_CACHE'));
 assert.match(backend, /SELECT id, name FROM branches ORDER BY id ASC/);
 assert.match(backend, /new AuthMiddleware\(\['admin', 'employee'\]\)/);
 assert.match(index, /withHeader\('Cache-Control', 'no-store'\)/);
+
+const addEmployee = read('frontend/src/components/AddEmployeeModal.jsx');
+const recruitment = read('frontend/src/pages/AdminRecruitment.jsx');
+const editEmployee = read('frontend/src/pages/AdminEmployeeEdit.jsx');
+assert.match(addEmployee, /if \(branchesLoading \|\| branchesError \|\|/,
+  'Employee creation must fail closed during branch lookup errors');
+assert.match(addEmployee, /disabled=\{loading \|\| branchesLoading \|\| branchesError \|\| !branches\.some/,
+  'Cannot submit a new employee with a missing or stale branch');
+assert.match(recruitment, /const validConversionBranch = !branchesLoading && !branchesError/,
+  'Candidate conversion requires a fresh enough valid branch selection');
+assert.match(recruitment, /if \(!selectedApp \|\| !validConversionBranch\)/,
+  'Candidate conversion handler refuses an invalid branch');
+assert.match(recruitment, /disabled=\{convertEmployeeMutation\.isPending \|\| !validConversionBranch\}/,
+  'Candidate conversion action is disabled without a valid branch');
+assert.match(editEmployee, /onClick=\{\(\) => void branchesQuery\.refetch\(\)\}/,
+  'Employee edit must offer a safe retry after a branch request error');
 
 console.log('Scoped in-memory branch cache, session isolation and SEC-021 policy PASS');
