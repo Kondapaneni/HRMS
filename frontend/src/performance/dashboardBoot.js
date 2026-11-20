@@ -4,30 +4,44 @@ import { preloadInitialRoute } from './routeWarmup';
 
 // Desktop and mobile share the request definition, not fetched records.
 // Every dashboard mount performs its own authorized, fresh server request.
+// Attendance, leave status, verified employee profile and lockout information
+// are safety-critical for the dashboard's check-in/check-out controls. These
+// must finish before the attendance terminal becomes interactive.
 export const employeeDashboardRequest = {
   scope: ['employee', 'dashboard'],
-  load: async () => {
-    const [
-      attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes,
-      holidaysRes, expensesRes, birthdaysRes,
-    ] = await Promise.all([
-      api.get('/employee/attendance').catch(() => ({ data: [] })),
-      api.get('/employee/leaves').catch(() => ({ data: null })),
-      api.get('/employee/performance').catch(() => ({ data: {} })),
-      api.get('/employee/profile').catch(() => ({ data: {} })),
-      api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } })),
-      api.get('/employee/maps-rate-limit-status').catch(() => ({ data: { locked: false } })),
-      api.get('/employee/holidays').catch(() => ({ data: [] })),
-      api.get('/employee/expenses').catch(() => ({ data: { expenses: [] } })),
-      api.get('/employee/birthdays').catch(() => ({ data: { birthdays: [] } })),
+  load: async ({ signal }) => {
+    const [attRes, leavesRes, profileRes, mapsRateRes] = await Promise.all([
+      api.get('/employee/attendance', { signal }).catch(() => ({ data: [] })),
+      api.get('/employee/leaves', { signal }).catch(() => ({ data: null })),
+      api.get('/employee/profile', { signal }).catch(() => ({ data: {} })),
+      api.get('/employee/maps-rate-limit-status', { signal }).catch(() => ({ data: { locked: false } })),
     ]);
     return {
       attendance: attRes.data,
       leaves: leavesRes.data,
-      performance: perfRes.data?.currentMonthSummary || null,
       fullProfile: profileRes.data?.profile || null,
-      latestPayslip: payslipsRes.data?.payslips?.[0] || null,
       mapsRateLimit: mapsRateRes.data,
+    };
+  },
+};
+
+// Non-critical dashboard cards are independent. A slow payslip, performance,
+// birthday, expense or holiday endpoint must not block the attendance terminal.
+// Results remain private, fresh per mounted view, and removed on logout.
+export const employeeDashboardExtrasRequest = {
+  scope: ['employee', 'dashboard', 'extras'],
+  load: async ({ signal }) => {
+    const [perfRes, payslipsRes, holidaysRes, expensesRes, birthdaysRes] =
+      await Promise.all([
+        api.get('/employee/performance', { signal }).catch(() => ({ data: {} })),
+        api.get('/employee/payroll', { signal }).catch(() => ({ data: { payslips: [] } })),
+        api.get('/employee/holidays', { signal }).catch(() => ({ data: [] })),
+        api.get('/employee/expenses', { signal }).catch(() => ({ data: { expenses: [] } })),
+        api.get('/employee/birthdays', { signal }).catch(() => ({ data: { birthdays: [] } })),
+      ]);
+    return {
+      performance: perfRes.data?.currentMonthSummary || null,
+      latestPayslip: payslipsRes.data?.payslips?.[0] || null,
       holidays: holidaysRes.data || [],
       expenses: expensesRes.data?.expenses || [],
       birthdays: birthdaysRes.data?.birthdays || [],
