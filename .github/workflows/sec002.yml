@@ -1,5 +1,10 @@
 name: SEC-002 email relay security regression
 on:
+  pull_request:
+    paths:
+      - 'supabase/functions/send-email/**'
+      - 'tests/sec002_email_test.mjs'
+      - '.github/workflows/sec002.yml'
   push:
     branches: ['main']
     paths:

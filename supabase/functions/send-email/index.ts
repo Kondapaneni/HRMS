@@ -1,6 +1,7 @@
 import nodemailer from 'npm:nodemailer';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { parseDeliveryEvent, claimPendingEmail } from './auth.mjs';
+import { gmailCredentials, safeEmailFailure } from './diagnostics.mjs';
 
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), {
@@ -30,6 +31,7 @@ Deno.serve(async (req: Request) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   let claimedId: string | null = null;
+  let deliveryStage = 'claim';
 
   try {
     // Never use to_email, subject, or body from the untrusted HTTP payload.
@@ -39,15 +41,25 @@ Deno.serve(async (req: Request) => {
     if (!email) return json(401, { error: 'Unauthorized' });
     claimedId = email.id;
 
-    const user = Deno.env.get('GMAIL_USER');
-    const pass = Deno.env.get('GMAIL_APP_PASSWORD');
-    if (!user || !pass) throw new Error('SMTP not configured');
-    if (!email.to_email || !email.subject || !email.body) throw new Error('Incomplete queued email');
+    const { user, pass } = gmailCredentials(Deno.env);
+    if (!user) {
+      deliveryStage = 'gmail-user-missing';
+      throw new Error('SMTP not configured');
+    }
+    if (!pass) {
+      deliveryStage = 'gmail-app-password-missing';
+      throw new Error('SMTP not configured');
+    }
+    if (!email.to_email || !email.subject || !email.body) {
+      deliveryStage = 'message-invalid';
+      throw new Error('Incomplete queued email');
+    }
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user, pass },
     });
+    deliveryStage = 'smtp-send';
     await transporter.sendMail({
       from: user,
       to: email.to_email,
@@ -55,6 +67,7 @@ Deno.serve(async (req: Request) => {
       html: email.body,
     });
 
+    deliveryStage = 'queue-complete';
     const { error: doneError } = await client.from('email_queue')
       .update({ status: 'processed' })
       .eq('id', claimedId)
@@ -71,7 +84,7 @@ Deno.serve(async (req: Request) => {
         .eq('status', 'processing');
       if (markError) console.error('SEC-002: unable to mark email as failed');
     }
-    console.error('SEC-002: email delivery failed', error instanceof Error ? error.name : 'unknown');
+    console.error(safeEmailFailure(deliveryStage, error));
     return json(503, { error: 'Email delivery failed' });
   }
 });
