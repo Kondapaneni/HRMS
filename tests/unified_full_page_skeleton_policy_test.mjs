@@ -48,6 +48,30 @@ for (const name of pages) {
 assert.deepEqual(remoteMissing, [],
   'Initial remote-data loaders must never be partial/spinners: ' + remoteMissing.join(', '));
 
+// The remaining modules are pure presentation, forms or action-only screens
+// with no initial remote-data waiting state. They must not flash an artificial
+// skeleton or hide an in-progress MFA/upload/attendance operation.
+const noInitialFetchModules = [
+  'AdminEmailTemplates',
+  'BranchOperationsLoansEditApplication','BranchOperationsMobileLoansEditApplication',
+  'CandidateLogin','CandidateMobileApplications','CandidateMobileDocuments',
+  'CandidateMobileJobs','CandidateMobileProfile',
+  'ChangePassword','ComingSoon','ForgotPassword','NotFound','Offline','ResetPassword',
+  'OriginationLoanForms','OriginationSaleForms',
+  'OriginationMobileLoanAddLead','OriginationMobileSaleAddLead',
+  'OriginationMobileLoanForms','OriginationMobileSaleForms',
+  'OriginationMobileLoanLeadDetails','OriginationMobileSaleLeadDetails'
+].map(name => name + '.jsx').sort();
+const actualNoPageLoader = pages.filter(name => !fullPage.includes(name));
+assert.deepEqual(actualNoPageLoader, noInitialFetchModules,
+  'Every HRMS page must use PageLoader when it has initial loading, or be an approved immediate view');
+for (const name of actualNoPageLoader) {
+  const src = read('frontend/src/pages/' + name);
+  assert.doesNotMatch(src, /useRemoteData\s*\(|api\.get\s*\(/,
+    'An immediate view cannot bypass the approved full-page skeleton for remote reads: ' + name);
+}
+
+
 const requiredDataPages = [
   'AdminDashboard','AdminEmployees','EmployeeDashboard','EmployeeMobileDashboard',
   'CandidateDashboard','CandidateMobileDashboard','OriginationLoanDashboard',
