@@ -395,6 +395,7 @@ export const AppShell = ({
             ============================================================ */}
         {!shouldHideBottomNav && bottomNavItems.length > 0 && (
           <BottomNav
+            onRouteIntent={onRouteIntent}
             items={bottomNavItems.map((item) => {
               const itemPath = item.to || item.path;
 
