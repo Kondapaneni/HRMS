@@ -441,7 +441,7 @@ const EmployeeMobileDashboard = () => {
             })
           ) : (
             <div className="text-center text-[var(--muted)] text-sm py-4 font-medium">
-              No upcoming birthdays.
+              {dashboardExtrasLoading ? 'Loading upcoming birthdays…' : 'No upcoming birthdays.'}
             </div>
           )}
         </div>
