@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRemoteData } from '../state/remote.js';
 import { getBranchDashboardData } from '../services/loanServices';
@@ -35,7 +36,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import BranchOperationsMobileDashboard from './BranchOperationsMobileDashboard';
 import { maskPhoneNumber, maskAddress } from '../utils/phoneUtils';
 
-const BranchOperationsDashboard = () => {
+const BranchOperationsDashboardDesktop = () => {
   const navigate = useNavigate();
   const [selectedPipeline, setSelectedPipeline] = useState('all'); // 'all' | 'loans' | 'sales'
   const [selectedEmployee, setSelectedEmployee] = useState('all');
@@ -127,12 +128,10 @@ const BranchOperationsDashboard = () => {
   return (
     <>
       {/* Mobile Screen View */}
-      <div className="md:hidden">
-        <BranchOperationsMobileDashboard />
-      </div>
+      
 
       {/* Desktop Screen View */}
-      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
+      <div className="space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -537,6 +536,11 @@ const BranchOperationsDashboard = () => {
       </div>
     </>
   );
+};
+
+const BranchOperationsDashboard = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <BranchOperationsMobileDashboard /> : <BranchOperationsDashboardDesktop />;
 };
 
 export default BranchOperationsDashboard;
