@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'frontend/src/**'
+      - 'backend/public/performance_helpers.php'
+      - 'backend/public/employee_performance_routes.php'
+      - 'tests/employee_ontime_score_test.php'
+      - 'tests/employee_ontime_score_contract_test.mjs'
       - 'frontend/vite.config.js'
       - 'frontend/index.html'
       - 'frontend/public/**'
@@ -37,6 +41,7 @@ jobs:
           node tests/layer2_http_cache_policy_test.mjs
           node tests/perf_navigation_spinner_policy_test.mjs
           node tests/unified_full_page_skeleton_policy_test.mjs
+          node tests/employee_ontime_score_contract_test.mjs
           node --test tests/mobile_orientation_navigation_test.mjs
           node tests/layer1_full_coverage_test.mjs
           node --test tests/loan_origination_directories_contract_test.mjs
@@ -46,6 +51,11 @@ jobs:
           node tests/sec012_policy_test.mjs
           node tests/sec008_frontend_security_test.mjs
           node tests/sec020_policy_test.mjs
+      - name: Verify server punctuality calculation against shift/check-in fixtures
+        run: |
+          php -l backend/public/performance_helpers.php
+          php -l backend/public/employee_performance_routes.php
+          php tests/employee_ontime_score_test.php
       - name: Build production frontend and verify chunking
         working-directory: frontend
         run: |
