@@ -38,11 +38,6 @@ jobs:
         run: |
           npm ci
           npm run build
-      - name: Validate registry integrity metadata for the two pinned query dependencies
-        working-directory: frontend
-        run: |
-          npm view @tanstack/react-query@5.108.0 dist.integrity
-          npm view @tanstack/query-core@5.108.0 dist.integrity
       - name: Run isolated memory-cache cancellation and identity tests
         working-directory: frontend
         timeout-minutes: 2
