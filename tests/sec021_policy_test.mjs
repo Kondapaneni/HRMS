@@ -18,8 +18,19 @@ const vite = read('frontend/vite.config.js');
 
 assert(!/PersistQueryClientProvider|createSyncStoragePersister|persistOptions/.test(root),
   'No TanStack query response is written to browser storage');
-assert(!root.includes('QueryClientProvider') && !root.includes('queryClient'),
-  'No React Query provider or private cross-route client cache exists');
+assert(entry.includes('<QueryClientProvider client={memoryQueryClient}>') &&
+  entry.includes('clearLegacySensitiveStorage()'),
+  'The scoped pilot is memory-only and bootstrap still wipes legacy private storage');
+const memoryClient = read('frontend/src/query/memoryClient.js');
+const branchHook = read('frontend/src/query/useBranchDirectory.js');
+assert.match(memoryClient, /memoryQueryClient\.clear\(\)/,
+  'Query cache must be immediately discarded on session transitions');
+assert.match(auth, /discardPrivateQueries\(\)/,
+  'All authenticated session transitions must discard the pilot cache');
+assert.match(branchHook, /verified && !permissionDenied && !query\.isError/,
+  'Unauthorized branch results cannot be displayed from a previous snapshot');
+assert(!/PersistQueryClientProvider|createSyncStoragePersister|persistQueryClient/.test(entry + memoryClient + branchHook),
+  'No TanStack persistence or offline cache allowed');
 assert(!/gcTime:\s*24\s*\*\s*60/.test(root), 'No 24-hour private query retention');
 assert(storage.includes('REACT_QUERY_OFFLINE_CACHE')
   && storage.includes('TANSTACK_QUERY_OFFLINE_CACHE'), 'Legacy persisted query payloads purged');

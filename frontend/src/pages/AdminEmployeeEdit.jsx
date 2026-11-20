@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import Button from '../components/ui/Button';
 import PaginationControls from '../components/ui/PaginationControls';
+import { useBranchDirectory } from '../query/useBranchDirectory.js';
 
 const AdminEmployeeEdit = () => {
   const { id } = useParams();
@@ -60,13 +61,7 @@ const AdminEmployeeEdit = () => {
     reloadOnFocus: false,
   });
 
-  const branchesQuery = useRemoteData({
-    scope: ['admin', 'branches'],
-    load: async () => {
-      const res = await api.get('/branches');
-      return res.data.branches || [];
-    }
-  });
+  const branchesQuery = useBranchDirectory();
 
   const shiftsQuery = useRemoteData({
     scope: ['admin', 'shifttimes'],
@@ -143,6 +138,20 @@ const AdminEmployeeEdit = () => {
 
   if (loading) {
     return <PageLoader message="Loading employee data..." />;
+  }
+  if (branchesQuery.isError) {
+    return (
+      <div role="alert" className="p-4 text-sm text-red-600">
+        Unable to load the branch directory. Please retry before editing an employee.
+        <button
+          type="button"
+          className="ml-2 underline cursor-pointer"
+          onClick={() => void branchesQuery.refetch()}
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   return (

@@ -1,4 +1,4 @@
-name: Fresh request state / no shared cache regression
+name: Secure memory-only branch cache and fresh request regression
 on:
   pull_request:
     paths:
@@ -6,6 +6,8 @@ on:
       - 'frontend/package.json'
       - 'frontend/package-lock.json'
       - 'tests/no_shared_cache_policy_test.mjs'
+      - 'tests/branch_cache_pilot_runtime_test.mjs'
+      - 'tests/branch_cache_pilot_mounted_browser_test.mjs'
       - 'tests/mounted_remote_requests_test.mjs'
       - '.github/workflows/no_shared_cache.yml'
   workflow_dispatch:
@@ -21,7 +23,7 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Enforce no React Query imports, cache or persistence
+      - name: Enforce narrowly scoped memory-only branch cache and no persistence
         run: node tests/no_shared_cache_policy_test.mjs
       - name: Verify auth, maintenance and frontend navigation protections
         run: |
@@ -37,11 +39,22 @@ jobs:
         run: |
           npm ci
           npm run build
-      - name: Synthetic mounted view and auth-reset lifecycle
+      - name: Run isolated memory-cache cancellation and identity tests
         working-directory: frontend
-        run: |
-          npm install --no-save --package-lock=false --no-audit --no-fund jsdom@26.1.0
-          node ../tests/mounted_remote_requests_test.mjs
+        timeout-minutes: 2
+        run: timeout 60s node --test ../tests/branch_cache_pilot_runtime_test.mjs
+      - name: Install isolated browser test support
+        working-directory: frontend
+        timeout-minutes: 3
+        run: npm install --no-save --package-lock=false --no-audit --no-fund jsdom@26.1.0
+      - name: Run real branch hook in synthetic browser with mocked authentication
+        working-directory: frontend
+        timeout-minutes: 2
+        run: timeout 60s node --test ../tests/branch_cache_pilot_mounted_browser_test.mjs
+      - name: Run existing mounted-view and auth-reset lifecycle tests
+        working-directory: frontend
+        timeout-minutes: 2
+        run: timeout 60s node ../tests/mounted_remote_requests_test.mjs
       - name: Recheck client protections in generated bundle
         run: |
           node tests/no_shared_cache_policy_test.mjs
