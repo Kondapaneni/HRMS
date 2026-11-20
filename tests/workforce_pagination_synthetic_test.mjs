@@ -102,6 +102,10 @@ test('selectors do not truncate at 200, 500, 1000 or silently select a whole org
   assert.match(training,/Select visible page/);
   const assessment=read('frontend/src/pages/AssessmentCreate.jsx');
   assert.match(assessment,/Select visible page/);
+  assert.match(assessment,/selectedQuestionDetails/);
+  assert.match(assessment,/selectedObjects\.some/);
+  assert.doesNotMatch(assessment,/return \{ id: qId \}/,
+    'Previously loaded pages must not degrade assessment questions into id-only objects');
 });
 test('report aggregates, assessments and recruitment have pagination, not loaded-page totals', () => {
   const reports=read('backend/public/admin_reports_routes.php');
