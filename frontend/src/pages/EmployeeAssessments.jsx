@@ -188,7 +188,7 @@ const EmployeeAssessments = () => {
   // is still on the previous day. Refresh on India midnight/tab resume.
   const todayStr = useAssessmentBusinessDate();
 
-  // Optimized React Query config (Requirement 7)
+  // Fresh assessment request; never reuse an earlier assignment snapshot.
   const { data: assessments = [], isLoading, isError } = useRemoteData({
     scope: ['employeeAssessments', todayStr],
     load: async () => {
