@@ -17,8 +17,8 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const React = require('react');
 const { createRoot } = require('react-dom/client');
-const { QueryClientProvider } = require('@tanstack/react-query');
-const { memoryQueryClient } = await import('../frontend/src/query/memoryClient.js');
+const { QueryClientProvider, memoryQueryClient } =
+  await import('../frontend/src/query/memoryClient.js');
 const { act, createElement } = React;
 const { useRemoteData, useRemoteTask, useRefreshControl } =
   await import('../frontend/src/state/remote.js');
