@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React from 'react';
 import { useRemoteData } from '../state/remote.js';
 import { getSalesDashboardData, getSalesLeads } from '../services/salesServices';
@@ -32,7 +33,7 @@ import { Link } from 'react-router-dom';
 import OriginationMobileSaleDashboard from './OriginationMobileSaleDashboard';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 
-const OriginationSaleDashboard = () => {
+const OriginationSaleDashboardDesktop = () => {
   const { data, isLoading } = useRemoteData({
     scope: ['salesDashboard'],
     load: getSalesDashboardData
@@ -111,12 +112,10 @@ const OriginationSaleDashboard = () => {
   return (
     <>
       {/* Mobile View */}
-      <div className="md:hidden">
-        <OriginationMobileSaleDashboard />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
+      <div className="space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -378,6 +377,11 @@ const OriginationSaleDashboard = () => {
       </div>
     </>
   );
+};
+
+const OriginationSaleDashboard = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <OriginationMobileSaleDashboard /> : <OriginationSaleDashboardDesktop />;
 };
 
 export default OriginationSaleDashboard;
