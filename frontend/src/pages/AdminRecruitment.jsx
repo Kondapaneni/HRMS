@@ -36,6 +36,7 @@ import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import PaginationControls from '../components/ui/PaginationControls';
+import { useBranchDirectory } from '../query/useBranchDirectory.js';
 
 const AdminRecruitment = () => {
   const navigate = useNavigate();
@@ -107,13 +108,7 @@ const AdminRecruitment = () => {
   const jobChoices = jobChoicesResponse?.jobs || [];
   const jobChoicesTotal = Number(jobChoicesResponse?.total || 0);
 
-  const { data: branches = [] } = useRemoteData({
-    scope: ['admin', 'branches'],
-    load: async () => {
-      const res = await api.get('/branches');
-      return res.data.branches || [];
-    }
-  });
+  const { data: branches = [], isError: branchesError } = useBranchDirectory();
 
   // Job Modal State
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
@@ -1098,6 +1093,7 @@ const AdminRecruitment = () => {
                         <option key={b.id} value={b.id}>{b.name}</option>
                       ))}
                     </select>
+                    {branchesError && <p role="alert" className="mt-1 text-xs text-red-600">Unable to load branches. Refresh this page before converting.</p>}
                   </div>
                   <div>
                     <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Join date *</label>
