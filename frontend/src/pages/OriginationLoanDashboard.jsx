@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React from 'react';
 import { useRemoteData } from '../state/remote.js';
 import { getDashboardData, getLeads } from '../services/loanServices';
@@ -31,7 +32,7 @@ import { Link } from 'react-router-dom';
 import OriginationMobileLoanDashboard from './OriginationMobileLoanDashboard';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 
-const OriginationLoanDashboard = () => {
+const OriginationLoanDashboardDesktop = () => {
   const { data, isLoading } = useRemoteData({
     scope: ['leadsDashboard'],
     load: getDashboardData
@@ -110,12 +111,10 @@ const OriginationLoanDashboard = () => {
   return (
     <>
       {/* Mobile View */}
-      <div className="md:hidden">
-        <OriginationMobileLoanDashboard />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
+      <div className="space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -377,6 +376,11 @@ const OriginationLoanDashboard = () => {
       </div>
     </>
   );
+};
+
+const OriginationLoanDashboard = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <OriginationMobileLoanDashboard /> : <OriginationLoanDashboardDesktop />;
 };
 
 export default OriginationLoanDashboard;
