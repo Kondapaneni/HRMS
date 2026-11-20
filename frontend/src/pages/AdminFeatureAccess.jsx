@@ -146,7 +146,9 @@ const AdminFeatureAccess = () => {
 
   const saveRolesMutation = useRemoteTask({
     run: async (changes) => {
-      await Promise.all(
+      // Await EVERY individual update before refreshing the authoritative
+      // directory. Promise.all rejects early while other writes may continue.
+      const results = await Promise.allSettled(
         changes.map(change =>
           api.post('/admin/feature-access', {
             userId: change.userId,
@@ -155,6 +157,9 @@ const AdminFeatureAccess = () => {
           })
         )
       );
+      if (results.some(result => result.status === 'rejected')) {
+        throw new Error('Some requested permission changes were not applied');
+      }
     },
     onError: () => {
       refreshControl.refresh({ scope: ['admin', 'feature-access'] });
