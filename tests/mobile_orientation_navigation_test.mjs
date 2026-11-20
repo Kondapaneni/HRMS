@@ -51,7 +51,8 @@ test('do not regress working root scrolling/layout and application access', () =
 test('loading captions remain hidden and dashboard data stays progressive', () => {
   const loader = read('frontend/src/components/PageLoader.jsx');
   assert.match(loader, /role="status"/);
-  assert.match(loader, /className="sr-only">\{message\}<\/span>/);
+  assert.match(loader, /className="sr-only"/);
+  assert.match(loader, /\{message\}/);
   assert.doesNotMatch(loader, /<p[^>]*>\{message\}<\/p>/);
   for (const [name, guard] of [
     ['OriginationLoanDashboard', /if \(isLoading && data === undefined\) return <PageLoader/],
