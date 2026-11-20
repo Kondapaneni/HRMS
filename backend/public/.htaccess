@@ -50,14 +50,14 @@ DirectoryIndex index.html index.php
     # filename AND original request path must match before applying immutable
     # caching. This excludes dynamic media, API responses, and SPA 404 fallbacks.
     SetEnvIf Request_URI "^/assets/" HRMS_VITE_ASSET=1
-    <FilesMatch "^.+-[A-Za-z0-9_-]{8,}\\.(?:js|mjs|css|woff2?|ttf|otf|eot|png|jpe?g|gif|svg|webp|avif|ico)$">
+    <FilesMatch "^.+-[A-Za-z0-9_-]{8,}\.(?:js|mjs|css|woff2?|ttf|otf|eot|png|jpe?g|gif|svg|webp|avif|ico)$">
         Header onsuccess unset Cache-Control env=HRMS_VITE_ASSET
         Header always set Cache-Control "public, max-age=31536000, immutable" env=HRMS_VITE_ASSET
     </FilesMatch>
 
     # Stable, non-hashed branding may change between releases, so retain it
     # briefly rather than incorrectly marking those URLs immutable.
-    <FilesMatch "^(?:favicon\\.png|logo\\.png|apple-touch-icon\\.png|pwa-(?:192|512)x(?:192|512)\\.png)$">
+    <FilesMatch "^(?:favicon\.png|logo\.png|apple-touch-icon\.png|pwa-(?:192|512)x(?:192|512)\.png)$">
         Header onsuccess unset Cache-Control
         Header always set Cache-Control "public, max-age=3600, must-revalidate"
     </FilesMatch>
