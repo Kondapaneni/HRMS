@@ -24,8 +24,8 @@ assert.doesNotMatch(shared, /Loader2|animate-spin/,
 assert.match(bridge, /return <PageLoader message="Opening page\.\.\." \/>/);
 assert.match(shell, /<Suspense fallback=\{<RouteSkeleton\s*\/>\}>/,
   'Nested code-split routes retain navigation and show the shared skeleton');
-assert.match(app, /<Suspense fallback=\{<PageLoader message="Opening page\.\.\." \/>\}>/,
-  'All lazy page routes must fall back to the same full-page skeleton');
+assert.match(app, /<Suspense fallback=\{null\}>/,
+  'Preserve the splash and existing top-level navigation; nested shells provide PageLoader');
 assert.match(guard, /<PageLoader message="Verifying your session\.\.\."/);
 assert.match(guard, /<PageLoader message="Verifying your permissions\.\.\."/);
 assert(!/min-h-screen flex items-center justify-center bg-slate-50/.test(guard),
