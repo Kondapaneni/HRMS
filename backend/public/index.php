@@ -180,7 +180,9 @@ $app->get('/version.json', function (Request $request, Response $response, $args
             'commit' => 'live'
         ]));
     }
-    return $response->withHeader('Content-Type', 'application/json');
+    return $response->withHeader('Content-Type', 'application/json')
+        ->withHeader('Cache-Control', 'no-store')
+        ->withHeader('Pragma', 'no-cache');
 });
 
 use App\Utils\RateLimiter;
