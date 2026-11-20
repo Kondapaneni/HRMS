@@ -259,6 +259,10 @@ $app->get('/api/admin/payroll/pending-employees', function (Request $request, Re
     $month = isset($params['month']) ? (int)$params['month'] : date('n');
     $year = isset($params['year']) ? (int)$params['year'] : date('Y');
     $search = trim($params['search'] ?? '');
+    $limit = min(100, max(1, (int)($params['limit'] ?? 50)));
+    $offset = isset($params['offset']) ? max(0, (int)$params['offset'])
+        : (max(1, (int)($params['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
 
     $whereSearch = '';
     $queryParams = [$month, $year];
@@ -281,14 +285,35 @@ $app->get('/api/admin/payroll/pending-employees', function (Request $request, Re
             SELECT 1 FROM payslips p WHERE p.\"employeeId\" = e.\"userId\" AND p.month = ? AND p.year = ?
         )
         {$whereSearch}
-        ORDER BY e.\"firstName\" ASC
+        ORDER BY e.\"firstName\" ASC, e.id ASC
+        LIMIT ? OFFSET ?
     ";
     
     $stmt = $conn->prepare($query);
-    $stmt->execute($queryParams);
+    $position = 1;
+    foreach ($queryParams as $parameter) $stmt->bindValue($position++, $parameter);
+    $stmt->bindValue($position++, $limit, PDO::PARAM_INT);
+    $stmt->bindValue($position, $offset, PDO::PARAM_INT);
+    $stmt->execute();
     $pendingEmployees = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $response->getBody()->write(json_encode(['employees' => $pendingEmployees]));
+    $countQuery = "
+        SELECT COUNT(*) FROM employee e
+        WHERE e.status = 'active'
+        AND NOT EXISTS (SELECT 1 FROM payslips p WHERE p.\"employeeId\" = e.\"userId\" AND p.month = ? AND p.year = ?)
+        {$whereSearch}
+    ";
+    $countStmt = $conn->prepare($countQuery);
+    $countStmt->execute($queryParams);
+    $totalCount = (int)$countStmt->fetchColumn();
+
+    $response->getBody()->write(json_encode([
+        'employees' => $pendingEmployees, 'total' => $totalCount,
+        'pagination' => ['page' => $page, 'limit' => $limit, 'total' => $totalCount,
+            'totalPages' => (int)ceil($totalCount / $limit),
+            'hasNextPage' => $offset + count($pendingEmployees) < $totalCount,
+            'hasPreviousPage' => $offset > 0]
+    ]));
     return $response->withHeader('Content-Type', 'application/json');
 })->add(new AuthMiddleware(['admin'], 'payroll'));
 
