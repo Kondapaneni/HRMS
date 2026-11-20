@@ -30,6 +30,10 @@ test('portrait always removes the overlay even if a WebView media query is stale
   assert.equal(isLandscapeWarningActive(view), false,
     'Known portrait orientation cannot leave a touch-blocking overlay mounted');
   view.screen.orientation.type = 'landscape-primary';
+  assert.equal(isLandscapeWarningActive(view), false,
+    'A portrait-shaped viewport also vetoes an outdated landscape event');
+  view.innerWidth = 900;
+  view.innerHeight = 400;
   assert.equal(isLandscapeWarningActive(view), true,
     'Short-width landscape should show the rotation warning');
   media.matches = false;
