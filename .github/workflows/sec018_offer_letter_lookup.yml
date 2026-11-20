@@ -40,6 +40,9 @@ jobs:
       PGPASSWORD: sec018_offer_ci_only
     steps:
       - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
       - name: PHP syntax and report-only PDF frame rule
         run: |
           php -l backend/public/admin_recruitment_routes.php
