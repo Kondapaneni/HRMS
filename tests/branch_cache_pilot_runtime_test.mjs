@@ -49,6 +49,52 @@ test('targeted invalidation requires the branch directory to be fetched again', 
   discardPrivateQueries();
 });
 
+test('same account with a changed role, organization, or branch has a different key', () => {
+  const key = branchesKey(alice);
+  assert.notDeepEqual(key, branchesKey({ ...alice, role: 'employee' }));
+  assert.notDeepEqual(key, branchesKey({ ...alice, organizationId: 'org-2' }));
+  assert.notDeepEqual(key, branchesKey({ ...alice, branchId: 'branch-2' }));
+  assert(!JSON.stringify(key).includes('Authorization'));
+});
+
+test('a late request cannot restore old-account data after logout', async () => {
+  discardPrivateQueries();
+  let finish;
+  let canceled = false;
+  const pending = memoryQueryClient.fetchQuery({
+    queryKey: branchesKey(alice),
+    queryFn: ({ signal }) => new Promise(resolve => {
+      finish = resolve;
+      signal.addEventListener('abort', () => { canceled = true; }, { once: true });
+    }),
+    staleTime: 300_000,
+    gcTime: 300_000,
+  });
+  assert.equal(typeof finish, 'function');
+  discardPrivateQueries();
+  assert.equal(canceled, true, 'Logout aborts an in-flight branch request');
+  finish([{ id: 'late', name: 'Do not leak' }]);
+  await pending.catch(() => {});
+  assert.equal(memoryQueryClient.getQueryData(branchesKey(alice)), undefined);
+});
+
+test('expired branch references refresh and replace previously cached rows', async () => {
+  discardPrivateQueries();
+  memoryQueryClient.setQueryData(branchesKey(alice),
+    [{ id: 'old', name: 'Old branch' }],
+    { updatedAt: Date.now() - 300_001 });
+  let calls = 0;
+  const value = await memoryQueryClient.fetchQuery({
+    queryKey: branchesKey(alice),
+    queryFn: async () => { calls++; return [{ id: 'new', name: 'Current branch' }]; },
+    staleTime: 300_000,
+    gcTime: 300_000,
+  });
+  assert.equal(calls, 1);
+  assert.deepEqual(value, [{ id: 'new', name: 'Current branch' }]);
+  discardPrivateQueries();
+});
+
 test('the memory query cache starts empty and retains nothing after account reset', () => {
   assert.equal(memoryQueryClient.getQueryCache().getAll().length, 0);
   assert.equal(memoryQueryClient.getDefaultOptions().queries.gcTime, 0,
