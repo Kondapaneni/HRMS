@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { useRemoteData } from '../state/remote.js';
+import { fetchPublishedJobCatalog } from '../query/publishedJobCatalog.js';
 import {
   Briefcase,
   FileText,
@@ -81,16 +82,16 @@ const CandidateDashboard = () => {
     load: async () => {
       if (!profile?.id) return null;
 
-      const [profileRes, appsRes, jobsRes] = await Promise.all([
+      const [profileRes, appsRes, jobs] = await Promise.all([
         api.get('/candidate/profile').catch(() => ({ data: { profile: null } })),
         api.get('/candidate/applications').catch(() => ({ data: { applications: [] } })),
-        api.get('/candidate/jobs').catch(() => ({ data: { jobs: [] } }))
+        fetchPublishedJobCatalog(profile).catch(() => [])
       ]);
 
       return {
         profileData: profileRes.data.profile || null,
         appsData: appsRes.data.applications || [],
-        jobsData: jobsRes.data.jobs || []
+        jobsData: jobs
       };
     },
     enabled: !!profile?.id,

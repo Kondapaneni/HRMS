@@ -12,7 +12,10 @@ const employeeView = read('frontend/src/pages/AdminEmployeeView.jsx');
 const regularize = read('frontend/src/pages/AdminAttendanceRegularize.jsx');
 const docs = read('frontend/src/pages/AdminVerifyDocuments.jsx');
 const requests = read('frontend/src/state/remote.js');
-assert.match(requests, /No data is retained when a view unmounts/);
+assert.match(requests, /gcTime: retention\?\.gcTime \?\? 0/,
+  'Private HRMS reads must still have zero inactive retention by default');
+assert.match(read('frontend/src/query/retentionPolicy.js'), /getRemoteRetention/,
+  'Only explicit low-risk reference reads may retain cache entries');
 assert.doesNotMatch(app, /QueryClient|PersistQueryClientProvider/);
 assert.match(app, /<AuthProvider>/);
 // A production incident proved Vite can build when a route guard references

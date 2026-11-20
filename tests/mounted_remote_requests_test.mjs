@@ -17,7 +17,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const React = require('react');
 const { createRoot } = require('react-dom/client');
-const { QueryClientProvider, memoryQueryClient } =
+const { QueryClientProvider, memoryQueryClient, discardPrivateQueries } =
   await import('../frontend/src/query/memoryClient.js');
 const { act, createElement } = React;
 const { useRemoteData, useRemoteTask, useRefreshControl } =
@@ -80,6 +80,50 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   assert(current.data.sequence > first + 1, 'Revisit must fetch new data rather than use an old snapshot');
   await act(async () => { root.unmount(); });
   host.remove();
+});
+
+test('safe holiday list is retained briefly, refresh invalidates and logout removes it', async () => {
+  const bus = useRefreshControl();
+  let calls = 0;
+  let current;
+  const scope = ['employee', 'holidays', '2026-11'];
+  const Probe = () => {
+    current = useRemoteData({
+      scope,
+      reloadOnFocus: false,
+      load: async () => [{ date: '2026-11-20', sequence: ++calls }],
+    });
+    return createElement('span', null, current.data?.[0]?.sequence ?? 'loading');
+  };
+  const host = document.createElement('section');
+  document.body.append(host);
+  let root = createRoot(host);
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
+  await waitFor(() => current.data?.[0]?.sequence === 1, 'first holiday request');
+  await act(async () => { root.unmount(); });
+  assert.equal(calls, 1);
+  assert.equal(memoryQueryClient.getQueryCache()
+    .findAll({ queryKey: ['hrms', 'retained-read'] }).length, 1,
+    'A reviewed holiday reference may survive unmount temporarily');
+
+  root = createRoot(host);
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
+  await waitFor(() => current.data?.[0]?.sequence === 1, 'holiday cache reuse');
+  assert.equal(calls, 1, 'Returning before expiry must reuse the cached calendar');
+
+  await act(async () => {
+    await bus.refresh({ scope: ['employee', 'holidays'] });
+    await next();
+  });
+  await waitFor(() => current.data?.[0]?.sequence === 2, 'holiday invalidation');
+  assert.equal(calls, 2, 'An explicit refresh must fetch changed holiday data');
+  await act(async () => { root.unmount(); });
+  host.remove();
+
+  discardPrivateQueries();
+  bus.reset();
+  assert.equal(memoryQueryClient.getQueryCache().findAll().length, 0,
+    'Logout must discard every retained reference entry');
 });
 
 test('logout reset discards mounted private state and prevents stale request completion', async () => {
