@@ -15,6 +15,12 @@ existing route tests and renders `PageLoader`, not a second skeleton design. Pro
 also render this shared loader without revealing previous account data.
 
 ## Data-loading coverage
+Current inventory: **115 page modules**. **93 modules** render the shared
+PageLoader for their initial data/loading states. The remaining **22 modules**
+are immediate-render forms, action-only screens, or presentational children
+whose parent already guards the fetch; they must not flash a fake skeleton
+when nothing is loading. The CI policy inventories all 115 modules explicitly.
+
 When an HRMS page makes its initial authorized `useRemoteData` request,
 render `<PageLoader message="Loading …" />` while it waits. This applies
 to Admin, Employee, Candidate, Loan Origination, Sales Origination and
