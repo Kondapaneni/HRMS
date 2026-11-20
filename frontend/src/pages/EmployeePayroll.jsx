@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
@@ -63,7 +64,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   );
 };
 
-const EmployeePayroll = () => {
+const EmployeePayrollDesktop = () => {
   const { profile } = useAuth();
   const [selectedPayslip, setSelectedPayslip] = useState(null);
 
@@ -139,12 +140,10 @@ const EmployeePayroll = () => {
   return (
     <>
       {/* Mobile Experience Render */}
-      <div className="md:hidden">
-        <EmployeeMobilePayroll profile={profile} />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -438,6 +437,12 @@ const EmployeePayroll = () => {
 
     </>
   );
+};
+
+const EmployeePayroll = () => {
+  const mobile = useMobileViewport();
+  const { profile } = useAuth();
+  return mobile ? <EmployeeMobilePayroll profile={profile} /> : <EmployeePayrollDesktop />;
 };
 
 export default EmployeePayroll;

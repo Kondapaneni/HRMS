@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -108,7 +109,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'teal' }) =
   );
 };
 
-const BranchOperationsLoansApplicationsList = () => {
+const BranchOperationsLoansApplicationsListDesktop = () => {
   const navigate = useNavigate();
   const markAsSeen = useBranchOperationsApplicationReadState();
   const [searchTerm, setSearchTerm] = useState('');
@@ -327,12 +328,10 @@ const BranchOperationsLoansApplicationsList = () => {
   return (
     <>
       {/* Mobile Screen View */}
-      <div className="md:hidden">
-        <BranchOperationsMobileLoansApplicationsList />
-      </div>
+      
 
       {/* Web Desktop View */}
-      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
+      <div className="space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -910,6 +909,11 @@ const BranchOperationsLoansApplicationsList = () => {
       )}
     </>
   );
+};
+
+const BranchOperationsLoansApplicationsList = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <BranchOperationsMobileLoansApplicationsList /> : <BranchOperationsLoansApplicationsListDesktop />;
 };
 
 export default BranchOperationsLoansApplicationsList;

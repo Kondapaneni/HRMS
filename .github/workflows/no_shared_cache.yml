@@ -6,6 +6,7 @@ on:
       - 'frontend/package.json'
       - 'frontend/package-lock.json'
       - 'tests/no_shared_cache_policy_test.mjs'
+      - 'tests/layer1_full_coverage_test.mjs'
       - 'tests/perf_navigation_spinner_policy_test.mjs'
       - 'tests/branch_cache_pilot_runtime_test.mjs'
       - 'tests/branch_cache_pilot_mounted_browser_test.mjs'
@@ -34,6 +35,7 @@ jobs:
           node tests/perf_cold_route_policy_test.mjs
           node tests/perf_frontend_policy_test.mjs
           node tests/perf_navigation_spinner_policy_test.mjs
+          node tests/layer1_full_coverage_test.mjs
           node tests/perf_refresh_boot_policy_test.mjs
           node --test tests/splash_employee_id_ui.test.mjs
       - name: Build frontend from clean, audited lockfile

@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
@@ -21,7 +22,7 @@ import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 
-const EmployeeLeaves = () => {
+const EmployeeLeavesDesktop = () => {
   const refreshControl = useRefreshControl();
   const [, setError] = useState('');
 
@@ -227,12 +228,10 @@ const EmployeeLeaves = () => {
   return (
     <>
       {/* Mobile Experience Render */}
-      <div className="md:hidden">
-        <EmployeeMobileLeaves setIsModalOpen={setIsModalOpen} />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -570,6 +569,11 @@ const EmployeeLeaves = () => {
       )}
     </>
   );
+};
+
+const EmployeeLeaves = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <EmployeeMobileLeaves /> : <EmployeeLeavesDesktop />;
 };
 
 export default EmployeeLeaves;

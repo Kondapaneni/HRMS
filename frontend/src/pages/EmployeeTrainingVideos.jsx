@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
@@ -23,7 +24,7 @@ import EmployeeMobileTrainingVideos from './EmployeeMobileTrainingVideos';
 import PageLoader from '../components/PageLoader';
 import toast from 'react-hot-toast';
 
-const EmployeeTrainingVideos = () => {
+const EmployeeTrainingVideosDesktop = () => {
   const refreshControl = useRefreshControl();
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -138,12 +139,10 @@ const EmployeeTrainingVideos = () => {
   return (
     <>
       {/* Mobile Experience */}
-      <div className="md:hidden">
-        <EmployeeMobileTrainingVideos />
-      </div>
+      
 
       {/* Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -680,6 +679,11 @@ const EmployeeTrainingVideos = () => {
       )}
     </>
   );
+};
+
+const EmployeeTrainingVideos = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <EmployeeMobileTrainingVideos /> : <EmployeeTrainingVideosDesktop />;
 };
 
 export default EmployeeTrainingVideos;

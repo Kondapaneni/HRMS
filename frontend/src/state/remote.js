@@ -248,9 +248,16 @@ export function useRemoteData(options) {
   useEffect(() => {
     if (!reloadOnFocus) return;
     const onFocus = () => {
-      if (document.visibilityState === 'visible' && activeRef.current) {
-        void reload();
-      }
+      if (document.visibilityState !== 'visible' || !activeRef.current) return;
+      const state = queryClient.getQueryState(queryKey);
+      // A focus event and visibilitychange may fire together. Never send
+      // duplicate authorized GETs while the same view is already fetching.
+      if (state?.fetchStatus === 'fetching') return;
+      // Retained reference data follows its real TTL on window focus.
+      // Explicit invalidation bypasses freshness immediately.
+      if (retention && state?.dataUpdatedAt && !state.isInvalidated &&
+          Date.now() - state.dataUpdatedAt < retention.staleTime) return;
+      void reload();
     };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onFocus);
@@ -258,7 +265,7 @@ export function useRemoteData(options) {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onFocus);
     };
-  }, [reloadOnFocus, reload]);
+  }, [reloadOnFocus, reload, queryClient, queryId, retention?.staleTime]);
 
   useEffect(() => {
     if (!pollEveryMs || !active) return;

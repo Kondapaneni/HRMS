@@ -7,6 +7,7 @@ const require = createRequire(new URL('../frontend/package.json', import.meta.ur
 const { JSDOM } = require('jsdom');
 const dom = new JSDOM('<!doctype html><html><body><main id="app"></main></body></html>', {
   url: 'https://synthetic.invalid/',
+  pretendToBeVisual: true, // focus/visibility regression must simulate a visible tab
 });
 globalThis.window = dom.window;
 globalThis.document = dom.window.document;
@@ -124,6 +125,51 @@ test('safe holiday list is retained briefly, refresh invalidates and logout remo
   bus.reset();
   assert.equal(memoryQueryClient.getQueryCache().findAll().length, 0,
     'Logout must discard every retained reference entry');
+});
+
+test('reference focus refetch respects TTL and invalidation, without duplicate GETs', async () => {
+  let current;
+  let calls = 0;
+  const scope = ['employee', 'holidays', '2026-12'];
+  const Probe = () => {
+    current = useRemoteData({
+      scope,
+      load: async () => [{ sequence: ++calls }],
+      reloadOnFocus: true,
+    });
+    return createElement('span', null, current.data?.[0]?.sequence ?? 'loading');
+  };
+  const host = document.createElement('section');
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
+  await waitFor(() => current.data?.[0]?.sequence === 1, 'first December reference');
+  await act(async () => {
+    window.dispatchEvent(new window.Event('focus'));
+    document.dispatchEvent(new window.Event('visibilitychange'));
+    await next();
+  });
+  assert.equal(calls, 1, 'A fresh reference must not refetch on tab focus');
+
+  const retained = memoryQueryClient.getQueryCache()
+    .findAll({ queryKey: ['hrms', 'retained-read'] })
+    .find(q => q.meta?.scope?.[2] === '2026-12');
+  assert(retained, 'Expected a retained, scoped December calendar');
+  await act(async () => {
+    memoryQueryClient.setQueryData(retained.queryKey, [{ sequence: 1 }],
+      { updatedAt: Date.now() - 4 * 60 * 1000 });
+    await next();
+  });
+  await act(async () => {
+    window.dispatchEvent(new window.Event('focus'));
+    document.dispatchEvent(new window.Event('visibilitychange'));
+    await next();
+  });
+  await waitFor(() => current.data?.[0]?.sequence === 2, 'stale focus reload');
+  assert.equal(calls, 2, 'Double focus events must not duplicate the API request');
+  await act(async () => { root.unmount(); });
+  host.remove();
+  discardPrivateQueries();
 });
 
 test('logout reset discards mounted private state and prevents stale request completion', async () => {

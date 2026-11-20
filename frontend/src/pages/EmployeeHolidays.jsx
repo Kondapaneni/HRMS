@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { 
@@ -57,7 +58,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   );
 };
 
-const EmployeeHolidays = () => {
+const EmployeeHolidaysDesktop = () => {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -101,12 +102,10 @@ const EmployeeHolidays = () => {
   return (
     <>
       {/* Mobile Experience Render */}
-      <div className="md:hidden">
-        <EmployeeMobileHolidays />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -318,6 +317,11 @@ const EmployeeHolidays = () => {
       </div>
     </>
   );
+};
+
+const EmployeeHolidays = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <EmployeeMobileHolidays /> : <EmployeeHolidaysDesktop />;
 };
 
 export default EmployeeHolidays;

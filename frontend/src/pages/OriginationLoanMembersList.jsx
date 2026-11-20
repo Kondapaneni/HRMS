@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState } from 'react';
 import { useRemoteData } from '../state/remote.js';
 import SearchBar from '../components/ui/SearchBar';
@@ -8,7 +9,7 @@ import MemberDetailsSidebar from '../components/MemberDetailsSidebar';
 import OriginationMobileLoanMemberList from './OriginationMobileLoanMemberList';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 
-const OriginationLoanMembersList = () => {
+const OriginationLoanMembersListDesktop = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
@@ -63,12 +64,10 @@ const OriginationLoanMembersList = () => {
   return (
     <>
       {/* Mobile View */}
-      <div className="md:hidden">
-        <OriginationMobileLoanMemberList />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
+      <div className="space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -193,6 +192,11 @@ const OriginationLoanMembersList = () => {
       />
     </>
   );
+};
+
+const OriginationLoanMembersList = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <OriginationMobileLoanMemberList /> : <OriginationLoanMembersListDesktop />;
 };
 
 export default OriginationLoanMembersList;

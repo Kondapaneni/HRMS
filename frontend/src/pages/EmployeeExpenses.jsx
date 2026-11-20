@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
@@ -66,7 +67,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   );
 };
 
-const EmployeeExpenses = () => {
+const EmployeeExpensesDesktop = () => {
   const { profile } = useAuth();
   const refreshControl = useRefreshControl();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -184,12 +185,10 @@ const EmployeeExpenses = () => {
   return (
     <>
       {/* Mobile Experience Render */}
-      <div className="md:hidden">
-        <EmployeeMobileExpenses />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -499,6 +498,11 @@ const EmployeeExpenses = () => {
 
     </>
   );
+};
+
+const EmployeeExpenses = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <EmployeeMobileExpenses /> : <EmployeeExpensesDesktop />;
 };
 
 export default EmployeeExpenses;

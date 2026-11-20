@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRemoteData } from '../state/remote.js';
 import { 
@@ -20,7 +21,7 @@ import { getBranchLeads } from '../services/loanServices';
 import { maskPhoneNumber, maskAddress } from '../utils/phoneUtils';
 import PageLoader from '../components/PageLoader';
 
-const BranchOperationsLeads = () => {
+const BranchOperationsLeadsDesktop = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedPipeline, setSelectedPipeline] = useState('all'); // 'all' | 'loans' | 'sales'
@@ -125,12 +126,10 @@ const BranchOperationsLeads = () => {
   return (
     <>
       {/* Mobile View */}
-      <div className="md:hidden">
-        <BranchOperationsMobileLeads />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
+      <div className="space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -361,6 +360,11 @@ const BranchOperationsLeads = () => {
       />
     </>
   );
+};
+
+const BranchOperationsLeads = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <BranchOperationsMobileLeads /> : <BranchOperationsLeadsDesktop />;
 };
 
 export default BranchOperationsLeads;

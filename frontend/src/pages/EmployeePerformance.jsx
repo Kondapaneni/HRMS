@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useRemoteData } from '../state/remote.js';
@@ -103,7 +104,7 @@ const EmployeeRow = ({ item, isSelf = false }) => {
   );
 };
 
-const EmployeePerformance = () => {
+const EmployeePerformanceDesktop = () => {
   const { data: perfData, isLoading } = useRemoteData({
     scope: ['employee', 'performance'],
     load: async () => {
@@ -130,12 +131,10 @@ const EmployeePerformance = () => {
   return (
     <>
       {/* Mobile Experience Render */}
-      <div className="md:hidden">
-        <EmployeeMobilePerformance />
-      </div>
+      
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      <div className="space-y-6 pb-12 antialiased">
         {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -331,6 +330,11 @@ const EmployeePerformance = () => {
       </div>
     </>
   );
+};
+
+const EmployeePerformance = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <EmployeeMobilePerformance /> : <EmployeePerformanceDesktop />;
 };
 
 export default EmployeePerformance;

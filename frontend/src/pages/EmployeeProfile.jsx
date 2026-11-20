@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,7 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import EmployeeMobileProfile from './EmployeeMobileProfile';
 import { useAuth } from '../contexts/AuthContext';
 
-const EmployeeProfile = () => {
+const EmployeeProfileDesktop = () => {
   const navigate = useNavigate();
   const refreshControl = useRefreshControl();
   const { fetchProfile } = useAuth();
@@ -359,12 +360,10 @@ const EmployeeProfile = () => {
   return (
     <>
       {/* Mobile Profile Render */}
-      <div className="md:hidden">
-        <EmployeeMobileProfile />
-      </div>
+      
 
       {/* Web Desktop Profile Render */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -906,6 +905,11 @@ const EmployeeProfile = () => {
 
     </>
   );
+};
+
+const EmployeeProfile = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <EmployeeMobileProfile /> : <EmployeeProfileDesktop />;
 };
 
 export default EmployeeProfile;

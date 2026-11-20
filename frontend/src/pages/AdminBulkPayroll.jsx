@@ -3,6 +3,7 @@ import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
+import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { 
   Users, 
   Search, 
@@ -29,11 +30,9 @@ const AdminBulkPayroll = () => {
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
 
-  const [employees, setEmployees] = useState([]);
+  const refreshControl = useRefreshControl();
   const [page, setPage] = useState(1);
-  const [totalPending, setTotalPending] = useState(0);
   const limit = 50;
-  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
@@ -50,32 +49,23 @@ const AdminBulkPayroll = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchPendingEmployees(controller.signal);
-    return () => controller.abort();
-  }, [selectedMonth, selectedYear, debouncedSearchQuery, page]);
+  // Payroll roster: always fresh, never retained across mounts or users.
+  const { data: pendingResponse, isLoading, isFetching } = useRemoteData({
+    scope: ['admin', 'payroll', 'pending', selectedMonth, selectedYear, debouncedSearchQuery, page],
+    load: async ({ signal }) => (await axios.get('/admin/payroll/pending-employees', {
+      params: { month: selectedMonth, year: selectedYear, search: debouncedSearchQuery, page, limit },
+      signal,
+    })).data,
+    onSuccess: () => setMessage(previous => previous?.type === 'error' ? null : previous),
+    onError: () => setMessage({ type: 'error', text: 'Failed to fetch pending employees' }),
+  });
+  const employees = pendingResponse?.employees || [];
+  const totalPending = Number(pendingResponse?.pagination?.total ?? pendingResponse?.total ?? 0);
 
-  const fetchPendingEmployees = async (signal) => {
-    try {
-      setIsLoading(true);
-      setMessage(null);
-      const res = await axios.get('/admin/payroll/pending-employees', {
-        params: { month: selectedMonth, year: selectedYear, search: debouncedSearchQuery, page, limit },
-        signal
-      });
-      if (signal?.aborted) return;
-      setEmployees(res.data.employees || []);
-      setTotalPending(Number(res.data?.pagination?.total ?? res.data?.total ?? 0));
-    } catch (error) {
-      if (!signal?.aborted) {
-        console.error("Error fetching pending employees:", error);
-        setMessage({ type: 'error', text: 'Failed to fetch pending employees' });
-      }
-    } finally {
-      if (!signal?.aborted) setIsLoading(false);
-    }
-  };
+  const generateBulk = useRemoteTask({
+    run: async ({ employeeIds, month, year }) =>
+      (await axios.post('/admin/payroll/generate-bulk', { employeeIds, month, year })).data,
+  });
 
   const filteredEmployees = employees;
 
@@ -98,29 +88,20 @@ const AdminBulkPayroll = () => {
 
   const handleGenerateBulk = async () => {
     if (selectedIds.length === 0) return;
-
     try {
       setIsGenerating(true);
       setMessage(null);
-      const res = await axios.post('/admin/payroll/generate-bulk', {
-        employeeIds: selectedIds,
-        month: parseInt(selectedMonth),
-        year: parseInt(selectedYear)
+      const result = await generateBulk.mutateAsync({
+        employeeIds: selectedIds, month: parseInt(selectedMonth, 10), year: parseInt(selectedYear, 10),
       });
-
-      toast.success(res.data.message || 'Bulk payslips generated successfully!');
-      setMessage({ type: 'success', text: res.data.message || 'Bulk payslips generated successfully!' });
-      // Clear a completed bulk selection; refresh the authoritative pending page.
+      toast.success(result.message || 'Bulk payslips generated successfully!');
+      setMessage({ type: 'success', text: result.message || 'Bulk payslips generated successfully!' });
       setSelectedIds([]);
-      fetchPendingEmployees();
+      await refreshControl.refresh({ scope: ['admin', 'payroll'] });
     } catch (error) {
-      console.error("Error generating bulk payslips:", error);
       const errorMsg = error.response?.data?.error || 'Failed to generate bulk payslips';
       toast.error(errorMsg);
-      setMessage({
-        type: 'error',
-        text: errorMsg
-      });
+      setMessage({ type: 'error', text: errorMsg });
     } finally {
       setIsGenerating(false);
     }
@@ -263,7 +244,7 @@ const AdminBulkPayroll = () => {
 
         {/* Table List */}
         <div className="overflow-x-auto custom-scrollbar">
-          {isLoading ? (
+          {(isLoading || isFetching) ? (
             <div className="flex flex-col items-center justify-center py-20 text-[var(--muted)] space-y-2">
               <Loader2 className="w-6 h-6 animate-spin text-[var(--brand-deep)]" />
               <p className="text-xs">Loading pending employees...</p>
