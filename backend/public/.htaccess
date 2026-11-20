@@ -35,6 +35,38 @@ DirectoryIndex index.html index.php
     Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-src 'self' https: blob:; object-src 'none'; form-action 'self'"
 </IfModule>
 
+# Layer 2: static-asset HTTP caching. Keep the SPA HTML shell uncacheable
+# so a new deployment is discovered on full page navigation / refresh.
+# This applies to SPA deep links after their rewrite to index.html.
+<IfModule mod_headers.c>
+    <Files "index.html">
+        Header onsuccess unset Cache-Control
+        Header always set Cache-Control "no-store"
+        Header onsuccess unset Pragma
+        Header always set Pragma "no-cache"
+    </Files>
+
+    # Vite emits content-hashed filenames under /assets/. Both the served
+    # filename AND original request path must match before applying immutable
+    # caching. This excludes dynamic media, API responses, and SPA 404 fallbacks.
+    SetEnvIf Request_URI "^/assets/" HRMS_VITE_ASSET=1
+    <FilesMatch "^.+-[A-Za-z0-9_-]{8,}\\.(?:js|mjs|css|woff2?|ttf|otf|eot|png|jpe?g|gif|svg|webp|avif|ico)$">
+        Header onsuccess unset Cache-Control env=HRMS_VITE_ASSET
+        Header always set Cache-Control "public, max-age=31536000, immutable" env=HRMS_VITE_ASSET
+    </FilesMatch>
+
+    # Stable, non-hashed branding may change between releases, so retain it
+    # briefly rather than incorrectly marking those URLs immutable.
+    <FilesMatch "^(?:favicon\\.png|logo\\.png|apple-touch-icon\\.png|pwa-(?:192|512)x(?:192|512)\\.png)$">
+        Header onsuccess unset Cache-Control
+        Header always set Cache-Control "public, max-age=3600, must-revalidate"
+    </FilesMatch>
+    <Files "manifest.json">
+        Header onsuccess unset Cache-Control
+        Header always set Cache-Control "no-cache, must-revalidate"
+    </Files>
+</IfModule>
+
 # Always route version.json to index.php to guarantee CORS headers
 RewriteRule ^version\.json$ index.php [QSA,L]
 
