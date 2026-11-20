@@ -26,6 +26,9 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     && docker-php-ext-install pdo pdo_pgsql curl opcache \
+    && pecl install redis-6.2.0 \
+    && docker-php-ext-enable redis \
+    && php -r 'if (!extension_loaded("redis")) { exit(1); }' \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

@@ -1,0 +1,56 @@
+name: Layer 3 optional Redis reference cache and safe SQL fallback
+on:
+  pull_request:
+    paths:
+      - 'backend/src/Cache/**'
+      - 'backend/public/admin_employees_routes.php'
+      - 'Dockerfile'
+      - 'docker-entrypoint.sh'
+      - 'tests/layer3_redis_cache_test.php'
+      - 'tests/layer3_redis_policy_test.mjs'
+      - '.github/workflows/layer3_redis.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  redis-unit-and-real-integration:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: redis
+      - name: Security source guard and PHP syntax
+        run: |
+          node tests/layer3_redis_policy_test.mjs
+          php -l backend/src/Cache/RedisReferenceCache.php
+          php -l backend/public/admin_employees_routes.php
+          php -l tests/layer3_redis_cache_test.php
+      - name: Synthetic memory fake + actual disposable Redis
+        run: |
+          php tests/layer3_redis_cache_test.php
+          php tests/layer3_redis_cache_test.php --real
+      - name: Re-run backend no-leak and no-private-cache policy
+        run: |
+          node tests/no_backend_business_cache_policy_test.mjs
+          node tests/sec021_policy_test.mjs
+          node tests/sec020_policy_test.mjs
+
+  php-redis-production-container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Production Docker image includes Redis extension and OPcache
+        run: |
+          docker build --progress=plain --tag hrms-layer3-ci .
+          docker run --rm hrms-layer3-ci php -r 'if (!extension_loaded("redis") || !extension_loaded("Zend OPcache")) exit(1); echo "PHP Redis and OPcache loaded\\n";'

@@ -6,6 +6,7 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 use App\Security\CompensationAccess;
 use App\Security\EmailSecurity;
+use App\Cache\RedisReferenceCache;
 
 // Get all employees for admin
 /** @var \Slim\App $app */
@@ -100,8 +101,21 @@ $app->get('/api/branches', function (Request $request, Response $response, $args
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT id, name FROM branches ORDER BY id ASC');
-        $branches = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // AuthMiddleware already verified the live JWT, active account and role.
+        // Never read Redis before that check; include the verified account in
+        // the cache scope even though the current branch directory is global.
+        $verifiedUser = $request->getAttribute('user');
+        $scope = [
+            (string) ($verifiedUser->id ?? ''),
+            (string) ($verifiedUser->role ?? ''),
+            (string) ($verifiedUser->organizationId ?? $verifiedUser->tenantId ?? ''),
+            (string) ($verifiedUser->branchId ?? ''),
+        ];
+        $cache = RedisReferenceCache::fromEnvironment();
+        $branches = $cache->remember('branches', $scope, 45, static function () use ($conn): array {
+            $stmt = $conn->query('SELECT id, name FROM branches ORDER BY id ASC');
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        });
 
         $response->getBody()->write(json_encode(['branches' => $branches]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
