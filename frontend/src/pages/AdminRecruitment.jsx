@@ -37,6 +37,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import PaginationControls from '../components/ui/PaginationControls';
 import { useBranchDirectory } from '../query/useBranchDirectory.js';
+import { nextNumberedInterviewRound, selectedInterviewRound } from '../utils/interviewRounds.js';
 
 const AdminRecruitment = () => {
   const navigate = useNavigate();
@@ -121,7 +122,8 @@ const AdminRecruitment = () => {
   // Modals State
   const [selectedApp, setSelectedApp] = useState(null);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const [interviewData, setInterviewData] = useState({ date: '', time: '', location: '', notes: '', status: '1st Round Interview' });
+  const [interviewData, setInterviewData] = useState({ date: '', time: '', location: '', notes: '', nextRound: '1st Round Interview', isFinalRound: false });
+  const scheduledInterviewStatus = selectedInterviewRound(interviewData.nextRound, interviewData.isFinalRound);
   
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
   const [convertData, setConvertData] = useState({
@@ -245,12 +247,12 @@ const AdminRecruitment = () => {
     updateStatusMutation.mutate({ 
       app: selectedApp, 
       userInfo, 
-      newStatus: interviewData.status, 
+      newStatus: scheduledInterviewStatus, 
       additionalNotes: notes 
     }, {
       onSuccess: () => {
         setIsScheduleModalOpen(false);
-        toast.success(`Interview scheduled: ${interviewData.status}`);
+        toast.success(`Interview scheduled: ${scheduledInterviewStatus}`);
       }
     });
   };
@@ -302,9 +304,14 @@ const AdminRecruitment = () => {
     convertEmployeeMutation.mutate();
   };
 
-  const openScheduleModal = (app, nextRoundStatus) => {
+  const openScheduleModal = (app) => {
     setSelectedApp(app);
-    setInterviewData({ date: '', time: '', location: '', notes: '', status: nextRoundStatus });
+    // Never preselect final based on a hardcoded round count. Reset the
+    // checkbox for every candidate so only the Admin explicitly opts in.
+    setInterviewData({
+      date: '', time: '', location: '', notes: '',
+      nextRound: nextNumberedInterviewRound(app), isFinalRound: false
+    });
     setIsScheduleModalOpen(true);
   };
 
@@ -405,14 +412,6 @@ const AdminRecruitment = () => {
     } finally {
       setIsGeneratingPdf(false);
     }
-  };
-
-  const getNextInterviewRound = (status) => {
-    if (status === 'Shortlisted') return '1st Round Interview';
-    if (status === '1st Round Interview') return '2nd Round Interview';
-    if (status === '2nd Round Interview') return '3rd Round Interview';
-    if (status === '3rd Round Interview') return 'Final Round Interview';
-    return 'Interview';
   };
 
   const renderStatusBadge = (status) => {
@@ -696,7 +695,6 @@ const AdminRecruitment = () => {
                 const isConverted = status === 'Converted to Employee';
                 const isHired = status === 'Hired' || status === 'Selected';
                 const isInterview = status.includes('Interview');
-                const nextInterviewRound = getNextInterviewRound(status);
                 const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
                 const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
                 const pendingDocsCount = Number(app.pending_documents_count || 0);
@@ -768,7 +766,7 @@ const AdminRecruitment = () => {
                             variant="primary"
                             size="sm"
                             disabled={updateStatusMutation.isPending} 
-                            onClick={() => openScheduleModal(app, nextInterviewRound)} 
+                            onClick={() => openScheduleModal(app)} 
                           >
                             <Calendar className="w-3.5 h-3.5 mr-1" /> Schedule {isInterview ? 'next ' : ''}interview
                           </Button>
@@ -1243,7 +1241,7 @@ const AdminRecruitment = () => {
                   CANDIDATE INTERVIEW
                 </span>
                 <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
-                  Schedule {interviewData.status}
+                  Schedule {scheduledInterviewStatus}
                 </h2>
               </div>
               <button 
@@ -1257,6 +1255,23 @@ const AdminRecruitment = () => {
             
             <div className="p-6 overflow-y-auto flex-1 text-[13px]">
               <form id="schedule-interview-form" onSubmit={handleScheduleInterview} className="space-y-4">
+                <label className="flex items-start gap-3 cursor-pointer rounded-[12px] border border-[var(--line)] bg-[var(--surface-alt)] p-3.5">
+                  <input
+                    type="checkbox"
+                    checked={interviewData.isFinalRound}
+                    onChange={e => setInterviewData(previous => ({ ...previous, isFinalRound: e.target.checked }))}
+                    disabled={updateStatusMutation.isPending}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand)]"
+                  />
+                  <span className="space-y-1">
+                    <span className="block text-[13px] font-semibold text-[var(--text)]">This is the final interview round</span>
+                    <span className="block text-[12px] text-[var(--muted)]">
+                      {interviewData.isFinalRound
+                        ? 'Final Round Interview will be scheduled.'
+                        : `Continue with ${interviewData.nextRound}. Check this box only when the Admin chooses the final round.`}
+                    </span>
+                  </span>
+                </label>
                 <div>
                   <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Interview date *</label>
                   <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
