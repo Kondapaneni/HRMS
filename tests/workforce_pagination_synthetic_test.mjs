@@ -83,7 +83,7 @@ test('bounded API pages keep auth/compensation policy, exact totals and paramete
 });
 test('selectors do not truncate at 200, 500, 1000 or silently select a whole organization', () => {
   const select = read('frontend/src/components/EmployeeSelect.jsx');
-  assert.match(select,/page, limit/);
+  assert.match(select,/limit, page/);
   assert.match(select,/selectedEmployee/);
   const filenames=['AdminPayroll','AdminAttendanceRegularize','AdminAssets','AdminEmployeeEdit','AdminTrainingVideos','AssessmentCreate'];
   for (const file of filenames) {
