@@ -1,0 +1,35 @@
+name: Recruitment flexible interview rounds
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/utils/interviewRounds.js'
+      - 'frontend/src/pages/AdminRecruitment.jsx'
+      - 'backend/src/Security/EmailSecurity.php'
+      - 'tests/interview_round_selection_test.mjs'
+      - '.github/workflows/recruitment_interview_rounds.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'frontend/src/utils/interviewRounds.js'
+      - 'frontend/src/pages/AdminRecruitment.jsx'
+      - 'backend/src/Security/EmailSecurity.php'
+      - 'tests/interview_round_selection_test.mjs'
+      - '.github/workflows/recruitment_interview_rounds.yml'
+permissions:
+  contents: read
+jobs:
+  interview-rounds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Validate interview round logic and opt-in final checkbox
+        run: node --test tests/interview_round_selection_test.mjs
+      - name: Validate secure interview notification policy syntax
+        run: php -l backend/src/Security/EmailSecurity.php
