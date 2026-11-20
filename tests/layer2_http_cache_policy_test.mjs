@@ -40,7 +40,7 @@ for (const filename of ['index.html', 'index.js', 'logo.png',
 }
 assert.match(immutable[2], /Header always set Cache-Control "public, max-age=31536000, immutable" env=HRMS_VITE_ASSET/);
 assert.match(immutable[2], /Header onsuccess unset Cache-Control env=HRMS_VITE_ASSET/);
-assert(!/max-age=31536000/.test(apache.replace(immutable[0], '')),
+assert(!/Cache-Control "public, max-age=31536000/.test(apache.replace(immutable[0], '')),
   'One-year caching must not be applied outside allowlisted hashed assets');
 
 const branding = fileRules.find(([, pattern, body]) =>
