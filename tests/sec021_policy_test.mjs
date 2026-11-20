@@ -27,7 +27,7 @@ assert.match(memoryClient, /memoryQueryClient\.clear\(\)/,
   'Query cache must be immediately discarded on session transitions');
 assert.match(auth, /discardPrivateQueries\(\)/,
   'All authenticated session transitions must discard the pilot cache');
-assert.match(branchHook, /verified && !query\.isError/,
+assert.match(branchHook, /verified && !permissionDenied && !query\.isError/,
   'Unauthorized branch results cannot be displayed from a previous snapshot');
 assert(!/PersistQueryClientProvider|createSyncStoragePersister|persistQueryClient/.test(entry + memoryClient + branchHook),
   'No TanStack persistence or offline cache allowed');
