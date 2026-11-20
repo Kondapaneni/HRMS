@@ -290,7 +290,7 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
         $sql = "
             SELECT a.*, j.title as job_title, j.department as job_department,
                    j.location as job_location,
-                   u."firstName" AS candidate_first_name, u."lastName" AS candidate_last_name,
+                   u.\"firstName\" AS candidate_first_name, u.\"lastName\" AS candidate_last_name,
                    u.email AS candidate_email,
                    (SELECT cp.phone FROM candidate_profiles cp
                      WHERE cp.user_id = a.candidate_id ORDER BY cp.updated_at DESC LIMIT 1) AS candidate_phone,
