@@ -14,20 +14,30 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
     $conn = $db->getConnection();
     
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
-    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
-    $search = $params['search'] ?? '';
+    // Enforce bounded pages; keep legacy limit/offset callers working.
+    $limit = min(100, max(1, (int)($params['limit'] ?? 50)));
+    $requestedPage = max(1, (int)($params['page'] ?? 1));
+    $offset = isset($params['offset'])
+        ? max(0, (int)$params['offset'])
+        : ($requestedPage - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
+    $search = trim((string)($params['search'] ?? ''));
 
-    $whereClause = '';
+    $filters = [];
     $queryParams = [];
-
-    if (!empty($search)) {
-        $whereClause = ' WHERE e."firstName" ILIKE ? OR e."lastName" ILIKE ? OR e.email ILIKE ? OR e."employeeId" ILIKE ?';
-        $searchParam = '%' . $search . '%';
-        $queryParams = [$searchParam, $searchParam, $searchParam, $searchParam];
+    if ($search !== '') {
+        $filters[] = '(e."firstName" ILIKE ? OR e."lastName" ILIKE ? OR (COALESCE(e."firstName", \'\') || \' \' || COALESCE(e."lastName", \'\')) ILIKE ? OR e.email ILIKE ? OR e."employeeId" ILIKE ? OR e.department ILIKE ? OR e.position ILIKE ? OR b.name ILIKE ? OR e.status ILIKE ?)';
+        $searchValue = '%' . $search . '%';
+        $queryParams = array_fill(0, 9, $searchValue);
     }
+    // Optional exact filters always use bound parameters, never SQL identifiers.
+    foreach (['department' => 'e.department', 'position' => 'e.position', 'status' => 'e.status', 'branch' => 'e.branch::text'] as $key => $column) {
+        if (isset($params[$key]) && trim((string)$params[$key]) !== '') {
+            $filters[] = $column . ' = ?';
+            $queryParams[] = trim((string)$params[$key]);
+        }
+    }
+    $whereClause = $filters ? ' WHERE ' . implode(' AND ', $filters) : '';
 
     try {
         // SEC-013: the directory is also available through non-payroll feature
@@ -37,7 +47,7 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
         $salaryColumn = $canReadCompensation ? 'e.salary' : 'NULL::numeric AS salary';
         $sql = 'SELECT e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", '
             . $salaryColumn . ', e.status, e.avatar, e."managerId", b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id'
-            . $whereClause . ' ORDER BY e."firstName" ASC LIMIT ? OFFSET ?';
+            . $whereClause . ' ORDER BY e."firstName" ASC, e."lastName" ASC, e.id ASC LIMIT ? OFFSET ?';
         $stmt = $conn->prepare($sql);
         $paramIndex = 1;
         foreach ($queryParams as $param) {
@@ -48,7 +58,7 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
         $stmt->execute();
         $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $countSql = 'SELECT COUNT(*) FROM employee e' . $whereClause;
+        $countSql = 'SELECT COUNT(*) FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id' . $whereClause;
         $stmtCount = $conn->prepare($countSql);
         $paramIndex = 1;
         foreach ($queryParams as $param) {
@@ -59,7 +69,15 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
 
         $response->getBody()->write(json_encode([
             'employees' => $employees,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($employees) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {

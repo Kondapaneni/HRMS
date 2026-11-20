@@ -11,18 +11,18 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
     $conn = $db->getConnection();
     
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
-    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
-    $search = trim($params['search'] ?? '');
+    $limit = min(100, max(1, (int)($params['limit'] ?? 50)));
+    $requestedPage = max(1, (int)($params['page'] ?? 1));
+    $offset = isset($params['offset']) ? max(0, (int)$params['offset']) : ($requestedPage - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
+    $search = trim((string)($params['search'] ?? ''));
 
     $where = "WHERE u.role != 'admin'";
     $queryParams = [];
     if (!empty($search)) {
-        $where .= ' AND (u."firstName" ILIKE ? OR u."lastName" ILIKE ? OR u.email ILIKE ? OR e."employeeId" ILIKE ?)';
+        $where .= ' AND (u."firstName" ILIKE ? OR u."lastName" ILIKE ? OR u.email ILIKE ? OR e."employeeId" ILIKE ? OR e.department ILIKE ?)';
         $searchTerm = '%' . $search . '%';
-        $queryParams = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
+        $queryParams = array_fill(0, 5, $searchTerm);
     }
 
     // Query users and their feature access
@@ -74,6 +74,31 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
 
+        // Full-population counts; never infer global assignments from a page.
+        $featureColumns = ['canAttendance', 'canLeave', 'canPayroll', 'canExpenses',
+            'canEmployees', 'canRecruitment', 'canAssets', 'canLoanOrigination',
+            'canSalesOrigination', 'canBranchOperations', 'canAdminAssessments'];
+        $countExpressions = [];
+        foreach ($featureColumns as $column) {
+            $countExpressions[] = 'COUNT(*) FILTER (WHERE fa."' . $column . '" IS TRUE) AS "' . $column . '"';
+        }
+        $fullStats = $conn->query(
+            'SELECT ' . implode(', ', $countExpressions) .
+            ', COUNT(*) FILTER (WHERE ' .
+            implode(' OR ', array_map(
+                static fn($column) => 'fa."' . $column . '" IS TRUE',
+                $featureColumns
+            )) .
+            ') AS "delegatedManagers" FROM users u ' .
+            'LEFT JOIN user_feature_access fa ON fa."userId" = u.id ' .
+            "WHERE u.role != 'admin'"
+        )->fetch(PDO::FETCH_ASSOC);
+        $featureCounts = [];
+        foreach ($featureColumns as $column) {
+            $featureCounts[$column] = (int)($fullStats[$column] ?? 0);
+        }
+        $delegatedManagers = (int)($fullStats['delegatedManagers'] ?? 0);
+
         // Map nulls to false
         foreach ($users as &$user) {
             $user['canAttendance'] = (bool) $user['canAttendance'];
@@ -93,7 +118,15 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
         $response->getBody()->write(json_encode([
             'data' => $users,
             'users' => $users,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'featureCounts' => $featureCounts,
+            'delegatedManagers' => $delegatedManagers,
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($users) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (PDOException $e) {
