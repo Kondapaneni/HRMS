@@ -9,11 +9,16 @@ export function useMobileViewport() {
     window.matchMedia('(max-width: 767px)').matches);
 
   useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
     const media = window.matchMedia('(max-width: 767px)');
     const onChange = () => setMobile(media.matches);
     onChange();
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', onChange);
+      return () => media.removeEventListener('change', onChange);
+    }
+    media.addListener?.(onChange);
+    return () => media.removeListener?.(onChange);
   }, []);
 
   return mobile;
