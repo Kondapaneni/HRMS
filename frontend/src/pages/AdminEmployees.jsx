@@ -10,29 +10,37 @@ import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 import Avatar from '../components/ui/Avatar';
 import SearchBar from '../components/ui/SearchBar';
+import PaginationControls from '../components/ui/PaginationControls';
 
 const AdminEmployees = () => {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 50;
   const navigate = useNavigate();
   const refreshControl = useRefreshControl();
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    const timer = setTimeout(() => { setPage(1); setDebouncedSearch(search); }, 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: employees = [], isLoading: initialLoading, isFetching } = useRemoteData({
-    scope: ['admin', 'employees', debouncedSearch],
+  const { data: directoryResponse, isLoading: initialLoading, isFetching, error } = useRemoteData({
+    scope: ['admin', 'employees', page, debouncedSearch],
     load: async ({ signal }) => {
-      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`, { signal });
-      return res.data.employees || [];
+      const res = await api.get('/admin/employees', {
+        params: { page, limit, search: debouncedSearch }, signal
+      });
+      return res.data;
     },
   });
+  const employees = directoryResponse?.employees || [];
+  const totalEmployees = Number(directoryResponse?.pagination?.total ?? directoryResponse?.total ?? 0);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setPage(1);
     setDebouncedSearch(search);
   };
 
@@ -76,7 +84,7 @@ const AdminEmployees = () => {
               Employees directory
             </h1>
             <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-              {employees.length} total
+              {totalEmployees.toLocaleString('en-IN')} total
             </span>
           </div>
           <p className="text-xs text-[var(--muted)] mt-0.5">
@@ -121,7 +129,9 @@ const AdminEmployees = () => {
 
         {/* Table Body */}
         <div className="flex-1 overflow-x-auto min-h-[300px] relative pb-28">
-          {initialLoading && employees.length === 0 ? (
+          {error ? (
+            <div role="alert" className="p-8 text-sm text-red-600">Failed to load employee records. Please retry.</div>
+          ) : initialLoading && employees.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="h-7 w-7 animate-spin text-[var(--brand-deep)]" />
             </div>
@@ -255,6 +265,8 @@ const AdminEmployees = () => {
             </table>
           )}
         </div>
+        <PaginationControls page={page} limit={limit} total={totalEmployees}
+          isFetching={isFetching} onPageChange={setPage} />
       </div>
 
       <AddEmployeeModal
