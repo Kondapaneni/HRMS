@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { writeFileSync, unlinkSync } from 'node:fs';
+import { writeFileSync, unlinkSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const require = createRequire(new URL('../frontend/package.json', import.meta.url));
@@ -12,7 +12,6 @@ const React = require('react');
 const { createElement, act } = React;
 const { createRoot } = require('react-dom/client');
 const { JSDOM } = require('jsdom');
-const { build } = require('esbuild');
 const { QueryClientProvider } = require('@tanstack/react-query');
 
 const dom = new JSDOM('<!doctype html><html><body><main id="test-root"></main></body></html>', {
@@ -32,42 +31,29 @@ globalThis.__cachePilotGet = async (path, options) => {
   return handler(path, options);
 };
 
-// Bundle the real branch query hook and its real memory client. Only external
-// identity/transport dependencies are simulated, not the query implementation.
+// Execute the real hook source, replacing ONLY its AuthContext/transport imports
+// with simulated identity and HTTP. The production hook logic is unchanged.
 const outputPath = resolve('src/query/.branch-hook-browser-test.mjs');
 try {
-  const generated = await build({
-    stdin: {
-      contents: [
-        "export { useBranchDirectory } from './src/query/useBranchDirectory.js';",
-        "export { memoryQueryClient, discardPrivateQueries } from './src/query/memoryClient.js';",
-      ].join('\n'),
-      resolveDir: resolve('.'),
-      sourcefile: 'branch-runtime-entry.js',
-      loader: 'js',
-    },
-    bundle: true,
-    platform: 'node',
-    format: 'esm',
-    write: false,
-    external: ['react', '@tanstack/react-query'],
-    plugins: [{
-      name: 'only-mock-browser-auth-and-network',
-      setup(context) {
-        context.onResolve({ filter: /^\.\.\/contexts\/AuthContext$/ }, () =>
-          ({ path: 'synthetic-auth', namespace: 'cache-pilot-mock' }));
-        context.onResolve({ filter: /^\.\.\/api\/axios$/ }, () =>
-          ({ path: 'synthetic-axios', namespace: 'cache-pilot-mock' }));
-        context.onLoad({ filter: /.*/, namespace: 'cache-pilot-mock' }, args => ({
-          contents: args.path === 'synthetic-auth'
-            ? 'export const useAuth = () => globalThis.__cachePilotAuth;'
-            : 'export default { get: (...args) => globalThis.__cachePilotGet(...args) };',
-          loader: 'js',
-        }));
-      },
-    }],
-  });
-  writeFileSync(outputPath, generated.outputFiles[0].contents);
+  let source = readFileSync(resolve('src/query/useBranchDirectory.js'), 'utf8');
+  const substitutions = [
+    ["import { useAuth } from '../contexts/AuthContext';",
+      "const useAuth = () => globalThis.__cachePilotAuth;"],
+    ["import api from '../api/axios';",
+      "const api = { get: (...args) => globalThis.__cachePilotGet(...args) };"],
+    ["import { branchesKey, discardPrivateQueries } from './memoryClient';",
+      "import { branchesKey, discardPrivateQueries } from './memoryClient.js';"],
+  ];
+  for (const [oldText, replacement] of substitutions) {
+    assert.equal(source.split(oldText).length, 2, 'The actual hook import must match exactly');
+    source = source.replace(oldText, replacement);
+  }
+  writeFileSync(outputPath, source + [
+    '',
+    "export { memoryQueryClient } from './memoryClient.js';",
+    'export { discardPrivateQueries };',
+    '',
+  ].join('\n'));
 
   const { useBranchDirectory, memoryQueryClient, discardPrivateQueries } =
     await import(pathToFileURL(outputPath).href);
