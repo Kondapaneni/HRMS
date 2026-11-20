@@ -1,3 +1,4 @@
+import { useMobileViewport } from '../performance/useMobileViewport.js';
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -95,7 +96,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) =
   );
 };
 
-const OriginationLoanApplicationsList = () => {
+const OriginationLoanApplicationsListDesktop = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -305,12 +306,10 @@ const OriginationLoanApplicationsList = () => {
   return (
     <>
       {/* Mobile Screen View */}
-      <div className="md:hidden">
-        <OriginationMobileLoanApplicationsList />
-      </div>
+      
 
       {/* Web Desktop View */}
-      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
+      <div className="space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -870,6 +869,11 @@ const OriginationLoanApplicationsList = () => {
       )}
     </>
   );
+};
+
+const OriginationLoanApplicationsList = () => {
+  const mobile = useMobileViewport();
+  return mobile ? <OriginationMobileLoanApplicationsList /> : <OriginationLoanApplicationsListDesktop />;
 };
 
 export default OriginationLoanApplicationsList;
