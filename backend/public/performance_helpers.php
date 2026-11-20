@@ -219,6 +219,51 @@ function buildWeeklyMetrics(array $employee, array $attendanceByEmployee, string
     return $weeks;
 }
 
+/**
+ * Current-month punctuality for verified employees with a configured shift.
+ *
+ * Only real, present check-ins are eligible. Missed days, approved leave,
+ * non-working days without check-ins, and rows lacking a usable check-in do not
+ * turn into fictional 'late' punches. Compare in the same server clock used by
+ * the attendance punch/status writer; do not substitute attendancePct.
+ */
+function buildCurrentMonthOnTimeSummary(array $employee, string $today, array $attendanceByEmployee): array {
+    $shiftStart = trim((string)($employee['shiftStartTime'] ?? ''));
+    $empty = ['onTimePct' => null, 'onTimeDays' => 0, 'onTimeEligibleDays' => 0,
+              'onTimeStatus' => 'shift_not_configured'];
+    if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?$/D', $shiftStart)) {
+        return $empty;
+    }
+    if (strlen($shiftStart) === 5) $shiftStart .= ':00';
+
+    $first = date('Y-m-01', strtotime($today));
+    $last = substr($today, 0, 10);
+    $joinDate = !empty($employee['joinDate']) ? substr($employee['joinDate'], 0, 10) : null;
+    if ($joinDate !== null && $joinDate > $first) $first = $joinDate;
+
+    $rows = $attendanceByEmployee[$employee['userId'] ?? $employee['id']] ?? [];
+    $eligible = 0;
+    $onTime = 0;
+    foreach ($rows as $date => $record) {
+        if ($date < $first || $date > $last) continue;
+        $checkIn = $record['checkIn'] ?? null;
+        if (!is_string($checkIn) || trim($checkIn) === '' ||
+            normalizeStatus((string)($record['status'] ?? ''), $checkIn) !== 'present') {
+            continue;
+        }
+        $timestamp = strtotime($checkIn);
+        if ($timestamp === false) continue;
+        ++$eligible;
+        if (date('H:i:s', $timestamp) <= $shiftStart) ++$onTime;
+    }
+    return [
+        'onTimePct' => $eligible > 0 ? round($onTime * 100 / $eligible, 1) : null,
+        'onTimeDays' => $onTime,
+        'onTimeEligibleDays' => $eligible,
+        'onTimeStatus' => $eligible > 0 ? 'ready' : 'no_check_ins',
+    ];
+}
+
 function buildCurrentMonthSummary(array $employee, string $today, array $holidays, array $attendanceByEmployee): array {
     $monthStart = date('Y-m-01', strtotime($today));
     $dateEnd = substr($today, 0, 10);
