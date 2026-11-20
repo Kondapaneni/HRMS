@@ -24,6 +24,13 @@ const { useRemoteData, useRemoteTask, useRefreshControl } =
   await import('../frontend/src/state/remote.js');
 
 const next = () => new Promise(resolve => setTimeout(resolve, 0));
+const waitFor = async (predicate, label) => {
+  for (let attempt = 0; attempt < 40; attempt++) {
+    if (predicate()) return;
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+  }
+  assert.fail('Timed out waiting for ' + label);
+};
 const withQuery = child => createElement(QueryClientProvider,
   { client: memoryQueryClient }, child);
 
@@ -45,6 +52,7 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   document.body.append(host);
   let root = createRoot(host);
   await act(async () => { root.render(withQuery(createElement(Probe, { id: 1 }))); await next(); });
+  await waitFor(() => current.data?.id === 1, 'first mounted query');
   assert.equal(current.data.id, 1);
   const first = current.data.sequence;
   assert.equal(bus.peek(['synthetic', 1])?.sequence, first);
@@ -52,9 +60,11 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
   await act(async () => { await bus.refresh({ scope: ['unrelated'] }); await next(); });
   assert.equal(current.data.sequence, first, 'Unrelated view notification cannot refetch this view');
   await act(async () => { await bus.refresh({ scope: ['synthetic'] }); await next(); });
+  await waitFor(() => current.data?.sequence > first, 'scoped refresh');
   assert(current.data.sequence > first, 'Mounted view refresh must fetch from the server');
 
   await act(async () => { root.render(withQuery(createElement(Probe, { id: 2 }))); await next(); });
+  await waitFor(() => current.data?.id === 2, 'changed query scope');
   assert.equal(current.data?.id, 2, 'New scope must load its own data');
   assert(!renders.some(entry => entry.id === 2 && entry.data?.id === 1),
     'Do not show another scope\'s private data during the render before its effect');
@@ -65,6 +75,8 @@ test('mounted views load fresh data each time, scoped refreshes, no cross-route 
     0, 'Private TanStack views must be garbage-collected after unmount');
   root = createRoot(host);
   await act(async () => { root.render(withQuery(createElement(Probe, { id: 1 }))); await next(); });
+  await waitFor(() => current.data?.id === 1 && current.data.sequence > first + 1,
+    'fresh query after remount');
   assert(current.data.sequence > first + 1, 'Revisit must fetch new data rather than use an old snapshot');
   await act(async () => { root.unmount(); });
   host.remove();
@@ -113,6 +125,7 @@ test('failed assessment-style requests expose isError instead of an empty succes
   document.body.append(host);
   const root = createRoot(host);
   await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
+  await waitFor(() => current.isError, 'failed query error state');
   assert.equal(current.isError, true, 'Failed queries must provide isError for UI alert');
   assert.equal(current.isSuccess, false, 'Failures must not render as successful empty results');
   assert.equal(current.isLoading, false, 'Request failure must stop the loading indicator');
