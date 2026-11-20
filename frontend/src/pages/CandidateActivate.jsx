@@ -93,16 +93,6 @@ const CandidateActivate = () => {
                 </button>
               </div>
             )}
-            {status === 'loading' && (
-              <div className="py-8">
-                <div className="w-12 h-12 border-3 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <h2 className="text-xl sm:text-2xl font-bold text-[#131315] mb-2">Activating your account...</h2>
-                <p className="text-xs sm:text-sm text-neutral-500 max-w-xs mx-auto leading-relaxed">
-                  Please wait while we verify your activation link and configure your candidate workspace.
-                </p>
-              </div>
-            )}
-
             {status === 'success' && (
               <div className="py-4">
                 <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
