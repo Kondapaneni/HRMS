@@ -10,7 +10,6 @@ export { Tabs } from './Tabs';
 export { Avatar } from './Avatar';
 export { ChartCard, CHART_COLORS, CHART_TRACK, CHART_GRID, CHART_SELECTED, ChartTooltip } from './ChartCard';
 export { EmptyState } from './EmptyState';
-export { Skeleton } from './Skeleton';
 export { Timeline } from './Timeline';
 export { ThemeToggle } from './ThemeToggle';
 export { SearchBar } from './SearchBar';
