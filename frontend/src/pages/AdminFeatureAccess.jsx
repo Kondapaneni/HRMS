@@ -554,7 +554,7 @@ const AdminFeatureAccess = () => {
               <div className="shrink-0">
                 <PaginationControls
                   page={page} limit={limit} total={totalUsers}
-                  isFetching={directoryFetching} onPageChange={setPage}
+                  isFetching={directoryFetching} onPageChange={setPage} compact
                 />
               </div>
               {/* Footer */}
