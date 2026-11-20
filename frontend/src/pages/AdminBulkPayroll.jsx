@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button, Avatar } from '../components/ui';
+import PaginationControls from '../components/ui/PaginationControls';
 
 const getMonthName = (monthNum) => {
   const date = new Date();
@@ -29,6 +30,9 @@ const AdminBulkPayroll = () => {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
 
   const [employees, setEmployees] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPending, setTotalPending] = useState(0);
+  const limit = 50;
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -40,37 +44,47 @@ const AdminBulkPayroll = () => {
   // Debounce search query (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
+      setPage(1);
       setDebouncedSearchQuery(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
   useEffect(() => {
-    fetchPendingEmployees();
-  }, [selectedMonth, selectedYear, debouncedSearchQuery]);
+    const controller = new AbortController();
+    fetchPendingEmployees(controller.signal);
+    return () => controller.abort();
+  }, [selectedMonth, selectedYear, debouncedSearchQuery, page]);
 
-  const fetchPendingEmployees = async () => {
+  const fetchPendingEmployees = async (signal) => {
     try {
       setIsLoading(true);
       setMessage(null);
-      const res = await axios.get(`/admin/payroll/pending-employees?month=${selectedMonth}&year=${selectedYear}&search=${encodeURIComponent(debouncedSearchQuery)}`);
+      const res = await axios.get('/admin/payroll/pending-employees', {
+        params: { month: selectedMonth, year: selectedYear, search: debouncedSearchQuery, page, limit },
+        signal
+      });
+      if (signal?.aborted) return;
       setEmployees(res.data.employees || []);
-      setSelectedIds([]);
+      setTotalPending(Number(res.data?.pagination?.total ?? res.data?.total ?? 0));
     } catch (error) {
-      console.error("Error fetching pending employees:", error);
-      setMessage({ type: 'error', text: 'Failed to fetch pending employees' });
+      if (!signal?.aborted) {
+        console.error("Error fetching pending employees:", error);
+        setMessage({ type: 'error', text: 'Failed to fetch pending employees' });
+      }
     } finally {
-      setIsLoading(false);
+      if (!signal?.aborted) setIsLoading(false);
     }
   };
 
   const filteredEmployees = employees;
 
   const handleSelectAll = (e) => {
+    const current = filteredEmployees.map(emp => emp.userId);
     if (e.target.checked) {
-      setSelectedIds(filteredEmployees.map(emp => emp.userId));
+      setSelectedIds(previous => [...new Set([...previous, ...current])]);
     } else {
-      setSelectedIds([]);
+      setSelectedIds(previous => previous.filter(id => !current.includes(id)));
     }
   };
 
@@ -96,7 +110,8 @@ const AdminBulkPayroll = () => {
 
       toast.success(res.data.message || 'Bulk payslips generated successfully!');
       setMessage({ type: 'success', text: res.data.message || 'Bulk payslips generated successfully!' });
-      // Refresh the list
+      // Clear a completed bulk selection; refresh the authoritative pending page.
+      setSelectedIds([]);
       fetchPendingEmployees();
     } catch (error) {
       console.error("Error generating bulk payslips:", error);
@@ -111,7 +126,7 @@ const AdminBulkPayroll = () => {
     }
   };
 
-  const isAllSelected = filteredEmployees.length > 0 && selectedIds.length === filteredEmployees.length;
+  const isAllSelected = filteredEmployees.length > 0 && filteredEmployees.every(emp => selectedIds.includes(emp.userId));
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
@@ -138,7 +153,7 @@ const AdminBulkPayroll = () => {
 
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold px-3 py-1.5 rounded-[9px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-            {filteredEmployees.length} Pending
+            {totalPending.toLocaleString('en-IN')} Pending
           </span>
           <Button
             variant="secondary"
@@ -160,7 +175,7 @@ const AdminBulkPayroll = () => {
             </label>
             <select
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
+              onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); setSelectedIds([]); }}
               className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-xs text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all cursor-pointer"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map(m => {
@@ -180,7 +195,7 @@ const AdminBulkPayroll = () => {
             </label>
             <select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
+              onChange={(e) => { setSelectedYear(e.target.value); setPage(1); setSelectedIds([]); }}
               className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-xs text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all cursor-pointer"
             >
               {[currentDate.getFullYear() - 2, currentDate.getFullYear() - 1, currentDate.getFullYear()].map(y => (
@@ -270,6 +285,7 @@ const AdminBulkPayroll = () => {
                       type="checkbox"
                       checked={isAllSelected}
                       onChange={handleSelectAll}
+                      title="Select only the visible page; previous selections are preserved"
                       className="w-4 h-4 rounded-[4px] accent-[var(--brand-deep)] cursor-pointer"
                     />
                   </th>
@@ -331,6 +347,8 @@ const AdminBulkPayroll = () => {
             </table>
           )}
         </div>
+        <PaginationControls page={page} limit={limit} total={totalPending}
+          isFetching={isLoading} onPageChange={setPage} />
       </div>
     </div>
   );
