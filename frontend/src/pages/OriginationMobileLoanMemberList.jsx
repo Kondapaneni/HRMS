@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
@@ -79,6 +80,8 @@ const OriginationMobileLoanMemberList = () => {
       return `${uniqueTypes.slice(0, 2).join(', ')} +${uniqueTypes.length - 2}`;
     }
   };
+
+  if (isLoading) return <PageLoader message="Loading loan members..." />;
 
   return (
     <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">

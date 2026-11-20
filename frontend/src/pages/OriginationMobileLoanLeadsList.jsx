@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useRemoteData } from '../state/remote.js';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
@@ -126,6 +127,8 @@ const OriginationMobileLoanLeadsList = () => {
     { key: 'Converted', label: 'Converted', count: statusCounts.Converted },
     { key: 'Not Interested', label: 'Closed', count: statusCounts['Not Interested'] },
   ];
+
+  if (isLoading) return <PageLoader message="Loading loan leads..." />;
 
   return (
     <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">

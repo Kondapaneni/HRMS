@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useNavigate } from 'react-router-dom';
 import { useRemoteData } from '../state/remote.js';
 import SearchBar from '../components/ui/SearchBar';
@@ -156,6 +157,8 @@ const BranchOperationsMobileLoansApplicationsList = () => {
     { key: 'Approved', label: 'Approved', count: statusCounts.Approved },
     { key: 'Draft', label: 'Draft', count: statusCounts.Draft },
   ];
+
+  if (isLoading) return <PageLoader message="Loading branch applications..." />;
 
   return (
     <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">
