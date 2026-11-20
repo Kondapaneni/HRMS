@@ -35,10 +35,15 @@ const OfferLetterPreview = lazy(() => import('../components/offerLetter/OfferLet
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
+import PaginationControls from '../components/ui/PaginationControls';
 
 const AdminRecruitment = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
+  const [jobPage, setJobPage] = useState(1);
+  const [appPage, setAppPage] = useState(1);
+  const [jobChoicesPage, setJobChoicesPage] = useState(1);
+  const [selectedJobLabel, setSelectedJobLabel] = useState('');
   const refreshControl = useRefreshControl();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,52 +54,58 @@ const AdminRecruitment = () => {
   // Debounce search query (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
+      setAppPage(1);
       setDebouncedSearchQuery(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: jobs = [], isLoading: isLoadingJobs } = useRemoteData({
-    scope: ['admin', 'jobs'],
-    load: async () => {
-      const res = await api.get('/admin/jobs');
-      return res.data.jobs || [];
-    },
+  const { data: jobsResponse, isLoading: isLoadingJobs, isFetching: fetchingJobs, error: jobsError } = useRemoteData({
+    scope: ['admin', 'jobs', jobPage],
+    load: async ({ signal }) => (await api.get('/admin/jobs', {
+      params: { page: jobPage, limit: 20 }, signal
+    })).data,
     onError: () => toast.error('Failed to load jobs')
   });
+  const jobs = jobsResponse?.jobs || [];
+  const jobsTotal = Number(jobsResponse?.total || 0);
 
-  const { data: applications = [], isLoading: isLoadingApps } = useRemoteData({
-    scope: ['admin', 'applications', debouncedSearchQuery],
-    load: async () => {
-      const res = await api.get(`/admin/applications?search=${encodeURIComponent(debouncedSearchQuery)}`);
-      return res.data.applications || [];
-    },
+  const { data: appResponse, isLoading: isLoadingApps, isFetching: fetchingApps, error: appsError } = useRemoteData({
+    scope: ['admin', 'applications', appPage, debouncedSearchQuery, jobFilter, statusFilter],
+    load: async ({ signal }) => (await api.get('/admin/applications', {
+      params: {
+        page: appPage, limit: 30, search: debouncedSearchQuery,
+        ...(jobFilter ? { job_id: jobFilter } : {}),
+        ...(statusFilter ? { status: statusFilter } : {})
+      }, signal
+    })).data,
     onError: () => toast.error('Failed to load applications')
   });
+  const applications = appResponse?.applications || [];
+  const applicationTotal = Number(appResponse?.total || 0);
 
-  const { data: candidateProfiles = [] } = useRemoteData({
-    scope: ['admin', 'candidate_profiles'],
-    load: async () => {
-      const res = await api.get('/admin/candidate-profiles');
-      return res.data.profiles || [];
-    }
-  });
+  // Derive candidate information from the server-enriched *current* page,
+  // not from independent 50-person rosters that might omit its candidates.
+  const candidatesInfo = applications.map(app => ({
+    id: app.candidate_id, firstName: app.candidate_first_name,
+    lastName: app.candidate_last_name, email: app.candidate_email
+  }));
+  const candidateProfiles = applications.map(app => ({
+    user_id: app.candidate_id, phone: app.candidate_phone,
+    experience: app.experience
+  }));
 
-  const { data: candidatesInfo = [] } = useRemoteData({
-    scope: ['admin', 'candidates_info'],
-    load: async () => {
-      const res = await api.get('/admin/candidates');
-      return res.data.candidates || [];
-    }
+  // All job filter options are searchable by paging across the job endpoint.
+  const { data: jobChoicesResponse } = useRemoteData({
+    scope: ['admin', 'recruitment-job-choices', jobChoicesPage],
+    load: async ({ signal }) => (await api.get('/admin/jobs', {
+      params: { page: jobChoicesPage, limit: 50 }, signal
+    })).data,
+    enabled: activeTab === 'applications',
+    reloadOnFocus: false
   });
-
-  const { data: allCandidateDocuments = [] } = useRemoteData({
-    scope: ['admin', 'all_candidate_documents'],
-    load: async () => {
-      const res = await api.get('/admin/candidate-documents');
-      return res.data.documents || [];
-    }
-  });
+  const jobChoices = jobChoicesResponse?.jobs || [];
+  const jobChoicesTotal = Number(jobChoicesResponse?.total || 0);
 
   const { data: branches = [] } = useRemoteData({
     scope: ['admin', 'branches'],
@@ -407,16 +418,11 @@ const AdminRecruitment = () => {
     return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase() || 'CA';
   };
 
-  const filteredApplications = applications.filter(app => {
-    const matchesJob = jobFilter ? app.job_id === jobFilter : true;
-    const matchesStatus = statusFilter ? app.status === statusFilter : true;
-    return matchesJob && matchesStatus;
-  });
-
-  const openPositions = jobs.filter(j => j.status === 'Published').length;
-  const totalApplicants = applications.length;
-  const inInterview = applications.filter(a => (a.status || '').includes('Interview')).length;
-  const hiredCount = applications.filter(a => ['Hired', 'Selected', 'Converted to Employee'].includes(a.status)).length;
+  const filteredApplications = applications;
+  const openPositions = Number(appResponse?.stats?.openPositions || 0);
+  const totalApplicants = Number(appResponse?.stats?.totalApplicants || 0);
+  const inInterview = Number(appResponse?.stats?.inInterview || 0);
+  const hiredCount = Number(appResponse?.stats?.hiredCount || 0);
 
   if (isLoadingJobs) return <PageLoader message="Loading recruitment data..." />;
 
@@ -484,10 +490,10 @@ const AdminRecruitment = () => {
           }`}
         >
           <Briefcase className="w-4 h-4" />
-          Job openings ({jobs.length})
+          Job openings ({jobsTotal.toLocaleString('en-IN')})
         </button>
         <button
-          onClick={() => { setActiveTab('applications'); setJobFilter(''); }}
+          onClick={() => { setActiveTab('applications'); setJobFilter(''); setSelectedJobLabel(''); setAppPage(1); }}
           className={`flex items-center gap-2 px-4 py-2 text-[13px] font-medium rounded-full transition-colors cursor-pointer ${
             activeTab === 'applications'
               ? 'bg-[var(--ink)] text-white'
@@ -495,7 +501,7 @@ const AdminRecruitment = () => {
           }`}
         >
           <Users className="w-4 h-4" />
-          Applicant pipeline ({applications.length})
+          Applicant pipeline ({totalApplicants.toLocaleString('en-IN')})
         </button>
       </div>
 
@@ -562,7 +568,7 @@ const AdminRecruitment = () => {
                     <Button 
                       variant="secondary"
                       size="sm"
-                      onClick={() => { setActiveTab('applications'); setJobFilter(job.id); }}
+                      onClick={() => { setActiveTab('applications'); setJobFilter(job.id); setSelectedJobLabel(job.title); setAppPage(1); }}
                     >
                       View candidates
                     </Button>
@@ -604,6 +610,11 @@ const AdminRecruitment = () => {
         </div>
       )}
 
+      {activeTab === 'jobs' && jobsError && <p role="alert" className="text-sm text-red-600">Job openings could not be loaded.</p>}
+      {activeTab === 'jobs' && (
+        <PaginationControls page={jobPage} limit={20} total={jobsTotal}
+          isFetching={fetchingJobs} onPageChange={setJobPage} />
+      )}
       {/* Content Body: Applicant Pipeline */}
       {activeTab === 'applications' && (
         <div className="space-y-[14px]">
@@ -619,18 +630,25 @@ const AdminRecruitment = () => {
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <select 
                 value={jobFilter}
-                onChange={(e) => setJobFilter(e.target.value)}
+                onChange={(e) => {
+                  setJobFilter(e.target.value);
+                  setSelectedJobLabel(e.target.selectedOptions[0]?.textContent || '');
+                  setAppPage(1);
+                }}
                 className="w-full sm:w-auto h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
               >
                 <option value="">All job positions</option>
-                {jobs.map(job => (
+                {jobFilter && !jobChoices.some(j => String(j.id) === String(jobFilter)) && (
+                  <option value={jobFilter}>{selectedJobLabel || 'Selected job'}</option>
+                )}
+                {jobChoices.map(job => (
                   <option key={job.id} value={job.id}>{job.title}</option>
                 ))}
               </select>
 
               <select 
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => { setStatusFilter(e.target.value); setAppPage(1); }}
                 className="w-full sm:w-auto h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
               >
                 <option value="">All pipeline statuses</option>
@@ -641,6 +659,14 @@ const AdminRecruitment = () => {
             </div>
           </div>
 
+          {jobChoicesTotal > 50 && (
+            <div className="flex justify-end gap-2 items-center text-xs text-[var(--muted)]">
+              Job filter page {jobChoicesPage}/{Math.ceil(jobChoicesTotal / 50)}
+              <button type="button" disabled={jobChoicesPage <= 1} onClick={() => setJobChoicesPage(p => Math.max(1, p - 1))}>Previous jobs</button>
+              <button type="button" disabled={jobChoicesPage * 50 >= jobChoicesTotal} onClick={() => setJobChoicesPage(p => p + 1)}>Next jobs</button>
+            </div>
+          )}
+          {appsError && <p role="alert" className="text-sm text-red-600">Candidate applications could not be loaded.</p>}
           {/* Applications List */}
           <div className="grid gap-[14px]">
             {isLoadingApps ? (
@@ -662,8 +688,7 @@ const AdminRecruitment = () => {
                 const nextInterviewRound = getNextInterviewRound(status);
                 const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
                 const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
-                const candidateDocs = allCandidateDocuments.filter(d => d.candidate_id === app.candidate_id);
-                const pendingDocsCount = candidateDocs.filter(d => d.status === 'pending').length;
+                const pendingDocsCount = Number(app.pending_documents_count || 0);
                 
                 return (
                   <div key={app.id} className="rounded-[24px] bg-[var(--surface)] p-5 space-y-4">
@@ -815,6 +840,8 @@ const AdminRecruitment = () => {
               })
             )}
           </div>
+          <PaginationControls page={appPage} limit={30} total={applicationTotal}
+            isFetching={fetchingApps} onPageChange={setAppPage} />
         </div>
       )}
 
