@@ -130,12 +130,13 @@ const AdminRecruitment = () => {
 
   // The conversion form can open before the branch reference request finishes.
   // Fill its default only when safe; never overwrite an explicit selection.
+  const defaultBranchId = branches[0]?.id;
   useEffect(() => {
-    if (isConvertModalOpen && branches.length) {
+    if (isConvertModalOpen && defaultBranchId) {
       setConvertData(previous => previous.branch
-        ? previous : { ...previous, branch: branches[0].id });
+        ? previous : { ...previous, branch: defaultBranchId });
     }
-  }, [isConvertModalOpen, branches.length, branches[0]?.id]);
+  }, [isConvertModalOpen, defaultBranchId]);
 
   const validConversionBranch = !branchesLoading && !branchesError &&
     branches.some(branch => String(branch.id) === String(convertData.branch));
