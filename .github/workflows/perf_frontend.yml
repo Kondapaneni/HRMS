@@ -12,6 +12,7 @@ on:
       - 'tests/perf_frontend_policy_test.mjs'
       - 'tests/layer1_full_coverage_test.mjs'
       - 'tests/perf_navigation_spinner_policy_test.mjs'
+      - 'tests/unified_full_page_skeleton_policy_test.mjs'
       - 'tests/loan_origination_directories_contract_test.mjs'
       - 'tests/perf_cold_route_policy_test.mjs'
       - 'tests/perf_refresh_boot_policy_test.mjs'
@@ -34,6 +35,7 @@ jobs:
           node tests/perf_frontend_policy_test.mjs
           node tests/layer2_http_cache_policy_test.mjs
           node tests/perf_navigation_spinner_policy_test.mjs
+          node tests/unified_full_page_skeleton_policy_test.mjs
           node tests/layer1_full_coverage_test.mjs
           node --test tests/loan_origination_directories_contract_test.mjs
           node tests/perf_cold_route_policy_test.mjs
@@ -52,6 +54,7 @@ jobs:
       - name: Verify production assets and SEC-021 safeguards
         run: |
           node tests/perf_frontend_policy_test.mjs --built
+          node tests/unified_full_page_skeleton_policy_test.mjs
           node tests/layer2_http_cache_policy_test.mjs --built
           node tests/perf_cold_route_policy_test.mjs --built
           node tests/perf_refresh_boot_policy_test.mjs --built
