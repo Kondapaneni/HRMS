@@ -22,6 +22,10 @@ assert(/^5\.[0-9]+\.[0-9]+$/.test(version), 'React Query v5 must be pinned for a
 assert.equal(lock.packages[''].dependencies['@tanstack/react-query'], version);
 assert.equal(lock.packages['node_modules/@tanstack/react-query']?.version, version);
 assert.equal(lock.packages['node_modules/@tanstack/query-core']?.version, version);
+for (const name of ['query-core', 'react-query']) {
+  assert.match(lock.packages['node_modules/@tanstack/' + name]?.integrity || '',
+    /^sha512-[A-Za-z0-9+/]+={0,2}$/, 'Pinned npm package must be integrity checked: ' + name);
+}
 for (const name of ['@tanstack/react-query-persist-client', '@tanstack/query-sync-storage-persister']) {
   assert(!packageJson.dependencies?.[name] && !packageJson.devDependencies?.[name]);
   assert(!Object.keys(lock.packages).some(p => p.endsWith('node_modules/' + name)));
