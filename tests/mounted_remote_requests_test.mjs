@@ -109,6 +109,60 @@ test('logout reset discards mounted private state and prevents stale request com
   host.remove();
 });
 
+test('permission revocation hides prior results and blocks further protected refetches', async () => {
+  const bus = useRefreshControl();
+  let current;
+  let revoked = false;
+  let calls = 0;
+  let deniedCallbacks = 0;
+  const Probe = () => {
+    current = useRemoteData({
+      scope: ['synthetic', 'protected-revocation'],
+      reloadOnFocus: false,
+      load: async () => {
+        calls += 1;
+        if (revoked) {
+          const error = new Error('Forbidden');
+          error.response = { status: 403 };
+          throw error;
+        }
+        return { privateValue: 'synthetic secret only' };
+      },
+      onError: () => { deniedCallbacks += 1; },
+    });
+    return createElement('span', null, current.data?.privateValue ?? 'not-visible');
+  };
+  const host = document.createElement('div');
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(async () => { root.render(withQuery(createElement(Probe))); await next(); });
+  await waitFor(() => Boolean(current.data?.privateValue), 'initial protected data');
+  assert.equal(bus.peek(['synthetic', 'protected-revocation'])?.privateValue,
+    'synthetic secret only');
+
+  revoked = true;
+  await act(async () => {
+    await bus.refresh({ scope: ['synthetic', 'protected-revocation'] });
+    await next();
+  });
+  await waitFor(() => current.isError, '403 suppression');
+  assert.equal(current.error?.response?.status, 403);
+  assert.equal(current.data, undefined, 'A revoked page must hide old data');
+  assert.equal(bus.peek(['synthetic', 'protected-revocation']), undefined,
+    'A revoked view cannot expose old data through the refresh controller');
+  assert.equal(host.textContent, 'not-visible');
+  assert.equal(deniedCallbacks, 1);
+  const requestsAtDenial = calls;
+  await act(async () => {
+    await bus.refresh({ scope: ['synthetic', 'protected-revocation'] });
+    await next();
+  });
+  assert.equal(calls, requestsAtDenial,
+    'A denied query must remain stopped until a new verified session');
+  await act(async () => { root.unmount(); });
+  host.remove();
+});
+
 test('failed assessment-style requests expose isError instead of an empty success view', async () => {
   let current;
   let errors = 0;
