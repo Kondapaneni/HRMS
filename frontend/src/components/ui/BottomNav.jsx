@@ -10,7 +10,7 @@ const spring = { type: 'spring', stiffness: 520, damping: 40, mass: 0.8 };
  * items: [{ to: '/employee', label: 'Home', icon: Home, end: true, activeMatch: (pathname) => boolean }]
  * Use 3 to 5 items and keep labels short (about 8 characters or fewer).
  */
-export default function BottomNav({ items }) {
+export default function BottomNav({ items, onRouteIntent }) {
   const location = useLocation();
   const reduce = useReducedMotion();
   const t = reduce ? { duration: 0 } : spring;
@@ -31,6 +31,9 @@ export default function BottomNav({ items }) {
               <NavLink
                 to={to}
                 end={end}
+                onPointerEnter={() => onRouteIntent?.(to)}
+                onPointerDown={() => onRouteIntent?.(to)}
+                onFocus={() => onRouteIntent?.(to)}
                 aria-label={label}
                 aria-current={isItemActive !== undefined ? (isItemActive ? 'page' : undefined) : undefined}
                 className="block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--nav-active)]"

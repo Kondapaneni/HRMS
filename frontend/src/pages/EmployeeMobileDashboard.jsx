@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
-import { employeeDashboardRequest } from '../performance/dashboardBoot';
+import { employeeDashboardRequest, employeeDashboardExtrasRequest } from '../performance/dashboardBoot';
 import { 
   LogIn, 
   LogOut, 
@@ -64,6 +64,7 @@ const EmployeeMobileDashboard = () => {
 
 
   const { data: dashboardData, isLoading: loading } = useRemoteData(employeeDashboardRequest);
+  const { data: dashboardExtras, isLoading: dashboardExtrasLoading } = useRemoteData(employeeDashboardExtrasRequest);
 
   // Dedicated query to poll rate-limit status dynamically
   const { data: rateLimitStatus } = useRemoteData({
@@ -82,10 +83,10 @@ const EmployeeMobileDashboard = () => {
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
   const fullProfile = dashboardData?.fullProfile || profile;
-  const holidays = dashboardData?.holidays || [];
-  const expenses = dashboardData?.expenses || [];
-  const birthdays = dashboardData?.birthdays || [];
-  const latestPayslip = dashboardData?.latestPayslip || null;
+  const holidays = dashboardExtras?.holidays || [];
+  const expenses = dashboardExtras?.expenses || [];
+  const birthdays = dashboardExtras?.birthdays || [];
+  const latestPayslip = dashboardExtras?.latestPayslip || null;
 
   const upcomingBirthdays = birthdays.slice(0, 3);
 
@@ -440,7 +441,7 @@ const EmployeeMobileDashboard = () => {
             })
           ) : (
             <div className="text-center text-[var(--muted)] text-sm py-4 font-medium">
-              No upcoming birthdays.
+              {dashboardExtrasLoading ? 'Loading upcoming birthdays…' : 'No upcoming birthdays.'}
             </div>
           )}
         </div>

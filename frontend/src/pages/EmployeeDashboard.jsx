@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { employeeDashboardRequest } from '../performance/dashboardBoot';
+import { employeeDashboardRequest, employeeDashboardExtrasRequest } from '../performance/dashboardBoot';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   User, 
@@ -36,7 +36,7 @@ import {
   isEmployeeOnLeaveToday,
 } from '../utils/attendanceUtils';
 
-const EmployeeDashboard = () => {
+const EmployeeDesktopDashboard = () => {
   const { profile } = useAuth();
   const refreshControl = useRefreshControl();
   const [punchingAction, setPunchingAction] = useState(null);
@@ -49,12 +49,13 @@ const EmployeeDashboard = () => {
   }, []);
 
   const { data: dashboardData, isLoading: loading } = useRemoteData(employeeDashboardRequest);
+  const { data: dashboardExtras } = useRemoteData(employeeDashboardExtrasRequest);
 
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
-  const performance = dashboardData?.performance || null;
+  const performance = dashboardExtras?.performance || null;
   const fullProfile = dashboardData?.fullProfile || profile;
-  const latestPayslip = dashboardData?.latestPayslip || null;
+  const latestPayslip = dashboardExtras?.latestPayslip || null;
   const todayRecord = findTodayAttendanceRecord(attendance);
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
@@ -198,19 +199,15 @@ const EmployeeDashboard = () => {
 
   // Stats calculation
   const availablePaidLeaves = leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--';
-  const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '100%';
+  const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '—';
 
   if (loading) return <PageLoader message="Loading dashboard..." />;
 
   return (
     <>
-      {/* Mobile Experience Render */}
-      <div className="md:hidden">
-        <EmployeeMobileDashboard />
-      </div>
-
-      {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 antialiased">
+      {/* Only mount the actual desktop view; the mobile dashboard is rendered
+          separately, not hidden with CSS while still fetching private APIs. */}
+      <div className="space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -434,7 +431,7 @@ const EmployeeDashboard = () => {
                 <div className="grid grid-cols-2 gap-3 text-[13px]">
                   <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] space-y-1">
                     <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Attendance rate</p>
-                    <p className="text-[20px] font-medium text-[var(--text)]">{performance?.attendancePct !== undefined ? `${performance.attendancePct}%` : '100%'}</p>
+                    <p className="text-[20px] font-medium text-[var(--text)]">{performance?.attendancePct !== undefined ? `${performance.attendancePct}%` : '—'}</p>
                   </div>
 
                   <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] space-y-1">
@@ -674,6 +671,22 @@ const EmployeeDashboard = () => {
       </div>
     </>
   );
+};
+
+// Rendering both dashboards under CSS-hidden wrappers doubled the API
+// fan-out on desktop and mobile. Mount exactly one responsive dashboard.
+const EmployeeDashboard = () => {
+  const [mobile, setMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const update = () => setMobile(media.matches);
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
+  return mobile ? <EmployeeMobileDashboard /> : <EmployeeDesktopDashboard />;
 };
 
 export default EmployeeDashboard;

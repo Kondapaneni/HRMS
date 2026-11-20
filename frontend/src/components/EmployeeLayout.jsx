@@ -1,4 +1,4 @@
-import React, { useMemo, lazy, Suspense } from 'react';
+import React, { useMemo, useEffect, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Home,
@@ -21,7 +21,8 @@ import {
   Shield,
 } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
-import { useRemoteData } from '../state/remote.js';
+import { useRemoteData, useRefreshControl } from '../state/remote.js';
+import { warmRoute } from '../performance/routeWarmup.js';
 import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 const EmployeeChatbot = lazy(() => import('./EmployeeChatbot'));
@@ -33,6 +34,49 @@ import useAssessmentBusinessDate from '../hooks/useAssessmentBusinessDate';
 const EmployeeLayout = () => {
   const { profile } = useAuth();
   const location = useLocation();
+  const refreshControl = useRefreshControl();
+
+  // Preload only likely page *code* once the home dashboard has finished its
+  // critical request. No payroll, GPS, permissions or employee records are
+  // prefetched or retained; skip optional imports on slow/saver connections.
+  useEffect(() => {
+    if (!profile?.id || !['employee', 'hr', 'manager'].includes(profile.role) ||
+        location.pathname !== '/employee') return;
+    let cancelled = false;
+    let armed = false;
+    let timer;
+    let idleId;
+    const maybeWarm = () => {
+      if (armed || refreshControl.getState(['employee', 'dashboard'])?.status !== 'success') return;
+      armed = true;
+      timer = setTimeout(() => {
+        if (cancelled || document.visibilityState !== 'visible' ||
+            navigator.connection?.saveData ||
+            /2g/.test(navigator.connection?.effectiveType || '')) return;
+        const run = () => {
+          if (cancelled || document.visibilityState !== 'visible') return;
+          void warmRoute('/employee/attendance', refreshControl, profile.role);
+          void warmRoute('/employee/leaves', refreshControl, profile.role);
+          void warmRoute('/employee/payroll', refreshControl, profile.role);
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+          idleId = window.requestIdleCallback(run, { timeout: 2000 });
+        } else {
+          run();
+        }
+      }, 800);
+    };
+    const unsubscribe = refreshControl.subscribe(maybeWarm);
+    maybeWarm();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      if (idleId !== undefined && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+      unsubscribe();
+    };
+  }, [profile?.id, profile?.role, location.pathname, refreshControl]);
   const todayStr = useAssessmentBusinessDate();
 
   // Check today's assessment
