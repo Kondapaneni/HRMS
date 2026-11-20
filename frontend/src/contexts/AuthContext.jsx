@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useRefreshControl } from '../state/remote.js';
+import { discardPrivateQueries } from '../query/memoryClient.js';
 import api, { restoreSession, setAccessToken, clearSessionAccess } from '../api/axios';
 import { saveNativeSession, clearNativeSession } from '../api/nativeSession';
 import SplashScreen from '../components/SplashScreen';
@@ -38,6 +39,7 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         if (error.message === 'No token found'
             || [401, 403].includes(error.response?.status)) {
+          discardPrivateQueries();
           clearSessionAccess();
           setHasSession(false);
           setProfile(null);
@@ -101,6 +103,7 @@ export const AuthProvider = ({ children }) => {
     setTransitioning(true);
     try {
       await saveNativeSession(responseData);
+      discardPrivateQueries(); // Discard memory-only branch data before installing another identity.
       refreshControl.reset(); // Immediately clear mounted private records on account switch.
       setAccessToken(token);
       setHasSession(true);
@@ -168,6 +171,7 @@ export const AuthProvider = ({ children }) => {
     } catch {
       // Platform secure store errors must not expose native credentials.
     }
+    discardPrivateQueries();
     clearSessionAccess();
     setHasSession(false);
     setProfile(null);
@@ -181,6 +185,7 @@ export const AuthProvider = ({ children }) => {
     const syncLogout = event => {
       if (event.key !== 'hrms_session_event') return;
       try { sessionStorage.setItem('hrms_block_session_restore', '1'); } catch { /* denied */ }
+      discardPrivateQueries();
       clearSessionAccess();
       setHasSession(false);
       setUser(null);
