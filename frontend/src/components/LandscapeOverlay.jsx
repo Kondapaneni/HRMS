@@ -1,24 +1,20 @@
-import React from 'react';
+import React, { useSyncExternalStore } from 'react';
+import { isLandscapeWarningActive, subscribeLandscapeWarning } from '../performance/orientationWarning.js';
 import { motion } from 'framer-motion';
 import { Smartphone, RotateCw } from 'lucide-react';
 
 export default function LandscapeOverlay() {
+  const shouldShow = useSyncExternalStore(
+    subscribeLandscapeWarning, isLandscapeWarningActive, () => false
+  );
+  // No element is left behind to consume touches after returning to portrait.
+  if (!shouldShow) return null;
   return (
     <>
-      <style>{`
-        .orientation-warning {
-          display: none;
-        }
-        @media (orientation: landscape) and (max-width: 1024px) {
-          .orientation-warning {
-            display: flex;
-          }
-        }
-      `}</style>
-
       {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
       <div 
-        className="orientation-warning fixed inset-0 z-[99999] flex-col items-center justify-center bg-[#131315]/45 backdrop-blur-md p-6 text-center select-none"
+        role="dialog" aria-label="Rotate back to portrait" aria-modal="true"
+        className="orientation-warning fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#131315]/45 backdrop-blur-md p-6 text-center select-none"
       >
         {/* Card Container matching Login UI */}
         <motion.div 
