@@ -17,6 +17,26 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
     $page = intdiv($offset, $limit) + 1;
     $search = trim((string)($params['search'] ?? ''));
 
+    // Keep immutable role summaries separate from paginated search results.
+    $view = (string)($params['view'] ?? 'all');
+    $featureColumns = ['canAttendance', 'canLeave', 'canPayroll', 'canExpenses',
+        'canEmployees', 'canRecruitment', 'canAssets', 'canLoanOrigination',
+        'canSalesOrigination', 'canBranchOperations', 'canAdminAssessments'];
+    if (!in_array($view, ['all', 'summary', 'directory'], true)) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid feature access view']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    // Strictly whitelist permission columns before interpolating into ORDER BY.
+    $sortFeature = (string)($params['assignedFirstFeature'] ?? '');
+    if ($sortFeature !== '' && !in_array($sortFeature, $featureColumns, true)) {
+        $response->getBody()->write(json_encode(['error' => 'Invalid feature sort']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+    $assignmentOrder = $sortFeature !== ''
+        ? 'CASE WHEN fa."' . $sortFeature . '" IS TRUE THEN 0 ELSE 1 END ASC, '
+        : '';
+
     $where = "WHERE u.role != 'admin'";
     $queryParams = [];
     if (!empty($search)) {
@@ -50,11 +70,14 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
         LEFT JOIN employee e ON e.\"userId\" = u.id
         LEFT JOIN user_feature_access fa ON fa.\"userId\" = u.id
         {$where}
-        ORDER BY u.\"firstName\" ASC, u.\"lastName\" ASC
+        ORDER BY {$assignmentOrder}u.\"firstName\" ASC, u.\"lastName\" ASC, u.id ASC
         LIMIT ? OFFSET ?
     ";
 
     try {
+        $users = [];
+        $totalCount = 0;
+        if ($view !== 'summary') {
         $stmt = $conn->prepare($sql);
         $paramIndex = 1;
         foreach ($queryParams as $p) {
@@ -73,11 +96,13 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
         }
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
+        }
 
+        $featureCounts = [];
+        $featurePreviews = [];
+        $delegatedManagers = 0;
+        if ($view !== 'directory') {
         // Full-population counts; never infer global assignments from a page.
-        $featureColumns = ['canAttendance', 'canLeave', 'canPayroll', 'canExpenses',
-            'canEmployees', 'canRecruitment', 'canAssets', 'canLoanOrigination',
-            'canSalesOrigination', 'canBranchOperations', 'canAdminAssessments'];
         $countExpressions = [];
         foreach ($featureColumns as $column) {
             $countExpressions[] = 'COUNT(*) FILTER (WHERE fa."' . $column . '" IS TRUE) AS "' . $column . '"';
@@ -130,6 +155,8 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
                 'firstName' => $entry['firstName'],
                 'lastName' => $entry['lastName']
             ];
+        }
+
         }
 
         // Map nulls to false
