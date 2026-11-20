@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -43,6 +44,9 @@ const CandidateActivate = () => {
       );
     }
   };
+
+  if (status === 'loading') return <PageLoader message="Activating your account..." />;
+
 
   return (
     <div className="min-h-screen w-full overflow-y-auto bg-[#ECEEEA] flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
