@@ -90,6 +90,31 @@ test('logout reset discards mounted private state and prevents stale request com
   host.remove();
 });
 
+test('failed assessment-style requests expose isError instead of an empty success view', async () => {
+  let current;
+  let errors = 0;
+  const Probe = () => {
+    current = useRemoteData({
+      scope: ['synthetic', 'assessments-error'],
+      load: async () => { throw new Error('synthetic assessment outage'); },
+      reloadOnFocus: false,
+      onError: () => { errors += 1; },
+    });
+    return createElement('div', null, current.isError ? 'failed' : 'pending');
+  };
+  const host = document.createElement('section');
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(async () => { root.render(createElement(Probe)); await next(); });
+  assert.equal(current.isError, true, 'Failed queries must provide isError for UI alert');
+  assert.equal(current.isSuccess, false, 'Failures must not render as successful empty results');
+  assert.equal(current.isLoading, false, 'Request failure must stop the loading indicator');
+  assert.equal(current.error.message, 'synthetic assessment outage');
+  assert.equal(errors, 1, 'Failure callback should run exactly once');
+  await act(async () => { root.unmount(); });
+  host.remove();
+});
+
 test('mutations retain callbacks and error handling without retaining responses globally', async () => {
   let operation;
   let successes = 0;
