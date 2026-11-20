@@ -105,8 +105,12 @@ export const AuthProvider = ({ children }) => {
       await saveNativeSession(responseData);
       discardPrivateQueries(); // Discard memory-only branch data before installing another identity.
       refreshControl.reset(); // Immediately clear mounted private records on account switch.
+      // Never couple a new access token to the previous account's verified profile:
+      // branch queries stay disabled until /me verifies the new identity.
+      setHasSession(false);
+      setProfile(null);
+      setUser(null);
       setAccessToken(token);
-      setHasSession(true);
       const verifiedProfile = await fetchProfile();
       await prepareForDashboard(verifiedProfile, primeInitialMaintenanceStatus());
     } finally {
