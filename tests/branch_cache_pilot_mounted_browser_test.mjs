@@ -72,6 +72,13 @@ try {
       await new Promise(resolve => setTimeout(resolve, 0));
     });
   };
+  const waitFor = async (predicate, title) => {
+    for (let attempt = 0; attempt < 25; attempt++) {
+      if (predicate()) return;
+      await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+    }
+    assert.fail('Timed out waiting for: ' + title);
+  };
   const accountA = { id: 'a', role: 'admin', branchId: 'a-branch' };
   const accountB = { id: 'b', role: 'admin', branchId: 'b-branch' };
 
@@ -86,6 +93,7 @@ try {
     globalThis.__cachePilotAuth = { hasSession: true, profile: accountA };
     handler = async () => ({ data: { branches: [{ id: 'alpha', name: 'Alpha' }] } });
     await render();
+    await waitFor(() => latest.data?.[0]?.name === 'Alpha', 'account A branch fetch');
     assert.equal(requests.length, 1);
     assert.equal(document.getElementById('branches').textContent, 'Alpha');
     await render(false);
@@ -101,6 +109,7 @@ try {
     globalThis.__cachePilotAuth = { hasSession: true, profile: accountB };
     handler = async () => ({ data: { branches: [{ id: 'bravo', name: 'Bravo' }] } });
     await render();
+    await waitFor(() => latest.data?.[0]?.name === 'Bravo', 'account B branch fetch');
     assert.equal(requests.length, 2);
     assert.equal(latest.data?.[0]?.name, 'Bravo');
     assert(!document.getElementById('branches').textContent.includes('Alpha'));
@@ -122,8 +131,10 @@ try {
       throw error;
     };
     await render();
+    await waitFor(() => latest.isError === true, '403 blocked branch state');
     assert.equal(latest.data, undefined);
     assert.equal(latest.isError, true);
+    assert.equal(requests.length, 3, '403 must not trigger a repeated authorization request');
     assert.equal(document.getElementById('branches').textContent, 'none');
     assert.equal(memoryQueryClient.getQueryData(['hrms', 'branch-reference', 'v1', '', 'a-branch', 'a', 'admin']), undefined);
   });
