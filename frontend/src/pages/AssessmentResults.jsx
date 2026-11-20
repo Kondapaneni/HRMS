@@ -25,6 +25,7 @@ import {
   Loader2
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import PaginationControls from '../components/ui/PaginationControls';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
@@ -34,36 +35,51 @@ const AssessmentResults = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [assessmentPage, setAssessmentPage] = useState(1);
+  const [selectedAssessmentName, setSelectedAssessmentName] = useState('');
+  const pageSize = 50;
   const [assessmentFilter, setAssessmentFilter] = useState('all');
   const [selectedAttempt, setSelectedAttempt] = useState(null);
 
   // Debounce search input (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
+      setPage(1);
       setDebouncedSearchTerm(searchTerm);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch attempts
-  const { data: attempts = [], isLoading, isFetching } = useRemoteData({
-    scope: ['adminAssessmentAttempts'],
-    load: async () => {
-      const res = await api.get('/admin/assessments/attempts');
-      return res.data?.data || res.data || [];
-    },
+  const { data: attemptsResponse, isLoading, isFetching, error: attemptsError } = useRemoteData({
+    scope: ['adminAssessmentAttempts', page, debouncedSearchTerm, assessmentFilter, statusFilter],
+    load: async ({ signal }) => (await api.get('/admin/assessments/attempts', {
+      params: {
+        page, limit: pageSize, search: debouncedSearchTerm, status: statusFilter,
+        ...(assessmentFilter === 'all' ? {} : { assessment_id: assessmentFilter })
+      }, signal
+    })).data,
     pollEveryMs: 30000
   });
+  const attempts = attemptsResponse?.attempts || [];
+  const attemptsTotal = Number(attemptsResponse?.pagination?.total ?? attemptsResponse?.total ?? 0);
+  const attemptStats = attemptsResponse?.stats || { total: 0, passedCount: 0, avgScore: 0, violationsCount: 0 };
+  const stats = {
+    ...attemptStats,
+    passRate: attemptStats.total > 0 ? Math.round(100 * attemptStats.passedCount / attemptStats.total) : 0
+  };
+  const filteredAttempts = attempts;
 
-  // Fetch assessments for dropdown filter
-  const { data: assessments = [] } = useRemoteData({
-    scope: ['adminAssessments'],
-    load: async () => {
-      const res = await api.get('/admin/assessments');
-      return res.data?.data || res.data || [];
-    }
+  // The filter list itself must be pageable; it is never restricted to the
+  // first 50 assessments. A chosen option remains visible across page changes.
+  const { data: assessmentResponse } = useRemoteData({
+    scope: ['adminAssessments', 'filter', assessmentPage],
+    load: async ({ signal }) => (await api.get('/admin/assessments', {
+      params: { page: assessmentPage, limit: 50 }, signal
+    })).data
   });
-
+  const assessments = assessmentResponse?.assessments || [];
+  const assessmentTotal = Number(assessmentResponse?.total || 0);
   // Delete/Reset mutation
   const deleteMutation = useRemoteTask({
     run: async ({ id }) => {
@@ -127,36 +143,6 @@ const AssessmentResults = () => {
     }
   };
 
-  const filteredAttempts = useMemo(() => {
-    return attempts.filter(att => {
-      const q = debouncedSearchTerm.toLowerCase();
-      const matchSearch = q === '' ||
-        (att.employee_name && att.employee_name.toLowerCase().includes(q)) ||
-        (att.employee_email && att.employee_email.toLowerCase().includes(q)) ||
-        (att.employee_code && att.employee_code.toString().toLowerCase().includes(q)) ||
-        (att.assessment_title && att.assessment_title.toLowerCase().includes(q));
-
-      const matchAssessment = assessmentFilter === 'all' || att.assessment_id === assessmentFilter;
-
-      let matchStatus = true;
-      if (statusFilter === 'passed') matchStatus = att.passed === true;
-      else if (statusFilter === 'failed') matchStatus = att.passed === false;
-      else if (statusFilter === 'violation') matchStatus = att.submit_reason && att.submit_reason !== 'manual' && att.submit_reason !== 'normal' && att.submit_reason !== 'time_expired';
-
-      return matchSearch && matchAssessment && matchStatus;
-    });
-  }, [attempts, debouncedSearchTerm, statusFilter, assessmentFilter]);
-
-  // Statistics
-  const stats = useMemo(() => {
-    const total = attempts.length;
-    const passedCount = attempts.filter(a => a.passed).length;
-    const passRate = total > 0 ? Math.round((passedCount / total) * 100) : 0;
-    const avgScore = total > 0 ? Math.round(attempts.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / total) : 0;
-    const violationsCount = attempts.filter(a => a.submit_reason && a.submit_reason !== 'manual' && a.submit_reason !== 'normal' && a.submit_reason !== 'time_expired').length;
-    return { total, passedCount, passRate, avgScore, violationsCount };
-  }, [attempts]);
-
   if (isLoading && !attempts.length && !debouncedSearchTerm) return <PageLoader message="Loading assessment results..." />;
 
   return (
@@ -167,7 +153,7 @@ const AssessmentResults = () => {
           <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
             Employee assessment results
             <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
-              {attempts.length} Evaluated
+              {attemptsTotal.toLocaleString('en-IN')} Evaluated
             </span>
           </h1>
           <p className="text-[13px] text-[var(--muted)] mt-1">
@@ -231,10 +217,17 @@ const AssessmentResults = () => {
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
             <select
               value={assessmentFilter}
-              onChange={(e) => setAssessmentFilter(e.target.value)}
+              onChange={(e) => {
+                setAssessmentFilter(e.target.value);
+                setSelectedAssessmentName(e.target.selectedOptions[0]?.textContent || '');
+                setPage(1);
+              }}
               className="h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
             >
               <option value="all">All assessments</option>
+              {assessmentFilter !== 'all' && !assessments.some(a => String(a.id) === String(assessmentFilter)) && (
+                <option value={assessmentFilter}>{selectedAssessmentName || 'Selected assessment'}</option>
+              )}
               {assessments.map(a => (
                 <option key={a.id} value={a.id}>{a.title}</option>
               ))}
@@ -242,7 +235,7 @@ const AssessmentResults = () => {
 
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
               className="h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
             >
               <option value="all">All outcomes</option>
@@ -252,7 +245,16 @@ const AssessmentResults = () => {
             </select>
           </div>
         </div>
-
+        {assessmentTotal > 50 && (
+          <div className="flex items-center justify-end gap-2 text-xs text-[var(--muted)]">
+            <span>Assessment choices page {assessmentPage} of {Math.ceil(assessmentTotal / 50)}</span>
+            <button type="button" className="px-2 py-1 border rounded-md" disabled={assessmentPage <= 1}
+              onClick={() => setAssessmentPage(p => Math.max(1, p - 1))}>Previous choices</button>
+            <button type="button" className="px-2 py-1 border rounded-md"
+              disabled={assessmentPage * 50 >= assessmentTotal}
+              onClick={() => setAssessmentPage(p => p + 1)}>Next choices</button>
+          </div>
+        )}
         {/* Results Table */}
         <div className="overflow-x-auto">
           {isLoading && attempts.length === 0 ? (
@@ -396,6 +398,9 @@ const AssessmentResults = () => {
         </div>
       </div>
 
+      {attemptsError && <p role="alert" className="text-xs text-red-600">Assessment attempts could not be loaded.</p>}
+      <PaginationControls page={page} limit={pageSize} total={attemptsTotal}
+        isFetching={isFetching} onPageChange={setPage} />
       {/* Slideover Right Drawer for Detailed Evaluation Sheet */}
       {selectedAttempt && createPortal(
         <div className="fixed inset-0 z-50 overflow-hidden antialiased">

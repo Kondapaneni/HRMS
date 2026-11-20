@@ -6,6 +6,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import Button from '../components/ui/Button';
+import PaginationControls from '../components/ui/PaginationControls';
 
 const AdminEmployeeEdit = () => {
   const { id } = useParams();
@@ -15,6 +16,8 @@ const AdminEmployeeEdit = () => {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({});
   const [managerSearch, setManagerSearch] = useState('');
+  const [debouncedManagerSearch, setDebouncedManagerSearch] = useState('');
+  const [managerPage, setManagerPage] = useState(1);
   const [showManagerDropdown, setShowManagerDropdown] = useState(false);
 
   const employeeQuery = useRemoteData({
@@ -26,12 +29,34 @@ const AdminEmployeeEdit = () => {
     enabled: !!id
   });
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setManagerPage(1);
+      setDebouncedManagerSearch(managerSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [managerSearch]);
+
   const managersQuery = useRemoteData({
-    scope: ['admin', 'employees-dropdown'],
-    load: async () => {
-      const res = await api.get('/admin/employees?limit=500');
-      return res.data.employees || [];
+    scope: ['admin', 'manager-choices', debouncedManagerSearch, managerPage],
+    load: async ({ signal }) => {
+      const response = await api.get('/admin/employees', {
+        params: { search: debouncedManagerSearch, page: managerPage, limit: 50 }, signal
+      });
+      return response.data;
     },
+    reloadOnFocus: false,
+  });
+  const selectedManagerQuery = useRemoteData({
+    scope: ['admin', 'selected-manager', formData.managerId],
+    load: async ({ signal }) => {
+      if (!formData.managerId) return null;
+      const res = await api.get('/admin/employees', {
+        params: { employeeRecordId: formData.managerId, limit: 1 }, signal
+      });
+      return res.data.employees?.[0] || null;
+    },
+    enabled: Boolean(formData.managerId),
     reloadOnFocus: false,
   });
 
@@ -66,13 +91,11 @@ const AdminEmployeeEdit = () => {
   }, [employeeQuery.data]);
 
   useEffect(() => {
-    if (formData.managerId && managersQuery.data) {
-      const m = managersQuery.data.find((emp) => emp.id === formData.managerId);
-      if (m) setManagerSearch(`${m.firstName} ${m.lastName} (${m.employeeId})`);
-    } else if (!formData.managerId) {
-      setManagerSearch('');
+    const manager = selectedManagerQuery.data;
+    if (formData.managerId && manager && !managerSearch.trim()) {
+      setManagerSearch(`${manager.firstName} ${manager.lastName} (${manager.employeeId})`);
     }
-  }, [formData.managerId, managersQuery.data]);
+  }, [formData.managerId, selectedManagerQuery.data, managerSearch]);
 
   const updateEmployeeMutation = useRemoteTask({
     run: async () => {
@@ -89,17 +112,15 @@ const AdminEmployeeEdit = () => {
   const originalName = employeeQuery.data?.employee
     ? `${employeeQuery.data.employee.firstName} ${employeeQuery.data.employee.lastName}`
     : '';
-  const managers = managersQuery.data || [];
+  const managers = managersQuery.data?.employees || [];
+  const managerTotal = Number(managersQuery.data?.pagination?.total ?? managersQuery.data?.total ?? 0);
   const branches = branchesQuery.data || [];
   const shifts = shiftsQuery.data || [];
 
   const loading =
-    employeeQuery.isLoading || managersQuery.isLoading || branchesQuery.isLoading || shiftsQuery.isLoading;
+    employeeQuery.isLoading || branchesQuery.isLoading || shiftsQuery.isLoading;
 
-  const filteredManagers = managers.filter((m) => {
-    const searchString = `${m.firstName} ${m.lastName} ${m.employeeId}`.toLowerCase();
-    return searchString.includes(managerSearch.toLowerCase());
-  });
+  const filteredManagers = managers.filter(m => String(m.id) !== String(id));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -417,7 +438,7 @@ const AdminEmployeeEdit = () => {
                   value={managerSearch}
                   onChange={(e) => {
                     setManagerSearch(e.target.value);
-                    setFormData((prev) => ({ ...prev, managerId: '' }));
+                    // An uncommitted query must not clear the saved manager.
                     setShowManagerDropdown(true);
                   }}
                   onFocus={() => setShowManagerDropdown(true)}
@@ -456,6 +477,11 @@ const AdminEmployeeEdit = () => {
                     {filteredManagers.length === 0 && (
                       <div className="px-3 py-2 text-xs text-[var(--muted)] italic">No matching managers found</div>
                     )}
+                    {managersQuery.error && <div role="alert" className="text-red-600 px-3 py-2">Manager search unavailable.</div>}
+                    <div onMouseDown={e => e.preventDefault()}>
+                      <PaginationControls page={managerPage} limit={50} total={managerTotal}
+                        isFetching={managersQuery.isFetching} onPageChange={setManagerPage} />
+                    </div>
                   </div>
                 )}
               </div>

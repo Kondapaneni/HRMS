@@ -35,6 +35,7 @@ import { useRemoteData, useRefreshControl } from '../state/remote.js';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { StatCard, StatusBadge, Button, Avatar } from '../components/ui';
+import PaginationControls from '../components/ui/PaginationControls';
 
 const getCategoryIcon = (category) => {
   switch ((category || '').toLowerCase()) {
@@ -65,9 +66,16 @@ const AdminAssets = () => {
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [modalMode, setModalMode] = useState(''); // 'assign', 'add', 'edit', 'history'
   const [modalSearch, setModalSearch] = useState('');
+  const [debouncedModalSearch, setDebouncedModalSearch] = useState('');
+  const [assignmentPage, setAssignmentPage] = useState(1);
   const [assetHistory, setAssetHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { setAssignmentPage(1); setDebouncedModalSearch(modalSearch); }, 300);
+    return () => clearTimeout(timer);
+  }, [modalSearch]);
 
   // Debounce search query (300ms)
   useEffect(() => {
@@ -108,14 +116,17 @@ const AdminAssets = () => {
   const totalCount = assetsResponse?.pagination?.total || 0;
   const totalPages = Math.ceil(totalCount / limit);
 
-  // Fetch Employees for assignment dropdown
-  const { data: users = [] } = useRemoteData({
-    scope: ['admin', 'employees'],
-    load: async () => {
-      const res = await api.get('/admin/employees?limit=200');
-      return res.data.employees || [];
-    },
+  // Search all authorized employees from the server while the assignment modal is open.
+  const { data: employeeResponse, isFetching: employeeSearchPending, error: employeeSearchError } = useRemoteData({
+    scope: ['admin', 'asset-assignment-employees', assignmentPage, debouncedModalSearch],
+    load: async ({ signal }) => (await api.get('/admin/employees', {
+      params: { page: assignmentPage, limit: 50, search: debouncedModalSearch }, signal
+    })).data,
+    enabled: modalMode === 'assign',
+    reloadOnFocus: false,
   });
+  const users = employeeResponse?.employees || [];
+  const employeeCount = Number(employeeResponse?.pagination?.total ?? employeeResponse?.total ?? 0);
 
   const loading = assetsLoading && !assetsResponse && !debouncedSearchQuery;
 
@@ -140,6 +151,8 @@ const AdminAssets = () => {
     setModalMode('assign');
     setSelectedAsset(asset);
     setModalSearch('');
+    setDebouncedModalSearch('');
+    setAssignmentPage(1);
   };
 
   const openHistoryModal = async (asset) => {
@@ -226,14 +239,7 @@ const AdminAssets = () => {
     }
   };
 
-  const filteredUsersForModal = users.filter(u => {
-    const fullName = `${u.firstName || u.first_name || ''} ${u.lastName || u.last_name || ''}`.toLowerCase();
-    const employeeId = (u.employeeId || u.employee_id || '').toLowerCase();
-    const email = (u.email || '').toLowerCase();
-    const q = modalSearch.toLowerCase();
-    return fullName.includes(q) || employeeId.includes(q) || email.includes(q);
-  });
-  const filteredEmployees = filteredUsersForModal;
+  const filteredEmployees = users;
 
   if (loading) return <PageLoader message="Loading Assets..." />;
 
@@ -595,6 +601,9 @@ const AdminAssets = () => {
                       })
                     )}
                   </div>
+                  {employeeSearchError && <p role="alert" className="text-red-600">Could not load employees for assignment.</p>}
+                  {employeeSearchPending && <p className="text-xs text-[var(--muted)]">Searching employees…</p>}
+                  <PaginationControls page={assignmentPage} limit={50} total={employeeCount} isFetching={employeeSearchPending} onPageChange={setAssignmentPage} />
                 </>
               ) : modalMode === 'history' ? (
                 /* History Timeline Mode */

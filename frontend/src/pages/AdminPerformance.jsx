@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
+import PaginationControls from '../components/ui/PaginationControls';
 import SearchBar from '../components/ui/SearchBar';
 import { useRemoteData } from '../state/remote.js';
 import {
@@ -107,26 +108,31 @@ const EmployeeRow = ({ item, onSelect, isSelected }) => {
 
 const AdminPerformance = () => {
   const [selectedEmpId, setSelectedEmpId] = useState('');
+  const [page, setPage] = useState(1);
+  const limit = 50;
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      setPage(1);
       setDebouncedSearch(search);
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: employees = [], isLoading: isLoadingEmployees, isFetching: isFetchingEmployees } = useRemoteData({
-    scope: ['admin', 'employees', debouncedSearch],
-    load: async () => {
-      const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}&limit=100`);
-      return res.data.employees || [];
+  const { data: employeeResponse, isLoading: isLoadingEmployees, isFetching: isFetchingEmployees, error: employeesError } = useRemoteData({
+    scope: ['admin', 'employees', 'performance', page, debouncedSearch],
+    load: async ({ signal }) => {
+      const res = await api.get('/admin/employees', { params: { page, limit, search: debouncedSearch }, signal });
+      return res.data;
     },
   });
+  const employees = employeeResponse?.employees || [];
+  const employeeTotal = Number(employeeResponse?.pagination?.total ?? employeeResponse?.total ?? 0);
 
   useEffect(() => {
-    if ((!selectedEmpId || !employees.some((e) => e.id === selectedEmpId)) && employees.length > 0) {
+    if (!selectedEmpId && employees.length > 0) {
       setSelectedEmpId(employees[0].id);
     }
   }, [employees, selectedEmpId]);
@@ -183,10 +189,11 @@ const AdminPerformance = () => {
             <Users size={14} className="text-[var(--brand-deep)]" /> Select employee roster
           </p>
           <span className="text-[11px] font-medium text-[var(--muted)] bg-[var(--surface-alt)] px-2.5 py-0.5 rounded-full">
-            {employees.length} employees found
+            {employeeTotal.toLocaleString('en-IN')} employees found
           </span>
         </div>
 
+        {employeesError && <p role="alert" className="text-red-600 text-xs">Could not load the employee directory.</p>}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 hide-scrollbar">
           {employees.length === 0 ? (
             <p className="text-xs text-[var(--muted)] py-2">No matching employees found.</p>
@@ -220,6 +227,7 @@ const AdminPerformance = () => {
             })
           )}
         </div>
+        <PaginationControls page={page} limit={limit} total={employeeTotal} isFetching={isFetchingEmployees} onPageChange={setPage} />
       </div>
 
       {isLoadingPerf && (

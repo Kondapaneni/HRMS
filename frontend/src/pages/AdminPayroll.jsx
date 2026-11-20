@@ -81,16 +81,6 @@ const AdminPayroll = () => {
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Fetch employees for the dropdown
-  const { data: employees = [] } = useRemoteData({
-    scope: ['admin', 'employees-dropdown'],
-    load: async () => {
-      const response = await api.get(`/admin/employees?limit=500`);
-      return response.data.employees || [];
-    },
-    reloadOnFocus: false,
-  });
-
   // Fetch payslips (paginated)
   const { data: payrollResponse, isLoading: loading } = useRemoteData({
     scope: ['admin', 'payroll', page, debouncedSearch],
@@ -242,7 +232,6 @@ const AdminPayroll = () => {
                 Employee
               </label>
               <EmployeeSelect 
-                employees={employees} 
                 selectedId={selectedEmployee} 
                 onChange={(id) => setSelectedEmployee(id)} 
                 valueKey="userId"

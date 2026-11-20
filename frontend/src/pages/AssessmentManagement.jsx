@@ -24,6 +24,7 @@ import {
   X
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import PaginationControls from '../components/ui/PaginationControls';
 import StatCard from '../components/ui/StatCard';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
@@ -44,6 +45,8 @@ const AssessmentManagement = () => {
   const navigate = useNavigate();
   const refreshControl = useRefreshControl();
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedAssessmentForRules, setSelectedAssessmentForRules] = useState(null);
@@ -51,42 +54,23 @@ const AssessmentManagement = () => {
   // Debounce search query (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
+      setPage(1);
       setDebouncedSearchQuery(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch all assessments
-  const { data: assessments = [], isLoading, isFetching } = useRemoteData({
-    scope: ['adminAssessments', selectedDeptFilter, debouncedSearchQuery],
-    load: async () => {
-      const params = new URLSearchParams();
-      if (selectedDeptFilter !== 'All') params.append('department', selectedDeptFilter);
-      if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
-      
-      const url = `/admin/assessments?${params.toString()}`;
-      const res = await api.get(url);
-      return res.data?.data || res.data || [];
+  const { data: response, isLoading, isFetching, error: listError } = useRemoteData({
+    scope: ['adminAssessments', selectedDeptFilter, debouncedSearchQuery, page],
+    load: async ({ signal }) => {
+      const params = { page, limit: pageSize, search: debouncedSearchQuery };
+      if (selectedDeptFilter !== 'All') params.department = selectedDeptFilter;
+      return (await api.get('/admin/assessments', { params, signal })).data;
     },
   });
-
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const total = assessments.length;
-    const active = assessments.filter(a => a.status === 'Active' || !a.status).length;
-    const depts = new Set(assessments.map(a => a.department || 'General')).size;
-    
-    let totalQuestions = 0;
-    let sumPass = 0;
-    assessments.forEach(a => {
-      const qs = Array.isArray(a.selected_questions) ? a.selected_questions.length : 0;
-      totalQuestions += qs;
-      sumPass += (parseInt(a.passing_percentage) || 70);
-    });
-    
-    const avgPass = total > 0 ? Math.round(sumPass / total) : 70;
-    return { total, active, depts, totalQuestions, avgPass };
-  }, [assessments]);
+  const assessments = response?.assessments || [];
+  const total = Number(response?.pagination?.total ?? response?.total ?? 0);
+  const stats = response?.stats || { total: 0, active: 0, depts: 0, totalQuestions: 0, avgPass: 70 };
 
   // Delete mutation
   const deleteMutation = useRemoteTask({
@@ -118,7 +102,7 @@ const AssessmentManagement = () => {
           <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
             Assessment management
             <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
-              {assessments.length} Tests
+              {total.toLocaleString('en-IN')} Tests
             </span>
           </h1>
           <p className="text-[13px] text-[var(--muted)] mt-1">
@@ -180,19 +164,19 @@ const AssessmentManagement = () => {
           {/* Department Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
             <button
-              onClick={() => setSelectedDeptFilter('All')}
+              onClick={() => { setSelectedDeptFilter('All'); setPage(1); }}
               className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                 selectedDeptFilter === 'All'
                   ? 'bg-[var(--ink)] text-white'
                   : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
-              All departments ({selectedDeptFilter === 'All' ? assessments.length : 'All'})
+              All departments ({selectedDeptFilter === 'All' ? total : 'All'})
             </button>
             {DEPARTMENTS.map((dept) => (
               <button
                 key={dept}
-                onClick={() => setSelectedDeptFilter(dept)}
+                onClick={() => { setSelectedDeptFilter(dept); setPage(1); }}
                 className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                   selectedDeptFilter === dept
                     ? 'bg-[var(--ink)] text-white'
@@ -339,6 +323,8 @@ const AssessmentManagement = () => {
         )}
       </div>
 
+      {listError && <p role="alert" className="text-red-600">Could not load the assessment directory.</p>}
+      <PaginationControls page={page} limit={pageSize} total={total} isFetching={isFetching} onPageChange={setPage} />
       {/* Slideover Right Drawer for View Rules & Linked Questions */}
       {selectedAssessmentForRules && createPortal(
         <div className="fixed inset-0 z-50 overflow-hidden antialiased">

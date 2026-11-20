@@ -19,7 +19,7 @@ for(const file of phpFiles) {
 assert(count>50,'all protected PHP route policies should be scanned');
 
 const expected = [
-  ['admin_reports_routes.php', "new AuthMiddleware(['admin'])", 3],
+  ['admin_reports_routes.php', "new AuthMiddleware(['admin'])", 4],
   ['admin_performance_routes.php', "new AuthMiddleware(['admin'])", 1],
   ['admin_chatbot_routes.php', "new AuthMiddleware(['admin'])", 1],
   ['employee_assessments_routes.php', "new AuthMiddleware(['employee', 'hr', 'manager'])", 6],

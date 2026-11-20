@@ -22,6 +22,7 @@ import {
   Search
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import PaginationControls from '../components/ui/PaginationControls';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 
@@ -48,9 +49,11 @@ const AssessmentCreate = () => {
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
   const [questionSearch, setQuestionSearch] = useState('');
   const [debouncedQuestionSearch, setDebouncedQuestionSearch] = useState('');
+  const [questionPage, setQuestionPage] = useState(1);
 
   // Selected questions map/array (storing IDs of checked questions)
   const [selectedIds, setSelectedIds] = useState([]);
+  const [selectedQuestionDetails, setSelectedQuestionDetails] = useState(() => new Map());
 
   // Form state for Step 3: Basic Info, Timing & Grading, Security Controls
   const [form, setForm] = useState({
@@ -69,35 +72,54 @@ const AssessmentCreate = () => {
   });
 
   const [searchEmployee, setSearchEmployee] = useState('');
+  const [debouncedEmployeeSearch, setDebouncedEmployeeSearch] = useState('');
+  const [employeePage, setEmployeePage] = useState(1);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { setEmployeePage(1); setDebouncedEmployeeSearch(searchEmployee); }, 300);
+    return () => clearTimeout(timer);
+  }, [searchEmployee]);
 
   // Debounce question search
   useEffect(() => {
     const timer = setTimeout(() => {
+      setQuestionPage(1);
       setDebouncedQuestionSearch(questionSearch);
     }, 300);
     return () => clearTimeout(timer);
   }, [questionSearch]);
 
-  // Fetch question bank
-  const { data: questionBank = [], isLoading: loadingQuestions } = useRemoteData({
-    scope: ['adminQuestions', selectedDeptFilter],
-    load: async () => {
-      const url = selectedDeptFilter === 'All' 
-        ? '/admin/questions' 
-        : `/admin/questions?department=${encodeURIComponent(selectedDeptFilter)}`;
-      const res = await api.get(url);
-      return res.data?.data || res.data || [];
+  // Page through the entire question bank while retaining selected IDs.
+  const { data: questionResponse, isLoading: loadingQuestions, isFetching: fetchingQuestions, error: questionsError } = useRemoteData({
+    scope: ['adminQuestions', selectedDeptFilter, questionPage, debouncedQuestionSearch],
+    load: async ({ signal }) => {
+      const params = { page: questionPage, limit: 50, search: debouncedQuestionSearch };
+      if (selectedDeptFilter !== 'All') params.department = selectedDeptFilter;
+      return (await api.get('/admin/questions', { params, signal })).data;
     }
   });
+  const questionBank = questionResponse?.questions || [];
+  const questionTotal = Number(questionResponse?.pagination?.total ?? questionResponse?.total ?? 0);
 
-  // Fetch employees for assignment
-  const { data: employees = [], isLoading: loadingEmployees } = useRemoteData({
-    scope: ['adminEmployeesForAssignment'],
-    load: async () => {
-      const res = await api.get('/admin/employees');
-      return res.data?.employees || res.data || [];
-    }
+  useEffect(() => {
+    if (!questionBank.length) return;
+    setSelectedQuestionDetails(previous => {
+      const next = new Map(previous);
+      for (const question of questionBank) if (selectedIds.includes(question.id)) next.set(question.id, question);
+      return next;
+    });
+  }, [questionBank, selectedIds]);
+
+  // Employee assignment selection spans all pages. Only the currently
+  // visible page is transferred from PostgreSQL; chosen IDs stay in form state.
+  const { data: employeeResponse, isLoading: loadingEmployees, isFetching: fetchingEmployees, error: employeeError } = useRemoteData({
+    scope: ['adminEmployeesForAssignment', employeePage, debouncedEmployeeSearch],
+    load: async ({ signal }) => (await api.get('/admin/employees', {
+      params: { page: employeePage, limit: 50, search: debouncedEmployeeSearch }, signal
+    })).data,
   });
+  const employees = employeeResponse?.employees || [];
+  const employeeTotal = Number(employeeResponse?.pagination?.total ?? employeeResponse?.total ?? 0);
 
   // Fetch existing assessment if editing
   const { data: existingAssessment, isLoading: loadingAssessment } = useRemoteData({
@@ -130,6 +152,7 @@ const AssessmentCreate = () => {
       const sqs = existingAssessment.selected_questions || [];
       const ids = sqs.map(q => typeof q === 'object' ? q.id : q).filter(Boolean);
       setSelectedIds(ids);
+      setSelectedQuestionDetails(new Map(sqs.filter(q => q && typeof q === 'object' && q.id).map(q => [q.id, q])));
     }
   }, [existingAssessment, isEditing]);
 
@@ -152,31 +175,35 @@ const AssessmentCreate = () => {
   });
 
   const handleToggleQuestion = (qId) => {
-    if (selectedIds.includes(qId)) {
-      setSelectedIds(selectedIds.filter(id => id !== qId));
-    } else {
-      setSelectedIds([...selectedIds, qId]);
-    }
+    const question = questionBank.find(q => q.id === qId);
+    setSelectedIds(previous =>
+      previous.includes(qId) ? previous.filter(id => id !== qId) : [...previous, qId]
+    );
+    setSelectedQuestionDetails(previous => {
+      const next = new Map(previous);
+      if (next.has(qId)) next.delete(qId);
+      else if (question) next.set(qId, question);
+      return next;
+    });
   };
 
-  const filteredQuestions = useMemo(() => {
-    if (!debouncedQuestionSearch.trim()) return questionBank;
-    const q = debouncedQuestionSearch.toLowerCase();
-    return questionBank.filter(item => 
-      (item.question_text && item.question_text.toLowerCase().includes(q)) ||
-      (item.department && item.department.toLowerCase().includes(q))
-    );
-  }, [questionBank, debouncedQuestionSearch]);
+  const filteredQuestions = questionBank;
 
   const handleSelectAllFiltered = () => {
-    const allFilteredIds = filteredQuestions.map(q => q.id);
-    const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedIds.includes(id));
-    if (allSelected) {
-      setSelectedIds(selectedIds.filter(id => !allFilteredIds.includes(id)));
-    } else {
-      const merged = Array.from(new Set([...selectedIds, ...allFilteredIds]));
-      setSelectedIds(merged);
-    }
+    const visibleIds = questionBank.map(q => q.id);
+    const everySelected = visibleIds.length > 0 && visibleIds.every(id => selectedIds.includes(id));
+    setSelectedIds(previous => everySelected
+      ? previous.filter(id => !visibleIds.includes(id))
+      : [...new Set([...previous, ...visibleIds])]
+    );
+    setSelectedQuestionDetails(previous => {
+      const next = new Map(previous);
+      for (const question of questionBank) {
+        if (everySelected) next.delete(question.id);
+        else next.set(question.id, question);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = (e) => {
@@ -191,11 +218,16 @@ const AssessmentCreate = () => {
       return;
     }
 
-    const selectedObjects = selectedIds.map(qId => {
-      const found = questionBank.find(q => q.id === qId);
-      if (found) return found;
-      return { id: qId };
-    });
+    // Every selected question must retain its full, authoritative details,
+    // including selections made on a prior page or restored during editing.
+    const selectedObjects = selectedIds.map(qId =>
+      selectedQuestionDetails.get(qId) || questionBank.find(q => q.id === qId)
+    );
+    if (selectedObjects.some(question => !question?.id || !question?.question_text)) {
+      toast.error('Some selected questions need to be reopened in the question bank before saving.');
+      setStep(1);
+      return;
+    }
 
     const payload = {
       ...form,
@@ -320,19 +352,19 @@ const AssessmentCreate = () => {
           <div className="rounded-[24px] bg-[var(--surface)] p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
               <button
-                onClick={() => setSelectedDeptFilter('All')}
+                onClick={() => { setSelectedDeptFilter('All'); setQuestionPage(1); }}
                 className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                   selectedDeptFilter === 'All'
                     ? 'bg-[var(--ink)] text-white'
                     : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
                 }`}
               >
-                All departments ({selectedDeptFilter === 'All' ? questionBank.length : 'All'})
+                All departments ({selectedDeptFilter === 'All' ? questionTotal : 'All'})
               </button>
               {DEPARTMENTS.map((dept) => (
                 <button
                   key={dept}
-                  onClick={() => setSelectedDeptFilter(dept)}
+                  onClick={() => { setSelectedDeptFilter(dept); setQuestionPage(1); }}
                   className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                     selectedDeptFilter === dept
                       ? 'bg-[var(--ink)] text-white'
@@ -360,7 +392,7 @@ const AssessmentCreate = () => {
               >
                 {filteredQuestions.length > 0 && filteredQuestions.every(q => selectedIds.includes(q.id))
                   ? 'Deselect all'
-                  : 'Select all'}
+                  : 'Select visible page'}
               </Button>
             </div>
           </div>
@@ -451,6 +483,9 @@ const AssessmentCreate = () => {
                 </tbody>
               </table>
             </div>
+            {questionsError && <p role="alert" className="p-3 text-xs text-red-600">Could not load the question bank.</p>}
+            <PaginationControls page={questionPage} limit={50} total={questionTotal}
+              isFetching={fetchingQuestions} onPageChange={setQuestionPage} />
           </div>
         </div>
       )}
@@ -510,12 +545,12 @@ const AssessmentCreate = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const allIds = employees.map(e => e.userId || e.id);
-                  setForm(f => ({ ...f, assigned_employee_ids: allIds }));
+                  const visibleIds = employees.map(e => e.userId || e.id);
+                  setForm(f => ({ ...f, assigned_employee_ids: [...new Set([...f.assigned_employee_ids, ...visibleIds])] }));
                 }}
                 className="font-medium text-[var(--brand-deep)] hover:underline cursor-pointer"
               >
-                Select all
+                Select visible page
               </button>
               <span className="text-[var(--line)]">•</span>
               <button
@@ -541,16 +576,7 @@ const AssessmentCreate = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--line)]">
-                  {employees.filter(e => {
-                    if (!searchEmployee) return true;
-                    const s = searchEmployee.toLowerCase();
-                    return (
-                      (e.firstName?.toLowerCase().includes(s)) ||
-                      (e.lastName?.toLowerCase().includes(s)) ||
-                      (e.email?.toLowerCase().includes(s)) ||
-                      (e.department?.toLowerCase().includes(s))
-                    );
-                  }).map(emp => {
+                  {employees.map(emp => {
                     const empId = emp.userId || emp.id;
                     const isSelected = form.assigned_employee_ids.includes(empId);
                     const initials = `${(emp.firstName || '').charAt(0)}${(emp.lastName || '').charAt(0)}`.toUpperCase() || 'E';
@@ -616,6 +642,9 @@ const AssessmentCreate = () => {
                 </tbody>
               </table>
             </div>
+            {employeeError && <p role="alert" className="p-3 text-xs text-red-600">Could not load employee selections.</p>}
+            <PaginationControls page={employeePage} limit={50} total={employeeTotal}
+              isFetching={fetchingEmployees} onPageChange={setEmployeePage} />
           </div>
         </div>
       )}

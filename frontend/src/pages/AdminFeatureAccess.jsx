@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
@@ -26,6 +26,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import { StatCard, Button, Avatar } from '../components/ui';
+import PaginationControls from '../components/ui/PaginationControls';
 
 const featuresList = [
   {
@@ -114,27 +115,40 @@ const AdminFeatureAccess = () => {
   // Modal / Drawer State
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [modalSearch, setModalSearch] = useState('');
-  const [tempSelection, setTempSelection] = useState(new Set());
+  // Only explicit user changes can be submitted; no global permission replacement.
+  const [tempSelection, setTempSelection] = useState(new Map());
+  const [page, setPage] = useState(1);
+  const [debouncedModalSearch, setDebouncedModalSearch] = useState('');
+  const limit = 50;
   const [saving, setSaving] = useState(false);
 
   // Filters
   const [searchFilter, setSearchFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
 
-  const {
-    data: users = [],
-    isLoading: loading
-  } = useRemoteData({
-    scope: ['admin', 'feature-access'],
-    load: async () => {
-      const response = await api.get('/admin/feature-access');
-      return response.data?.users || response.data?.data || (Array.isArray(response.data) ? response.data : []);
+  useEffect(() => {
+    const timer = setTimeout(() => { setPage(1); setDebouncedModalSearch(modalSearch); }, 300);
+    return () => clearTimeout(timer);
+  }, [modalSearch]);
+
+  const { data: featureResponse, isLoading: loading, isFetching, error: directoryError } = useRemoteData({
+    scope: ['admin', 'feature-access', page, debouncedModalSearch],
+    load: async ({ signal }) => {
+      const response = await api.get('/admin/feature-access', {
+        params: { page, limit, search: debouncedModalSearch }, signal
+      });
+      return response.data;
     }
   });
+  const users = featureResponse?.users || [];
+  const totalUsers = Number(featureResponse?.pagination?.total ?? featureResponse?.total ?? 0);
+  const featureCounts = featureResponse?.featureCounts || {};
 
   const saveRolesMutation = useRemoteTask({
     run: async (changes) => {
-      await Promise.all(
+      // Await EVERY individual update before refreshing the authoritative
+      // directory. Promise.all rejects early while other writes may continue.
+      const results = await Promise.allSettled(
         changes.map(change =>
           api.post('/admin/feature-access', {
             userId: change.userId,
@@ -143,29 +157,13 @@ const AdminFeatureAccess = () => {
           })
         )
       );
-    },
-    onMutate: async (changes) => {
-      await refreshControl.cancel({ scope: ['admin', 'feature-access'] });
-      const previousUsers = refreshControl.peek(['admin', 'feature-access']);
-
-      refreshControl.update(['admin', 'feature-access'], (old) => {
-        if (!old) return old;
-        return old.map(u => {
-          const change = changes.find(c => c.userId === u.id);
-          if (change) {
-            return { ...u, [change.feature]: change.value };
-          }
-          return u;
-        });
-      });
-
-      return { previousUsers };
-    },
-    onError: (err, changes, context) => {
-      if (context?.previousUsers) {
-        refreshControl.update(['admin', 'feature-access'], context.previousUsers);
+      if (results.some(result => result.status === 'rejected')) {
+        throw new Error('Some requested permission changes were not applied');
       }
-      toast.error('Failed to update some user roles.');
+    },
+    onError: () => {
+      refreshControl.refresh({ scope: ['admin', 'feature-access'] });
+      toast.error('Could not update every permission. Review current assignments.');
     },
     onSuccess: () => {
       toast.success('Feature manager roles updated successfully!');
@@ -174,49 +172,50 @@ const AdminFeatureAccess = () => {
   });
 
   const openManageModal = (feature) => {
-    const currentlyAssigned = users.filter(u => u[feature.key]).map(u => u.id);
-    setTempSelection(new Set(currentlyAssigned));
+    setTempSelection(new Map());
     setSelectedFeature(feature);
     setModalSearch('');
+    setDebouncedModalSearch('');
+    setPage(1);
   };
 
-  const handleToggleUser = (userId) => {
-    const newSelection = new Set(tempSelection);
-    if (newSelection.has(userId)) {
-      newSelection.delete(userId);
-    } else {
-      newSelection.add(userId);
-    }
-    setTempSelection(newSelection);
+  const handleToggleUser = (user) => {
+    const original = Boolean(user[selectedFeature.key]);
+    setTempSelection(previous => {
+      const next = new Map(previous);
+      const current = next.has(user.id) ? next.get(user.id) : original;
+      const toggled = !current;
+      if (toggled === original) next.delete(user.id);
+      else next.set(user.id, toggled);
+      return next;
+    });
+  };
+
+  const setVisiblePageSelection = (value) => {
+    setTempSelection(previous => {
+      const next = new Map(previous);
+      for (const user of users) {
+        const original = Boolean(user[selectedFeature.key]);
+        if (original === value) next.delete(user.id);
+        else next.set(user.id, value);
+      }
+      return next;
+    });
   };
 
   const handleSaveModal = async () => {
+    if (!selectedFeature) return;
+    const changes = [...tempSelection].map(([userId, value]) => ({
+      userId, feature: selectedFeature.key, value
+    }));
+    if (!changes.length) { setSelectedFeature(null); return; }
     setSaving(true);
-    const featureKey = selectedFeature.key;
-
-    const currentlyAssigned = new Set(users.filter(u => u[featureKey]).map(u => u.id));
-    const changes = [];
-
-    users.forEach(u => {
-      const isCurrentlyAssigned = currentlyAssigned.has(u.id);
-      const isNowAssigned = tempSelection.has(u.id);
-
-      if (isCurrentlyAssigned !== isNowAssigned) {
-        changes.push({ userId: u.id, feature: featureKey, value: isNowAssigned });
-      }
-    });
-
-    if (changes.length === 0) {
-      setSelectedFeature(null);
-      setSaving(false);
-      return;
-    }
-
     try {
       await saveRolesMutation.mutateAsync(changes);
+      setTempSelection(new Map());
       setSelectedFeature(null);
-    } catch (error) {
-      console.error(error);
+    } catch {
+      // Keep explicit changes available for review and retry.
     } finally {
       setSaving(false);
     }
@@ -225,18 +224,12 @@ const AdminFeatureAccess = () => {
   // Stats calculation
   const stats = useMemo(() => {
     const totalRoles = featuresList.length;
-    const managersSet = new Set();
-    featuresList.forEach(f => {
-      users.forEach(u => {
-        if (u[f.key]) managersSet.add(u.id);
-      });
-    });
-    const delegatedManagers = managersSet.size;
+    const delegatedManagers = Number(featureResponse?.delegatedManagers ?? 0);
     const coreCount = featuresList.filter(f => f.category === 'Core HRMS').length;
     const businessAppsCount = featuresList.filter(f => f.category === 'Business Apps').length;
 
     return { totalRoles, delegatedManagers, coreCount, businessAppsCount };
-  }, [users]);
+  }, [featureResponse]);
 
   // Filtered features list
   const filteredFeatures = useMemo(() => {
@@ -254,32 +247,14 @@ const AdminFeatureAccess = () => {
 
       if (matchRole) return true;
 
-      const matchEmployee = users.some(u => {
-        if (!u[f.key]) return false;
-        const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
-        const email = (u.email || '').toLowerCase();
-        const code = (u.employeeCode || u.employeeId || '').toString().toLowerCase();
-        const dept = (u.department || '').toLowerCase();
-        return fullName.includes(q) || email.includes(q) || code.includes(q) || dept.includes(q);
-      });
-
-      return matchEmployee;
+      // Staff search is server-wide inside Manage, never page-only here.
+      return false;
     });
-  }, [searchFilter, categoryFilter, users]);
+  }, [searchFilter, categoryFilter]);
 
-  const filteredUsersForModal = useMemo(() => {
-    const q = modalSearch.toLowerCase().trim();
-    return users.filter(u => {
-      if (!q) return true;
-      const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
-      const email = (u.email || '').toLowerCase();
-      const code = (u.employeeCode || u.employeeId || '').toString().toLowerCase();
-      const dept = (u.department || '').toLowerCase();
-      return fullName.includes(q) || email.includes(q) || code.includes(q) || dept.includes(q);
-    });
-  }, [users, modalSearch]);
+  const filteredUsersForModal = users;
 
-  if (loading) return <PageLoader message="Loading Feature Roles..." />;
+  if (loading && !selectedFeature) return <PageLoader message="Loading Feature Roles..." />;
 
   return (
     <div className="space-y-4 font-sans antialiased">
@@ -356,7 +331,7 @@ const AdminFeatureAccess = () => {
 
           {/* Search Bar */}
           <SearchBar
-            placeholder="Search roles, scopes, or employee name..."
+            placeholder="Search roles or scopes..."
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
             wrapperClassName="w-full lg:w-80 shrink-0"
@@ -385,7 +360,7 @@ const AdminFeatureAccess = () => {
               ) : (
                 filteredFeatures.map((feature) => {
                   const Icon = feature.icon;
-                  const assignedUsers = users.filter(u => u[feature.key]);
+                  const assignedCount = Number(featureCounts[feature.key] ?? 0);
 
                   return (
                     <tr key={feature.key} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
@@ -410,23 +385,9 @@ const AdminFeatureAccess = () => {
 
                       <td className="px-4 py-3.5 align-middle">
                         <div className="flex flex-wrap gap-2 items-center">
-                          {assignedUsers.length === 0 ? (
-                            <span className="text-xs text-[var(--muted)] italic bg-[var(--surface-alt)] border border-dashed border-[var(--line)] px-3 py-1 rounded-full whitespace-nowrap">
-                              No managers assigned
-                            </span>
-                          ) : (
-                            assignedUsers.map(u => (
-                              <div
-                                key={u.id}
-                                className="inline-flex items-center gap-1.5 bg-[var(--surface-alt)] rounded-full pl-1 pr-2.5 py-0.5 text-xs whitespace-nowrap shrink-0"
-                              >
-                                <Avatar name={`${u.firstName || ''} ${u.lastName || ''}`} size="xs" />
-                                <span className="font-semibold text-[var(--text)] text-[11px] whitespace-nowrap">
-                                  {u.firstName} {u.lastName}
-                                </span>
-                              </div>
-                            ))
-                          )}
+                          <span className="text-xs text-[var(--muted)]">
+                            {assignedCount.toLocaleString('en-IN')} assigned across the full directory
+                          </span>
                         </div>
                       </td>
 
@@ -438,7 +399,7 @@ const AdminFeatureAccess = () => {
                           className="text-xs"
                         >
                           <UserPlus className="w-3.5 h-3.5 mr-1" />
-                          <span>Manage ({assignedUsers.length})</span>
+                          <span>Manage ({assignedCount})</span>
                         </Button>
                       </td>
                     </tr>
@@ -488,23 +449,23 @@ const AdminFeatureAccess = () => {
 
                 <div className="flex items-center justify-between text-xs pt-1">
                   <span className="text-[var(--muted)] font-medium">
-                    {tempSelection.size} staff member(s) selected
+                    {tempSelection.size} explicit unsaved change(s)
                   </span>
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setTempSelection(new Set(users.map(u => u.id)))}
+                      onClick={() => setVisiblePageSelection(true)}
                       className="text-[var(--brand-deep)] font-semibold hover:underline cursor-pointer"
                     >
-                      Select All
+                      Select visible page
                     </button>
                     <span className="text-[var(--line)]">•</span>
                     <button
                       type="button"
-                      onClick={() => setTempSelection(new Set())}
+                      onClick={() => setVisiblePageSelection(false)}
                       className="text-[var(--muted)] font-semibold hover:underline cursor-pointer"
                     >
-                      Deselect
+                      Deselect visible page
                     </button>
                   </div>
                 </div>
@@ -516,11 +477,11 @@ const AdminFeatureAccess = () => {
                   <p className="text-xs text-[var(--muted)] p-4 text-center">No matching staff members found.</p>
                 ) : (
                   filteredUsersForModal.map(u => {
-                    const isSelected = tempSelection.has(u.id);
+                    const isSelected = tempSelection.has(u.id) ? tempSelection.get(u.id) : Boolean(u[selectedFeature.key]);
                     return (
                       <div
                         key={u.id}
-                        onClick={() => handleToggleUser(u.id)}
+                        onClick={() => handleToggleUser(u)}
                         className={`p-3 rounded-[16px] border flex items-center justify-between transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-[var(--brand-tint)] border-[var(--brand)] text-[var(--brand-deep)]'
@@ -552,6 +513,9 @@ const AdminFeatureAccess = () => {
                 )}
               </div>
 
+              {directoryError && <div role="alert" className="px-4 py-2 text-red-600 text-xs">Failed to load staff. Review permissions before saving.</div>}
+              {isFetching && <div className="px-4 text-xs text-[var(--muted)]">Updating directory…</div>}
+              <PaginationControls page={page} limit={limit} total={totalUsers} isFetching={isFetching} onPageChange={setPage} />
               {/* Footer */}
               <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
                 <button
@@ -565,7 +529,7 @@ const AdminFeatureAccess = () => {
                 <button
                   type="button"
                   onClick={handleSaveModal}
-                  disabled={saving}
+                  disabled={saving || Boolean(directoryError)}
                   className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
                   {saving ? (

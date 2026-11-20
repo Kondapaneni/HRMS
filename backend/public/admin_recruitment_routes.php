@@ -13,10 +13,10 @@ $app->get('/api/admin/candidates', function (Request $request, Response $respons
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
-    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
+    $limit = min(100, max(1, (int)($params['limit'] ?? 50)));
+    $offset = isset($params['offset']) ? max(0, (int)$params['offset'])
+        : (max(1, (int)($params['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
     $search = trim($params['search'] ?? '');
 
     $where = "WHERE role IN ('candidate', 'employee')";
@@ -48,7 +48,13 @@ $app->get('/api/admin/candidates', function (Request $request, Response $respons
 
         $response->getBody()->write(json_encode([
             'candidates' => $candidates,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($candidates) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -110,10 +116,10 @@ $app->get('/api/admin/jobs', function (Request $request, Response $response, $ar
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
-    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
+    $limit = min(100, max(1, (int)($params['limit'] ?? 50)));
+    $offset = isset($params['offset']) ? max(0, (int)$params['offset'])
+        : (max(1, (int)($params['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
     $search = trim($params['search'] ?? '');
 
     $where = '';
@@ -131,7 +137,7 @@ $app->get('/api/admin/jobs', function (Request $request, Response $response, $ar
                    (SELECT COUNT(*) FROM applications a WHERE a.job_id = j.id) as applications_count
             FROM jobs j
             {$where}
-            ORDER BY j.created_at DESC
+            ORDER BY j.created_at DESC, j.id DESC
             LIMIT ? OFFSET ?
         ");
         $paramIndex = 1;
@@ -160,7 +166,13 @@ $app->get('/api/admin/jobs', function (Request $request, Response $response, $ar
 
         $response->getBody()->write(json_encode([
             'jobs' => $jobs,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($jobs) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -249,30 +261,45 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
-    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
+    $limit = min(100, max(1, (int)($params['limit'] ?? 50)));
+    $offset = isset($params['offset']) ? max(0, (int)$params['offset'])
+        : (max(1, (int)($params['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
     $search = trim($params['search'] ?? '');
 
     try {
         $where = '';
         $queryParams = [];
 
-        if (!empty($search)) {
-            $where = 'WHERE (u."firstName" ILIKE ? OR u."lastName" ILIKE ? OR u.email ILIKE ? OR j.title ILIKE ?)';
+        $filters = [];
+        if ($search !== '') {
+            $filters[] = '(u."firstName" ILIKE ? OR u."lastName" ILIKE ? OR u.email ILIKE ? OR j.title ILIKE ?)';
             $searchTerm = '%' . $search . '%';
             $queryParams = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
         }
+        if (isset($params['job_id']) && (string)$params['job_id'] !== '') {
+            $filters[] = 'a.job_id::text = ?';
+            $queryParams[] = (string)$params['job_id'];
+        }
+        if (isset($params['status']) && (string)$params['status'] !== '') {
+            $filters[] = 'a.status = ?';
+            $queryParams[] = (string)$params['status'];
+        }
+        $where = $filters ? 'WHERE ' . implode(' AND ', $filters) : '';
 
         $sql = "
             SELECT a.*, j.title as job_title, j.department as job_department,
+                   j.location as job_location,
+                   u.\"firstName\" AS candidate_first_name, u.\"lastName\" AS candidate_last_name,
+                   u.email AS candidate_email,
+                   (SELECT cp.phone FROM candidate_profiles cp
+                     WHERE cp.user_id = a.candidate_id ORDER BY cp.updated_at DESC LIMIT 1) AS candidate_phone,
                    (SELECT COUNT(*) FROM candidate_documents cd WHERE cd.candidate_id = a.candidate_id AND (cd.status = 'pending' OR cd.status IS NULL)) as pending_documents_count
             FROM applications a 
             JOIN jobs j ON a.job_id = j.id
             LEFT JOIN users u ON a.candidate_id = u.id
             {$where}
-            ORDER BY a.applied_date DESC
+            ORDER BY a.applied_date DESC, a.id DESC
             LIMIT ? OFFSET ?
         ";
         
@@ -300,6 +327,16 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
         $stmtCount->execute();
         $totalCount = (int)$stmtCount->fetchColumn();
 
+        $stats = $conn->query(
+            "SELECT COUNT(*) AS total_applicants,
+                    COUNT(*) FILTER (WHERE status LIKE '%Interview%') AS in_interview,
+                    COUNT(*) FILTER (WHERE status IN ('Hired', 'Selected', 'Converted to Employee')) AS hired_count
+             FROM applications"
+        )->fetch(PDO::FETCH_ASSOC);
+        $openPositions = (int)$conn->query(
+            "SELECT COUNT(*) FROM jobs WHERE status = 'Published'"
+        )->fetchColumn();
+
         $appIds = array_column($applications, 'id');
         $timelinesByApp = [];
         if (!empty($appIds)) {
@@ -317,15 +354,28 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
             // Format to match Supabase structure expectations
             $app['jobs'] = [
                 'title' => $app['job_title'],
-                'department' => $app['job_department']
+                'department' => $app['job_department'],
+                'location' => $app['job_location']
             ];
-            unset($app['job_title'], $app['job_department']);
+            unset($app['job_title'], $app['job_department'], $app['job_location']);
         }
         unset($app);
 
         $response->getBody()->write(json_encode([
             'applications' => $applications,
-            'total' => $totalCount
+            'stats' => [
+                'totalApplicants' => (int)($stats['total_applicants'] ?? 0),
+                'inInterview' => (int)($stats['in_interview'] ?? 0),
+                'hiredCount' => (int)($stats['hired_count'] ?? 0),
+                'openPositions' => $openPositions
+            ],
+            'total' => $totalCount,
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($applications) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -466,13 +516,13 @@ $app->get('/api/admin/candidate-profiles', function (Request $request, Response 
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
-    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
+    $limit = min(100, max(1, (int)($params['limit'] ?? 50)));
+    $offset = isset($params['offset']) ? max(0, (int)$params['offset'])
+        : (max(1, (int)($params['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
     
     try {
-        $stmt = $conn->prepare('SELECT id, user_id, phone, address, current_title, experience, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles ORDER BY created_at DESC LIMIT ? OFFSET ?');
+        $stmt = $conn->prepare('SELECT id, user_id, phone, address, current_title, experience, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?');
         $stmt->bindValue(1, $limit, PDO::PARAM_INT);
         $stmt->bindValue(2, $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -482,7 +532,13 @@ $app->get('/api/admin/candidate-profiles', function (Request $request, Response 
 
         $response->getBody()->write(json_encode([
             'profiles' => $profiles,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($profiles) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -496,10 +552,10 @@ $app->get('/api/admin/candidate-documents', function (Request $request, Response
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
-    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
+    $limit = min(100, max(1, (int)($params['limit'] ?? 50)));
+    $offset = isset($params['offset']) ? max(0, (int)$params['offset'])
+        : (max(1, (int)($params['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
     $candidateId = $params['candidate_id'] ?? '';
     
     try {
@@ -510,7 +566,7 @@ $app->get('/api/admin/candidate-documents', function (Request $request, Response
             $queryParams[] = $candidateId;
         }
 
-        $stmt = $conn->prepare("SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents {$where} ORDER BY uploaded_at DESC LIMIT ? OFFSET ?");
+        $stmt = $conn->prepare("SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents {$where} ORDER BY uploaded_at DESC, id DESC LIMIT ? OFFSET ?");
         $paramIndex = 1;
         foreach ($queryParams as $p) {
             $stmt->bindValue($paramIndex++, $p);
@@ -530,7 +586,13 @@ $app->get('/api/admin/candidate-documents', function (Request $request, Response
 
         $response->getBody()->write(json_encode([
             'documents' => $documents,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'pagination' => [
+                'page' => $page, 'limit' => $limit, 'total' => $totalCount,
+                'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($documents) < $totalCount,
+                'hasPreviousPage' => $offset > 0
+            ]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
