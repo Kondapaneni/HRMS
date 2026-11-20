@@ -1,4 +1,5 @@
 import { useMobileViewport } from '../performance/useMobileViewport.js';
+import PageLoader from '../components/PageLoader';
 import React from 'react';
 import { useRemoteData } from '../state/remote.js';
 import { getSalesDashboardData, getSalesLeads } from '../services/salesServices';
@@ -108,6 +109,8 @@ const OriginationSaleDashboardDesktop = () => {
         );
     }
   };
+
+  if (isLoading || leadsLoading) return <PageLoader message="Loading sales origination dashboard..." />;
 
   return (
     <>
