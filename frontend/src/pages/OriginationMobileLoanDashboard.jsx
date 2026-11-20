@@ -118,7 +118,7 @@ const OriginationMobileLoanDashboard = () => {
     }
   };
 
-  if (isDashboardLoading) {
+  if (isDashboardLoading || leadsLoading) {
     return <PageLoader message="Loading Origination Dashboard..." />;
   }
 

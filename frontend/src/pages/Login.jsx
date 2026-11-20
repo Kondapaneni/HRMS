@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PageLoader from '../components/PageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Eye, 
@@ -92,12 +93,7 @@ const Login = () => {
   // Redirect if already authenticated
   if (user) {
     if (profileLoading || !profile) {
-      return (
-        <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F4F6F4] text-neutral-600 text-sm">
-          <div className="w-9 h-9 border-3 border-black border-t-transparent rounded-full animate-spin mb-4" />
-          <span className="font-medium text-neutral-800">Signing in to Acme HRMS...</span>
-        </div>
-      );
+      return <PageLoader message="Signing in to Acme HRMS..." />;
     }
     if (profile.forcePasswordChange) {
       return <Navigate to="/change-password" replace />;

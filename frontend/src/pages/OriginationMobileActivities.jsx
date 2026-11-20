@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useLocation } from 'react-router-dom';
 import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
 import toast from 'react-hot-toast';
@@ -354,6 +355,8 @@ const OriginationMobileActivities = () => {
       />
     );
   }
+
+  if (isLoading) return <PageLoader message="Loading activities..." />;
 
   return (
     <div className="space-y-4 pb-14 select-none font-sans antialiased">

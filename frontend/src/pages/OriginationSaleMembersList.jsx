@@ -1,4 +1,5 @@
 import { useMobileViewport } from '../performance/useMobileViewport.js';
+import PageLoader from '../components/PageLoader';
 import React, { useState, useMemo } from 'react';
 import { useRemoteData } from '../state/remote.js';
 import SearchBar from '../components/ui/SearchBar';
@@ -67,6 +68,8 @@ const OriginationSaleMembersListDesktop = () => {
       return `${uniqueTypes.slice(0, 2).join(', ')} +${uniqueTypes.length - 2}`;
     }
   };
+
+  if (isLoading) return <PageLoader message="Loading sales members..." />;
 
   return (
     <>

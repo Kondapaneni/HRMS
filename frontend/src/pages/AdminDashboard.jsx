@@ -109,7 +109,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* KPI cards and navigation render before the deferred charting engine. */}
-      <Suspense fallback={<div role="status" className="grid grid-cols-1 lg:grid-cols-2 gap-3.5"><div className="h-[350px] rounded-[24px] bg-[var(--surface)] animate-pulse" /><div className="h-[350px] rounded-[24px] bg-[var(--surface)] animate-pulse" /></div>}>
+      <Suspense fallback={null}>
         <AdminDashboardCharts data={dashboardData} />
       </Suspense>
 

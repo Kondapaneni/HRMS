@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRefreshControl } from '../state/remote.js';
 import { Camera, RefreshCw, UploadCloud, X, AlertCircle, Check } from 'lucide-react';
@@ -317,9 +318,8 @@ const EmployeeMobileCamera = () => {
 
         {/* Loading state while camera initializes */}
         {!isReady && !cameraError && !photoDataUrl && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10 pointer-events-none">
-            <div className="w-10 h-10 rounded-full border-3 border-white/20 border-t-[var(--brand)] animate-spin mb-3" />
-            <span className="text-white/80 text-xs font-medium tracking-wide">Starting camera...</span>
+          <div className="absolute inset-0 z-10 bg-[var(--bg)] p-4 overflow-y-auto pointer-events-none">
+            <PageLoader message="Starting camera..." />
           </div>
         )}
 

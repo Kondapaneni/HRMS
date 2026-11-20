@@ -1,4 +1,5 @@
 import React from 'react';
+import PageLoader from './PageLoader';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, Briefcase, CheckCircle2, ArrowRight, Lock, MapPin, Calendar } from 'lucide-react';
@@ -26,6 +27,15 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
   }, [appsResponse]);
 
   if (!isOpen || !member) return null;
+
+  if (isLoadingApps && !appsResponse) {
+    return createPortal(
+      <div className="fixed inset-0 z-[9999] bg-[var(--bg)] overflow-y-auto p-4">
+        <PageLoader message="Loading member details..." />
+      </div>,
+      document.body
+    );
+  }
 
   const defaultLeadId = String(member.lead_id || member.id || '');
   const isMemberDefaultCreated = createdLeadIds.has(defaultLeadId);
@@ -112,22 +122,16 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
                       <div className="font-semibold text-[var(--text)] text-xs">
                         {title}
                       </div>
-                      {isLoadingApps && !appsResponse ? (
-                        <div className="h-5 w-16 bg-[var(--line)] animate-pulse rounded-full" />
-                      ) : (
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                           isCreated 
                             ? 'bg-[#E8F0FB] text-[#3B6FB6] border-[#3B6FB6]/20' 
                             : 'bg-[#FDF3DC] text-[#B7791F] border-[#B7791F]/20'
                         }`}>
                           <CheckCircle2 size={11} /> {isCreated ? 'Created' : 'Converted'}
-                        </span>
-                      )}
+                      </span>
                     </div>
                     
-                    {isLoadingApps && !appsResponse ? (
-                      <div className="h-7 w-32 bg-[var(--line)] animate-pulse rounded-full" />
-                    ) : isCreated ? (
+                    {isCreated ? (
                       <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full bg-[var(--surface)] text-[var(--muted)] border border-[var(--line)] cursor-not-allowed select-none">
                         <Lock size={11} className="text-[var(--muted)]" /> Application Created
                       </div>

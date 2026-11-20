@@ -1,4 +1,5 @@
 import { useMobileViewport } from '../performance/useMobileViewport.js';
+import PageLoader from '../components/PageLoader';
 import React from 'react';
 import { useRemoteData } from '../state/remote.js';
 import { getDashboardData, getLeads } from '../services/loanServices';
@@ -107,6 +108,8 @@ const OriginationLoanDashboardDesktop = () => {
         );
     }
   };
+
+  if (isLoading || leadsLoading) return <PageLoader message="Loading loan origination dashboard..." />;
 
   return (
     <>

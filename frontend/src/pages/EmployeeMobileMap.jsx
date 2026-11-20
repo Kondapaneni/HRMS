@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRemoteData } from '../state/remote.js';
 import api from '../api/axios';
@@ -350,9 +351,8 @@ const EmployeeMobileMap = () => {
               </button>
             </div>
           ) : !currentLocation || loadingGeofences || loadingBrowserKey ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface)]/70 backdrop-blur-sm z-10">
-              <Loader2 className="w-8 h-8 text-[var(--brand-deep)] animate-spin mb-3" />
-              <p className="text-[var(--text-2)] font-medium text-xs">Acquiring GPS Signal...</p>
+            <div className="absolute inset-0 z-10 bg-[var(--bg)] p-4 overflow-y-auto">
+              <PageLoader message="Acquiring GPS signal..." />
             </div>
           ) : !browserKey ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface-alt)] z-10">

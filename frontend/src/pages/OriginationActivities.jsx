@@ -1,4 +1,5 @@
 import { useMobileViewport } from '../performance/useMobileViewport.js';
+import PageLoader from '../components/PageLoader';
 import React, { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useRemoteData, useRemoteTask, useRefreshControl } from '../state/remote.js';
@@ -748,6 +749,8 @@ const OriginationActivitiesDesktop = () => {
       completedCount,
     };
   }, [events]);
+
+  if (isLoading) return <PageLoader message="Loading activities..." />;
 
   return (
     <>

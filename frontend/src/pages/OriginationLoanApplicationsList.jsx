@@ -1,4 +1,5 @@
 import { useMobileViewport } from '../performance/useMobileViewport.js';
+import PageLoader from '../components/PageLoader';
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -302,6 +303,8 @@ const OriginationLoanApplicationsListDesktop = () => {
     { key: 'Rejected', label: 'Rejected', count: applications.filter(a => (a.status || '').toLowerCase() === 'rejected').length },
     { key: 'Draft', label: 'Drafts', count: applications.filter(a => (a.status || '').toLowerCase() === 'draft').length },
   ];
+
+  if (isLoading) return <PageLoader message="Loading loan applications..." />;
 
   return (
     <>

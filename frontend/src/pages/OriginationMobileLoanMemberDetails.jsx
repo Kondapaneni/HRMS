@@ -1,4 +1,5 @@
 import React from 'react';
+import PageLoader from '../components/PageLoader';
 import { 
   ArrowLeft, 
   Phone, 
@@ -8,7 +9,6 @@ import {
   CheckCircle2, 
   ArrowRight, 
   Lock, 
-  Loader2,
   FileEdit
 } from 'lucide-react';
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
@@ -67,13 +67,9 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
     );
   }, [appsResponse]);
 
-  if (isLoadingLeads && !member) {
-    return (
-      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-[var(--muted)]">
-        <Loader2 className="w-8 h-8 text-[var(--brand-deep)] animate-spin mb-3" />
-        <p className="text-xs font-semibold">Loading member details...</p>
-      </div>
-    );
+  // Wait for both required reads before showing any member data.
+  if ((isLoadingLeads && !member) || (isLoadingApps && !appsResponse)) {
+    return <PageLoader message="Loading member details..." />;
   }
 
   if (!member) {
@@ -250,23 +246,17 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
                         </p>
                       </div>
 
-                      {isLoadingApps && !appsResponse ? (
-                        <div className="h-6 w-20 bg-[var(--line)] animate-pulse rounded-[8px]" />
-                      ) : (
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold ${
+                      {<span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold ${
                           isCreated 
                             ? 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]' 
                             : 'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]'
                         }`}>
                           <CheckCircle2 size={13} /> {isCreated ? 'Created' : (loan.status || 'Draft')}
-                        </span>
-                      )}
+                        </span>}
                     </div>
 
                     <div className="pt-2.5 border-t border-[var(--line)] flex items-center justify-end">
-                      {isLoadingApps && !appsResponse ? (
-                        <div className="h-8 w-32 bg-[var(--line)] animate-pulse rounded-[10px]" />
-                      ) : isCreated ? (
+                      {isCreated ? (
                         <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-[10px] bg-[var(--surface)] text-[var(--muted)] border border-[var(--line)]">
                           <Lock size={12} /> Application Created
                         </span>

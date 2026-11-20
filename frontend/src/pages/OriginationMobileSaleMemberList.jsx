@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useRemoteData } from '../state/remote.js';
 import SearchBar from '../components/ui/SearchBar';
 import { getSalesLeads } from '../services/salesServices';
@@ -81,6 +82,8 @@ const OriginationMobileSaleMemberList = () => {
       m.products?.some(p => p.product_type?.toLowerCase().includes(term))
     );
   }, [members, searchTerm]);
+
+  if (isLoading) return <PageLoader message="Loading sales members..." />;
 
   return (
     <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">

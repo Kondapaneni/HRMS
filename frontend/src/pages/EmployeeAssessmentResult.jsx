@@ -1,4 +1,5 @@
 import React from 'react';
+import PageLoader from '../components/PageLoader';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRemoteData } from '../state/remote.js';
 import { motion } from 'framer-motion';
@@ -60,20 +61,7 @@ const EmployeeAssessmentResult = () => {
     reloadOnFocus: false
   });
 
-  if (loading) {
-    return (
-      <div className="w-full space-y-6 px-4 py-6 sm:px-6 sm:py-8 animate-pulse">
-        <div className="flex items-center justify-between">
-          <div className="h-8 w-64 bg-slate-200 rounded-xl" />
-          <div className="h-8 w-32 bg-slate-200 rounded-xl" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-96 bg-slate-100/50" />
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-96 bg-slate-100/50 lg:col-span-2" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader message="Loading assessment result..." />;
 
   if (!result) {
     return (

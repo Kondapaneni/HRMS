@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useRemoteData } from '../state/remote.js';
 import { createPortal } from 'react-dom';
@@ -158,14 +159,7 @@ export default function BranchOperationsMobileLoansViewApplication({
     }
   };
 
-  if (!application && isLoading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
-        <Loader2 className="animate-spin h-8 w-8 text-[var(--branch-deep)] mb-3" />
-        <p className="text-sm font-medium">Loading application details...</p>
-      </div>
-    );
-  }
+  if (!application && isLoading) return <PageLoader message="Loading branch loan application..." />;
 
   if (!application && !isLoading) {
     return (
