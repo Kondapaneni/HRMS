@@ -1,123 +1,73 @@
+// Regression against a real user-verified, working orientation baseline:
+// commit 8136ba4b842a3bea378db9537fe6249430cf3cd8.
+// The overlay uses CSS media queries, not JS-driven mounting/unmounting.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
-import {
-  isLandscapeWarningActive, subscribeLandscapeWarning, LANDSCAPE_WARNING_QUERY,
-} from '../frontend/src/performance/orientationWarning.js';
 
 const read = path => readFileSync(path, 'utf8');
-const emitter = () => {
-  const events = new Map();
-  return {
-    addEventListener(event, fn) {
-      const handlers = events.get(event) || new Set();
-      handlers.add(fn);
-      events.set(event, handlers);
-    },
-    removeEventListener(event, fn) { events.get(event)?.delete(fn); },
-    emit(event) { for (const handler of events.get(event) || []) handler(); },
-  };
-};
 
-test('portrait always removes the overlay even if a WebView media query is stale', () => {
-  const media = { matches: true };
-  const view = {
-    screen: { orientation: { type: 'portrait-primary' } },
-    matchMedia: query => { assert.equal(query, LANDSCAPE_WARNING_QUERY); return media; },
-    innerWidth: 480,
-    innerHeight: 820,
-  };
-  assert.equal(isLandscapeWarningActive(view), false,
-    'Known portrait orientation cannot leave a touch-blocking overlay mounted');
-  view.screen.orientation.type = 'landscape-primary';
-  assert.equal(isLandscapeWarningActive(view), false,
-    'A portrait-shaped viewport also vetoes an outdated landscape event');
-  view.innerWidth = 900;
-  view.innerHeight = 400;
-  assert.equal(isLandscapeWarningActive(view), true,
-    'Short-width landscape should show the rotation warning');
-  media.matches = false;
-  assert.equal(isLandscapeWarningActive(view), false);
-});
-
-test('fallback without matchMedia respects portrait and tablets', () => {
-  assert.equal(isLandscapeWarningActive(null), false);
-  assert.equal(isLandscapeWarningActive({ innerWidth: 400, innerHeight: 900 }), false);
-  assert.equal(isLandscapeWarningActive({ innerWidth: 900, innerHeight: 400 }), true);
-  assert.equal(isLandscapeWarningActive({ innerWidth: 1400, innerHeight: 750 }), false);
-});
-
-test('orientation change, media change and resize notify; cleanup removes all handlers', () => {
-  const media = { ...emitter(), matches: true };
-  const orientation = { ...emitter(), type: 'landscape-primary' };
-  const viewport = emitter();
-  const view = {
-    ...emitter(),
-    screen: { orientation },
-    visualViewport: viewport,
-    matchMedia: query => { assert.equal(query, LANDSCAPE_WARNING_QUERY); return media; },
-    setTimeout(fn) { this.lastDelayed = fn; return 1; },
-    clearTimeout() { this.lastDelayed = null; },
-  };
-  const previous = globalThis.window;
-  globalThis.window = view;
-  try {
-    let updates = 0;
-    const remove = subscribeLandscapeWarning(() => { updates += 1; });
-    assert.equal(isLandscapeWarningActive(), true);
-    orientation.type = 'portrait-primary';
-    media.matches = false;
-    view.emit('orientationchange');
-    assert.equal(isLandscapeWarningActive(), false);
-    assert.equal(updates, 1, 'Orientation transition must trigger a React snapshot update');
-    view.lastDelayed();
-    assert.equal(updates, 2, 'Delayed resnapshot must handle late Android viewport changes');
-    media.emit('change');
-    view.emit('resize');
-    viewport.emit('resize');
-    orientation.emit('change');
-    assert.equal(updates, 6, 'All viewport/orientation sources should update visibility');
-    remove();
-    assert.equal(view.lastDelayed, null, 'Unmount must cancel pending resnapshot');
-    media.emit('change');
-    view.emit('resize');
-    orientation.emit('change');
-    assert.equal(updates, 6, 'No post-unmount event handlers may remain');
-  } finally {
-    globalThis.window = previous;
-  }
-});
-
-test('portrait overlay physically unmounts and loading captions are screen-reader only', () => {
+test('restore the known-good CSS-only rotation visibility without state listeners', () => {
   const overlay = read('frontend/src/components/LandscapeOverlay.jsx');
-  const loader = read('frontend/src/components/PageLoader.jsx');
-  assert.match(overlay, /useSyncExternalStore\(/);
-  assert.match(overlay, /if \(!shouldShow\) return null;/);
-  assert.doesNotMatch(overlay, /@media \(orientation:\s*landscape\)/,
-    'Do not leave a CSS-hidden fixed layer above active touch controls');
-  assert.match(overlay, /z-\[99999\]/);
-  assert.match(loader, /className="sr-only">\{message\}<\/span>/);
-  assert.doesNotMatch(loader, /<p[^>]*>\{message\}<\/p>/,
-    'No visible Loading page caption below the page heading');
+  assert.match(overlay, /export default function LandscapeOverlay\(\)/);
+  assert.match(overlay, /\.orientation-warning\s*\{\s*display:\s*none;/,
+    'Portrait default must display:none, removing the full-screen overlay from hit testing');
+  assert.match(overlay, /@media\s*\(orientation:\s*landscape\)\s*and\s*\(max-width:\s*1024px\)/,
+    'Only small landscape viewports show the notice');
+  assert.match(overlay, /\.orientation-warning\s*\{\s*display:\s*flex;/,
+    'Landscape shows the same informational notice');
+  assert.match(overlay, /orientation-warning fixed inset-0 z-\[99999\]/,
+    'Preserve the working notice design, without mounting a second overlay');
+  assert.doesNotMatch(overlay, /useSyncExternalStore|useEffect|useState|subscribeLandscapeWarning|matchMedia\(|window\.addEventListener/,
+    'JavaScript orientation event/mount lifecycles are not used in the working version');
+  assert.doesNotMatch(overlay, /aria-modal="true"/,
+    'The informational notice must not claim a persistent modal dialog');
+  assert.doesNotMatch(overlay, /pointer-events-auto/,
+    'No persistent pointer-active element should be introduced');
 });
 
-test('ready dashboard data renders without waiting for the secondary leads API', () => {
-  const cases = [
+test('CSS portrait/landscape rules occur inside the same component stylesheet', () => {
+  const src = read('frontend/src/components/LandscapeOverlay.jsx');
+  const css = src.match(/<style>\{\`([\s\S]*?)\`\}<\/style>/)?.[1];
+  assert(css, 'Working reference used a colocated orientation style element');
+  assert.match(css, /\.orientation-warning\s*\{\s*display:\s*none;\s*\}/);
+  assert.match(css, /@media\s*\(orientation:\s*landscape\)\s*and\s*\(max-width:\s*1024px\)\s*\{\s*\.orientation-warning\s*\{\s*display:\s*flex;\s*\}\s*\}/);
+  assert(!/opacity:\s*0|visibility:\s*hidden/.test(css),
+    'Hiding by display:none is important: opacity-only layers can still block taps');
+});
+
+test('do not regress working root scrolling/layout and application access', () => {
+  const css = read('frontend/src/index.css');
+  const rootRule = css.match(/\/\* ---------- Root and body ---------- \*\/\s*html,\s*body\s*\{([^}]+)\}/)?.[1];
+  assert(rootRule, 'Global root CSS must be present');
+  assert.match(rootRule, /overflow:\s*hidden/,
+    'Keep page scroll inside AppShell, not the browser document');
+  const shell = read('frontend/src/components/AppShell.jsx');
+  assert.match(shell, /h-\[100dvh\]/, 'Keep dynamic viewport sizing and navigation shell');
+  assert.match(shell, /<Suspense fallback=\{<RouteSkeleton\s*\/>\}>/,
+    'Do not regress async navigation skeleton policy');
+});
+
+test('loading captions remain hidden and dashboard data stays progressive', () => {
+  const loader = read('frontend/src/components/PageLoader.jsx');
+  assert.match(loader, /role="status"/);
+  assert.match(loader, /className="sr-only">\{message\}<\/span>/);
+  assert.doesNotMatch(loader, /<p[^>]*>\{message\}<\/p>/);
+  for (const [name, guard] of [
     ['OriginationLoanDashboard', /if \(isLoading && data === undefined\) return <PageLoader/],
     ['OriginationSaleDashboard', /if \(isLoading && data === undefined\) return <PageLoader/],
     ['OriginationMobileLoanDashboard', /if \(isDashboardLoading && dashboardData === undefined\)/],
     ['OriginationMobileSaleDashboard', /if \(isDashboardLoading && dashboardData === undefined\)/],
-  ];
-  for (const [name, guard] of cases) {
-    const src = read('frontend/src/pages/' + name + '.jsx');
-    assert.match(src, guard, 'Primary data must own the full-page loading gate: ' + name);
-    assert.doesNotMatch(src, /is(?:Dashboard)?Loading\s*\|\|\s*leadsLoading/,
-      'Secondary recent leads must not block already-available primary data: ' + name);
-    assert.doesNotMatch(src, /Loading recent leads\.\.\./,
-      'Do not show partial loading text in a populated dashboard: ' + name);
+  ]) {
+    const page = read('frontend/src/pages/' + name + '.jsx');
+    assert.match(page, guard, 'Only primary dashboard data gates the skeleton: ' + name);
+    assert.doesNotMatch(page, /is(?:Dashboard)?Loading\s*\|\|\s*leadsLoading/);
+    assert.doesNotMatch(page, /Loading recent leads\.\.\./);
   }
+});
+
+test('no employee or customer records were moved into a shared cache', () => {
   const remote = read('frontend/src/state/remote.js');
-  assert.match(remote, /gcTime: retention\?\.gcTime \?\? 0/,
-    'Protected data must remain fresh and never be reused across unmounts');
+  assert.match(remote, /gcTime: retention\?\.gcTime \?\? 0/);
   assert.match(read('frontend/src/query/memoryClient.js'), /memoryQueryClient\.clear\(\)/);
 });
