@@ -32,7 +32,7 @@ DirectoryIndex index.html index.php
     Header onsuccess unset Content-Security-Policy
     Header always set Content-Security-Policy "frame-ancestors 'self'; base-uri 'self'"
     Header onsuccess unset Content-Security-Policy-Report-Only
-    Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; form-action 'self'"
+    Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-src 'self' https: blob:; object-src 'none'; form-action 'self'"
 </IfModule>
 
 # Always route version.json to index.php to guarantee CORS headers
