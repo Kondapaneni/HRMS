@@ -110,7 +110,7 @@ const OriginationSaleDashboardDesktop = () => {
     }
   };
 
-  if (isLoading || leadsLoading) return <PageLoader message="Loading sales origination dashboard..." />;
+  if (isLoading && data === undefined) return <PageLoader message="Loading sales origination dashboard..." />;
 
   return (
     <>
@@ -325,9 +325,7 @@ const OriginationSaleDashboardDesktop = () => {
             </Link>
           </div>
 
-          {leadsLoading ? (
-            <div className="py-8 text-center text-xs text-[var(--muted)]">Loading recent leads...</div>
-          ) : recentLeads.length === 0 ? (
+          {leadsLoading ? null : recentLeads.length === 0 ? (
             <div className="py-8 text-center text-xs text-[var(--muted)]">No recent leads found.</div>
           ) : (
             <div className="overflow-x-auto">
