@@ -51,34 +51,7 @@ const EmployeeAssessmentInstructions = () => {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="w-full space-y-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm animate-pulse space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-slate-200" />
-            <div className="space-y-2">
-              <div className="h-8 w-64 bg-slate-200 rounded" />
-              <div className="h-4 w-40 bg-slate-100 rounded" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-slate-100">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2">
-                <div className="h-6 w-6 bg-slate-200 rounded mx-auto" />
-                <div className="h-8 w-16 bg-slate-200 rounded mx-auto" />
-                <div className="h-3 w-20 bg-slate-100 rounded mx-auto" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-80 animate-pulse bg-slate-100/50" />
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-80 animate-pulse bg-slate-100/50" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader message="Loading assessment instructions..." />;
 
   if (error) {
     return (
