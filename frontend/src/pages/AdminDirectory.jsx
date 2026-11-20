@@ -7,6 +7,7 @@ import { Search, Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../components/ui/Avatar';
 import SearchBar from '../components/ui/SearchBar';
+import { buildOrganizationTree } from '../utils/organizationTree';
 
 const AdminDirectory = () => {
   const [search, setSearch] = useState('');
@@ -24,48 +25,34 @@ const AdminDirectory = () => {
     }
   }, [search]);
 
-  const { data: employees = [], isLoading } = useRemoteData({
+  // Load an exact hierarchy in bounded pages, rather than silently cutting
+  // off staff beyond the old 1,000-row limit.
+  const { data: directoryResponse, isLoading, error } = useRemoteData({
     scope: ['admin', 'employees', 'directory'],
-    load: async () => {
-      const res = await api.get('/admin/employees?limit=1000');
-      return res.data.employees || [];
+    load: async ({ signal }) => {
+      const limit = 100;
+      const first = (await api.get('/admin/employees', { params: { page: 1, limit }, signal })).data;
+      const total = Number(first.pagination?.total ?? first.total ?? 0);
+      const pages = Math.ceil(total / limit);
+      if (pages > 200) throw new Error('Use the employee search for a directory of this size');
+      const all = [...(first.employees || [])];
+      for (let start = 2; start <= pages; start += 4) {
+        const batch = Array.from({ length: Math.min(4, pages - start + 1) }, (_, n) => start + n);
+        const result = await Promise.all(batch.map(async page =>
+          (await api.get('/admin/employees', { params: { page, limit }, signal })).data
+        ));
+        result.forEach(data => all.push(...(data.employees || [])));
+      }
+      const unique = [...new Map(all.map(emp => [String(emp.id), emp])).values()];
+      if (unique.length !== total) {
+        throw new Error('Employee roster changed while fetching; refresh to retry');
+      }
+      return { employees: unique, total };
     },
   });
-
-  const treeData = useMemo(() => {
-    if (!employees.length) return [];
-
-    const empMap = new Map();
-    employees.forEach((emp) => {
-      empMap.set(emp.employeeId, { ...emp, children: [] });
-      empMap.set(emp.id, empMap.get(emp.employeeId));
-    });
-
-    const roots = [];
-    const uniqueRoots = new Set();
-
-    employees.forEach((emp) => {
-      const node = empMap.get(emp.employeeId);
-      if (emp.managerId && empMap.has(emp.managerId)) {
-        const managerNode = empMap.get(emp.managerId);
-        if (managerNode.employeeId !== node.employeeId) {
-          managerNode.children.push(node);
-        } else {
-          if (!uniqueRoots.has(node.employeeId)) {
-            uniqueRoots.add(node.employeeId);
-            roots.push(node);
-          }
-        }
-      } else {
-        if (!uniqueRoots.has(node.employeeId)) {
-          uniqueRoots.add(node.employeeId);
-          roots.push(node);
-        }
-      }
-    });
-
-    return roots;
-  }, [employees]);
+  const employees = directoryResponse?.employees || [];
+  const employeeTotal = Number(directoryResponse?.total || 0);
+  const treeData = useMemo(() => buildOrganizationTree(employees), [employees]);
 
   const EmployeeNode = ({ employee, isExpanded, toggleExpand, hasChildren }) => {
     const isHighlighted =
@@ -201,7 +188,7 @@ const AdminDirectory = () => {
       return (
         <TreeNode label={labelContent}>
           {node.children.map((child) => (
-            <OrgTreeNode key={child.employeeId} node={child} />
+            <OrgTreeNode key={child.id} node={child} />
           ))}
         </TreeNode>
       );
@@ -210,7 +197,7 @@ const AdminDirectory = () => {
     return <TreeNode label={labelContent} />;
   };
 
-  if (isLoading) return <PageLoader message="Loading organization directory..." />;
+  if (isLoading) return <PageLoader message="Loading complete organization directory..." />;
 
   return (
     <div className="space-y-4 h-[calc(100vh-6.5rem)] flex flex-col max-w-7xl mx-auto pb-4 antialiased">
@@ -222,7 +209,7 @@ const AdminDirectory = () => {
               Organization directory
             </h1>
             <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-deep)]">
-              {employees.length} members
+              {employeeTotal.toLocaleString('en-IN')} members
             </span>
           </div>
           <p className="text-xs text-[var(--muted)] mt-0.5">
@@ -239,9 +226,12 @@ const AdminDirectory = () => {
         />
       </div>
 
+      {error && <div role="alert" className="text-sm text-red-600 p-4">
+        Complete organization data is unavailable. Please refresh; no partial hierarchy will be shown.
+      </div>}
       {/* Main Canvas */}
       <div className="flex-1 bg-[var(--surface)] rounded-[24px] overflow-auto relative custom-scrollbar">
-        {employees.length === 0 ? (
+        {error ? null : employees.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-[var(--muted)]">
             <User className="w-10 h-10 opacity-30 mb-3" />
             <p className="text-xs font-medium text-[var(--text)]">No employees in the organization yet</p>
@@ -257,7 +247,7 @@ const AdminDirectory = () => {
               label={<RootNode />}
             >
               {treeData.map((rootNode) => (
-                <OrgTreeNode key={rootNode.employeeId} node={rootNode} />
+                <OrgTreeNode key={rootNode.id} node={rootNode} />
               ))}
             </Tree>
           </div>
