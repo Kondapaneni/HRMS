@@ -1,5 +1,4 @@
 import React, { lazy, Suspense } from 'react'
-import PageLoader from './components/PageLoader';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import InitialRouteWarmup from './performance/InitialRouteWarmup'
@@ -235,7 +234,7 @@ function App() {
               },
             }}
           />
-          <Suspense fallback={<PageLoader message="Opening page..." />}>
+          <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
