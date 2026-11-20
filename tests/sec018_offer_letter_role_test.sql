@@ -16,12 +16,17 @@ INSERT INTO storage.objects(bucket_id,name) VALUES
  ('offer_letters','00000000-0000-4000-8000-00000000b503/offer-12345678-1234-4123-8123-123456789abc-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.pdf'),
  ('other_bucket','00000000-0000-4000-8000-00000000b503/offer-11111111-1234-4123-8123-123456789abc-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.pdf');
 
-SELECT CASE
- WHEN NOT has_function_privilege('hrms_runtime_restricted', 'hrms_security.offer_letter_object_exists(uuid,text)', 'EXECUTE')
+DO $privileges$
+BEGIN
+ IF NOT has_function_privilege('hrms_runtime_restricted', 'hrms_security.offer_letter_object_exists(uuid,text)', 'EXECUTE')
    OR has_function_privilege('anon', 'hrms_security.offer_letter_object_exists(uuid,text)', 'EXECUTE')
    OR has_function_privilege('authenticated', 'hrms_security.offer_letter_object_exists(uuid,text)', 'EXECUTE')
    OR has_function_privilege('service_role', 'hrms_security.offer_letter_object_exists(uuid,text)', 'EXECUTE')
- THEN 1 / 0 ELSE 1 END AS narrow_execute_grants;
+ THEN
+   RAISE EXCEPTION 'Incorrect SEC-018 helper EXECUTE grants';
+ END IF;
+END;
+$privileges$;
 
 SET ROLE hrms_runtime_restricted;
 DO $test$
