@@ -5,7 +5,7 @@ import { Search, LogOut, Sliders, Settings, Menu, X, ArrowLeft } from 'lucide-re
 import { useAuth } from '../contexts/AuthContext';
 import { useRefreshControl } from '../state/remote.js';
 import { warmRoute } from '../performance/routeWarmup';
-import RouteSkeleton from './RouteSkeleton';
+import PageLoader from './PageLoader';
 import Avatar from './ui/Avatar';
 import ThemeToggle from './ui/ThemeToggle';
 import LogoutModal from './LogoutModal';
@@ -385,7 +385,7 @@ export const AppShell = ({
           } md:pb-6`}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <Suspense fallback={<RouteSkeleton />}>
+          <Suspense fallback={<PageLoader message="Opening page..." />}>
             {children || <Outlet />}
           </Suspense>
         </div>
