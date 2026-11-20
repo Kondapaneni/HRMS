@@ -33,10 +33,16 @@ DO $test$
 DECLARE
  p text := '00000000-0000-4000-8000-00000000b503/offer-12345678-1234-4123-8123-123456789abc-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.pdf';
 BEGIN
- IF has_schema_privilege(current_user, 'storage', 'USAGE')
-    OR has_table_privilege(current_user, 'storage.objects', 'SELECT') THEN
-   RAISE EXCEPTION 'Restricted runtime must not gain direct Storage metadata access';
+ IF has_schema_privilege(current_user, 'storage', 'USAGE') THEN
+   RAISE EXCEPTION 'Restricted runtime unexpectedly has Storage schema USAGE';
  END IF;
+ -- Confirm a direct read fails, without granting access or leaking objects.
+ BEGIN
+   EXECUTE 'SELECT 1 FROM storage.objects LIMIT 1';
+   RAISE EXCEPTION 'Restricted runtime unexpectedly read Storage metadata';
+ EXCEPTION WHEN insufficient_privilege THEN
+   NULL; -- Expected; only the scoped helper may inspect Storage.
+ END;
  IF NOT hrms_security.offer_letter_object_exists('00000000-0000-4000-8000-00000000b503'::uuid,p) THEN
    RAISE EXCEPTION 'Existing application-scoped PDF must be visible through helper';
  END IF;
