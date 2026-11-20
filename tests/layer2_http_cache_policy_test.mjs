@@ -23,9 +23,15 @@ assert.match(shell, /Header always set Cache-Control "no-store"/);
 assert.match(shell, /Header always set Pragma "no-cache"/);
 
 // A one-year immutable response needs BOTH a physical hashed filename
-// and an original /assets/ request, so never apply it to SPA fallback HTML,
+// and an existing /assets/ file, so never apply it to SPA fallback HTML,
 // dynamic documents or an unversioned public resource.
-assert.match(apache, /SetEnvIf Request_URI "\^\/assets\/" HRMS_VITE_ASSET=1/);
+assert(apache.includes('RewriteCond %{REQUEST_FILENAME} -f'),
+  'Immutable asset must exist on disk');
+assert(apache.includes('RewriteRule ^assets/ - [END]'),
+  'Missing assets must not resolve to SPA HTML');
+const assetRewrite = apache.split('\\n').find(line => line.startsWith('RewriteRule ^assets/.+-'));
+assert(assetRewrite?.includes('[E=HRMS_VITE_ASSET:1]') &&
+  assetRewrite.includes('{8,}'), 'Only fingerprinted /assets/ requests may opt into caching');
 const fileRules = [...apache.matchAll(/<FilesMatch "([^"]+)">([\s\S]*?)<\/FilesMatch>/g)];
 const immutable = fileRules.find(([, pattern, body]) => body.includes('immutable'));
 assert(immutable, 'Missing immutable hashed-asset FilesMatch rule');
