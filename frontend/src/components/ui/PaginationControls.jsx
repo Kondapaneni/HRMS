@@ -21,13 +21,13 @@ export default function PaginationControls({ page, limit, total, onPageChange, i
       </span>
       <div className={compact ? 'flex shrink-0 items-center gap-1.5 whitespace-nowrap' : 'flex items-center gap-2'}>
         <button type="button"
-          className={`rounded-full border border-[var(--line)] py-2 disabled:opacity-40 ${compact ? 'px-2.5' : 'px-3'}`}
+          className={`rounded-full border border-[var(--line)] py-2 disabled:opacity-40 ${compact ? 'px-2.5 cursor-pointer transition-all duration-150 hover:bg-[var(--surface-alt)] hover:border-[var(--muted)] active:scale-95 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-[var(--line)] disabled:active:scale-100' : 'px-3'}`}
           disabled={page <= 1 || isFetching} onClick={() => onPageChange(Math.max(1, page - 1))}>
           Previous
         </button>
         <span aria-live="polite">Page {page} of {totalPages}</span>
         <button type="button"
-          className={`rounded-full border border-[var(--line)] py-2 disabled:opacity-40 ${compact ? 'px-2.5' : 'px-3'}`}
+          className={`rounded-full border border-[var(--line)] py-2 disabled:opacity-40 ${compact ? 'px-2.5 cursor-pointer transition-all duration-150 hover:bg-[var(--surface-alt)] hover:border-[var(--muted)] active:scale-95 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-[var(--line)] disabled:active:scale-100' : 'px-3'}`}
           disabled={page >= totalPages || isFetching} onClick={() => onPageChange(Math.min(totalPages, page + 1))}>
           Next
         </button>

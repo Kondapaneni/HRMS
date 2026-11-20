@@ -97,4 +97,21 @@ test('drawer pagination is a single row regardless of page-label length', () => 
   assert.match(pagination, /disabled=\{page >= totalPages \|\| isFetching\}/);
 });
 
+test('compact pagination buttons use pointer hover and press feedback like drawer actions', () => {
+  const previous = pagination.slice(pagination.indexOf('Previous') - 500, pagination.indexOf('Previous'));
+  const next = pagination.slice(pagination.indexOf('Next') - 500, pagination.indexOf('Next'));
+  for (const button of [previous, next]) {
+    assert.match(button, /cursor-pointer/);
+    assert.match(button, /transition-all duration-150/);
+    assert.match(button, /hover:bg-\[var\(--surface-alt\)\]/);
+    assert.match(button, /active:scale-95/);
+    assert.match(button, /disabled:cursor-not-allowed/);
+    assert.match(button, /disabled:active:scale-100/);
+  }
+  assert.match(previous, /disabled=\{page <= 1 \|\| isFetching\}/);
+  assert.match(next, /disabled=\{page >= totalPages \|\| isFetching\}/);
+  assert.match(previous, /onClick=\{\(\) => onPageChange\(Math.max\(1, page - 1\)\)\}/);
+  assert.match(next, /onClick=\{\(\) => onPageChange\(Math.min\(totalPages, page \+ 1\)\)\}/);
+});
+
 console.log('Feature Access summary, assigned ordering and single-row drawer pagination PASS');
