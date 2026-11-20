@@ -103,7 +103,7 @@ final class EmailSecurity
         $allowed = match ($type) {
             'shortlisted' => $status === 'Shortlisted',
             'rejected' => $status === 'Rejected',
-            'interview' => (bool)preg_match('/\A(?:[1-9](?:st|nd|rd|th) Round Interview|Final Round Interview|Interview)\z/', $status),
+            'interview' => (bool)preg_match('/\A(?:[1-9][0-9]{0,5}(?:st|nd|rd|th) Round Interview|Final Round Interview|Interview)\z/', $status),
             'offer' => in_array($status, ['Selected', 'Hired'], true),
             'status' => in_array($status, ['Applied', 'Selected', 'Hired', 'Converted to Employee'], true),
             'documents_verified' => in_array($status, ['Selected', 'Hired'], true),
