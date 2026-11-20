@@ -4,6 +4,8 @@ import { branchesKey, discardPrivateQueries, memoryQueryClient } from '../fronte
 
 const alice = { id: 'account-a', role: 'admin', organizationId: 'org-1', branchId: 'branch-1' };
 const bob = { id: 'account-b', role: 'admin', organizationId: 'org-1', branchId: 'branch-1' };
+// Tiny GC delays in synthetic Node tests prevent the 5-minute browser timer
+// from holding the test runner open; production TTL is separately asserted.
 
 test('branch list is reused only within the same verified user scope', async () => {
   discardPrivateQueries();
@@ -13,7 +15,7 @@ test('branch list is reused only within the same verified user scope', async () 
     queryKey: branchesKey(alice),
     queryFn: async () => { requests++; return [{ id: 'branch-1', name: 'Branch One' }]; },
     staleTime: 300_000,
-    gcTime: 300_000,
+    gcTime: 100,
   };
   const first = await memoryQueryClient.fetchQuery(aliceOptions);
   const revisit = await memoryQueryClient.fetchQuery(aliceOptions);
@@ -24,7 +26,7 @@ test('branch list is reused only within the same verified user scope', async () 
     queryKey: branchesKey(bob),
     queryFn: async () => [{ id: 'branch-2', name: 'Different Branch' }],
     staleTime: 300_000,
-    gcTime: 300_000,
+    gcTime: 100,
   });
   assert.equal(memoryQueryClient.getQueryData(branchesKey(alice))?.[0].name, 'Branch One');
   assert.equal(memoryQueryClient.getQueryData(branchesKey(bob))?.[0].name, 'Different Branch');
@@ -40,7 +42,7 @@ test('targeted invalidation requires the branch directory to be fetched again', 
     queryKey: branchesKey(alice),
     queryFn: async () => [{ id: String(++calls), name: 'Updated' }],
     staleTime: 300_000,
-    gcTime: 300_000,
+    gcTime: 100,
   };
   await memoryQueryClient.fetchQuery(options);
   await memoryQueryClient.invalidateQueries({ queryKey: branchesKey(alice), refetchType: 'none' });
@@ -68,7 +70,7 @@ test('a late request cannot restore old-account data after logout', async () => 
       signal.addEventListener('abort', () => { canceled = true; }, { once: true });
     }),
     staleTime: 300_000,
-    gcTime: 300_000,
+    gcTime: 100,
   });
   assert.equal(typeof finish, 'function');
   discardPrivateQueries();
@@ -88,7 +90,7 @@ test('expired branch references refresh and replace previously cached rows', asy
     queryKey: branchesKey(alice),
     queryFn: async () => { calls++; return [{ id: 'new', name: 'Current branch' }]; },
     staleTime: 300_000,
-    gcTime: 300_000,
+    gcTime: 100,
   });
   assert.equal(calls, 1);
   assert.deepEqual(value, [{ id: 'new', name: 'Current branch' }]);
