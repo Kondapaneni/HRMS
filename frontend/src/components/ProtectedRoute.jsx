@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import PageLoader from './PageLoader';
 
 /**
  * Roles that land on the admin dashboard after login.
@@ -33,9 +34,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500">
-        Loading...
-      </div>
+      <PageLoader message="Verifying your session..." />
     );
   }
 
@@ -50,9 +49,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     // don't redirect back to login while the request is in-flight.
     if (profileLoading && !profile) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500">
-          Loading...
-        </div>
+        <PageLoader message="Verifying your permissions..." />
       );
     }
 
