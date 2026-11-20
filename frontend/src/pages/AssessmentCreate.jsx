@@ -53,6 +53,7 @@ const AssessmentCreate = () => {
 
   // Selected questions map/array (storing IDs of checked questions)
   const [selectedIds, setSelectedIds] = useState([]);
+  const [selectedQuestionDetails, setSelectedQuestionDetails] = useState(() => new Map());
 
   // Form state for Step 3: Basic Info, Timing & Grading, Security Controls
   const [form, setForm] = useState({
@@ -100,6 +101,15 @@ const AssessmentCreate = () => {
   const questionBank = questionResponse?.questions || [];
   const questionTotal = Number(questionResponse?.pagination?.total ?? questionResponse?.total ?? 0);
 
+  useEffect(() => {
+    if (!questionBank.length) return;
+    setSelectedQuestionDetails(previous => {
+      const next = new Map(previous);
+      for (const question of questionBank) if (selectedIds.includes(question.id)) next.set(question.id, question);
+      return next;
+    });
+  }, [questionBank, selectedIds]);
+
   // Employee assignment selection spans all pages. Only the currently
   // visible page is transferred from PostgreSQL; chosen IDs stay in form state.
   const { data: employeeResponse, isLoading: loadingEmployees, isFetching: fetchingEmployees, error: employeeError } = useRemoteData({
@@ -142,6 +152,7 @@ const AssessmentCreate = () => {
       const sqs = existingAssessment.selected_questions || [];
       const ids = sqs.map(q => typeof q === 'object' ? q.id : q).filter(Boolean);
       setSelectedIds(ids);
+      setSelectedQuestionDetails(new Map(sqs.filter(q => q && typeof q === 'object' && q.id).map(q => [q.id, q])));
     }
   }, [existingAssessment, isEditing]);
 
@@ -164,24 +175,35 @@ const AssessmentCreate = () => {
   });
 
   const handleToggleQuestion = (qId) => {
-    if (selectedIds.includes(qId)) {
-      setSelectedIds(selectedIds.filter(id => id !== qId));
-    } else {
-      setSelectedIds([...selectedIds, qId]);
-    }
+    const question = questionBank.find(q => q.id === qId);
+    setSelectedIds(previous =>
+      previous.includes(qId) ? previous.filter(id => id !== qId) : [...previous, qId]
+    );
+    setSelectedQuestionDetails(previous => {
+      const next = new Map(previous);
+      if (next.has(qId)) next.delete(qId);
+      else if (question) next.set(qId, question);
+      return next;
+    });
   };
 
   const filteredQuestions = questionBank;
 
   const handleSelectAllFiltered = () => {
-    const allFilteredIds = filteredQuestions.map(q => q.id);
-    const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedIds.includes(id));
-    if (allSelected) {
-      setSelectedIds(selectedIds.filter(id => !allFilteredIds.includes(id)));
-    } else {
-      const merged = Array.from(new Set([...selectedIds, ...allFilteredIds]));
-      setSelectedIds(merged);
-    }
+    const visibleIds = questionBank.map(q => q.id);
+    const everySelected = visibleIds.length > 0 && visibleIds.every(id => selectedIds.includes(id));
+    setSelectedIds(previous => everySelected
+      ? previous.filter(id => !visibleIds.includes(id))
+      : [...new Set([...previous, ...visibleIds])]
+    );
+    setSelectedQuestionDetails(previous => {
+      const next = new Map(previous);
+      for (const question of questionBank) {
+        if (everySelected) next.delete(question.id);
+        else next.set(question.id, question);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = (e) => {
@@ -196,11 +218,16 @@ const AssessmentCreate = () => {
       return;
     }
 
-    const selectedObjects = selectedIds.map(qId => {
-      const found = questionBank.find(q => q.id === qId);
-      if (found) return found;
-      return { id: qId };
-    });
+    // Every selected question must retain its full, authoritative details,
+    // including selections made on a prior page or restored during editing.
+    const selectedObjects = selectedIds.map(qId =>
+      selectedQuestionDetails.get(qId) || questionBank.find(q => q.id === qId)
+    );
+    if (selectedObjects.some(question => !question?.id || !question?.question_text)) {
+      toast.error('Some selected questions need to be reopened in the question bank before saving.');
+      setStep(1);
+      return;
+    }
 
     const payload = {
       ...form,
