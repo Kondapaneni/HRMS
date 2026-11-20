@@ -191,18 +191,6 @@ const AdminFeatureAccess = () => {
     });
   };
 
-  const setVisiblePageSelection = (value) => {
-    setTempSelection(previous => {
-      const next = new Map(previous);
-      for (const user of users) {
-        const original = Boolean(user[selectedFeature.key]);
-        if (original === value) next.delete(user.id);
-        else next.set(user.id, value);
-      }
-      return next;
-    });
-  };
-
   const handleSaveModal = async () => {
     if (!selectedFeature) return;
     const changes = [...tempSelection].map(([userId, value]) => ({
@@ -468,31 +456,6 @@ const AdminFeatureAccess = () => {
                   value={modalSearch}
                   onChange={(e) => setModalSearch(e.target.value)}
                 />
-
-                <div className="flex flex-col gap-2 text-xs pt-1">
-                  <span className="text-[var(--muted)] font-medium whitespace-nowrap" aria-live="polite">
-                    {tempSelection.size} explicit unsaved change(s)
-                  </span>
-                  <div className="flex flex-nowrap items-center gap-3 overflow-x-auto whitespace-nowrap">
-                    <button
-                      type="button"
-                      onClick={() => setVisiblePageSelection(true)}
-                      disabled={isFetching || Boolean(directoryError) || saving}
-                      className="shrink-0 whitespace-nowrap text-[var(--brand-deep)] font-semibold hover:underline cursor-pointer disabled:opacity-40"
-                    >
-                      Select visible page
-                    </button>
-                    <span className="text-[var(--line)] shrink-0">•</span>
-                    <button
-                      type="button"
-                      onClick={() => setVisiblePageSelection(false)}
-                      disabled={isFetching || Boolean(directoryError) || saving}
-                      className="shrink-0 whitespace-nowrap text-[var(--muted)] font-semibold hover:underline cursor-pointer disabled:opacity-40"
-                    >
-                      Deselect visible page
-                    </button>
-                  </div>
-                </div>
               </div>
 
               {/* User Checklist */}
