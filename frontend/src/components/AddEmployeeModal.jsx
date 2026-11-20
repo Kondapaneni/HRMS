@@ -67,6 +67,13 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // A disabled required select is excluded from native form validation.
+    // Never create an employee without a current authorized branch choice.
+    if (branchesLoading || branchesError ||
+        !branches.some(branch => String(branch.id) === String(formData.branch_id))) {
+      setError('Choose a valid branch after the branch list finishes loading.');
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -256,7 +263,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
                 <label className="block text-xs font-semibold text-[var(--text)] mb-1">Assigned Branch *</label>
                 <select 
                   required 
-                  disabled={branchesLoading || branchesError}
+                  disabled={branchesLoading || branchesError || branches.length === 0}
                   name="branch_id" 
                   value={formData.branch_id} 
                   onChange={handleChange} 
@@ -320,7 +327,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
           <button 
             type="submit" 
             form="add-employee-form" 
-            disabled={loading} 
+            disabled={loading || branchesLoading || branchesError || !branches.some(branch => String(branch.id) === String(formData.branch_id))} 
             className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           >
             {loading ? 'Creating...' : 'Add Employee'}
