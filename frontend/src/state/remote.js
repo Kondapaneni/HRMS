@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { memoryQueryClient } from '../query/memoryClient.js';
+import { getRemoteRetention } from '../query/retentionPolicy.js';
 
 /**
- * Mounted-view request state. There is deliberately NO data cache:
- * - Every mounting view loads its own fresh server data.
- * - No data is retained when a view unmounts, in browser storage, or across users.
+ * Mounted-view requests use TanStack Query. Most sensitive HRMS data remains
+ * fresh per mount; only explicitly allowlisted reference views may retain
+ * safe results temporarily in memory. Nothing persists to browser storage.
  * - Reload notifications reach only currently mounted views.
  * - Auth logout aborts and clears mounted private views immediately.
  *
@@ -34,8 +36,16 @@ const emit = () => {
 const controller = Object.freeze({
   refresh(filter = {}) {
     const prefix = Array.isArray(filter) ? filter : filter?.scope;
-    return Promise.all([...mountedViews].filter(view => matches(view.scope, prefix))
-      .map(view => view.reload())).then(() => undefined);
+    // Mutations must also invalidate safe references from pages not mounted.
+    const invalidated = memoryQueryClient.invalidateQueries({
+      predicate: query => query.meta?.hrmsRetained === true &&
+        matches(query.meta.scope, prefix),
+      refetchType: 'none',
+    });
+    const refreshed = Promise.all([...mountedViews]
+      .filter(view => matches(view.scope, prefix))
+      .map(view => view.reload()));
+    return Promise.all([invalidated, refreshed]).then(() => undefined);
   },
   peek(scope) {
     return [...mountedViews].find(view => matches(view.scope, scope) &&
@@ -78,19 +88,20 @@ export function useRefreshControl() {
 
 /**
  * TanStack Query owns the lifecycle of all mounted HRMS read views. Private,
- * live data never shares a cache entry across mounts, accounts, filters or
- * routes: unique instance keys, staleTime 0, gcTime 0, and no persistence.
+ * live data normally uses unique mount keys, staleTime 0 and gcTime 0.
+ * Only the reviewed holiday scopes reuse data across mounts, with short TTLs.
  *
  * The legacy controller surface is retained for existing page mutation
  * handlers, so migration does not change route workflows or their security
- * assumptions. Only the explicitly audited Branch reference hook retains
- * results for five minutes.
+ * assumptions. Branch references and published job listings use separately
+ * audited reference queries.
  */
 export function useRemoteData(options) {
   const { scope = [], pollEveryMs = false,
     reloadOnFocus = true, reloadInBackground = false } = options;
   const when = options.when ?? options.enabled ?? true;
   const scopeId = JSON.stringify(scope);
+  const retention = getRemoteRetention(scope);
   const viewId = useRef(null);
   if (viewId.current === null) viewId.current = ++mountedViewSerial;
   const latestOptions = useRef(options);
@@ -104,20 +115,22 @@ export function useRemoteData(options) {
 
   // The epoch changes synchronously before a logout or account transition.
   // A key never identifies two different mounted views or session epochs.
-  const queryKey = ['hrms', 'mounted-read', 'v1',
-    sessionEpoch, viewId.current, scopeId];
+  const queryKey = retention
+    ? ['hrms', 'retained-read', 'v1', sessionEpoch, scopeId]
+    : ['hrms', 'mounted-read', 'v1', sessionEpoch, viewId.current, scopeId];
   const queryId = JSON.stringify(queryKey);
 
   const query = useQuery({
     queryKey,
     enabled: active,
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: retention?.staleTime ?? 0,
+    gcTime: retention?.gcTime ?? 0,
+    meta: retention ? { hrmsRetained: true, scope: asParts(scope) } : undefined,
     retry: false,
     networkMode: 'always',
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    refetchOnMount: 'always',
+    refetchOnMount: retention ? true : 'always',
     queryFn: async ({ signal }) => {
       const epoch = sessionEpoch;
       try {
@@ -303,6 +316,12 @@ export function useRemoteTask(options) {
       context = await latest.current.onMutate?.(variables);
       result = await runMutation(variables);
       if (startedInEpoch !== sessionEpoch) return undefined;
+      // Even an off-screen reference must be stale after a successful mutation.
+      await memoryQueryClient.invalidateQueries({
+        predicate: query => query.meta?.hrmsRetained === true ||
+          query.meta?.hrmsPublishedJobs === true,
+        refetchType: 'none',
+      });
       await latest.current.onSuccess?.(result, variables, context);
       await perCall.onSuccess?.(result, variables, context);
       if (mounted.current) setState({
