@@ -79,7 +79,10 @@ assert.match(branches, /staleTime: 5 \* 60 \* 1000/);
 assert.match(branches, /gcTime: 5 \* 60 \* 1000/);
 assert.match(branches, /\[401, 403\]/);
 assert.match(branches, /discardPrivateQueries\(\)/);
-assert.match(branches, /verified && !query\.isError/);
+assert.match(branches, /verified && !permissionDenied && !query\.isError/);
+assert.match(branches, /enabled: Boolean\(enabled && verified && !permissionDenied\)/);
+assert.match(branches, /if \(!signal\.aborted && \[401, 403\]/);
+assert.match(branches, /setPermissionDenied\(true\)/);
 assert.equal((auth.match(/discardPrivateQueries\(\)/g) || []).length, 4,
   'Auth rejects account switching, logout, cross-tab logout and verified profile rejection');
 assert.match(auth, /refreshControl\.reset\(\)/,
