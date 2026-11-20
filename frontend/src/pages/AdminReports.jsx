@@ -51,83 +51,35 @@ const AdminReports = () => {
     }
   };
 
-  const { data: employeesData = [], isLoading: loadingEmployees } = useRemoteData({
-    scope: ['admin_report_employees'],
-    load: async () => {
-      const res = await api.get('/admin/reports/employees?format=json');
-      return res.data?.data || (Array.isArray(res.data) ? res.data : []);
+  // Complete totals and groupings are calculated in PostgreSQL, not from
+  // a default 100-row report-detail page. CSV exports retain full streaming.
+  const { data: analytics, isLoading: reportsLoading, isFetching, error: reportsError } = useRemoteData({
+    scope: ['admin', 'reports', 'analytics', attendanceMonth, payrollMonth],
+    load: async ({ signal }) => {
+      const res = await api.get('/admin/reports/analytics', {
+        params: { attendanceMonth, payrollMonth }, signal
+      });
+      return res.data;
     },
   });
-
-  const { data: attendanceData = [], isLoading: loadingAttendance, isFetching: isFetchingAttendance } = useRemoteData({
-    scope: ['admin_report_attendance', attendanceMonth],
-    load: async () => {
-      const res = await api.get(`/admin/reports/attendance?month=${attendanceMonth}&format=json`);
-      return res.data?.data || (Array.isArray(res.data) ? res.data : []);
-    },
-  });
-
-  const { data: payrollData = [], isLoading: loadingPayroll, isFetching: isFetchingPayroll } = useRemoteData({
-    scope: ['admin_report_payroll', payrollMonth],
-    load: async () => {
-      const res = await api.get(`/admin/reports/payroll?month=${payrollMonth}&format=json`);
-      return res.data?.data || (Array.isArray(res.data) ? res.data : []);
-    },
-  });
-
-  const hasLoadedOnce = useRef(false);
-  if (!loadingEmployees && !loadingAttendance && !loadingPayroll) {
-    hasLoadedOnce.current = true;
-  }
-
-  const safeEmployees = Array.isArray(employeesData) ? employeesData : [];
-  const safeAttendance = Array.isArray(attendanceData) ? attendanceData : [];
-  const safePayroll = Array.isArray(payrollData) ? payrollData : [];
-
-  const departmentCounts = safeEmployees.reduce((acc, emp) => {
-    const dept = emp.Department || 'Unassigned';
-    acc[dept] = (acc[dept] || 0) + 1;
-    return acc;
-  }, {});
-  const departmentPieData = Object.keys(departmentCounts).map((key) => ({
-    name: key,
-    value: departmentCounts[key]
+  const departmentPieData = (analytics?.departments || []).map(row => ({
+    name: row.name, value: Number(row.total)
   }));
-
-  const roleCounts = safeEmployees.reduce((acc, emp) => {
-    const pos = emp.Position || 'Staff';
-    acc[pos] = (acc[pos] || 0) + 1;
-    return acc;
-  }, {});
-  const roleBarData = Object.keys(roleCounts)
-    .map((key) => ({ name: key, Headcount: roleCounts[key] }))
-    .sort((a, b) => b.Headcount - a.Headcount);
-
-  const dailyAttendance = safeAttendance.reduce((acc, log) => {
-    const date = log.Date || 'Unknown';
-    if (!acc[date]) acc[date] = { date, Present: 0, Absent: 0 };
-    const status = (log.Status || '').toLowerCase();
-    if (status.includes('present')) {
-      acc[date].Present += 1;
-    } else {
-      acc[date].Absent += 1;
-    }
-    return acc;
-  }, {});
-  const attendanceChartData = Object.values(dailyAttendance).sort((a, b) => a.date.localeCompare(b.date));
-
-  const departmentPayroll = safePayroll.reduce((acc, log) => {
-    const dept = log.Department || 'Unassigned';
-    if (!acc[dept]) acc[dept] = { dept, 'Basic Salary': 0, 'Net Salary': 0, Deductions: 0 };
-    acc[dept]['Basic Salary'] += parseFloat(log['Basic Salary'] || 0);
-    acc[dept]['Net Salary'] += parseFloat(log['Net Salary'] || 0);
-    acc[dept].Deductions += parseFloat(log.Deductions || 0);
-    return acc;
-  }, {});
-  const payrollChartData = Object.values(departmentPayroll);
-
-  if (!hasLoadedOnce.current && (loadingEmployees || loadingAttendance || loadingPayroll)) {
-    return <PageLoader message="Loading reports..." />;
+  const roleBarData = (analytics?.positions || []).map(row => ({
+    name: row.name, Headcount: Number(row.total)
+  })).sort((a, b) => b.Headcount - a.Headcount);
+  const attendanceChartData = (analytics?.attendance || []).map(row => ({
+    date: row.date, Present: Number(row.present), Absent: Number(row.absent)
+  }));
+  const payrollChartData = (analytics?.payroll || []).map(row => ({
+    dept: row.dept,
+    'Basic Salary': Number(row.basic_salary),
+    'Net Salary': Number(row.net_salary),
+    Deductions: Number(row.deductions)
+  }));
+  const departmentCount = departmentPieData.length;
+  if (reportsLoading && !analytics) {
+    return <PageLoader message="Loading complete report statistics..." />;
   }
 
   const customTooltipStyle = {
@@ -152,30 +104,31 @@ const AdminReports = () => {
         </p>
       </div>
 
+      {reportsError && <div role="alert" className="p-3 text-red-600">Unable to load complete report totals. Charts will remain empty until the server responds.</div>}
       {/* KPI Stats Overview */}
       <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total workforce"
-          value={safeEmployees.length}
+          value={Number(analytics?.totalEmployees || 0)}
           caption="Active and registered staff"
           icon={<Users size={18} />}
         />
         <StatCard
           title="Departments"
-          value={Object.keys(departmentCounts).length}
+          value={departmentCount}
           caption="Operational units"
           icon={<Building2 size={18} />}
         />
         <StatCard
           title="Attendance entries"
-          value={safeAttendance.length}
-          caption={isFetchingAttendance ? 'Updating...' : `Logged for ${attendanceMonth}`}
+          value={Number(analytics?.attendanceTotal || 0)}
+          caption={isFetching ? 'Updating...' : `Logged for ${attendanceMonth}`}
           icon={<Calendar size={18} />}
         />
         <StatCard
           title="Payroll records"
-          value={safePayroll.length}
-          caption={isFetchingPayroll ? 'Updating...' : `Disbursements for ${payrollMonth}`}
+          value={Number(analytics?.payrollTotal || 0)}
+          caption={isFetching ? 'Updating...' : `Disbursements for ${payrollMonth}`}
           icon={<IndianRupee size={18} />}
         />
       </div>

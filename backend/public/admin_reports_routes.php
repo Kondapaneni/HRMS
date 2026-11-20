@@ -40,6 +40,73 @@ function streamCsvOutput(Response $response, $filename, $stmt) {
     return $response->withStatus(200);
 }
 
+// Aggregated analytics always use the FULL authorized dataset. Detail lists
+// remain paginated and CSV exports remain full-stream downloads.
+$app->get('/api/admin/reports/analytics', function (Request $request, Response $response) {
+    $params = $request->getQueryParams();
+    $attendanceMonth = (string)($params['attendanceMonth'] ?? date('Y-m'));
+    $payrollMonth = (string)($params['payrollMonth'] ?? date('Y-m'));
+    foreach ([$attendanceMonth, $payrollMonth] as $month) {
+        if (!preg_match('/^\\d{4}-(0[1-9]|1[0-2])$/', $month)) {
+            $response->getBody()->write(json_encode(['error' => 'Invalid reporting month']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+    }
+    $start = $attendanceMonth . '-01';
+    $end = date('Y-m-t', strtotime($start));
+    [$year, $month] = array_map('intval', explode('-', $payrollMonth));
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        if (!$conn) throw new RuntimeException('Database unavailable');
+        $totalEmployees = (int)$conn->query('SELECT COUNT(*) FROM employee')->fetchColumn();
+        $departments = $conn->query(
+            "SELECT COALESCE(NULLIF(TRIM(department), ''), 'Unassigned') AS name, COUNT(*) AS total
+             FROM employee GROUP BY 1 ORDER BY 1"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $positions = $conn->query(
+            "SELECT COALESCE(NULLIF(TRIM(position), ''), 'Staff') AS name, COUNT(*) AS total
+             FROM employee GROUP BY 1 ORDER BY 1"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $attendanceStmt = $conn->prepare(
+            "SELECT a.date::text AS date, COUNT(*) AS total,
+                    SUM(CASE WHEN LOWER(COALESCE(a.status, '')) LIKE '%present%' THEN 1 ELSE 0 END) AS present,
+                    SUM(CASE WHEN LOWER(COALESCE(a.status, '')) LIKE '%present%' THEN 0 ELSE 1 END) AS absent
+             FROM attendance a JOIN employee e ON a.\"employeeId\" = e.\"userId\"
+             WHERE a.date >= ? AND a.date <= ? GROUP BY a.date ORDER BY a.date"
+        );
+        $attendanceStmt->execute([$start, $end]);
+        $attendance = $attendanceStmt->fetchAll(PDO::FETCH_ASSOC);
+        $attendanceCount = array_sum(array_map(static fn($row) => (int)$row['total'], $attendance));
+        $payrollStmt = $conn->prepare(
+            "SELECT COALESCE(NULLIF(TRIM(e.department), ''), 'Unassigned') AS dept,
+                    COUNT(*) AS total,
+                    SUM(COALESCE(e.salary, 0)) AS basic_salary,
+                    SUM(COALESCE(p.\"netSalary\", 0)) AS net_salary,
+                    SUM(GREATEST(0, COALESCE(e.salary, 0) - COALESCE(p.\"netSalary\", 0))) AS deductions
+             FROM payslips p JOIN employee e ON p.\"employeeId\" = e.\"userId\"
+             WHERE p.year = ? AND p.month = ? GROUP BY 1 ORDER BY 1"
+        );
+        $payrollStmt->execute([$year, $month]);
+        $payroll = $payrollStmt->fetchAll(PDO::FETCH_ASSOC);
+        $payrollCount = array_sum(array_map(static fn($row) => (int)$row['total'], $payroll));
+        $response->getBody()->write(json_encode([
+            'totalEmployees' => $totalEmployees,
+            'departments' => $departments,
+            'positions' => $positions,
+            'attendance' => $attendance,
+            'attendanceTotal' => $attendanceCount,
+            'payroll' => $payroll,
+            'payrollTotal' => $payrollCount
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Throwable $e) {
+        error_log('Admin aggregate reports failed: ' . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Reporting data unavailable']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+    }
+})->add(new AuthMiddleware(['admin']));
+
 // GET /api/admin/reports/employees
 $app->get('/api/admin/reports/employees', function (Request $request, Response $response, $args) {
     $queryParams = $request->getQueryParams();
