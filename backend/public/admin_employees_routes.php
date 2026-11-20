@@ -226,6 +226,43 @@ $app->put('/api/admin/employees/{id}', function (Request $request, Response $res
             throw new Exception('Employee not found');
         }
 
+        // Reporting hierarchy integrity: a selected manager must exist and
+        // cannot be this employee or any of this employee's descendants.
+        if (array_key_exists('managerId', (array)$data)
+            && $data['managerId'] !== null && trim((string)$data['managerId']) !== '') {
+            $managerId = trim((string)$data['managerId']);
+            if ($managerId === (string)$args['id']) {
+                $conn->rollBack();
+                $response->getBody()->write(json_encode(['error' => 'An employee cannot report to themselves']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+            }
+            $managerExists = $conn->prepare('SELECT 1 FROM employee WHERE id::text = ?');
+            $managerExists->execute([$managerId]);
+            if (!$managerExists->fetchColumn()) {
+                $conn->rollBack();
+                $response->getBody()->write(json_encode(['error' => 'Selected manager does not exist']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+            }
+            $cycleCheck = $conn->prepare(
+                'WITH RECURSIVE manager_chain AS (
+                    SELECT id::text AS id, "managerId"::text AS manager_id, ARRAY[id::text] AS visited
+                    FROM employee WHERE id::text = ?
+                    UNION ALL
+                    SELECT e.id::text, e."managerId"::text, chain.visited || e.id::text
+                    FROM employee e
+                    JOIN manager_chain chain ON e.id::text = chain.manager_id
+                    WHERE NOT e.id::text = ANY(chain.visited)
+                )
+                SELECT 1 FROM manager_chain WHERE id = ? LIMIT 1'
+            );
+            $cycleCheck->execute([$managerId, (string)$args['id']]);
+            if ($cycleCheck->fetchColumn()) {
+                $conn->rollBack();
+                $response->getBody()->write(json_encode(['error' => 'Reporting manager would create a cycle']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+            }
+        }
+
         $timeline = [];
         if (!empty($currentEmp['timeline'])) {
             $parsed = json_decode($currentEmp['timeline'], true);
