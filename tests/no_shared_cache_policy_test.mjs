@@ -1,5 +1,5 @@
-// Application-wide TanStack Query execution with zero-retention private views.
-// Only the reviewed Branch reference directory can retain data between routes.
+// Application-wide TanStack Query with selective, reviewed reference retention.
+// Private HRMS business records continue to have zero cross-route retention.
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -35,7 +35,9 @@ for (const path of paths) {
   const text = read(path);
   const allowed = ['frontend/src/main.jsx', 'frontend/src/query/memoryClient.js',
     'frontend/src/query/useBranchDirectory.js',
-    'frontend/src/state/remote.js'].includes(path);
+    'frontend/src/state/remote.js',
+    'frontend/src/query/publishedJobCatalog.js',
+    'frontend/src/query/retentionPolicy.js'].includes(path);
   if (!allowed) {
     assert.doesNotMatch(text,
       /@tanstack\/react-query|QueryClientProvider|\bQueryClient\b|\buseQueryClient\b|\buseQuery\s*\(|\buseMutation\s*\(|\bqueryClient\b/,
@@ -58,6 +60,10 @@ const root = read('frontend/src/App.jsx');
 const cache = read('frontend/src/query/memoryClient.js');
 const branches = read('frontend/src/query/useBranchDirectory.js');
 const requests = read('frontend/src/state/remote.js');
+const retentionPolicy = read('frontend/src/query/retentionPolicy.js');
+const publishedJobs = read('frontend/src/query/publishedJobCatalog.js');
+const candidateJobs = read('frontend/src/pages/CandidateJobs.jsx');
+const candidateDashboard = read('frontend/src/pages/CandidateDashboard.jsx');
 const storage = read('frontend/src/api/browserStorage.js');
 const warmup = read('frontend/src/performance/routeWarmup.js');
 const backend = read('backend/public/admin_employees_routes.php');
@@ -95,14 +101,39 @@ assert.match(requests, /useQuery\(\{/,
   'Mounted read views must execute through TanStack Query');
 assert.match(requests, /useMutation\(\{/,
   'Mounted tasks must execute through TanStack Mutation');
-assert.match(requests, /staleTime: 0/,
-  'Protected reads must always be stale and fetched on mount');
-assert.match(requests, /gcTime: 0/,
-  'Protected read data must be discarded immediately after unmount');
+assert.match(requests, /staleTime: retention\?\.staleTime \?\? 0/,
+  'Protected reads must default to zero stale time');
+assert.match(requests, /gcTime: retention\?\.gcTime \?\? 0/,
+  'Protected reads must default to zero unmount retention');
+assert.match(requests, /getRemoteRetention\(scope\)/,
+  'Only explicitly reviewed scopes may opt into retention');
 assert.match(requests, /sessionEpoch, viewId.current, scopeId/,
   'Protected query keys must isolate mount instance, auth epoch and filters');
 assert.match(requests, /blockedAfterReset/,
   'Mounted protected views must stay disabled on logout');
+assert.match(requests, /refetchOnMount: retention \? true : 'always'/,
+  'Fresh reference cache may be reused; protected data always refreshes');
+assert.match(requests, /query\.meta\?\.hrmsRetained === true/,
+  'Any explicit refresh must invalidate unmounted retained scopes');
+assert.match(requests, /query\.meta\?\.hrmsPublishedJobs === true/,
+  'Successful mutations must invalidate published jobs');
+assert.match(retentionPolicy, /scope\[1\] === 'holidays'/,
+  'Holiday scopes are explicitly allowlisted');
+assert.match(retentionPolicy, /scope\[1\] === 'holidays-archive'/);
+assert.doesNotMatch(retentionPolicy,
+  /payroll|attendance|dashboard|leads|applications|permissions|feature-access|gps|employee-records/i,
+  'Private business scopes must never be allowlisted for retention');
+assert.match(publishedJobs, /api\.get\('\/candidate\/jobs', \{ signal \}\)/);
+assert.match(publishedJobs, /\['candidate', 'employee'\]/,
+  'Only verified candidate or employee may load the shared job catalog');
+assert.match(publishedJobs, /discardPrivateQueries\(\)/,
+  'Auth failures must clear the private QueryClient');
+assert.match(candidateJobs, /fetchPublishedJobCatalog\(profile\)/);
+assert.match(candidateDashboard, /fetchPublishedJobCatalog\(profile\)/);
+assert.match(candidateJobs, /api\.get\('\/candidate\/applications'\)/,
+  'Candidate applications must remain fresh independently');
+assert.match(candidateDashboard, /api\.get\('\/candidate\/applications'\)/,
+  'Candidate dashboard private application data must remain fresh');
 assert.match(requests, /epoch !== sessionEpoch \|\| signal.aborted/,
   'Late requests must never restore data after account switch');
 assert.match(requests, /mountedViews\.delete\(view\)/, 'Legacy views discard state on unmount');
