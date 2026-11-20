@@ -5,6 +5,7 @@ on:
       - 'frontend/src/**'
       - 'frontend/vite.config.js'
       - 'tests/perf_frontend_policy_test.mjs'
+      - 'tests/layer1_full_coverage_test.mjs'
       - 'tests/perf_navigation_spinner_policy_test.mjs'
       - 'tests/loan_origination_directories_contract_test.mjs'
       - 'tests/perf_cold_route_policy_test.mjs'
@@ -27,6 +28,7 @@ jobs:
         run: |
           node tests/perf_frontend_policy_test.mjs
           node tests/perf_navigation_spinner_policy_test.mjs
+          node tests/layer1_full_coverage_test.mjs
           node --test tests/loan_origination_directories_contract_test.mjs
           node tests/perf_cold_route_policy_test.mjs
           node tests/perf_refresh_boot_policy_test.mjs
