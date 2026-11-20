@@ -32,17 +32,16 @@ test('feature table restores compact avatar and name chips plus true full-direct
     'Showing staff from the first page only would regress the 2002-person fix');
 });
 
-test('permission drawer labels fit as single-line controls', () => {
-  const start = frontend.indexOf('explicit unsaved change(s)');
+test('permission drawer keeps individual assignment and Save without bulk controls', () => {
+  const start = frontend.indexOf('{/* Search and Toggles */}');
   const end = frontend.indexOf('{/* User Checklist */}', start);
-  const toolbar = frontend.slice(start, end);
-  assert(start > 0 && end > start);
-  assert.match(toolbar, /whitespace-nowrap/);
-  assert.match(toolbar, /flex-nowrap/);
-  assert.match(toolbar, /Select visible page/);
-  assert.match(toolbar, /Deselect visible page/);
-  assert.match(toolbar, /shrink-0 whitespace-nowrap/g);
-  assert.match(toolbar, /disabled=\{isFetching \|\| Boolean\(directoryError\) \|\| saving\}/);
+  const searchSection = frontend.slice(start, end);
+  assert(start >= 0 && end > start);
+  assert.match(searchSection, /<SearchBar/);
+  assert.doesNotMatch(searchSection, /explicit unsaved change\(s\)|Select visible page|Deselect visible page/);
+  assert.doesNotMatch(frontend, /setVisiblePageSelection/);
+  assert.match(frontend, /onClick=\{\(\) => handleToggleUser\(u\)\}/);
+  assert.match(frontend, /onClick=\{handleSaveModal\}/);
 });
 
-console.log('Feature Access manager previews and non-wrapping drawer controls PASS');
+console.log('Feature Access manager previews and individual assignment controls PASS');
