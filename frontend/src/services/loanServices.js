@@ -1,6 +1,7 @@
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import { getBranchOperationsReceivedAt } from '../utils/branchOperationsApplicationReadState';
+import { loanLeadListPath } from './loanLeadListPath';
 
 /**
  * Creates a new loan lead.
@@ -25,10 +26,10 @@ export const getDashboardData = async () => {
  * Fetches all loan leads.
  * @returns {Promise<Object>}
  */
-export const getLeads = async ({ queryKey }) => {
-  const search = queryKey[3] || '';
-  const url = search ? `/leads/list?search=${encodeURIComponent(search)}` : '/leads/list';
-  const response = await api.get(url);
+export const getLeads = async ({ scope = [], signal } = {}) => {
+  // useRemoteData passes { scope, signal }, not React Query's former queryKey.
+  // The search portion is meaningful only for list views, never member details.
+  const response = await api.get(loanLeadListPath(scope), { signal });
   return response.data;
 };
 
