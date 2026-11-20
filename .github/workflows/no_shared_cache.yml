@@ -43,12 +43,18 @@ jobs:
         run: |
           npm view @tanstack/react-query@5.108.0 dist.integrity
           npm view @tanstack/query-core@5.108.0 dist.integrity
-      - name: Runtime branch cache security, then mounted-view and auth-reset lifecycle
+      - name: Run isolated memory-cache cancellation and identity tests
         working-directory: frontend
-        run: |
-          npm install --no-save --package-lock=false --no-audit --no-fund jsdom@26.1.0
-          node --test ../tests/branch_cache_pilot_runtime_test.mjs
-          node ../tests/mounted_remote_requests_test.mjs
+        timeout-minutes: 2
+        run: timeout 60s node --test ../tests/branch_cache_pilot_runtime_test.mjs
+      - name: Install isolated browser test support
+        working-directory: frontend
+        timeout-minutes: 3
+        run: npm install --no-save --package-lock=false --no-audit --no-fund jsdom@26.1.0
+      - name: Run existing mounted-view and auth-reset lifecycle tests
+        working-directory: frontend
+        timeout-minutes: 2
+        run: timeout 60s node ../tests/mounted_remote_requests_test.mjs
       - name: Recheck client protections in generated bundle
         run: |
           node tests/no_shared_cache_policy_test.mjs
