@@ -198,7 +198,12 @@ export function useRemoteData(options) {
     data: undefined, error: null, status: when ? 'pending' : 'idle',
     isLoading: Boolean(when), isPending: Boolean(when), isFetching: false,
   };
-  return { ...visible, refetch: reload };
+  return {
+    ...visible,
+    isError: visible.status === 'error',
+    isSuccess: visible.status === 'success',
+    refetch: reload,
+  };
 }
 
 export function useRemoteTask(options) {
