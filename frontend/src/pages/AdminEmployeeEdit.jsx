@@ -140,7 +140,18 @@ const AdminEmployeeEdit = () => {
     return <PageLoader message="Loading employee data..." />;
   }
   if (branchesQuery.isError) {
-    return <div role="alert" className="p-4 text-sm text-red-600">Unable to load the branch directory. Please return and try again.</div>;
+    return (
+      <div role="alert" className="p-4 text-sm text-red-600">
+        Unable to load the branch directory. Please retry before editing an employee.
+        <button
+          type="button"
+          className="ml-2 underline cursor-pointer"
+          onClick={() => void branchesQuery.refetch()}
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   return (
