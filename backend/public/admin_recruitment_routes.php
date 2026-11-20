@@ -417,9 +417,23 @@ $app->put('/api/admin/applications/{id}/status', function (Request $request, Res
         if ($hasOfferPath) {
             // Storage API already saved the uploaded PDF; a database-backed
             // object existence check prevents publishing a fabricated link.
-            $file = $conn->prepare('SELECT 1 FROM storage.objects WHERE bucket_id = ? AND name = ? LIMIT 1');
-            $file->execute(['offer_letters', $offerPath]);
-            if (!$file->fetchColumn()) {
+            // SEC-018: the restricted runtime role deliberately has no USAGE
+            // on storage. Avoid broad Storage grants. The vetted private
+            // SECURITY DEFINER helper returns only whether this application's
+            // immutable, generated offer PDF exists.
+            $activeRole = (string) $conn->query('SELECT current_user')->fetchColumn();
+            if ($activeRole === 'hrms_runtime_restricted') {
+                $file = $conn->prepare(
+                    'SELECT hrms_security.offer_letter_object_exists(CAST(? AS uuid), ?)'
+                );
+                $file->execute([$appId, $offerPath]);
+            } else {
+                // Preserve existing privileged and isolated CI behavior.
+                $file = $conn->prepare('SELECT 1 FROM storage.objects WHERE bucket_id = ? AND name = ? LIMIT 1');
+                $file->execute(['offer_letters', $offerPath]);
+            }
+            $exists = $file->fetchColumn();
+            if (!in_array($exists, [true, 1, '1', 't', 'true'], true)) {
                 $conn->rollBack();
                 $response->getBody()->write(json_encode(['error' => 'Offer letter upload was not found']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(409);

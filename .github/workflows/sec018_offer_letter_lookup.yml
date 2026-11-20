@@ -1,0 +1,72 @@
+name: SEC-018 restricted offer-letter Storage lookup
+
+on:
+  pull_request:
+    paths:
+      - 'backend/public/admin_recruitment_routes.php'
+      - 'backend/public/.htaccess'
+      - 'supabase/migrations/*sec018_offer_letter*'
+      - 'tests/sec018_offer_letter_role_test.sql'
+      - '.github/workflows/sec018_offer_letter_lookup.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'backend/public/admin_recruitment_routes.php'
+      - 'backend/public/.htaccess'
+      - 'supabase/migrations/*sec018_offer_letter*'
+      - 'tests/sec018_offer_letter_role_test.sql'
+      - '.github/workflows/sec018_offer_letter_lookup.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sec018_offer_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: sec018_offer_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sec018_offer_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: sec018_offer_ci_only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: PHP syntax and report-only PDF frame rule
+        run: |
+          php -l backend/public/admin_recruitment_routes.php
+          grep -Fq "frame-src 'self' https: blob:" backend/public/.htaccess
+      - name: Create synthetic-only database roles and Storage metadata
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d sec018_offer_test -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE hrms_runtime_restricted NOLOGIN;
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE ROLE service_role NOLOGIN;
+          CREATE SCHEMA hrms_security;
+          GRANT USAGE ON SCHEMA hrms_security TO hrms_runtime_restricted;
+          CREATE SCHEMA storage;
+          CREATE TABLE storage.objects (bucket_id text NOT NULL, name text NOT NULL,
+            PRIMARY KEY(bucket_id,name));
+          ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+          CREATE TABLE public.applications (id uuid PRIMARY KEY);
+          SQL
+      - name: Apply narrowly scoped helper migration and verify grants
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d sec018_offer_test -v ON_ERROR_STOP=1 \
+            -f supabase/migrations/20261120_sec018_offer_letter_metadata_lookup.sql
+          psql -h 127.0.0.1 -U postgres -d sec018_offer_test -v ON_ERROR_STOP=1 \
+            -f tests/sec018_offer_letter_role_test.sql
