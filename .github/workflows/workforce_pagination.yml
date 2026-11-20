@@ -11,6 +11,7 @@ on:
       - 'backend/public/admin_payroll_routes.php'
       - 'frontend/src/**'
       - 'tests/workforce_pagination_synthetic_test.mjs'
+      - 'tests/feature_access_assigned_manager_preview_test.mjs'
       - '.github/workflows/workforce_pagination.yml'
   workflow_dispatch:
 
@@ -26,7 +27,9 @@ jobs:
         with:
           node-version: '22'
       - name: 0 to 5001 synthetic roster pagination, hierarchy and no-global-permissions guards
-        run: node --test tests/workforce_pagination_synthetic_test.mjs
+        run: |
+          node --test tests/workforce_pagination_synthetic_test.mjs
+          node --test tests/feature_access_assigned_manager_preview_test.mjs
       - name: PHP syntax check for all modified backend routes
         run: |
           docker run --rm -v "${GITHUB_WORKSPACE}:/work:ro" -w /work php:8.2-cli sh -ec '

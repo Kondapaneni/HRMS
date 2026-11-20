@@ -99,6 +99,39 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
         }
         $delegatedManagers = (int)($fullStats['delegatedManagers'] ?? 0);
 
+        // Return a small, GLOBAL preview of assigned managers per feature.
+        // Never derive these names from a paginated user list. The columns are
+        // the same static allowlist used for counts, not user-provided SQL.
+        $previewValues = [];
+        foreach ($featureColumns as $column) {
+            $previewValues[] = "('" . $column . "', fa.\"" . $column . "\")";
+        }
+        $previewSql = '
+            SELECT ranked.feature, ranked.id, ranked."firstName", ranked."lastName"
+            FROM (
+                SELECT permissions.feature, u.id, u."firstName", u."lastName",
+                    ROW_NUMBER() OVER (
+                        PARTITION BY permissions.feature
+                        ORDER BY u."firstName" ASC, u."lastName" ASC, u.id ASC
+                    ) AS position
+                FROM users u
+                JOIN user_feature_access fa ON fa."userId" = u.id
+                CROSS JOIN LATERAL (VALUES ' . implode(', ', $previewValues) . ') AS permissions(feature, granted)
+                WHERE u.role != \'admin\' AND permissions.granted IS TRUE
+            ) ranked
+            WHERE ranked.position <= 3
+            ORDER BY ranked.feature, ranked.position
+        ';
+        $previewRows = $conn->query($previewSql)->fetchAll(PDO::FETCH_ASSOC);
+        $featurePreviews = array_fill_keys($featureColumns, []);
+        foreach ($previewRows as $entry) {
+            $featurePreviews[$entry['feature']][] = [
+                'id' => $entry['id'],
+                'firstName' => $entry['firstName'],
+                'lastName' => $entry['lastName']
+            ];
+        }
+
         // Map nulls to false
         foreach ($users as &$user) {
             $user['canAttendance'] = (bool) $user['canAttendance'];
@@ -120,6 +153,7 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
             'users' => $users,
             'total' => $totalCount,
             'featureCounts' => $featureCounts,
+            'featurePreviews' => $featurePreviews,
             'delegatedManagers' => $delegatedManagers,
             'pagination' => [
                 'page' => $page, 'limit' => $limit, 'total' => $totalCount,

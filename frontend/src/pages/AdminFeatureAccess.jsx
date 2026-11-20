@@ -361,6 +361,7 @@ const AdminFeatureAccess = () => {
                 filteredFeatures.map((feature) => {
                   const Icon = feature.icon;
                   const assignedCount = Number(featureCounts[feature.key] ?? 0);
+                  const assignedUsers = featureResponse?.featurePreviews?.[feature.key] || [];
 
                   return (
                     <tr key={feature.key} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
@@ -384,10 +385,31 @@ const AdminFeatureAccess = () => {
                       </td>
 
                       <td className="px-4 py-3.5 align-middle">
-                        <div className="flex flex-wrap gap-2 items-center">
-                          <span className="text-xs text-[var(--muted)]">
-                            {assignedCount.toLocaleString('en-IN')} assigned across the full directory
-                          </span>
+                        <div className="flex flex-wrap gap-2 items-center" title={`${assignedCount} assigned across the full directory`}>
+                          {assignedCount === 0 ? (
+                            <span className="text-xs text-[var(--muted)] italic bg-[var(--surface-alt)] border border-dashed border-[var(--line)] px-3 py-1 rounded-full whitespace-nowrap">
+                              No managers assigned
+                            </span>
+                          ) : (
+                            <>
+                              {assignedUsers.map(u => (
+                                <div
+                                  key={u.id}
+                                  className="inline-flex items-center gap-1.5 bg-[var(--surface-alt)] rounded-full pl-1 pr-2.5 py-0.5 text-xs whitespace-nowrap shrink-0 max-w-full"
+                                >
+                                  <Avatar name={`${u.firstName || ''} ${u.lastName || ''}`} size="xs" />
+                                  <span className="font-semibold text-[var(--text)] text-[11px] whitespace-nowrap truncate max-w-[180px]" title={`${u.firstName || ''} ${u.lastName || ''}`.trim()}>
+                                    {u.firstName} {u.lastName}
+                                  </span>
+                                </div>
+                              ))}
+                              {assignedCount > assignedUsers.length && (
+                                <span className="text-xs text-[var(--muted)] whitespace-nowrap shrink-0">
+                                  +{(assignedCount - assignedUsers.length).toLocaleString('en-IN')} more
+                                </span>
+                              )}
+                            </>
+                          )}
                         </div>
                       </td>
 
@@ -447,23 +469,25 @@ const AdminFeatureAccess = () => {
                   onChange={(e) => setModalSearch(e.target.value)}
                 />
 
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <span className="text-[var(--muted)] font-medium">
+                <div className="flex flex-col gap-2 text-xs pt-1">
+                  <span className="text-[var(--muted)] font-medium whitespace-nowrap" aria-live="polite">
                     {tempSelection.size} explicit unsaved change(s)
                   </span>
-                  <div className="flex gap-2">
+                  <div className="flex flex-nowrap items-center gap-3 overflow-x-auto whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => setVisiblePageSelection(true)}
-                      className="text-[var(--brand-deep)] font-semibold hover:underline cursor-pointer"
+                      disabled={isFetching || Boolean(directoryError) || saving}
+                      className="shrink-0 whitespace-nowrap text-[var(--brand-deep)] font-semibold hover:underline cursor-pointer disabled:opacity-40"
                     >
                       Select visible page
                     </button>
-                    <span className="text-[var(--line)]">•</span>
+                    <span className="text-[var(--line)] shrink-0">•</span>
                     <button
                       type="button"
                       onClick={() => setVisiblePageSelection(false)}
-                      className="text-[var(--muted)] font-semibold hover:underline cursor-pointer"
+                      disabled={isFetching || Boolean(directoryError) || saving}
+                      className="shrink-0 whitespace-nowrap text-[var(--muted)] font-semibold hover:underline cursor-pointer disabled:opacity-40"
                     >
                       Deselect visible page
                     </button>
