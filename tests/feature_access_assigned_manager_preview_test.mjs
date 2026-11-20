@@ -21,7 +21,7 @@ test('global manager previews do not depend on the first 50 roster rows', () => 
 });
 
 test('feature table restores compact avatar and name chips plus true full-directory count', () => {
-  assert.match(frontend, /featureResponse\?\.featurePreviews\?\.\[feature\.key\]/);
+  assert.match(frontend, /summaryResponse\?\.featurePreviews\?\.\[feature\.key\]/);
   assert.match(frontend, /assignedUsers\.map\(u =>/);
   assert.match(frontend, /<Avatar name=/);
   assert.match(frontend, /No managers assigned/);
@@ -44,4 +44,43 @@ test('permission drawer keeps individual assignment and Save without bulk contro
   assert.match(frontend, /onClick=\{handleSaveModal\}/);
 });
 
-console.log('Feature Access manager previews and individual assignment controls PASS');
+test('summary remains stable while searching or paging the assignment drawer', () => {
+  assert.match(frontend, /scope: \['admin', 'feature-access', 'summary'\]/);
+  assert.match(frontend, /params: \{ view: 'summary' \}/);
+  assert.match(frontend, /scope: \['admin', 'feature-access', 'directory', selectedFeature\?\.key/);
+  assert.match(frontend, /view: 'directory', page, limit, search: debouncedModalSearch/);
+  assert.match(frontend, /const featureCounts = summaryResponse\?\.featureCounts \|\| \{\}/);
+  assert.match(frontend, /const delegatedManagers = Number\(summaryResponse\?\.delegatedManagers/);
+  assert.match(backend, /\$view = \(string\)\(\$params\['view'\] \?\? 'all'\)/);
+  assert.match(backend, /if \(\$view !== 'summary'\)/);
+  assert.match(backend, /if \(\$view !== 'directory'\)/);
+  assert.doesNotMatch(frontend, /featureResponse\?\.featureCounts/);
+});
+
+test('returning from another browser tab does not restart the feature directory', () => {
+  assert.equal((frontend.match(/reloadOnFocus: false/g) || []).length, 2);
+  assert.doesNotMatch(frontend, /Updating directory/);
+  assert.match(frontend, /directoryLoading \? \(/);
+  assert.match(frontend, /directoryError \? \(/);
+});
+
+test('the drawer keeps pagination anchored and restores top-of-list on page change', () => {
+  assert.match(frontend, /staffScrollRef\.current\.scrollTop = 0/);
+  assert.match(frontend, /\[selectedFeature\?\.key, page, debouncedModalSearch\]/);
+  assert.match(frontend, /max-w-md h-full min-h-0/);
+  assert.match(frontend, /ref=\{staffScrollRef\} className="p-4 min-h-0 overflow-y-auto flex-1/);
+  assert.match(frontend, /className="shrink-0">\s*<PaginationControls/);
+});
+
+test('only allowlisted manager columns sort assigned staff before LIMIT/OFFSET', () => {
+  assert.match(backend, /\$sortFeature = \(string\)\(\$params\['assignedFirstFeature'\] \?\? ''\)/);
+  assert.match(backend, /!in_array\(\$sortFeature, \$featureColumns, true\)/);
+  assert.match(backend, /'CASE WHEN fa\."' \. \$sortFeature \. '" IS TRUE THEN 0 ELSE 1 END ASC, '/);
+  const order = backend.indexOf('ORDER BY {$assignmentOrder}');
+  const limit = backend.indexOf('LIMIT ? OFFSET ?', order);
+  assert(order > 0 && limit > order, 'Assigned-first sort must precede server pagination');
+  assert.match(backend, /u\.id ASC/);
+  assert.match(frontend, /assignedFirstFeature: selectedFeature\.key/);
+});
+
+console.log('Feature Access summary, assigned ordering and stable drawer layout PASS');

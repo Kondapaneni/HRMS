@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import SearchBar from '../components/ui/SearchBar';
@@ -121,6 +121,7 @@ const AdminFeatureAccess = () => {
   const [debouncedModalSearch, setDebouncedModalSearch] = useState('');
   const limit = 50;
   const [saving, setSaving] = useState(false);
+  const staffScrollRef = useRef(null);
 
   // Filters
   const [searchFilter, setSearchFilter] = useState('');
@@ -131,18 +132,50 @@ const AdminFeatureAccess = () => {
     return () => clearTimeout(timer);
   }, [modalSearch]);
 
-  const { data: featureResponse, isLoading: loading, isFetching, error: directoryError } = useRemoteData({
-    scope: ['admin', 'feature-access', page, debouncedModalSearch],
+  // Role counts and previews are global, not specific to a directory page or
+  // search. Keep them in a separately scoped mounted request to avoid 0/1 flicker.
+  const {
+    data: summaryResponse, isLoading: loading, error: summaryError,
+    refetch: reloadSummary
+  } = useRemoteData({
+    scope: ['admin', 'feature-access', 'summary'],
+    reloadOnFocus: false,
     load: async ({ signal }) => {
       const response = await api.get('/admin/feature-access', {
-        params: { page, limit, search: debouncedModalSearch }, signal
+        params: { view: 'summary' }, signal
       });
       return response.data;
     }
   });
-  const users = featureResponse?.users || [];
-  const totalUsers = Number(featureResponse?.pagination?.total ?? featureResponse?.total ?? 0);
-  const featureCounts = featureResponse?.featureCounts || {};
+
+  // Only fetch the scoped roster while Manage is open. The backend sorts by
+  // assigned permission before LIMIT/OFFSET, so assigned staff lead page 1.
+  const {
+    data: directoryResponse, isLoading: directoryLoading,
+    isFetching: directoryFetching, error: directoryError
+  } = useRemoteData({
+    scope: ['admin', 'feature-access', 'directory', selectedFeature?.key ?? 'closed', page, debouncedModalSearch],
+    when: Boolean(selectedFeature),
+    reloadOnFocus: false,
+    load: async ({ signal }) => {
+      const response = await api.get('/admin/feature-access', {
+        params: {
+          view: 'directory', page, limit, search: debouncedModalSearch,
+          assignedFirstFeature: selectedFeature.key
+        },
+        signal
+      });
+      return response.data;
+    }
+  });
+  const users = directoryResponse?.users || [];
+  const totalUsers = Number(directoryResponse?.pagination?.total ?? directoryResponse?.total ?? 0);
+  const featureCounts = summaryResponse?.featureCounts || {};
+
+  // A later/shorter result page must not inherit the previous page's scroll.
+  useEffect(() => {
+    if (staffScrollRef.current) staffScrollRef.current.scrollTop = 0;
+  }, [selectedFeature?.key, page, debouncedModalSearch]);
 
   const saveRolesMutation = useRemoteTask({
     run: async (changes) => {
@@ -212,12 +245,12 @@ const AdminFeatureAccess = () => {
   // Stats calculation
   const stats = useMemo(() => {
     const totalRoles = featuresList.length;
-    const delegatedManagers = Number(featureResponse?.delegatedManagers ?? 0);
+    const delegatedManagers = Number(summaryResponse?.delegatedManagers ?? 0);
     const coreCount = featuresList.filter(f => f.category === 'Core HRMS').length;
     const businessAppsCount = featuresList.filter(f => f.category === 'Business Apps').length;
 
     return { totalRoles, delegatedManagers, coreCount, businessAppsCount };
-  }, [featureResponse]);
+  }, [summaryResponse]);
 
   // Filtered features list
   const filteredFeatures = useMemo(() => {
@@ -242,7 +275,17 @@ const AdminFeatureAccess = () => {
 
   const filteredUsersForModal = users;
 
-  if (loading && !selectedFeature) return <PageLoader message="Loading Feature Roles..." />;
+  if (loading) return <PageLoader message="Loading Feature Roles..." />;
+  if (summaryError && !summaryResponse) {
+    return (
+      <div role="alert" className="p-5 text-sm text-[var(--text)]">
+        Unable to load feature role assignments.
+        <button type="button" className="ml-2 underline" onClick={() => void reloadSummary()}>
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 font-sans antialiased">
@@ -349,7 +392,7 @@ const AdminFeatureAccess = () => {
                 filteredFeatures.map((feature) => {
                   const Icon = feature.icon;
                   const assignedCount = Number(featureCounts[feature.key] ?? 0);
-                  const assignedUsers = featureResponse?.featurePreviews?.[feature.key] || [];
+                  const assignedUsers = summaryResponse?.featurePreviews?.[feature.key] || [];
 
                   return (
                     <tr key={feature.key} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
@@ -429,7 +472,7 @@ const AdminFeatureAccess = () => {
             onClick={() => !saving && setSelectedFeature(null)}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] flex flex-col animate-in slide-in-from-right duration-200">
+            <div className="w-screen max-w-md h-full min-h-0 bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
               {/* Header */}
               <div className="bg-[var(--surface)] shrink-0 px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center">
                 <div>
@@ -459,8 +502,16 @@ const AdminFeatureAccess = () => {
               </div>
 
               {/* User Checklist */}
-              <div className="p-4 overflow-y-auto flex-1 custom-scrollbar space-y-1.5">
-                {filteredUsersForModal.length === 0 ? (
+              <div ref={staffScrollRef} className="p-4 min-h-0 overflow-y-auto flex-1 custom-scrollbar space-y-1.5">
+                {directoryLoading ? (
+                  <p role="status" className="text-xs text-[var(--muted)] p-4 text-center">
+                    Loading staff…
+                  </p>
+                ) : directoryError ? (
+                  <p role="alert" className="text-xs text-red-600 p-4 text-center">
+                    Unable to load the staff directory.
+                  </p>
+                ) : filteredUsersForModal.length === 0 ? (
                   <p className="text-xs text-[var(--muted)] p-4 text-center">No matching staff members found.</p>
                 ) : (
                   filteredUsersForModal.map(u => {
@@ -500,9 +551,12 @@ const AdminFeatureAccess = () => {
                 )}
               </div>
 
-              {directoryError && <div role="alert" className="px-4 py-2 text-red-600 text-xs">Failed to load staff. Review permissions before saving.</div>}
-              {isFetching && <div className="px-4 text-xs text-[var(--muted)]">Updating directory…</div>}
-              <PaginationControls page={page} limit={limit} total={totalUsers} isFetching={isFetching} onPageChange={setPage} />
+              <div className="shrink-0">
+                <PaginationControls
+                  page={page} limit={limit} total={totalUsers}
+                  isFetching={directoryFetching} onPageChange={setPage}
+                />
+              </div>
               {/* Footer */}
               <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
                 <button
