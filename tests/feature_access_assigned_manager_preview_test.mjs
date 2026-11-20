@@ -38,10 +38,10 @@ test('permission drawer keeps individual assignment and Save without bulk contro
   const searchSection = frontend.slice(start, end);
   assert(start >= 0 && end > start);
   assert.match(searchSection, /<SearchBar/);
-  assert.doesNotMatch(searchSection, /explicit unsaved change\\(s\\)|Select visible page|Deselect visible page/);
+  assert.doesNotMatch(searchSection, /explicit unsaved change\(s\)|Select visible page|Deselect visible page/);
   assert.doesNotMatch(frontend, /setVisiblePageSelection/);
-  assert.match(frontend, /onClick=\\{\\(\\) => handleToggleUser\\(u\\)\\}/);
-  assert.match(frontend, /onClick=\\{handleSaveModal\\}/);
+  assert.match(frontend, /onClick=\{\(\) => handleToggleUser\(u\)\}/);
+  assert.match(frontend, /onClick=\{handleSaveModal\}/);
 });
 
 console.log('Feature Access manager previews and individual assignment controls PASS');
