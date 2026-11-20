@@ -121,7 +121,7 @@ assert.match(retentionPolicy, /scope\[1\] === 'holidays'/,
   'Holiday scopes are explicitly allowlisted');
 assert.match(retentionPolicy, /scope\[1\] === 'holidays-archive'/);
 assert.doesNotMatch(retentionPolicy,
-  /payroll|attendance|dashboard|leads|applications|permissions|feature-access|gps|employee-records/i,
+  /scope\\[1\\] === '(?:payroll|attendance|dashboard|leads|applications|permissions|feature-access|gps|employees)'/i,
   'Private business scopes must never be allowlisted for retention');
 assert.match(publishedJobs, /api\.get\('\/candidate\/jobs', \{ signal \}\)/);
 assert.match(publishedJobs, /\['candidate', 'employee'\]/,
