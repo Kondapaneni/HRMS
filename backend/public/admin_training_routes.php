@@ -12,18 +12,24 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
-    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
-    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
-    if ($limit <= 0) $limit = 50;
-    if ($offset < 0) $offset = 0;
-    $search = trim($params['search'] ?? '');
-
-    $where = '';
+    $limit = min(50, max(1, (int)($params['limit'] ?? 12)));
+    $offset = isset($params['offset']) ? max(0, (int)$params['offset'])
+        : (max(1, (int)($params['page'] ?? 1)) - 1) * $limit;
+    $page = intdiv($offset, $limit) + 1;
+    $search = trim((string)($params['search'] ?? ''));
+    $assignment = (string)($params['assignment'] ?? 'All');
+    $filters = [];
     $queryParams = [];
-    if (!empty($search)) {
-        $where = 'WHERE tv.title ILIKE ?';
-        $queryParams = ['%' . $search . '%'];
+    if ($search !== '') {
+        $filters[] = 'tv.title ILIKE ?';
+        $queryParams[] = '%' . $search . '%';
     }
+    if ($assignment === 'Assigned') {
+        $filters[] = "jsonb_array_length(COALESCE(tv.assigned_employee_ids::jsonb, '[]'::jsonb)) > 0";
+    } elseif ($assignment === 'Open') {
+        $filters[] = "jsonb_array_length(COALESCE(tv.assigned_employee_ids::jsonb, '[]'::jsonb)) = 0";
+    }
+    $where = $filters ? 'WHERE ' . implode(' AND ', $filters) : '';
 
     try {
         $sql = "
@@ -31,7 +37,7 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
             FROM training_videos tv
             LEFT JOIN users u ON tv.created_by = u.id
             {$where}
-            ORDER BY tv.created_at DESC
+            ORDER BY tv.created_at DESC, tv.id ASC
             LIMIT ? OFFSET ?
         ";
         $stmt = $conn->prepare($sql);
@@ -62,10 +68,29 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
         }
         unset($video);
 
+        // Aggregate independent of the current page and search filters.
+        $stats = $conn->query(
+            "SELECT COUNT(*) AS total,
+                    COUNT(*) FILTER (WHERE jsonb_array_length(COALESCE(assigned_employee_ids::jsonb, '[]'::jsonb)) > 0) AS assigned_courses
+             FROM training_videos"
+        )->fetch(PDO::FETCH_ASSOC);
+        $enrolled = (int)$conn->query(
+            "SELECT COUNT(DISTINCT employee_id) FROM training_videos tv
+             CROSS JOIN LATERAL jsonb_array_elements_text(
+               COALESCE(tv.assigned_employee_ids::jsonb, '[]'::jsonb)
+             ) AS employee_id"
+        )->fetchColumn();
         $response->getBody()->write(json_encode([
             'data' => $videos,
             'videos' => $videos,
-            'total' => $totalCount
+            'total' => $totalCount,
+            'stats' => ['total' => (int)($stats['total'] ?? 0),
+                'assignedCourses' => (int)($stats['assigned_courses'] ?? 0),
+                'enrolledStaff' => $enrolled],
+            'pagination' => ['page' => $page, 'limit' => $limit,
+                'total' => $totalCount, 'totalPages' => (int)ceil($totalCount / $limit),
+                'hasNextPage' => $offset + count($videos) < $totalCount,
+                'hasPreviousPage' => $offset > 0]
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
