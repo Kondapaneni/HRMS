@@ -7,6 +7,7 @@ on:
       - 'frontend/package-lock.json'
       - 'tests/no_shared_cache_policy_test.mjs'
       - 'tests/branch_cache_pilot_runtime_test.mjs'
+      - 'tests/branch_cache_pilot_mounted_browser_test.mjs'
       - 'tests/mounted_remote_requests_test.mjs'
       - '.github/workflows/no_shared_cache.yml'
   workflow_dispatch:
@@ -46,6 +47,10 @@ jobs:
         working-directory: frontend
         timeout-minutes: 3
         run: npm install --no-save --package-lock=false --no-audit --no-fund jsdom@26.1.0
+      - name: Run real branch hook in synthetic browser with mocked authentication
+        working-directory: frontend
+        timeout-minutes: 2
+        run: timeout 60s node --test ../tests/branch_cache_pilot_mounted_browser_test.mjs
       - name: Run existing mounted-view and auth-reset lifecycle tests
         working-directory: frontend
         timeout-minutes: 2
