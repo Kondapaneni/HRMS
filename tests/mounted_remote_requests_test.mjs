@@ -7,6 +7,7 @@ const require = createRequire(new URL('../frontend/package.json', import.meta.ur
 const { JSDOM } = require('jsdom');
 const dom = new JSDOM('<!doctype html><html><body><main id="app"></main></body></html>', {
   url: 'https://synthetic.invalid/',
+  pretendToBeVisual: true, // focus/visibility regression must simulate a visible tab
 });
 globalThis.window = dom.window;
 globalThis.document = dom.window.document;
