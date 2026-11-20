@@ -14,6 +14,7 @@ Many backend routes paginate by default (`limit=50` or `100`), while older React
 | Admin Performance | First 100 selectable, selected person resets when search changes | Server-side pageable employee roster, actual total, preserve selection |
 | Feature Access | 50-user first page, incomplete role counts, dangerous Select All | Searchable 50-user pages; global SQL role counts; only explicitly toggled employee permissions are submitted |
 | Assets assignment | `limit=200` | Server-side search and page controls inside assignment modal |
+| Bulk Payroll | Full unbounded pending roster and selection reset when paging/filtering | Bounded pending-payroll pages, proper total count, explicit selections preserved across pages |
 | Payroll and Attendance Regularization | `limit=500` picker | Shared server-side searchable EmployeeSelect with selected-record resolution |
 | Manager selection | `limit=500` | Searchable paged directory, existing manager preserved during typing, self-reference hidden; DB cycle validation remains separate |
 | Training videos | Video first 50; assignment roster first 1000 | Bounded video pages/search, SQL aggregate stats; assignment pages and explicit page-only bulk toggles |
@@ -28,6 +29,6 @@ Many backend routes paginate by default (`limit=50` or `100`), while older React
 - Synthetic test suite enumerates 0, 1, 49, 50, 51, 100, 500, 1000, 2002 and 5001, verifies lossless page traversal, final-page search, no duplicate organization nodes, and cycle handling.
 - No actual Supabase/Render employee records are created or edited to test counts.
 - Authenticated, read-only owner verification must check exact count from `/api/admin/employees?page=1&limit=50` response `pagination.total`, both search and page 41, cross-page selectors, organization hierarchy, report aggregate accuracy, role isolation, and employee/mobile views.
-- SQL search is parameterized; backend access checks and restricted salary projections stay in place.
+- SQL search is parameterized; backend access checks and restricted salary projections stay in place. Bulk payroll remains restricted to staff with payroll authorization.
 - Rollback: revert the merged PR if later authorized; do not run destructive schema or data migrations.
 - **DRAFT: no merge, deployment, maintenance mode, APK or data changes** without explicit approval.
