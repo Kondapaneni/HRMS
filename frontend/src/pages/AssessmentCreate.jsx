@@ -49,6 +49,7 @@ const AssessmentCreate = () => {
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
   const [questionSearch, setQuestionSearch] = useState('');
   const [debouncedQuestionSearch, setDebouncedQuestionSearch] = useState('');
+  const [questionPage, setQuestionPage] = useState(1);
 
   // Selected questions map/array (storing IDs of checked questions)
   const [selectedIds, setSelectedIds] = useState([]);
@@ -81,22 +82,23 @@ const AssessmentCreate = () => {
   // Debounce question search
   useEffect(() => {
     const timer = setTimeout(() => {
+      setQuestionPage(1);
       setDebouncedQuestionSearch(questionSearch);
     }, 300);
     return () => clearTimeout(timer);
   }, [questionSearch]);
 
-  // Fetch question bank
-  const { data: questionBank = [], isLoading: loadingQuestions } = useRemoteData({
-    scope: ['adminQuestions', selectedDeptFilter],
-    load: async () => {
-      const url = selectedDeptFilter === 'All' 
-        ? '/admin/questions' 
-        : `/admin/questions?department=${encodeURIComponent(selectedDeptFilter)}`;
-      const res = await api.get(url);
-      return res.data?.data || res.data || [];
+  // Page through the entire question bank while retaining selected IDs.
+  const { data: questionResponse, isLoading: loadingQuestions, isFetching: fetchingQuestions, error: questionsError } = useRemoteData({
+    scope: ['adminQuestions', selectedDeptFilter, questionPage, debouncedQuestionSearch],
+    load: async ({ signal }) => {
+      const params = { page: questionPage, limit: 50, search: debouncedQuestionSearch };
+      if (selectedDeptFilter !== 'All') params.department = selectedDeptFilter;
+      return (await api.get('/admin/questions', { params, signal })).data;
     }
   });
+  const questionBank = questionResponse?.questions || [];
+  const questionTotal = Number(questionResponse?.pagination?.total ?? questionResponse?.total ?? 0);
 
   // Employee assignment selection spans all pages. Only the currently
   // visible page is transferred from PostgreSQL; chosen IDs stay in form state.
@@ -169,14 +171,7 @@ const AssessmentCreate = () => {
     }
   };
 
-  const filteredQuestions = useMemo(() => {
-    if (!debouncedQuestionSearch.trim()) return questionBank;
-    const q = debouncedQuestionSearch.toLowerCase();
-    return questionBank.filter(item => 
-      (item.question_text && item.question_text.toLowerCase().includes(q)) ||
-      (item.department && item.department.toLowerCase().includes(q))
-    );
-  }, [questionBank, debouncedQuestionSearch]);
+  const filteredQuestions = questionBank;
 
   const handleSelectAllFiltered = () => {
     const allFilteredIds = filteredQuestions.map(q => q.id);
@@ -330,19 +325,19 @@ const AssessmentCreate = () => {
           <div className="rounded-[24px] bg-[var(--surface)] p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
               <button
-                onClick={() => setSelectedDeptFilter('All')}
+                onClick={() => { setSelectedDeptFilter('All'); setQuestionPage(1); }}
                 className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                   selectedDeptFilter === 'All'
                     ? 'bg-[var(--ink)] text-white'
                     : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
                 }`}
               >
-                All departments ({selectedDeptFilter === 'All' ? questionBank.length : 'All'})
+                All departments ({selectedDeptFilter === 'All' ? questionTotal : 'All'})
               </button>
               {DEPARTMENTS.map((dept) => (
                 <button
                   key={dept}
-                  onClick={() => setSelectedDeptFilter(dept)}
+                  onClick={() => { setSelectedDeptFilter(dept); setQuestionPage(1); }}
                   className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                     selectedDeptFilter === dept
                       ? 'bg-[var(--ink)] text-white'
@@ -370,7 +365,7 @@ const AssessmentCreate = () => {
               >
                 {filteredQuestions.length > 0 && filteredQuestions.every(q => selectedIds.includes(q.id))
                   ? 'Deselect all'
-                  : 'Select all'}
+                  : 'Select visible page'}
               </Button>
             </div>
           </div>
@@ -461,9 +456,9 @@ const AssessmentCreate = () => {
                 </tbody>
               </table>
             </div>
-            {employeeError && <p role="alert" className="p-3 text-xs text-red-600">Could not load employee selections.</p>}
-            <PaginationControls page={employeePage} limit={50} total={employeeTotal}
-              isFetching={fetchingEmployees} onPageChange={setEmployeePage} />
+            {questionsError && <p role="alert" className="p-3 text-xs text-red-600">Could not load the question bank.</p>}
+            <PaginationControls page={questionPage} limit={50} total={questionTotal}
+              isFetching={fetchingQuestions} onPageChange={setQuestionPage} />
           </div>
         </div>
       )}
@@ -620,6 +615,9 @@ const AssessmentCreate = () => {
                 </tbody>
               </table>
             </div>
+            {employeeError && <p role="alert" className="p-3 text-xs text-red-600">Could not load employee selections.</p>}
+            <PaginationControls page={employeePage} limit={50} total={employeeTotal}
+              isFetching={fetchingEmployees} onPageChange={setEmployeePage} />
           </div>
         </div>
       )}
