@@ -8,6 +8,10 @@ export function isLandscapeWarningActive(view = typeof window === 'undefined' ? 
   // Some Android WebViews update CSS orientation after the native screen
   // orientation. A known portrait screen must never remain touch-blocked.
   if (view.screen?.orientation?.type?.startsWith('portrait')) return false;
+  // A portrait-shaped viewport is another reliable veto if ScreenOrientation
+  // and media queries are still reporting the pre-rotation landscape state.
+  if (view.innerWidth > 0 && view.innerHeight > 0 &&
+      view.innerWidth <= view.innerHeight) return false;
   const media = view.matchMedia?.(LANDSCAPE_WARNING_QUERY);
   if (media) return Boolean(media.matches);
   return view.innerWidth > view.innerHeight && view.innerWidth <= 1024;
