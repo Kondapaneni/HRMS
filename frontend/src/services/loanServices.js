@@ -27,7 +27,7 @@ export const getDashboardData = async () => {
  * @returns {Promise<Object>}
  */
 export const getLeads = async ({ scope = [], signal } = {}) => {
-  // useRemoteData passes { scope, signal }, not React Query's former queryKey.
+  // The active request hook supplies the scope and abort signal directly.
   // The search portion is meaningful only for list views, never member details.
   const response = await api.get(loanLeadListPath(scope), { signal });
   return response.data;
